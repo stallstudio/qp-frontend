@@ -1,0 +1,54 @@
+{
+  "home": {
+    "title": "Queue Park",
+    "subtitle": "¡Tiempos de espera de tus parques de atracciones favoritos en vivo!"
+  },
+  "search": {
+    "placeholder": "Busca un parque por nombre, grupo o país...",
+    "noResults": "No se encontraron parques que coincidan con tu búsqueda. ¡Inténtalo de nuevo!",
+    "randomParkToast": "Los dados dicen:"
+  },
+  "parksList": {
+    "title": "Todos los Parques Temáticos",
+    "sortByGroup": "Por Grupo",
+    "sortByCountry": "Por País"
+  },
+  "popularParks": {
+    "title": "Parques Populares",
+    "trendingText": "Tendencias en las últimas 2 horas",
+    "visitsNote": "visitas en las últimas 2 horas"
+  },
+  "parkPage": {
+    "backHome": "Volver al inicio",
+    "localTime": "Hora Local",
+    "todayHours": "Horario de hoy",
+    "extraOpeningHours": "Horas de apertura extra",
+    "extendedHours": "Horario extendido",
+    "closedToday": "Cerrado hoy",
+    "hoursUnavailable": "Los horarios de apertura no están disponibles actualmente"
+  },
+  "parkStatus": {
+    "open": "Abierto",
+    "closed": "Cerrado"
+  },
+  "waitTimeTable": {
+    "attraction": "Atracción",
+    "waitTime": "Espera",
+    "status": "Estado",
+    "noWaitTimes": "No hay tiempos de espera disponibles por ahora",
+    "refreshingIn": "Actualizando en",
+    "second": "segundo",
+    "seconds": "segundos",
+    "nowRefreshing": "Actualizando...",
+    "lastUpdate": "Última actualización"
+  },
+  "footer": {
+    "copyright": "© {year} Queue Park. Todos los derechos reservados.",
+    "contactText": "Contáctame en"
+  },
+  "errors": {
+    "configError": "Error de configuración. Por favor, contacta con soporte.",
+    "fetchError": "Error al obtener los parques:",
+    "parkNotFound": "El parque que buscas no existe"
+  }
+}

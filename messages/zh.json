@@ -1,0 +1,54 @@
+{
+  "home": {
+    "title": "Queue Park",
+    "subtitle": "实时掌握您最喜爱的游乐园排队时间！"
+  },
+  "search": {
+    "placeholder": "按名称、集团或国家搜索乐园...",
+    "noResults": "未找到匹配的乐园。请重试！",
+    "randomParkToast": "骰子结果为："
+  },
+  "parksList": {
+    "title": "所有主题乐园",
+    "sortByGroup": "按集团",
+    "sortByCountry": "按国家"
+  },
+  "popularParks": {
+    "title": "热门乐园",
+    "trendingText": "过去 2 小时的趋势",
+    "visitsNote": "过去 2 小时内的访问量"
+  },
+  "parkPage": {
+    "backHome": "返回首页",
+    "localTime": "当地时间",
+    "todayHours": "今日营业时间",
+    "extraOpeningHours": "额外开放时间",
+    "extendedHours": "延长营业时间",
+    "closedToday": "今日闭园",
+    "hoursUnavailable": "暂无营业时间信息"
+  },
+  "parkStatus": {
+    "open": "开园中",
+    "closed": "已闭园"
+  },
+  "waitTimeTable": {
+    "attraction": "游乐设施",
+    "waitTime": "排队时间",
+    "status": "状态",
+    "noWaitTimes": "暂无排队时间信息",
+    "refreshingIn": "刷新倒计时",
+    "second": "秒",
+    "seconds": "秒",
+    "nowRefreshing": "正在刷新...",
+    "lastUpdate": "最后更新"
+  },
+  "footer": {
+    "copyright": "© {year} Queue Park. 保留所有权利。",
+    "contactText": "联系我："
+  },
+  "errors": {
+    "configError": "配置错误。请联系支持人员。",
+    "fetchError": "无法获取乐园信息：",
+    "parkNotFound": "您寻找的乐园不存在"
+  }
+}

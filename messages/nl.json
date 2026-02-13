@@ -1,0 +1,54 @@
+{
+  "home": {
+    "title": "Queue Park",
+    "subtitle": "Wachttijden voor je favoriete attractieparken live!"
+  },
+  "search": {
+    "placeholder": "Zoek een park op naam, groep of land...",
+    "noResults": "Geen parken gevonden die voldoen aan je zoekopdracht. Probeer het opnieuw!",
+    "randomParkToast": "Je hebt gegooid op:"
+  },
+  "parksList": {
+    "title": "Alle Attractieparken",
+    "sortByGroup": "Op Groep",
+    "sortByCountry": "Op Land"
+  },
+  "popularParks": {
+    "title": "Populaire Parken",
+    "trendingText": "Trending in de afgelopen 2 uur",
+    "visitsNote": "bezoeken in de afgelopen 2 uur"
+  },
+  "parkPage": {
+    "backHome": "Terug naar home",
+    "localTime": "Lokale Tijd",
+    "todayHours": "Openingstijden van vandaag",
+    "extraOpeningHours": "Extra openingstijden",
+    "extendedHours": "Verlengde openingstijden",
+    "closedToday": "Vandaag gesloten",
+    "hoursUnavailable": "Openingstijden zijn momenteel niet beschikbaar"
+  },
+  "parkStatus": {
+    "open": "Open",
+    "closed": "Gesloten"
+  },
+  "waitTimeTable": {
+    "attraction": "Attractie",
+    "waitTime": "Wachttijd",
+    "status": "Status",
+    "noWaitTimes": "Momenteel geen wachttijden beschikbaar",
+    "refreshingIn": "Verversen over",
+    "second": "seconde",
+    "seconds": "seconden",
+    "nowRefreshing": "Nu aan het verversen...",
+    "lastUpdate": "Laatste Update"
+  },
+  "footer": {
+    "copyright": "© {year} Queue Park. Alle rechten voorbehouden.",
+    "contactText": "Neem contact met me op via"
+  },
+  "errors": {
+    "configError": "Configuratiefout. Neem contact op met de klantenservice.",
+    "fetchError": "Fout bij het ophalen van parken:",
+    "parkNotFound": "Het park dat je zoekt bestaat niet"
+  }
+}

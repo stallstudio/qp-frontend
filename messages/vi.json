@@ -1,0 +1,54 @@
+{
+  "home": {
+    "title": "Queue Park",
+    "subtitle": "Cập nhật thời gian chờ tại các công viên giải trí yêu thích của bạn theo thời gian thực!"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm công viên theo tên, tập đoàn hoặc quốc gia...",
+    "noResults": "Không tìm thấy công viên nào khớp với tìm kiếm của bạn. Thử lại nhé!",
+    "randomParkToast": "Xúc xắc đã dừng ở:"
+  },
+  "parksList": {
+    "title": "Tất cả công viên chủ đề",
+    "sortByGroup": "Theo tập đoàn",
+    "sortByCountry": "Theo quốc gia"
+  },
+  "popularParks": {
+    "title": "Công viên phổ biến",
+    "trendingText": "Xu hướng trong 2 giờ qua",
+    "visitsNote": "lượt tham quan trong 2 giờ qua"
+  },
+  "parkPage": {
+    "backHome": "Quay lại trang chủ",
+    "localTime": "Giờ địa phương",
+    "todayHours": "Giờ mở cửa hôm nay",
+    "extraOpeningHours": "Giờ mở cửa bổ sung",
+    "extendedHours": "Giờ kéo dài",
+    "closedToday": "Đóng cửa hôm nay",
+    "hoursUnavailable": "Hiện không có thông tin về giờ mở cửa"
+  },
+  "parkStatus": {
+    "open": "Đang mở cửa",
+    "closed": "Đã đóng cửa"
+  },
+  "waitTimeTable": {
+    "attraction": "Trò chơi",
+    "waitTime": "Thời gian chờ",
+    "status": "Trạng thái",
+    "noWaitTimes": "Hiện không có thông tin về thời gian chờ",
+    "refreshingIn": "Làm mới sau",
+    "second": "giây",
+    "seconds": "giây",
+    "nowRefreshing": "Đang làm mới...",
+    "lastUpdate": "Cập nhật lần cuối"
+  },
+  "footer": {
+    "copyright": "© {year} Queue Park. Bảo lưu mọi quyền.",
+    "contactText": "Liên hệ với tôi tại"
+  },
+  "errors": {
+    "configError": "Lỗi cấu hình. Vui lòng liên hệ hỗ trợ.",
+    "fetchError": "Không thể tải dữ liệu công viên:",
+    "parkNotFound": "Công viên bạn tìm kiếm không tồn tại"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "home": {
+    "title": "Queue Park",
+    "subtitle": "お気に入りの遊園地の待ち時間をリアルタイムでチェック！"
+  },
+  "search": {
+    "placeholder": "パーク名、グループ、国名で検索...",
+    "noResults": "該当するパークが見つかりませんでした。もう一度お試しください。",
+    "randomParkToast": "ダイスの結果："
+  },
+  "parksList": {
+    "title": "すべてのテーマパーク",
+    "sortByGroup": "グループ別",
+    "sortByCountry": "国別"
+  },
+  "popularParks": {
+    "title": "人気のパーク",
+    "trendingText": "過去2時間のトレンド",
+    "visitsNote": "過去2時間の訪問数"
+  },
+  "parkPage": {
+    "backHome": "ホームに戻る",
+    "localTime": "現地時間",
+    "todayHours": "本日の営業時間",
+    "extraOpeningHours": "特別営業時間",
+    "extendedHours": "延長営業",
+    "closedToday": "本日は休園です",
+    "hoursUnavailable": "現在、営業時間は利用できません"
+  },
+  "parkStatus": {
+    "open": "開園中",
+    "closed": "閉園"
+  },
+  "waitTimeTable": {
+    "attraction": "アトラクション",
+    "waitTime": "待ち時間",
+    "status": "状況",
+    "noWaitTimes": "現在、待ち時間情報はありません",
+    "refreshingIn": "更新まであと",
+    "second": "秒",
+    "seconds": "秒",
+    "nowRefreshing": "更新中...",
+    "lastUpdate": "最終更新"
+  },
+  "footer": {
+    "copyright": "© {year} Queue Park. All rights reserved.",
+    "contactText": "お問い合わせ先："
+  },
+  "errors": {
+    "configError": "設定エラーが発生しました。サポートにお問い合わせください。",
+    "fetchError": "データの取得に失敗しました：",
+    "parkNotFound": "お探しのパークは見つかりませんでした"
+  }
+}

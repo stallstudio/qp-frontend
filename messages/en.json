@@ -1,0 +1,54 @@
+{
+  "home": {
+    "title": "Queue Park",
+    "subtitle": "Waiting times for your favorite amusement parks live!"
+  },
+  "search": {
+    "placeholder": "Search for a park by name, group or country...",
+    "noResults": "No parks found matching your search. Try again!",
+    "randomParkToast": "Your dice landed on:"
+  },
+  "parksList": {
+    "title": "All Theme Parks",
+    "sortByGroup": "By Group",
+    "sortByCountry": "By Country"
+  },
+  "popularParks": {
+    "title": "Popular Parks",
+    "trendingText": "Trending over the past 2 hours",
+    "visitsNote": "visits in the last 2 hours"
+  },
+  "parkPage": {
+    "backHome": "Back home",
+    "localTime": "Local Time",
+    "todayHours": "Today's Hours",
+    "extraOpeningHours": "Extra opening hours",
+    "extendedHours": "Extended hours",
+    "closedToday": "Closed today",
+    "hoursUnavailable": "Opening hours are currently unavailable"
+  },
+  "parkStatus": {
+    "open": "Open",
+    "closed": "Closed"
+  },
+  "waitTimeTable": {
+    "attraction": "Attraction",
+    "waitTime": "Wait Time",
+    "status": "Status",
+    "noWaitTimes": "No wait times available for now",
+    "refreshingIn": "Refreshing in",
+    "second": "second",
+    "seconds": "seconds",
+    "nowRefreshing": "Now refreshing...",
+    "lastUpdate": "Last Update"
+  },
+  "footer": {
+    "copyright": "© {year} Queue Park. All rights reserved.",
+    "contactText": "Contact me at"
+  },
+  "errors": {
+    "configError": "Configuration error. Please contact support.",
+    "fetchError": "Failed to fetch parks:",
+    "parkNotFound": "The park you are looking for does not exist"
+  }
+}

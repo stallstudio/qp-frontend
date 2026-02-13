@@ -1,0 +1,54 @@
+{
+  "home": {
+    "title": "Queue Park",
+    "subtitle": "Ventetider for dine yndlingsforlystelsesparker live!"
+  },
+  "search": {
+    "placeholder": "Søg efter en park efter navn, gruppe eller land...",
+    "noResults": "Ingen parker fundet, der matcher din søgning. Prøv igen!",
+    "randomParkToast": "Terningen landede på:"
+  },
+  "parksList": {
+    "title": "Alle forlystelsesparker",
+    "sortByGroup": "Efter gruppe",
+    "sortByCountry": "Efter land"
+  },
+  "popularParks": {
+    "title": "Populære parker",
+    "trendingText": "Trender over de sidste 2 timer",
+    "visitsNote": "besøg de sidste 2 timer"
+  },
+  "parkPage": {
+    "backHome": "Tilbage til forsiden",
+    "localTime": "Lokal tid",
+    "todayHours": "Dagens åbningstider",
+    "extraOpeningHours": "Ekstra åbningstider",
+    "extendedHours": "Udvidede åbningstider",
+    "closedToday": "Lukket i dag",
+    "hoursUnavailable": "Åbningstider er i øjeblikket utilgængelige"
+  },
+  "parkStatus": {
+    "open": "Åben",
+    "closed": "Lukket"
+  },
+  "waitTimeTable": {
+    "attraction": "Forlystelse",
+    "waitTime": "Ventetid",
+    "status": "Status",
+    "noWaitTimes": "Ingen ventetider tilgængelige lige nu",
+    "refreshingIn": "Opdaterer om",
+    "second": "sekund",
+    "seconds": "sekunder",
+    "nowRefreshing": "Opdaterer nu...",
+    "lastUpdate": "Sidste opdatering"
+  },
+  "footer": {
+    "copyright": "© {year} Queue Park. Alle rettigheder forbeholdes.",
+    "contactText": "Kontakt mig på"
+  },
+  "errors": {
+    "configError": "Konfigurationsfejl. Kontakt venligst support.",
+    "fetchError": "Kunne ikke hente parker:",
+    "parkNotFound": "Parken, du leder efter, findes ikke"
+  }
+}

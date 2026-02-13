@@ -1,0 +1,54 @@
+{
+  "home": {
+    "title": "Queue Park",
+    "subtitle": "Väntetider för dina favoritnöjesparker live!"
+  },
+  "search": {
+    "placeholder": "Sök efter en park via namn, grupp eller land...",
+    "noResults": "Inga parker hittades som matchar din sökning. Försök igen!",
+    "randomParkToast": "Tärningen landade på:"
+  },
+  "parksList": {
+    "title": "Alla temaparker",
+    "sortByGroup": "Efter grupp",
+    "sortByCountry": "Efter land"
+  },
+  "popularParks": {
+    "title": "Populära parker",
+    "trendingText": "Trendar under de senaste 2 timmarna",
+    "visitsNote": "besök de senaste 2 timmarna"
+  },
+  "parkPage": {
+    "backHome": "Tillbaka hem",
+    "localTime": "Lokal tid",
+    "todayHours": "Dagens öppettider",
+    "extraOpeningHours": "Extra öppettider",
+    "extendedHours": "Förlängda öppettider",
+    "closedToday": "Stängt idag",
+    "hoursUnavailable": "Öppettider är för närvarande inte tillgängliga"
+  },
+  "parkStatus": {
+    "open": "Öppet",
+    "closed": "Stängt"
+  },
+  "waitTimeTable": {
+    "attraction": "Attraktion",
+    "waitTime": "Väntetid",
+    "status": "Status",
+    "noWaitTimes": "Inga väntetider tillgängliga just nu",
+    "refreshingIn": "Uppdateras om",
+    "second": "sekund",
+    "seconds": "sekunder",
+    "nowRefreshing": "Uppdaterar...",
+    "lastUpdate": "Senaste uppdatering"
+  },
+  "footer": {
+    "copyright": "© {year} Queue Park. Alla rättigheter förbehållna.",
+    "contactText": "Kontakta mig på"
+  },
+  "errors": {
+    "configError": "Konfigurationsfel. Vänligen kontakta support.",
+    "fetchError": "Misslyckades med att hämta parker:",
+    "parkNotFound": "Parken du letar efter finns inte"
+  }
+}
