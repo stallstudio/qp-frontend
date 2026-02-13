@@ -50,5 +50,15 @@
     "configError": "Lỗi cấu hình. Vui lòng liên hệ hỗ trợ.",
     "fetchError": "Không thể tải dữ liệu công viên:",
     "parkNotFound": "Công viên bạn tìm kiếm không tồn tại"
+  },
+  "metadata": {
+    "title": "Queue Park - Thời Gian Chờ Công Viên Theo Thời Gian Thực",
+    "titleTemplate": "%s | Queue Park",
+    "description": "Thời gian chờ theo thời gian thực cho hơn 100 công viên chủ đề trên toàn thế giới. Theo dõi hàng đợi trò chơi, lên kế hoạch chuyến thăm và tối đa hóa niềm vui với dữ liệu trực tiếp từ API của công viên.",
+    "keywords": "thời gian chờ công viên, hàng đợi công viên giải trí, thời gian chờ tàu lượn, ứng dụng công viên chủ đề, thời gian chờ trực tiếp, hàng đợi trò chơi, thời gian chờ Disney, thời gian chờ Universal, thời gian chờ Six Flags, kế hoạch công viên",
+    "ogTitle": "Queue Park - Thời Gian Chờ Công Viên Theo Thời Gian Thực",
+    "ogDescription": "Thời gian chờ theo thời gian thực cho hơn 100 công viên chủ đề trên toàn thế giới. Theo dõi hàng đợi và lên kế hoạch chuyến thăm với dữ liệu trực tiếp.",
+    "twitterTitle": "Queue Park - Thời Gian Chờ Công Viên Theo Thời Gian Thực",
+    "twitterDescription": "Thời gian chờ theo thời gian thực cho hơn 100 công viên chủ đề trên toàn thế giới. Theo dõi hàng đợi và lên kế hoạch chuyến thăm."
   }
 }

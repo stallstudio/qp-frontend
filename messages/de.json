@@ -50,5 +50,15 @@
     "configError": "Konfigurationsfehler. Bitte kontaktiere den Support.",
     "fetchError": "Fehler beim Abrufen der Parks:",
     "parkNotFound": "Der gesuchte Park existiert nicht"
+  },
+  "metadata": {
+    "title": "Queue Park - Live Wartezeiten für Freizeitparks",
+    "titleTemplate": "%s | Queue Park",
+    "description": "Echtzeit-Wartezeiten für über 100 Freizeitparks weltweit. Verfolgen Sie Warteschlangen, planen Sie Ihren Besuch und maximieren Sie Ihren Spaß mit Live-Daten direkt von Park-APIs.",
+    "keywords": "Freizeitpark Wartezeiten, Vergnügungspark Warteschlangen, Achterbahn Wartezeiten, Freizeitpark App, Live Wartezeiten, Attraktionen Warteschlangen, Disney Wartezeiten, Universal Wartezeiten, Six Flags Wartezeiten, Freizeitpark Planung",
+    "ogTitle": "Queue Park - Live Wartezeiten für Freizeitparks",
+    "ogDescription": "Echtzeit-Wartezeiten für über 100 Freizeitparks weltweit. Verfolgen Sie Warteschlangen und planen Sie Ihren Besuch mit Live-Daten.",
+    "twitterTitle": "Queue Park - Live Wartezeiten für Freizeitparks",
+    "twitterDescription": "Echtzeit-Wartezeiten für über 100 Freizeitparks weltweit. Verfolgen Sie Warteschlangen und planen Sie Ihren Besuch."
   }
 }

@@ -21,7 +21,7 @@
   "parkPage": {
     "backHome": "Retour à l'accueil",
     "localTime": "Heure Locale",
-    "todayHours": "Horaires d'Aujourd'hui",
+    "todayHours": "Horaires du jour",
     "extraOpeningHours": "Heures d'ouverture supplémentaires",
     "extendedHours": "Horaires prolongés",
     "closedToday": "Fermé aujourd'hui",
@@ -50,5 +50,15 @@
     "configError": "Erreur de configuration. Veuillez contacter le support.",
     "fetchError": "Échec de la récupération des parcs :",
     "parkNotFound": "Le parc que vous recherchez n'existe pas"
+  },
+  "metadata": {
+    "title": "Queue Park - Temps d'Attente des Parcs en Direct",
+    "titleTemplate": "%s | Queue Park",
+    "description": "Temps d'attente en temps réel pour plus de 100 parcs d'attractions dans le monde. Suivez les files d'attente, planifiez votre visite et maximisez votre plaisir avec des données en direct des API des parcs.",
+    "keywords": "temps d'attente parcs, files d'attente parcs d'attractions, temps d'attente montagnes russes, application parcs, temps d'attente en direct, files d'attente attractions, temps d'attente Disney, temps d'attente Universal, temps d'attente Six Flags, planification parc",
+    "ogTitle": "Queue Park - Temps d'Attente des Parcs en Direct",
+    "ogDescription": "Temps d'attente en temps réel pour plus de 100 parcs d'attractions dans le monde. Suivez les files d'attente et planifiez votre visite avec des données en direct.",
+    "twitterTitle": "Queue Park - Temps d'Attente des Parcs en Direct",
+    "twitterDescription": "Temps d'attente en temps réel pour plus de 100 parcs d'attractions dans le monde. Suivez les files d'attente et planifiez votre visite."
   }
 }

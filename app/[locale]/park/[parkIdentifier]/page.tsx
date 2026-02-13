@@ -56,7 +56,7 @@ export default function ParkPage({
 
   useEffect(() => {
     if (parkData?.name) {
-      document.title = `${parkData.name} | Queue Park`;
+      document.title = `${parkData.name} - Queue Park`;
     }
   }, [parkData]);
 

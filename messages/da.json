@@ -50,5 +50,15 @@
     "configError": "Konfigurationsfejl. Kontakt venligst support.",
     "fetchError": "Kunne ikke hente parker:",
     "parkNotFound": "Parken, du leder efter, findes ikke"
+  },
+  "metadata": {
+    "title": "Queue Park - Live Ventetider for Forlystelsesparker",
+    "titleTemplate": "%s | Queue Park",
+    "description": "Ventetider i realtid for over 100 forlystelsesparker verden over. Spor køer til attraktioner, planlæg dit besøg og maksimer din fornøjelse med live data direkte fra park-API'er.",
+    "keywords": "forlystelsespark ventetider, forlystelsespark køer, rutsjebane ventetider, forlystelsespark app, live ventetider, attraktions køer, Disney ventetider, Universal ventetider, Six Flags ventetider, forlystelsespark planlægning",
+    "ogTitle": "Queue Park - Live Ventetider for Forlystelsesparker",
+    "ogDescription": "Ventetider i realtid for over 100 forlystelsesparker verden over. Spor køer og planlæg dit besøg med live data.",
+    "twitterTitle": "Queue Park - Live Ventetider for Forlystelsesparker",
+    "twitterDescription": "Ventetider i realtid for over 100 forlystelsesparker verden over. Spor køer og planlæg dit besøg."
   }
 }

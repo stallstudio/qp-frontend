@@ -50,5 +50,15 @@
     "configError": "Errore di configurazione. Contatta il supporto.",
     "fetchError": "Impossibile recuperare i parchi:",
     "parkNotFound": "Il parco che stai cercando non esiste"
+  },
+  "metadata": {
+    "title": "Queue Park - Tempi di Attesa dei Parchi in Tempo Reale",
+    "titleTemplate": "%s | Queue Park",
+    "description": "Tempi di attesa in tempo reale per oltre 100 parchi divertimento in tutto il mondo. Monitora le code, pianifica la tua visita e massimizza il divertimento con dati in tempo reale direttamente dalle API dei parchi.",
+    "keywords": "tempi di attesa parchi, code parchi divertimento, tempi di attesa montagne russe, app parchi tematici, tempi di attesa in tempo reale, code attrazioni, tempi di attesa Disney, tempi di attesa Universal, tempi di attesa Six Flags, pianificazione parchi",
+    "ogTitle": "Queue Park - Tempi di Attesa dei Parchi in Tempo Reale",
+    "ogDescription": "Tempi di attesa in tempo reale per oltre 100 parchi divertimento in tutto il mondo. Monitora le code e pianifica la tua visita con dati in tempo reale.",
+    "twitterTitle": "Queue Park - Tempi di Attesa dei Parchi in Tempo Reale",
+    "twitterDescription": "Tempi di attesa in tempo reale per oltre 100 parchi divertimento in tutto il mondo. Monitora le code e pianifica la tua visita."
   }
 }

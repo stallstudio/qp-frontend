@@ -50,5 +50,15 @@
     "configError": "Konfigurationsfel. Vänligen kontakta support.",
     "fetchError": "Misslyckades med att hämta parker:",
     "parkNotFound": "Parken du letar efter finns inte"
+  },
+  "metadata": {
+    "title": "Queue Park - Live Väntetider för Nöjesparker",
+    "titleTemplate": "%s | Queue Park",
+    "description": "Väntetider i realtid för över 100 nöjesparker världen över. Spåra attraktionsköer, planera ditt besök och maximera din nöje med livedata direkt från park-API:er.",
+    "keywords": "nöjespark väntetider, nöjespark köer, berg-och-dalbana väntetider, nöjespark app, live väntetider, attraktions köer, Disney väntetider, Universal väntetider, Six Flags väntetider, nöjespark planering",
+    "ogTitle": "Queue Park - Live Väntetider för Nöjesparker",
+    "ogDescription": "Väntetider i realtid för över 100 nöjesparker världen över. Spåra köer och planera ditt besök med livedata.",
+    "twitterTitle": "Queue Park - Live Väntetider för Nöjesparker",
+    "twitterDescription": "Väntetider i realtid för över 100 nöjesparker världen över. Spåra köer och planera ditt besök."
   }
 }

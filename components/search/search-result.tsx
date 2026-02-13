@@ -16,7 +16,7 @@ export default function SearchResult({ park, groups }: SearchResultProps) {
   return (
     <Link
       href={`/park/${park.identifier}`}
-      className="border rounded-2xl hover:bg-accent cursor-pointer group"
+      className="border rounded-2xl hover:bg-accent cursor-pointer group transition-colors duration-300"
       key={park.id}
     >
       <Image
@@ -31,7 +31,7 @@ export default function SearchResult({ park, groups }: SearchResultProps) {
           <div className="flex items-center gap-2">
             <Flag code={park.country || ""} />
 
-            <h3 className="font-medium group-hover:text-primary line-clamp-1">
+            <h3 className="font-medium group-hover:text-primary line-clamp-1 transition-colors duration-300">
               {park.name}
             </h3>
             {getParkStatusDot(status)}
@@ -40,7 +40,7 @@ export default function SearchResult({ park, groups }: SearchResultProps) {
             {getGroupName(park.groupId, groups)}
           </p>
         </div>
-        <ChevronRight className="size-3.5 text-muted-foreground" />
+        <ChevronRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
       </div>
     </Link>
   );

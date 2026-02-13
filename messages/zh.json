@@ -50,5 +50,15 @@
     "configError": "配置错误。请联系支持人员。",
     "fetchError": "无法获取乐园信息：",
     "parkNotFound": "您寻找的乐园不存在"
+  },
+  "metadata": {
+    "title": "Queue Park - 主题乐园实时排队时间",
+    "titleTemplate": "%s | Queue Park",
+    "description": "全球100多个主题乐园的实时排队时间。通过直接来自乐园API的实时数据，追踪游乐设施排队情况，规划您的游览，最大化您的乐趣。",
+    "keywords": "主题乐园排队时间, 游乐园排队, 过山车排队时间, 主题乐园应用, 实时排队时间, 游乐设施排队, 迪士尼排队时间, 环球影城排队时间, 六旗排队时间, 主题乐园规划",
+    "ogTitle": "Queue Park - 主题乐园实时排队时间",
+    "ogDescription": "全球100多个主题乐园的实时排队时间。通过实时数据追踪排队情况并规划您的游览。",
+    "twitterTitle": "Queue Park - 主题乐园实时排队时间",
+    "twitterDescription": "全球100多个主题乐园的实时排队时间。通过实时数据追踪排队情况并规划您的游览。"
   }
 }

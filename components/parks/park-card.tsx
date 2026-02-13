@@ -25,12 +25,12 @@ export default function ParkCard({
       href={`/park/${park.identifier}`}
       className="block group"
     >
-      <div className="flex items-center gap-2 justify-between hover:bg-accent px-2 py-1.5 rounded-lg">
+      <div className="flex items-center gap-2 justify-between hover:bg-accent transition-colors duration-300 px-2 py-1.5 rounded-lg">
         <div className="flex flex-col items-start">
           <div className="flex items-center gap-2">
             <Flag code={park.country || ""} />
 
-            <h3 className="font-medium group-hover:text-primary">
+            <h3 className="font-medium group-hover:text-primary transition-colors duration-300">
               {park.name}
             </h3>
             {getParkStatusDot(status)}
@@ -41,7 +41,7 @@ export default function ParkCard({
           {park.badge && showBadge && (
             <Badge>{park.badge.toLocaleUpperCase()}</Badge>
           )}
-          <ChevronRight className="size-3.5 text-muted-foreground" />
+          <ChevronRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
         </div>
       </div>
     </Link>

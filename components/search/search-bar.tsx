@@ -46,6 +46,7 @@ export default function SearchBar({ parks, groups }: SearchBarProps) {
   const shouldShowResults = searchQuery.trim() && searchQuery.length >= 2;
 
   const getHeightClass = () => {
+    console.log(searchResults.length);
     if (!shouldShowResults) {
       return "h-0";
     }
@@ -53,17 +54,17 @@ export default function SearchBar({ parks, groups }: SearchBarProps) {
       case 0:
         return "h-[75px]";
       case 1:
-        return "h-[195px]";
+        return "h-[202px]";
       case 2:
-        return "h-[350px] sm:h-[195px] md:h-[195px]";
+        return "h-[364px] sm:h-[202px] md:h-[202px]";
       case 3:
-        return "h-[500px] sm:h-[350px] md:h-[195px]";
+        return "h-[527px] sm:h-[364px] md:h-[202px]";
       case 4:
-        return "h-[660px] sm:h-[350px] md:h-[350px]";
+        return "h-[688px] sm:h-[364px] md:h-[364px]";
       case 5:
-        return "h-[810px] sm:h-[500px] md:h-[350px]";
+        return "h-[850px] sm:h-[527px] md:h-[364px]";
       case 6:
-        return "h-[965px] sm:h-[500px] md:h-[350px]";
+        return "h-[1010px] sm:h-[527px] md:h-[364px]";
       default:
         return "h-0";
     }

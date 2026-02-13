@@ -50,5 +50,15 @@
     "configError": "Error de configuración. Por favor, contacta con soporte.",
     "fetchError": "Error al obtener los parques:",
     "parkNotFound": "El parque que buscas no existe"
+  },
+  "metadata": {
+    "title": "Queue Park - Tiempos de Espera en Vivo de Parques",
+    "titleTemplate": "%s | Queue Park",
+    "description": "Tiempos de espera en tiempo real para más de 100 parques temáticos en todo el mundo. Sigue las colas, planifica tu visita y maximiza tu diversión con datos en vivo directamente de las APIs de los parques.",
+    "keywords": "tiempos de espera parques, colas parques de atracciones, tiempos de espera montañas rusas, app parques temáticos, tiempos de espera en vivo, colas atracciones, tiempos de espera Disney, tiempos de espera Universal, tiempos de espera Six Flags, planificación parques",
+    "ogTitle": "Queue Park - Tiempos de Espera en Vivo de Parques",
+    "ogDescription": "Tiempos de espera en tiempo real para más de 100 parques temáticos en todo el mundo. Sigue las colas y planifica tu visita con datos en vivo.",
+    "twitterTitle": "Queue Park - Tiempos de Espera en Vivo de Parques",
+    "twitterDescription": "Tiempos de espera en tiempo real para más de 100 parques temáticos en todo el mundo. Sigue las colas y planifica tu visita."
   }
 }

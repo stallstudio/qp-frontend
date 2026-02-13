@@ -50,5 +50,15 @@
     "configError": "Configuratiefout. Neem contact op met de klantenservice.",
     "fetchError": "Fout bij het ophalen van parken:",
     "parkNotFound": "Het park dat je zoekt bestaat niet"
+  },
+  "metadata": {
+    "title": "Queue Park - Live Wachttijden voor Attractieparken",
+    "titleTemplate": "%s | Queue Park",
+    "description": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen, plan je bezoek en maximaliseer je plezier met live data rechtstreeks van park-API's.",
+    "keywords": "attractiepark wachttijden, pretpark wachtrijen, achtbaan wachttijden, attractiepark app, live wachttijden, attractie wachtrijen, Disney wachttijden, Universal wachttijden, Six Flags wachttijden, attractiepark planning",
+    "ogTitle": "Queue Park - Live Wachttijden voor Attractieparken",
+    "ogDescription": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen en plan je bezoek met live data.",
+    "twitterTitle": "Queue Park - Live Wachttijden voor Attractieparken",
+    "twitterDescription": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen en plan je bezoek."
   }
 }

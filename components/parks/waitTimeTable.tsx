@@ -69,7 +69,6 @@ export default function ParkWaitTimeTable({
 
       // Si timeSinceLastUpdate est = ou inférieur à 0 (donc 1 minute ou plus écoulée)
       // ET qu'on est pas encore à -20 secondes (donc pas plus de 1 minute et 20 secondes)
-      // ET qu'on a pas encore atteint 10 tentatives
       if (newTimeSinceLastUpdate <= 0 && newTimeSinceLastUpdate > -20) {
         handleRefresh();
       }
@@ -98,7 +97,7 @@ export default function ParkWaitTimeTable({
   });
 
   return (
-    <Card className="w-full rounded-4xl px-4 pt-2 gap-0 pb-0">
+    <Card className="w-full rounded-4xl px-4 pt-2 gap-0 pb-0 relative">
       <Table className="border-b">
         <TableHeader>
           <TableRow>
@@ -151,6 +150,15 @@ export default function ParkWaitTimeTable({
           </p>
         )}
       </div>
+      <div
+        className={`
+          absolute inset-0 -z-20 rounded-4xl blur-[0.5rem]
+          [background:conic-gradient(from_var(--gradient-angle),transparent,var(--primary),transparent,var(--primary),transparent)]
+          animate-[rotation_3s_linear_infinite]
+          transition-opacity duration-500
+          ${timeSinceLastUpdate < 3 && timeSinceLastUpdate > -20 ? "opacity-100" : "opacity-0"}
+        `}
+      ></div>
     </Card>
   );
 }

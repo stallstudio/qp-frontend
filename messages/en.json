@@ -50,5 +50,15 @@
     "configError": "Configuration error. Please contact support.",
     "fetchError": "Failed to fetch parks:",
     "parkNotFound": "The park you are looking for does not exist"
+  },
+  "metadata": {
+    "title": "Queue Park - Live Theme Park Wait Times",
+    "titleTemplate": "%s | Queue Park",
+    "description": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues, plan your visit, and maximize your fun with live data directly from park APIs.",
+    "keywords": "theme park wait times, amusement park queues, roller coaster wait times, theme park app, live wait times, attraction queues, Disney wait times, Universal wait times, Six Flags wait times, theme park planning",
+    "ogTitle": "Queue Park - Live Theme Park Wait Times",
+    "ogDescription": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues and plan your visit with live data.",
+    "twitterTitle": "Queue Park - Live Theme Park Wait Times",
+    "twitterDescription": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues and plan your visit."
   }
 }

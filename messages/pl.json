@@ -50,5 +50,15 @@
     "configError": "Błąd konfiguracji. Skontaktuj się ze wsparciem.",
     "fetchError": "Nie udało się pobrać danych o parkach:",
     "parkNotFound": "Park, którego szukasz, nie istnieje"
+  },
+  "metadata": {
+    "title": "Queue Park - Czasy Oczekiwania w Parkach na Żywo",
+    "titleTemplate": "%s | Queue Park",
+    "description": "Czasy oczekiwania w czasie rzeczywistym dla ponad 100 parków rozrywki na całym świecie. Śledź kolejki do atrakcji, planuj wizytę i maksymalizuj swoją zabawę dzięki danym na żywo bezpośrednio z API parków.",
+    "keywords": "czasy oczekiwania w parkach, kolejki w parkach rozrywki, czasy oczekiwania na kolejki górskie, aplikacja parku rozrywki, czasy oczekiwania na żywo, kolejki do atrakcji, czasy oczekiwania Disney, czasy oczekiwania Universal, czasy oczekiwania Six Flags, planowanie parku",
+    "ogTitle": "Queue Park - Czasy Oczekiwania w Parkach na Żywo",
+    "ogDescription": "Czasy oczekiwania w czasie rzeczywistym dla ponad 100 parków rozrywki na całym świecie. Śledź kolejki i planuj wizytę dzięki danym na żywo.",
+    "twitterTitle": "Queue Park - Czasy Oczekiwania w Parkach na Żywo",
+    "twitterDescription": "Czasy oczekiwania w czasie rzeczywistym dla ponad 100 parków rozrywki na całym świecie. Śledź kolejki i planuj wizytę."
   }
 }
