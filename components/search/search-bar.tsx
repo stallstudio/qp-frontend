@@ -4,7 +4,7 @@ import { Park } from "@/types/park";
 import { getGroupName } from "@/lib/utils";
 import { Dices, Search } from "lucide-react";
 import { Input } from "../ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ParkGroup } from "@/types/park";
 import SearchResult from "./search-result";
 import { useRouter } from "@/i18n/routing";
@@ -22,6 +22,21 @@ export default function SearchBar({ parks, groups }: SearchBarProps) {
   const [searchResults, setSearchResults] = useState<Park[]>([]);
   const router = useRouter();
 
+  const filterParks = useCallback(
+    (parksToFilter: Park[]) => {
+      const query = searchQuery.toLowerCase();
+      return parksToFilter
+        .filter(
+          (park) =>
+            park.name.toLowerCase().includes(query) ||
+            getGroupName(park.groupId, groups).toLowerCase().includes(query) ||
+            (park.country && park.country.toLowerCase().includes(query)),
+        )
+        .slice(0, 6);
+    },
+    [searchQuery, groups],
+  );
+
   useEffect(() => {
     if (!searchQuery.trim() || searchQuery.length < 2) {
       setSearchResults([]);
@@ -29,19 +44,7 @@ export default function SearchBar({ parks, groups }: SearchBarProps) {
       const filteredParks = filterParks(parks);
       setSearchResults(filteredParks);
     }
-  }, [searchQuery]);
-
-  const filterParks = (parksToFilter: Park[]) => {
-    const query = searchQuery.toLowerCase();
-    return parksToFilter
-      .filter(
-        (park) =>
-          park.name.toLowerCase().includes(query) ||
-          getGroupName(park.groupId, groups).toLowerCase().includes(query) ||
-          (park.country && park.country.toLowerCase().includes(query)),
-      )
-      .slice(0, 6);
-  };
+  }, [searchQuery, filterParks, parks]);
 
   const shouldShowResults = searchQuery.trim() && searchQuery.length >= 2;
 

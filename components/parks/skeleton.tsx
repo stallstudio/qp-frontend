@@ -3,6 +3,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Undo2 } from "lucide-react";
 import Footer from "../ui/footer";
+import Image from "next/image";
 
 export default function ParkSkeleton() {
   return (
@@ -20,10 +21,11 @@ export default function ParkSkeleton() {
             <div className="max-w-4xl mx-auto px-4">
               <div className="relative w-full rounded-4xl shadow-sm border h-72">
                 {/* Background image skeleton with fixed placeholder */}
-                <img
+                <Image
                   src="https://queue-park.com/assets/images/couverture_estivale.jpg"
                   alt="Park cover"
-                  className="object-cover w-full h-full rounded-3xl"
+                  fill
+                  className="object-cover rounded-3xl"
                 />
 
                 {/* Overlay gradient skeleton */}

@@ -2,7 +2,7 @@
 
 import { Park, ParksResponse, ParkGroup } from "@/types/park";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import HomeHeader from "@/components/home/header";
 import Footer from "@/components/ui/footer";
 import SearchBar from "@/components/search/search-bar";
@@ -16,7 +16,7 @@ export default function Home() {
   const [groups, setGroups] = useState<ParkGroup[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchParks = async () => {
+  const fetchParks = useCallback(async () => {
     setLoading(true);
     const apiUrl = process.env.NEXT_PUBLIC_WORKER_API_URL;
     const apiToken = process.env.NEXT_PUBLIC_WORKER_API_KEY;
@@ -39,11 +39,11 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchParks();
-  }, []);
+  }, [fetchParks]);
 
   if (loading) {
     return <HomeSkeleton />;

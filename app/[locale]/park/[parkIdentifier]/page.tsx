@@ -7,7 +7,7 @@ import Footer from "@/components/ui/footer";
 import { ParkData } from "@/types/park";
 import axios from "axios";
 import { useRouter } from "@/i18n/routing";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -22,37 +22,40 @@ export default function ParkPage({
   const [parkData, setParkData] = useState<ParkData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchParkData = async (showLoading: boolean) => {
-    if (showLoading) setLoading(true);
-    const apiUrl = process.env.NEXT_PUBLIC_WORKER_API_URL;
-    const apiToken = process.env.NEXT_PUBLIC_WORKER_API_KEY;
-    if (!apiToken || !apiUrl) {
-      router.push("/");
-      toast.error(t("configError"));
-      return;
-    }
-    try {
-      const response = await axios.get(
-        `${apiUrl}/waittimes/${parkIdentifier}`,
-        {
-          headers: {
-            "x-api-key": apiToken,
+  const fetchParkData = useCallback(
+    async (showLoading: boolean) => {
+      if (showLoading) setLoading(true);
+      const apiUrl = process.env.NEXT_PUBLIC_WORKER_API_URL;
+      const apiToken = process.env.NEXT_PUBLIC_WORKER_API_KEY;
+      if (!apiToken || !apiUrl) {
+        router.push("/");
+        toast.error(t("configError"));
+        return;
+      }
+      try {
+        const response = await axios.get(
+          `${apiUrl}/waittimes/${parkIdentifier}`,
+          {
+            headers: {
+              "x-api-key": apiToken,
+            },
           },
-        },
-      );
-      setParkData(response.data);
-    } catch (error: any) {
-      router.push("/");
-      toast.error(t("parkNotFound"));
-      console.error(error.response?.data);
-    } finally {
-      if (showLoading) setLoading(false);
-    }
-  };
+        );
+        setParkData(response.data);
+      } catch (error: unknown) {
+        router.push("/");
+        toast.error(t("parkNotFound"));
+        console.error(error instanceof Error ? error.message : error);
+      } finally {
+        if (showLoading) setLoading(false);
+      }
+    },
+    [parkIdentifier, router, t],
+  );
 
   useEffect(() => {
     fetchParkData(true);
-  }, [parkIdentifier, router]);
+  }, [parkIdentifier, router, fetchParkData]);
 
   useEffect(() => {
     if (parkData?.name) {
