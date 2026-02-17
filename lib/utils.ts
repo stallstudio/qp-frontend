@@ -20,8 +20,8 @@ export function getParkStatus(openingHours: OpeningHour[]): ParkStatus {
     return "unknown";
   }
   for (const hour of openingHours) {
-    if (!hour.openTime && !hour.closeTime) {
-      return "closed";
+    if (!hour.openTime || !hour.closeTime) {
+      continue;
     }
 
     const openTime = DateTime.fromISO(hour.openTime, { zone: "UTC" });

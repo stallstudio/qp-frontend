@@ -30,17 +30,6 @@ export default function ParkWaitTimeTable({
   const [timeSinceLastUpdate, setTimeSinceLastUpdate] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const calculateRemainingSeconds = () => {
-    const lastUpdateTime = new Date(lastUpdate).getTime();
-    const targetTime = lastUpdateTime + 60 * 1000; // +1 minute
-    const currentTime = Date.now();
-
-    const remainingMs = targetTime - currentTime;
-    const remainingSeconds = Math.ceil(remainingMs / 1000);
-
-    return remainingSeconds;
-  };
-
   const handleRefresh = useCallback(async () => {
     if (!onRefresh || isRefreshing) return;
 
@@ -55,6 +44,17 @@ export default function ParkWaitTimeTable({
   }, [onRefresh, isRefreshing]);
 
   useEffect(() => {
+    const calculateRemainingSeconds = () => {
+      const lastUpdateTime = new Date(lastUpdate).getTime();
+      const targetTime = lastUpdateTime + 60 * 1000; // +1 minute
+      const currentTime = Date.now();
+
+      const remainingMs = targetTime - currentTime;
+      const remainingSeconds = Math.ceil(remainingMs / 1000);
+
+      return remainingSeconds;
+    };
+
     // Mise à jour immédiate
     setTimeSinceLastUpdate(calculateRemainingSeconds());
 
@@ -78,7 +78,7 @@ export default function ParkWaitTimeTable({
       clearInterval(countdownInterval);
       clearInterval(refreshInterval);
     };
-  }, [lastUpdate, handleRefresh, calculateRemainingSeconds]);
+  }, [lastUpdate, handleRefresh]);
 
   const sortedWaitTimes = [...waitTimes].sort((a, b) => {
     // Ordre des status: open (0), down (1), closed (2), maintenance (3)
