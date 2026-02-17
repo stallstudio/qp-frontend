@@ -153,7 +153,7 @@ export default function ParkWaitTimeTable({
       <div
         className={`
           absolute inset-0 -z-20 rounded-4xl blur-[0.5rem]
-          [background:conic-gradient(from_var(--gradient-angle),transparent,var(--primary),transparent,var(--primary),transparent)]
+          [background:conic-gradient(from_var(--gradient-angle),transparent,white,transparent,white,transparent)]
           animate-[rotation_3s_linear_infinite]
           transition-opacity duration-500
           ${timeSinceLastUpdate < 3 && timeSinceLastUpdate > -20 ? "opacity-100" : "opacity-0"}
