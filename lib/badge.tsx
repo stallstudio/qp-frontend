@@ -84,16 +84,27 @@ function getStatusBadge(status: WaitTime["status"]) {
   );
 }
 
-function getParkStatusDot(status: "open" | "closed" | "unknown") {
+function getParkStatusDot(
+  status: "open" | "closed" | "unknown",
+  size: "default" | "sm" = "default",
+  className?: string,
+) {
+  const sizeClass = size === "default" ? "w-2 h-2" : "w-1.5 h-1.5";
   if (status === "open") {
     return (
-      <span className="w-2 h-2 bg-green-500 rounded-full relative">
+      <span
+        className={`${sizeClass} bg-green-500 rounded-full relative ${className || ""}`}
+      >
         <span className="absolute inset-0 bg-green-500 rounded-full animate-ping"></span>
       </span>
     );
   }
   if (status === "closed") {
-    return <span className="w-2 h-2 bg-red-500 rounded-full"></span>;
+    return (
+      <span
+        className={`${sizeClass} bg-red-500 rounded-full ${className || ""}`}
+      ></span>
+    );
   }
 
   return null;

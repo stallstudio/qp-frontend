@@ -14,11 +14,15 @@ import { useTranslations } from "next-intl";
 export default function ParkPage({
   params,
 }: {
-  params: Promise<{ parkIdentifier: string; locale: string }>;
+  params: Promise<{
+    groupIdentifier: string;
+    parkIdentifier: string;
+    locale: string;
+  }>;
 }) {
   const t = useTranslations("errors");
   const router = useRouter();
-  const { parkIdentifier } = use(params);
+  const { groupIdentifier, parkIdentifier } = use(params);
   const [parkData, setParkData] = useState<ParkData | null>(null);
   const [loading, setLoading] = useState(true);
 

@@ -106,17 +106,17 @@ export default function ParkWaitTimeTable({
             <TableHead className="text-left w-1/6">{t("status")}</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="w-full">
           {sortedWaitTimes.length > 0 ? (
             sortedWaitTimes.map((waitTime, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">
+              <TableRow key={index} className="max-w-full">
+                <TableCell className="font-medium w-4/6 whitespace-normal wrap-break-word">
                   {waitTime.rideName}
                 </TableCell>
-                <TableCell className="text-left">
+                <TableCell className="text-left w-1/6 overflow-hidden">
                   {getWaitTimeBadge(waitTime.waitTime)}
                 </TableCell>
-                <TableCell className="text-left">
+                <TableCell className="text-left w-1/6 overflow-hidden">
                   {getStatusBadge(waitTime.status)}
                 </TableCell>
               </TableRow>

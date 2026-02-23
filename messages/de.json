@@ -16,7 +16,7 @@
   "popularParks": {
     "title": "Beliebte Parks",
     "trendingText": "Trends der letzten 2 Stunden",
-    "visitsNote": "Besuche in den letzten 2 Stunden"
+    "visitsNote": "Besuche"
   },
   "parkPage": {
     "backHome": "Zurück zur Startseite",

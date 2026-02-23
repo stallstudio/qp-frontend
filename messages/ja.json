@@ -16,7 +16,7 @@
   "popularParks": {
     "title": "人気のパーク",
     "trendingText": "過去2時間のトレンド",
-    "visitsNote": "過去2時間の訪問数"
+    "visitsNote": "訪問数"
   },
   "parkPage": {
     "backHome": "ホームに戻る",

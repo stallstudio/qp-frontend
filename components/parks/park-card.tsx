@@ -1,13 +1,12 @@
-import { getParkStatusDot } from "@/lib/badge";
 import { Link } from "@/i18n/routing";
-import Flag from "../home/flag";
-import { Park } from "@/types/park";
 import { getParkStatus } from "@/lib/utils";
-import { Badge } from "../ui/badge";
-import { ChevronRight } from "lucide-react";
+import Flag from "react-flagkit";
+import TitleWithStatus from "./title-with-status";
+import { ParkList } from "@/types/park";
+import slugify from "slugify";
 
 interface ParkCardProps {
-  park: Park;
+  park: ParkList;
   note?: string | null;
   showBadge?: boolean;
 }
@@ -19,29 +18,32 @@ export default function ParkCard({
 }: ParkCardProps) {
   const status = getParkStatus(park.openingHours);
 
+  const getLink = (park: ParkList) => {
+    const groupName = slugify(park.group.name, {
+      lower: true,
+      strict: true,
+    });
+    return `/g/${groupName}/p/${park.identifier}`;
+  };
   return (
-    <Link
-      key={park.id}
-      href={`/park/${park.identifier}`}
-      className="block group"
-    >
-      <div className="flex items-center gap-2 justify-between hover:bg-accent transition-colors duration-300 px-2 py-1.5 rounded-lg">
-        <div className="flex flex-col items-start">
-          <div className="flex items-center gap-2">
-            <Flag code={park.country || ""} />
-
-            <h3 className="font-medium group-hover:text-primary transition-colors duration-300">
-              {park.name}
-            </h3>
-            {getParkStatusDot(status)}
-          </div>
+    <Link key={park.identifier} href={getLink(park)} className="block group">
+      <div className="flex items-center gap-4 justify-between hover:bg-accent transition-colors duration-300 px-2 py-1.5 rounded-lg">
+        <div className="flex flex-col items-start min-w-0">
+          <TitleWithStatus parkName={park.name} status={status} />
           {note && <p className="text-xs text-muted-foreground">{note}</p>}
         </div>
         <div className="flex items-center gap-1">
           {park.badge && showBadge && (
-            <Badge>{park.badge.toLocaleUpperCase()}</Badge>
+            <div className="text-xs font-bold h-4.5 flex items-center border px-1.5 rounded-sm text-primary">
+              {park.badge.toLocaleUpperCase()}
+            </div>
           )}
-          <ChevronRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+          <div className="w-6 h-4.5 border rounded-sm">
+            <Flag
+              country={park.country || ""}
+              className="w-full h-full object-cover rounded-sm"
+            />
+          </div>
         </div>
       </div>
     </Link>

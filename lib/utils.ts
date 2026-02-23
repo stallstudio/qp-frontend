@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { DateTime } from "luxon";
 import { OpeningHour } from "@/types/openingHour";
-import { ParkGroup, ParkStatus } from "@/types/park";
+import { ParkStatus } from "@/types/park";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -34,11 +34,6 @@ export function getParkStatus(openingHours: OpeningHour[]): ParkStatus {
 
   return "closed";
 }
-
-export const getGroupName = (groupId: number, groups: ParkGroup[]) => {
-  const group = groups.find((g) => g.id === groupId);
-  return group ? group.name : "Unknown Group";
-};
 
 export function getCountryName(code: string): string {
   if (!code) return "";

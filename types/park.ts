@@ -1,5 +1,29 @@
+import { Group } from "./group";
 import { OpeningHour } from "./openingHour";
 import { WaitTime } from "./waitTime";
+
+//
+// List of parks (home)
+//
+
+export type ParkListResponse = {
+  parks: ParkList[];
+};
+
+export interface ParkList {
+  identifier: string;
+  name: string;
+  timezone: string;
+  cover: string[];
+  badge?: string;
+  country: string;
+  group: Group;
+  openingHours: OpeningHour[];
+}
+
+//
+// Park data (detail page)
+//
 
 export type ParkData = {
   identifier: string;
@@ -10,27 +34,8 @@ export type ParkData = {
   waitTimes: WaitTime[];
   lastUpdate: string;
 };
+//
+// Misc
+//
 
 export type ParkStatus = "open" | "closed" | "unknown";
-
-export type Park = {
-  id: number;
-  identifier: string;
-  name: string;
-  timezone: string;
-  cover: string[];
-  badge: string | null;
-  country: string | null;
-  groupId: number;
-  openingHours: OpeningHour[];
-};
-
-export type ParkGroup = {
-  id: number;
-  name: string;
-};
-
-export type ParksResponse = {
-  parks: Park[];
-  groups: ParkGroup[];
-};

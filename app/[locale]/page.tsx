@@ -1,6 +1,5 @@
 "use client";
 
-import { Park, ParksResponse, ParkGroup } from "@/types/park";
 import axios from "axios";
 import { useEffect, useState, useCallback } from "react";
 import HomeHeader from "@/components/home/header";
@@ -10,10 +9,10 @@ import PopularParks from "@/components/home/popular-parks";
 import ParksList from "@/components/home/parks-list";
 import HomeSkeleton from "@/components/home/home-skeleton";
 import { useTranslations } from "next-intl";
+import { ParkList, ParkListResponse } from "@/types/park";
 export default function Home() {
   const t = useTranslations("errors");
-  const [parks, setParks] = useState<Park[]>([]);
-  const [groups, setGroups] = useState<ParkGroup[]>([]);
+  const [parks, setParks] = useState<ParkList[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchParks = useCallback(async () => {
@@ -27,13 +26,12 @@ export default function Home() {
     }
 
     try {
-      const response = await axios.get<ParksResponse>(`${apiUrl}/parks`, {
+      const response = await axios.get<ParkListResponse>(`${apiUrl}/parks`, {
         headers: {
           "x-api-key": apiToken,
         },
       });
       setParks(response.data.parks);
-      setGroups(response.data.groups);
     } catch (error) {
       console.error(t("fetchError"), error);
     } finally {
@@ -54,11 +52,11 @@ export default function Home() {
       <main className="flex-1 flex flex-col gap-8">
         <HomeHeader />
 
-        <SearchBar parks={parks} groups={groups} />
+        <SearchBar parks={parks} />
 
         <PopularParks popularParks={parks.slice(0, 6)} />
 
-        <ParksList parks={parks} groups={groups} />
+        <ParksList parks={parks} />
       </main>
       <Footer />
     </div>

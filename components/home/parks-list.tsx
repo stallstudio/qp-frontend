@@ -1,16 +1,15 @@
-import { Park, ParkGroup } from "@/types/park";
+import { ParkList } from "@/types/park";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ParkCategoryCard from "../parks/park-category-card";
 import { useState } from "react";
-import { getCountryName, getGroupName } from "@/lib/utils";
+import { getCountryName } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 interface ParksListProps {
-  parks: Park[];
-  groups: ParkGroup[];
+  parks: ParkList[];
 }
 
-export default function ParksList({ parks, groups }: ParksListProps) {
+export default function ParksList({ parks }: ParksListProps) {
   const t = useTranslations("parksList");
   const [sortBy, setSortBy] = useState<"group" | "country">("group");
 
@@ -21,9 +20,9 @@ export default function ParksList({ parks, groups }: ParksListProps) {
   };
 
   const groupParksByGroup = () => {
-    const grouped: Record<string, Park[]> = {};
+    const grouped: Record<string, ParkList[]> = {};
     parks.forEach((park) => {
-      const groupName = getGroupName(park.groupId, groups);
+      const groupName = park.group.name;
       if (!grouped[groupName]) {
         grouped[groupName] = [];
       }
@@ -31,7 +30,7 @@ export default function ParksList({ parks, groups }: ParksListProps) {
     });
 
     // Sort groups alphabetically
-    const sortedGrouped: Record<string, Park[]> = {};
+    const sortedGrouped: Record<string, ParkList[]> = {};
     Object.keys(grouped)
       .sort()
       .forEach((key) => {
@@ -42,7 +41,7 @@ export default function ParksList({ parks, groups }: ParksListProps) {
   };
 
   const groupParksByCountry = () => {
-    const grouped: Record<string, Park[]> = {};
+    const grouped: Record<string, ParkList[]> = {};
     parks.forEach((park) => {
       const countryName = getCountryName(park.country || "Unknown Country");
       if (!grouped[countryName]) {
@@ -52,7 +51,7 @@ export default function ParksList({ parks, groups }: ParksListProps) {
     });
 
     // Sort groups alphabetically
-    const sortedGrouped: Record<string, Park[]> = {};
+    const sortedGrouped: Record<string, ParkList[]> = {};
     Object.keys(grouped)
       .sort()
       .forEach((key) => {
@@ -64,6 +63,28 @@ export default function ParksList({ parks, groups }: ParksListProps) {
 
   const getGroupedParks = () => {
     return sortBy === "group" ? groupParksByGroup() : groupParksByCountry();
+  };
+
+  const splitGroupsBalanced = () => {
+    const grouped = getGroupedParks();
+    const entries = Object.entries(grouped);
+
+    let leftColumn: [string, ParkList[]][] = [];
+    let rightColumn: [string, ParkList[]][] = [];
+    let leftCount = 0;
+    let rightCount = 0;
+
+    entries.forEach(([groupName, groupParks]) => {
+      if (leftCount <= rightCount) {
+        leftColumn.push([groupName, groupParks]);
+        leftCount += groupParks.length;
+      } else {
+        rightColumn.push([groupName, groupParks]);
+        rightCount += groupParks.length;
+      }
+    });
+
+    return { leftColumn, rightColumn };
   };
   return (
     <div className="space-y-6">
@@ -80,28 +101,24 @@ export default function ParksList({ parks, groups }: ParksListProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* First Column */}
         <div className="space-y-8">
-          {Object.entries(getGroupedParks())
-            .slice(0, Math.ceil(Object.entries(getGroupedParks()).length / 2))
-            .map(([groupName, groupParks]) => (
-              <ParkCategoryCard
-                key={groupName}
-                groupName={groupName}
-                parks={groupParks}
-              />
-            ))}
+          {splitGroupsBalanced().leftColumn.map(([groupName, groupParks]) => (
+            <ParkCategoryCard
+              key={groupName}
+              groupName={groupName}
+              parks={groupParks}
+            />
+          ))}
         </div>
 
         {/* Second Column */}
         <div className="space-y-8">
-          {Object.entries(getGroupedParks())
-            .slice(Math.ceil(Object.entries(getGroupedParks()).length / 2))
-            .map(([groupName, groupParks]) => (
-              <ParkCategoryCard
-                key={groupName}
-                groupName={groupName}
-                parks={groupParks}
-              />
-            ))}
+          {splitGroupsBalanced().rightColumn.map(([groupName, groupParks]) => (
+            <ParkCategoryCard
+              key={groupName}
+              groupName={groupName}
+              parks={groupParks}
+            />
+          ))}
         </div>
       </div>
     </div>

@@ -16,11 +16,11 @@
   "popularParks": {
     "title": "Parcs Populaires",
     "trendingText": "Tendances au cours des 2 dernières heures",
-    "visitsNote": "visites ces dernières 2 heures"
+    "visitsNote": "vues"
   },
   "parkPage": {
     "backHome": "Retour à l'accueil",
-    "localTime": "Heure Locale",
+    "localTime": "Heure locale",
     "todayHours": "Horaires du jour",
     "extraOpeningHours": "Heures d'ouverture supplémentaires",
     "extendedHours": "Horaires prolongés",
@@ -33,7 +33,7 @@
   },
   "waitTimeTable": {
     "attraction": "Attraction",
-    "waitTime": "Temps d'attente",
+    "waitTime": "Temps",
     "status": "État",
     "noWaitTimes": "Aucun temps d'attente disponible pour le moment",
     "refreshingIn": "Actualisation dans",

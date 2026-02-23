@@ -1,4 +1,4 @@
-import { Park } from "@/types/park";
+import { ParkList } from "@/types/park";
 import { AnimatedShinyText } from "../ui/animated-shiny-text";
 import { TrendingUp } from "lucide-react";
 import ParkCard from "../parks/park-card";
@@ -6,7 +6,7 @@ import { Card, CardContent } from "../ui/card";
 import { useTranslations } from "next-intl";
 
 interface PopularParksProps {
-  popularParks: Park[];
+  popularParks: ParkList[];
 }
 
 export default function PopularParks({ popularParks }: PopularParksProps) {
@@ -27,7 +27,7 @@ export default function PopularParks({ popularParks }: PopularParksProps) {
           <Card className="p-0" key={index}>
             <CardContent className="p-0">
               <ParkCard
-                key={park.id}
+                key={park.identifier}
                 park={park}
                 showBadge={false}
                 note={`${Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000} ${t("visitsNote")}`}

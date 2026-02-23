@@ -1,12 +1,12 @@
 "use client";
 
-import { Park } from "@/types/park";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import ParkCard from "./park-card";
+import { ParkList } from "@/types/park";
 
 interface ParkCategoryCardProps {
   groupName: string;
-  parks: Park[];
+  parks: ParkList[];
 }
 
 export default function ParkCategoryCard({
@@ -21,7 +21,7 @@ export default function ParkCategoryCard({
         </CardTitle>
         <div className="py-2 px-2 space-y-1">
           {parks.map((park) => (
-            <ParkCard key={park.id} park={park} />
+            <ParkCard key={park.identifier} park={park} />
           ))}
         </div>
       </CardContent>

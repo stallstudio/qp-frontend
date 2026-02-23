@@ -1,40 +1,37 @@
 "use client";
 
-import { Park } from "@/types/park";
-import { getGroupName } from "@/lib/utils";
+import { ParkList } from "@/types/park";
 import { Dices, Search } from "lucide-react";
 import { Input } from "../ui/input";
 import { useEffect, useState, useCallback } from "react";
-import { ParkGroup } from "@/types/park";
 import SearchResult from "./search-result";
 import { useRouter } from "@/i18n/routing";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
 interface SearchBarProps {
-  parks: Park[];
-  groups: ParkGroup[];
+  parks: ParkList[];
 }
 
-export default function SearchBar({ parks, groups }: SearchBarProps) {
+export default function SearchBar({ parks }: SearchBarProps) {
   const t = useTranslations("search");
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Park[]>([]);
+  const [searchResults, setSearchResults] = useState<ParkList[]>([]);
   const router = useRouter();
 
   const filterParks = useCallback(
-    (parksToFilter: Park[]) => {
+    (parksToFilter: ParkList[]) => {
       const query = searchQuery.toLowerCase();
       return parksToFilter
         .filter(
           (park) =>
             park.name.toLowerCase().includes(query) ||
-            getGroupName(park.groupId, groups).toLowerCase().includes(query) ||
+            park.group.name.toLowerCase().includes(query) ||
             (park.country && park.country.toLowerCase().includes(query)),
         )
         .slice(0, 6);
     },
-    [searchQuery, groups],
+    [searchQuery],
   );
 
   useEffect(() => {
@@ -112,7 +109,7 @@ export default function SearchBar({ parks, groups }: SearchBarProps) {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {searchResults.map((park, index) => (
-                  <SearchResult key={index} park={park} groups={groups} />
+                  <SearchResult key={index} park={park} />
                 ))}
               </div>
             )}
