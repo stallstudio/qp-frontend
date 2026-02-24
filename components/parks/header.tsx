@@ -1,15 +1,22 @@
 "use client";
 
 import { ParkData } from "@/types/park";
-import Image from "next/image";
+import ParkCoverImage from "./cover-image";
 import ParkOpeningHours from "./openingHours";
 import ParkLocalTime from "./localTime";
 import Link from "next/link";
 import { Undo2 } from "lucide-react";
 import ParkNameStatus from "./nameStatus";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+
+const EXPANDED_HEIGHT = 288;
+const COLLAPSED_HEIGHT = 96;
+const SHRINK_DISTANCE = 220;
+const FIXED_TOP = 16;
+
+const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
 
 type ParkHeaderProps = {
   park: ParkData;
@@ -17,84 +24,77 @@ type ParkHeaderProps = {
 
 export default function ParkHeader({ park }: ParkHeaderProps) {
   const t = useTranslations("parkPage");
-  const [isShrunken, setIsShrunken] = useState(false);
-  const [selectedCover, setSelectedCover] = useState(
-    "https://cdn.queue-park.com/default_cover.webp",
-  );
-  const hasProcessedRef = useRef<string | null>(null);
-
-  console.log(park);
-  useEffect(() => {
-    // Faire tourner les photos en utilisant localStorage pour suivre l'index
-    // Ne s'exécute qu'une seule fois par parc
-    if (hasProcessedRef.current === park.identifier) return;
-
-    if (!park.cover || park.cover.length === 0) {
-      setSelectedCover("https://cdn.queue-park.com/default_cover.webp");
-    } else {
-      // Récupérer tous les index depuis localStorage
-      const allIndexes = JSON.parse(
-        localStorage.getItem("park-cover-index") || "{}",
-      );
-      const currentIndex = allIndexes[park.identifier] || 0;
-      const nextIndex = (currentIndex + 1) % park.cover.length;
-
-      setSelectedCover(park.cover[nextIndex]);
-
-      // Mettre à jour l'index pour ce parc
-      allIndexes[park.identifier] = nextIndex;
-      localStorage.setItem("park-cover-index", JSON.stringify(allIndexes));
-    }
-
-    hasProcessedRef.current = park.identifier;
-  }, [park.cover, park.identifier]);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
+    let rafId = 0;
 
-      // Hysteresis: different thresholds for shrinking and expanding
-      // This prevents flickering when scroll position is near the threshold
-      if (!isShrunken && scrollY > 50) {
-        setIsShrunken(true);
-      } else if (isShrunken && scrollY < 20) {
-        setIsShrunken(false);
-      }
+    const updateScrollY = () => {
+      rafId = 0;
+      setScrollY(Math.max(0, window.scrollY));
     };
 
+    const handleScroll = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(updateScrollY);
+    };
+
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isShrunken]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, []);
+
+  const shrinkProgress = clamp01(scrollY / SHRINK_DISTANCE);
+  const cardHeight =
+    EXPANDED_HEIGHT - (EXPANDED_HEIGHT - COLLAPSED_HEIGHT) * shrinkProgress;
+  const spacerHeight =
+    FIXED_TOP + cardHeight + Math.min(scrollY, SHRINK_DISTANCE);
+
+  const detailsOpacity = clamp01(1 - shrinkProgress * 1.45);
+  const compactOpacity = clamp01((shrinkProgress - 0.34) / 0.46);
+  const backOpacity = clamp01(1 - shrinkProgress * 2);
+
+  const detailsTranslateY = shrinkProgress * 16;
+  const compactTranslateY = (1 - compactOpacity) * 14;
+  const backTranslateY = shrinkProgress * -8;
+  const imageScale = 1 + (1 - shrinkProgress) * 0.08;
 
   return (
     <>
-      {/* Placeholder to maintain document flow and prevent content jump */}
+      <div className="w-full" style={{ height: `${spacerHeight}px` }} />
+
+      <div className="fixed inset-x-0 top-0 z-40 h-20 bg-linear-to-b from-background via-background/95 to-transparent pointer-events-none" />
+
       <div
-        className={`w-full transition-all duration-300 ${isShrunken ? "h-28" : "h-76"}`}
-      />
-
-      {/* Background cover to prevent content showing behind header */}
-      <div className="fixed top-0 left-0 right-0 h-12 bg-background z-40" />
-
-      <div className="fixed top-4 left-0 right-0 z-50">
+        className="fixed left-0 right-0 z-50"
+        style={{ top: `${FIXED_TOP}px` }}
+      >
         <div className="max-w-4xl mx-auto px-4">
           <div
-            className={`relative w-full rounded-4xl shadow-sm border transition-all duration-300 ${
-              isShrunken ? "h-24" : "h-72"
-            }`}
+            className="relative w-full overflow-hidden rounded-4xl border border-white/10 shadow-sm"
+            style={{ height: `${cardHeight}px` }}
           >
-            <Image
-              src={selectedCover}
-              alt={park.name}
-              width={1920}
-              height={1080}
-              className="object-cover w-full h-full rounded-3xl"
+            <ParkCoverImage
+              parkIdentifier={park.identifier}
+              parkName={park.name}
+              coverUrls={park.cover}
+              imageScale={imageScale}
             />
-            <div className="absolute left-0 bottom-0 w-full h-full z-0">
-              <div className="bg-linear-to-r from-black/80 via-black/40 to-transparent w-full h-full rounded-3xl"></div>
-            </div>
+            <div className="absolute inset-0 z-0 bg-linear-to-r from-black/80 via-black/45 to-black/20" />
+            <div className="absolute inset-0 z-0 bg-linear-to-t from-black/40 via-transparent to-black/20" />
+
             <div
-              className={`absolute left-0 bottom-0 p-4 z-10 transition-opacity duration-300 ${isShrunken ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+              className="absolute left-0 bottom-0 p-4 z-10"
+              style={{
+                opacity: detailsOpacity,
+                transform: `translateY(${detailsTranslateY}px)`,
+                pointerEvents: detailsOpacity > 0.05 ? "auto" : "none",
+              }}
             >
               <ParkNameStatus
                 name={park.name}
@@ -110,7 +110,12 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
 
             {/* Shrunk state - only show name */}
             <div
-              className={`absolute left-0 top-1/2 -translate-y-1/2 px-4 z-10 transition-opacity duration-300 ${isShrunken ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+              className="absolute inset-y-0 left-0 z-10 flex items-center px-4"
+              style={{
+                opacity: compactOpacity,
+                transform: `translateY(${compactTranslateY}px)`,
+                pointerEvents: compactOpacity > 0.1 ? "auto" : "none",
+              }}
             >
               <ParkNameStatus
                 name={park.name}
@@ -120,7 +125,12 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
             </div>
 
             <div
-              className={`absolute left-0 top-0 p-4 z-10 transition-opacity duration-300 ${isShrunken ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+              className="absolute left-0 top-0 p-4 z-10"
+              style={{
+                opacity: backOpacity,
+                transform: `translateY(${backTranslateY}px)`,
+                pointerEvents: backOpacity > 0.05 ? "auto" : "none",
+              }}
             >
               <Link
                 href={`/`}

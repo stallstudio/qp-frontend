@@ -1,15 +1,27 @@
 import { Link } from "@/i18n/routing";
-import { getParkStatus } from "@/lib/utils";
+import { getParkLink, getParkStatus } from "@/lib/utils";
 import Flag from "react-flagkit";
 import TitleWithStatus from "./title-with-status";
 import { ParkList } from "@/types/park";
-import slugify from "slugify";
 
 interface ParkCardProps {
   park: ParkList;
   note?: string | null;
   showBadge?: boolean;
 }
+
+const getBadgeColor = (type: string) => {
+  switch (type) {
+    case "new":
+      return "from-green-600 to-green-300";
+    case "featured":
+      return "from-blue-600 to-blue-300";
+    case "updated":
+      return "from-yellow-600 to-yellow-300";
+    default:
+      return "from-yellow-600 to-yellow-300";
+  }
+};
 
 export default function ParkCard({
   park,
@@ -18,15 +30,12 @@ export default function ParkCard({
 }: ParkCardProps) {
   const status = getParkStatus(park.openingHours);
 
-  const getLink = (park: ParkList) => {
-    const groupName = slugify(park.group.name, {
-      lower: true,
-      strict: true,
-    });
-    return `/g/${groupName}/p/${park.identifier}`;
-  };
   return (
-    <Link key={park.identifier} href={getLink(park)} className="block group">
+    <Link
+      key={park.identifier}
+      href={getParkLink(park)}
+      className="block group"
+    >
       <div className="flex items-center gap-4 justify-between hover:bg-accent transition-colors duration-300 px-2 py-1.5 rounded-lg">
         <div className="flex flex-col items-start min-w-0">
           <TitleWithStatus parkName={park.name} status={status} />
@@ -34,7 +43,9 @@ export default function ParkCard({
         </div>
         <div className="flex items-center gap-1">
           {park.badge && showBadge && (
-            <div className="text-xs font-bold h-4.5 flex items-center border px-1.5 rounded-sm text-primary">
+            <div
+              className={`text-xs font-bold h-4.5 flex items-center border px-1.5 rounded-sm bg-linear-to-r ${getBadgeColor(park.badge)} text-transparent bg-clip-text`}
+            >
               {park.badge.toLocaleUpperCase()}
             </div>
           )}

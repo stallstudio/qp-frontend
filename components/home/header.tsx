@@ -4,65 +4,111 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
+const EXPANDED_HEIGHT = 288;
+const COLLAPSED_HEIGHT = 96;
+const SHRINK_DISTANCE = 220;
+const FIXED_TOP = 16;
+
+const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
+
 export default function HomeHeader() {
   const t = useTranslations("home");
-  const [isShrunken, setIsShrunken] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
+    let rafId = 0;
 
-      // Hysteresis: different thresholds for shrinking and expanding
-      // This prevents flickering when scroll position is near the threshold
-      if (!isShrunken && scrollY > 50) {
-        setIsShrunken(true);
-      } else if (isShrunken && scrollY < 20) {
-        setIsShrunken(false);
-      }
+    const updateScrollY = () => {
+      rafId = 0;
+      setScrollY(Math.max(0, window.scrollY));
     };
 
+    const handleScroll = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(updateScrollY);
+    };
+
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isShrunken]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, []);
+
+  const shrinkProgress = clamp01(scrollY / SHRINK_DISTANCE);
+  const cardHeight =
+    EXPANDED_HEIGHT - (EXPANDED_HEIGHT - COLLAPSED_HEIGHT) * shrinkProgress;
+  const spacerHeight =
+    FIXED_TOP + cardHeight + Math.min(scrollY, SHRINK_DISTANCE);
+
+  const detailsOpacity = clamp01(1 - shrinkProgress * 1.45);
+  const compactOpacity = clamp01((shrinkProgress - 0.34) / 0.46);
+  const subtitleOpacity = clamp01(1 - shrinkProgress * 1.9);
+
+  const detailsTranslateY = shrinkProgress * 16;
+  const compactTranslateY = (1 - compactOpacity) * 12;
+  const imageScale = 1 + (1 - shrinkProgress) * 0.06;
 
   return (
     <>
-      {/* Placeholder to maintain document flow and prevent content jump */}
+      <div className="w-full" style={{ height: `${spacerHeight}px` }} />
+
+      <div className="fixed inset-x-0 top-0 z-40 h-20 bg-linear-to-b from-background via-background/95 to-transparent pointer-events-none" />
+
       <div
-        className={`w-full transition-all duration-300 ${isShrunken ? "h-28" : "h-76"}`}
-      />
-
-      {/* Background cover to prevent content showing behind header */}
-      <div className="fixed top-0 left-0 right-0 h-12 bg-background z-40" />
-
-      <div className="fixed top-4 left-0 right-0 z-50">
+        className="fixed left-0 right-0 z-50"
+        style={{ top: `${FIXED_TOP}px` }}
+      >
         <div className="max-w-4xl mx-auto px-4">
           <div
-            className={`relative w-full rounded-4xl shadow-sm border transition-all duration-300 ${
-              isShrunken ? "h-24" : "h-72"
-            }`}
+            className="relative w-full overflow-hidden rounded-4xl border border-white/10 shadow-sm"
+            style={{ height: `${cardHeight}px` }}
           >
             <Image
               src="https://queue-park.com/assets/images/couverture_estivale.jpg"
               alt="Queue Park"
               width={1920}
               height={1080}
-              className="object-cover w-full h-full rounded-3xl"
+              className="absolute inset-0 h-full w-full object-cover"
+              style={{ transform: `scale(${imageScale})` }}
             />
-            <div className="absolute left-0 bottom-0 w-full h-full z-0">
-              <div className="bg-linear-to-t from-black/80 via-black/40 to-transparent w-full h-full rounded-3xl"></div>
-            </div>
+
+            <div className="absolute inset-0 z-0 bg-linear-to-t from-black/80 via-black/35 to-black/15" />
+            <div className="absolute inset-0 z-0 bg-linear-to-r from-black/30 via-transparent to-black/10" />
+
             <div
-              className={`absolute inset-0 flex items-center  flex-col ${isShrunken ? "p-2 justify-center" : "p-8 justify-end"}`}
+              className="absolute inset-0 z-10 flex flex-col items-center justify-end p-8"
+              style={{
+                opacity: detailsOpacity,
+                transform: `translateY(${detailsTranslateY}px)`,
+                pointerEvents: detailsOpacity > 0.05 ? "auto" : "none",
+              }}
             >
-              <h2 className="text-3xl font-bold text-white line-clamp-2">
+              <h2 className="line-clamp-2 text-center text-3xl font-bold text-white sm:text-4xl">
                 {t("title")}
               </h2>
               <p
-                className={`text-white transition-opacity duration-300 text-center ${isShrunken ? "opacity-0 h-0" : "opacity-100 h-auto"}`}
+                className="mt-1 text-center text-white/90"
+                style={{ opacity: subtitleOpacity }}
               >
                 {t("subtitle")}
               </p>
+            </div>
+
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center px-6"
+              style={{
+                opacity: compactOpacity,
+                transform: `translateY(${compactTranslateY}px)`,
+                pointerEvents: compactOpacity > 0.1 ? "auto" : "none",
+              }}
+            >
+              <h2 className="line-clamp-1 text-center text-3xl font-bold text-white">
+                {t("title")}
+              </h2>
             </div>
           </div>
         </div>

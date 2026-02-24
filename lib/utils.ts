@@ -2,7 +2,8 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { DateTime } from "luxon";
 import { OpeningHour } from "@/types/openingHour";
-import { ParkStatus } from "@/types/park";
+import { ParkList, ParkStatus } from "@/types/park";
+import slugify from "slugify";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -34,6 +35,14 @@ export function getParkStatus(openingHours: OpeningHour[]): ParkStatus {
 
   return "closed";
 }
+
+export const getParkLink = (park: ParkList) => {
+  const groupName = slugify(park.group.name, {
+    lower: true,
+    strict: true,
+  });
+  return `/g/${groupName}/p/${park.identifier}`;
+};
 
 export function getCountryName(code: string): string {
   if (!code) return "";

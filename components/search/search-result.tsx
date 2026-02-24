@@ -1,5 +1,5 @@
 import { getParkStatusDot } from "@/lib/badge";
-import { getParkStatus } from "@/lib/utils";
+import { getParkLink, getParkStatus } from "@/lib/utils";
 import { ParkList } from "@/types/park";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
@@ -14,7 +14,7 @@ export default function SearchResult({ park }: SearchResultProps) {
   const status = getParkStatus(park.openingHours);
   return (
     <Link
-      href={`/park/${park.identifier}`}
+      href={getParkLink(park)}
       className="border rounded-2xl hover:bg-accent cursor-pointer group transition-colors duration-300"
     >
       <Image
