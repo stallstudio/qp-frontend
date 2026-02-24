@@ -37,18 +37,18 @@ export default function ParkSkeleton() {
                 <div className="absolute left-0 bottom-0 p-4 z-10">
                   {/* Park name and status skeleton */}
                   <div className="mb-2">
-                    <Skeleton className="h-8 w-64 mb-2 bg-white/20" />
-                    <Skeleton className="h-4 w-20 bg-white/20" />
+                    <Skeleton className="h-8 w-64 mb-2" />
+                    <Skeleton className="h-4 w-20" />
                   </div>
 
                   {/* Opening hours skeleton */}
                   <div className="mb-2">
-                    <Skeleton className="h-4 w-32 bg-white/20" />
+                    <Skeleton className="h-4 w-32" />
                   </div>
 
                   {/* Local time skeleton */}
                   <div>
-                    <Skeleton className="h-4 w-24 bg-white/20" />
+                    <Skeleton className="h-4 w-24" />
                   </div>
                 </div>
 
@@ -56,7 +56,7 @@ export default function ParkSkeleton() {
                 <div className="absolute left-0 top-0 p-4 z-10">
                   <div className="flex items-center gap-2 text-white text-sm">
                     <Undo2 className="size-4" />
-                    <Skeleton className="h-4 w-16 bg-white/20" />
+                    <Skeleton className="h-4 w-16" />
                   </div>
                 </div>
               </div>

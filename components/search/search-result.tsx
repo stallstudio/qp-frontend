@@ -1,10 +1,9 @@
-import { getParkStatusDot } from "@/lib/badge";
 import { getParkLink, getParkStatus } from "@/lib/utils";
 import { ParkList } from "@/types/park";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import Flag from "react-flagkit";
-import { ChevronRight } from "lucide-react";
+import TitleWithStatus from "../parks/title-with-status";
 
 interface SearchResultProps {
   park: ParkList;
@@ -26,17 +25,21 @@ export default function SearchResult({ park }: SearchResultProps) {
       />
       <div className="flex items-center justify-between p-2">
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <Flag country={park.country || ""} />
-
-            <h3 className="font-medium group-hover:text-primary line-clamp-1 transition-colors duration-300">
-              {park.name}
-            </h3>
-            {getParkStatusDot(status)}
-          </div>
-          <p className="text-xs text-muted-foreground">{park.group.name}</p>
+          <TitleWithStatus
+            parkName={park.name}
+            status={status}
+            className="line-clamp-1"
+          />
+          <p className="text-xs text-muted-foreground line-clamp-1">
+            {park.group.name}
+          </p>
         </div>
-        <ChevronRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+        <div className="w-6 h-4.5 border rounded-sm">
+          <Flag
+            country={park.country || ""}
+            className="w-full h-full object-cover rounded-sm"
+          />
+        </div>
       </div>
     </Link>
   );
