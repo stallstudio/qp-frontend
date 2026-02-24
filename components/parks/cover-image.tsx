@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
-const DEFAULT_COVER = "https://cdn.queue-park.com/default_cover.webp";
+const DEFAULT_COVER = "/default_cover.webp";
 
 type ParkCoverImageProps = {
   parkIdentifier: string;
