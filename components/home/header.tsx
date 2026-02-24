@@ -68,7 +68,7 @@ export default function HomeHeader() {
             style={{ height: `${cardHeight}px` }}
           >
             <Image
-              src="https://queue-park.com/assets/images/couverture_estivale.jpg"
+              src="/default_cover.webp"
               alt="Queue Park"
               width={1920}
               height={1080}

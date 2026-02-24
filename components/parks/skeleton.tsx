@@ -22,7 +22,7 @@ export default function ParkSkeleton() {
               <div className="relative w-full rounded-4xl shadow-sm border h-72">
                 {/* Background image skeleton with fixed placeholder */}
                 <Image
-                  src="https://queue-park.com/assets/images/couverture_estivale.jpg"
+                  src="/default_cover.webp"
                   alt="Park cover"
                   fill
                   className="object-cover rounded-3xl"
