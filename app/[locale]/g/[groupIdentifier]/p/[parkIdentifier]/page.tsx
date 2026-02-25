@@ -2,7 +2,6 @@
 
 import ParkHeader from "@/components/parks/header";
 import ParkSkeleton from "@/components/parks/skeleton";
-import ParkWaitTimeTable from "@/components/parks/waitTimeTable";
 import Footer from "@/components/ui/footer";
 import { ParkData } from "@/types/park";
 import axios from "axios";
@@ -10,6 +9,7 @@ import { useRouter } from "@/i18n/routing";
 import { use, useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import MainCard from "@/components/parks/main-card";
 
 export default function ParkPage({
   params,
@@ -43,9 +43,11 @@ export default function ParkPage({
           },
         });
         setParkData(response.data);
+        console.log(response.data.shows);
       } catch (error: unknown) {
         router.push("/");
         toast.error(t("parkNotFound"));
+
         console.error(error instanceof Error ? error.message : error);
       } finally {
         if (showLoading) setLoading(false);
@@ -78,11 +80,7 @@ export default function ParkPage({
     <div className="flex min-h-[123vh] w-full mx-auto max-w-4xl flex-col px-4 gap-8">
       <main className="flex-1 flex flex-col gap-1 mt-4">
         <ParkHeader park={parkData} />
-        <ParkWaitTimeTable
-          waitTimes={parkData.waitTimes}
-          lastUpdate={parkData.lastUpdate}
-          onRefresh={() => fetchParkData(false)}
-        />
+        <MainCard park={parkData} onRefresh={() => fetchParkData(false)} />
       </main>
       <Footer />
     </div>
