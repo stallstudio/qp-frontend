@@ -37,14 +37,11 @@ export default function ParkPage({
         return;
       }
       try {
-        const response = await axios.get(
-          `${apiUrl}/waittimes/${parkIdentifier}`,
-          {
-            headers: {
-              "x-api-key": apiToken,
-            },
+        const response = await axios.get(`${apiUrl}/park/${parkIdentifier}`, {
+          headers: {
+            "x-api-key": apiToken,
           },
-        );
+        });
         setParkData(response.data);
       } catch (error: unknown) {
         router.push("/");

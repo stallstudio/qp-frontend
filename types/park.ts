@@ -1,5 +1,6 @@
 import { Group } from "./group";
 import { OpeningHour } from "./openingHour";
+import { ShowTime } from "./show";
 import { WaitTime } from "./waitTime";
 
 //
@@ -32,6 +33,7 @@ export type ParkData = {
   timezone: string;
   openingHours: OpeningHour[];
   waitTimes: WaitTime[];
+  shows: ShowTime[];
   lastUpdate: string;
 };
 //

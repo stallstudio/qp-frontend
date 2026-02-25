@@ -147,11 +147,11 @@
     transform: translateX(-150%) skewX(-20deg);
     opacity: 0;
   }
-  30% {
-    opacity: 0.25;
+  20% {
+    opacity: 1;
   }
-  60% {
-    opacity: 0.25;
+  80% {
+    opacity: 1;
   }
   100% {
     transform: translateX(150%) skewX(-20deg);
@@ -159,6 +159,9 @@
   }
 }
 
+.card-shine-active::after {
+  animation: card-shine 2s ease;
+}
 .card-shine {
   position: relative;
   overflow: hidden;
@@ -167,21 +170,25 @@
 .card-shine::after {
   content: "";
   position: absolute;
-  inset: 0;
+
+  /* rendre BEAUCOUP plus grand que la card */
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+
   pointer-events: none;
 
   background: linear-gradient(
     110deg,
-    transparent 20%,
-    rgba(255, 255, 255, 0.08) 45%,
-    rgba(255, 255, 255, 0.18) 50%,
-    rgba(255, 255, 255, 0.08) 55%,
-    transparent 80%
+    transparent 40%,
+    rgba(255,255,255,0.08) 48%,
+    rgba(255,255,255,0.18) 50%,
+    rgba(255,255,255,0.08) 52%,
+    transparent 60%
   );
 
   transform: translateX(-150%) skewX(-20deg);
-}
 
-.card-shine-active::after {
-  animation: card-shine 2s ease;
+  opacity: 0;
 }
