@@ -8,6 +8,7 @@ import SearchResult from "./search-result";
 import { useRouter } from "@/i18n/routing";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { getParkLink } from "@/lib/utils";
 
 interface SearchBarProps {
   parks: ParkList[];
@@ -75,7 +76,8 @@ export default function SearchBar({ parks }: SearchBarProps) {
     toast.success(`${t("randomParkToast")} ${parks[randomIndex].name} !`, {
       icon: <Dices className="size-4" />,
     });
-    router.push(`/park/${parks[randomIndex].identifier}`);
+    const link = getParkLink(parks[randomIndex]);
+    router.push(link);
   };
   return (
     <div>
