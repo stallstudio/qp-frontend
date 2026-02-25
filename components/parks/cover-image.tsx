@@ -20,6 +20,7 @@ export default function ParkCoverImage({
 }: ParkCoverImageProps) {
   const [selectedCover, setSelectedCover] = useState(DEFAULT_COVER);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [isRealImageReady, setIsRealImageReady] = useState(false);
   const hasProcessedRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -52,7 +53,21 @@ export default function ParkCoverImage({
     hasProcessedRef.current = parkIdentifier;
   }, [coverUrls, parkIdentifier]);
 
-  const showDefaultCover = !isImageLoaded || selectedCover === DEFAULT_COVER;
+  useEffect(() => {
+    if (selectedCover === DEFAULT_COVER) {
+      setIsRealImageReady(true);
+      return;
+    }
+
+    setIsRealImageReady(false);
+    const img = document.createElement("img");
+    img.src = selectedCover;
+    img.onload = () => setIsRealImageReady(true);
+    img.onerror = () => setIsRealImageReady(true);
+  }, [selectedCover]);
+
+  const showDefaultCover =
+    !isImageLoaded || !isRealImageReady || selectedCover === DEFAULT_COVER;
 
   return (
     <>
