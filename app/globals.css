@@ -142,17 +142,46 @@
   }
 }
 
-@property --gradient-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes rotation {
+@keyframes card-shine {
   0% {
-    --gradient-angle: 0deg;
+    transform: translateX(-150%) skewX(-20deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.25;
+  }
+  60% {
+    opacity: 0.25;
   }
   100% {
-    --gradient-angle: 360deg;
+    transform: translateX(150%) skewX(-20deg);
+    opacity: 0;
   }
+}
+
+.card-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.08) 45%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.08) 55%,
+    transparent 80%
+  );
+
+  transform: translateX(-150%) skewX(-20deg);
+}
+
+.card-shine-active::after {
+  animation: card-shine 2s ease;
 }

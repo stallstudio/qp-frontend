@@ -11,9 +11,12 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { getStatusBadge, getWaitTimeBadge } from "@/lib/badge";
-import { useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useWaitTimeChanges } from "@/hooks/useWaitTimeChanges";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
+import { usePageVisibility } from "@/hooks/usePageVisibility";
 
 type WaitTimeTableProps = {
   waitTimes: WaitTime[];
@@ -27,77 +30,64 @@ export default function ParkWaitTimeTable({
   onRefresh,
 }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
-  const [timeSinceLastUpdate, setTimeSinceLastUpdate] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = useCallback(async () => {
-    if (!onRefresh || isRefreshing) return;
+  const {
+    timeSinceLastUpdate,
+    isRefreshing,
+    justUpdated,
+    handleRefresh,
+    startIntervals,
+    clearIntervals,
+  } = useAutoRefresh(lastUpdate, onRefresh, 60000);
 
-    setIsRefreshing(true);
-    try {
-      await onRefresh();
-    } catch (error) {
-      console.error("Refresh failed:", error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [onRefresh, isRefreshing]);
+  const changedRides = useWaitTimeChanges(waitTimes, 1000);
 
-  useEffect(() => {
-    const calculateRemainingSeconds = () => {
+  usePageVisibility(
+    lastUpdate,
+    () => {
       const lastUpdateTime = new Date(lastUpdate).getTime();
-      const targetTime = lastUpdateTime + 60 * 1000; // +1 minute
       const currentTime = Date.now();
+      const timeSinceUpdate = currentTime - lastUpdateTime;
 
-      const remainingMs = targetTime - currentTime;
-      const remainingSeconds = Math.ceil(remainingMs / 1000);
-
-      return remainingSeconds;
-    };
-
-    // Mise à jour immédiate
-    setTimeSinceLastUpdate(calculateRemainingSeconds());
-
-    // Intervalle pour le décompte (toutes les secondes)
-    const countdownInterval = setInterval(() => {
-      setTimeSinceLastUpdate(calculateRemainingSeconds());
-    }, 1000);
-
-    // Intervalle pour le rafraîchissement des données (toutes les 2 secondes)
-    const refreshInterval = setInterval(() => {
-      const newTimeSinceLastUpdate = calculateRemainingSeconds();
-
-      // Si timeSinceLastUpdate est = ou inférieur à 0 (donc 1 minute ou plus écoulée)
-      // ET qu'on est pas encore à -20 secondes (donc pas plus de 1 minute et 20 secondes)
-      if (newTimeSinceLastUpdate <= 0 && newTimeSinceLastUpdate > -20) {
+      if (timeSinceUpdate > 60 * 1000) {
         handleRefresh();
       }
-    }, 2000);
 
-    return () => {
-      clearInterval(countdownInterval);
-      clearInterval(refreshInterval);
-    };
-  }, [lastUpdate, handleRefresh]);
+      const calculateRemainingSeconds = () => {
+        const targetTime = lastUpdateTime + 60 * 1000;
+        const remainingMs = targetTime - Date.now();
+        return Math.ceil(remainingMs / 1000);
+      };
+      startIntervals(calculateRemainingSeconds);
+    },
+    clearIntervals,
+    60000,
+  );
 
-  const sortedWaitTimes = [...waitTimes].sort((a, b) => {
-    // Ordre des status: open (0), down (1), closed (2), maintenance (3)
-    const statusOrder = { open: 0, down: 1, closed: 2, maintenance: 3 };
-    const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+  const sortedWaitTimes = useMemo(
+    () =>
+      [...waitTimes].sort((a, b) => {
+        // Ordre des status: open (0), down (1), closed (2), maintenance (3)
+        const statusOrder = { open: 0, down: 1, closed: 2, maintenance: 3 };
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
 
-    if (statusDiff !== 0) return statusDiff;
+        if (statusDiff !== 0) return statusDiff;
 
-    // Si même status, trier par wait time - du plus haut au plus bas
-    if (a.waitTime !== b.waitTime) {
-      return b.waitTime - a.waitTime;
-    }
+        // Si même status, trier par wait time - du plus haut au plus bas
+        if (a.waitTime !== b.waitTime) {
+          return b.waitTime - a.waitTime;
+        }
 
-    // Enfin, trier par nom
-    return a.rideName.localeCompare(b.rideName);
-  });
+        // Enfin, trier par nom
+        return a.rideName.localeCompare(b.rideName);
+      }),
+    [waitTimes],
+  );
 
   return (
-    <Card className="w-full rounded-4xl px-4 pt-2 gap-0 pb-0 relative">
+    <Card
+      className={`w-full rounded-4xl px-4 pt-2 gap-0 pb-0 card-shine ${justUpdated ? "card-shine-active" : ""}`}
+    >
       <Table className="border-b">
         <TableHeader>
           <TableRow>
@@ -109,7 +99,12 @@ export default function ParkWaitTimeTable({
         <TableBody className="w-full">
           {sortedWaitTimes.length > 0 ? (
             sortedWaitTimes.map((waitTime, index) => (
-              <TableRow key={index} className="max-w-full">
+              <TableRow
+                key={index}
+                className={`max-w-full transition-colors duration-500 ${
+                  changedRides.has(waitTime.rideName) ? "bg-accent" : ""
+                }`}
+              >
                 <TableCell className="font-medium w-4/6 whitespace-normal wrap-break-word">
                   {waitTime.rideName}
                 </TableCell>
@@ -150,15 +145,6 @@ export default function ParkWaitTimeTable({
           </p>
         )}
       </div>
-      <div
-        className={`
-          absolute inset-0 -z-20 rounded-4xl blur-[0.5rem]
-          [background:conic-gradient(from_var(--gradient-angle),transparent,white,transparent,white,transparent)]
-          animate-[rotation_3s_linear_infinite]
-          transition-opacity duration-500
-          ${timeSinceLastUpdate < 3 && timeSinceLastUpdate > -20 ? "opacity-100" : "opacity-0"}
-        `}
-      ></div>
     </Card>
   );
 }
