@@ -31,6 +31,16 @@
     "open": "Öppet",
     "closed": "Stängt"
   },
+  "tabs": {
+    "waitTimes": "Väntetider",
+    "shows": "Shower"
+  },
+  "shows": {
+    "show": "Show",
+    "schedules": "Tider",
+    "updateInfo": "Shower uppdateras varje timme",
+    "noMoreToday": "Inga fler shower idag"
+  },
   "waitTimeTable": {
     "attraction": "Attraktion",
     "waitTime": "Väntetid",

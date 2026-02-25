@@ -31,6 +31,16 @@
     "open": "開園中",
     "closed": "閉園"
   },
+  "tabs": {
+    "waitTimes": "待ち時間",
+    "shows": "ショー"
+  },
+  "shows": {
+    "show": "ショー",
+    "schedules": "スケジュール",
+    "updateInfo": "ショーは1時間ごとに更新されます",
+    "noMoreToday": "本日はこれ以上ショーはありません"
+  },
   "waitTimeTable": {
     "attraction": "アトラクション",
     "waitTime": "待ち時間",

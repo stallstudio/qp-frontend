@@ -18,6 +18,8 @@ type MainCardProps = {
 
 export default function MainCard({ park, onRefresh }: MainCardProps) {
   const t = useTranslations("waitTimeTable");
+  const tTabs = useTranslations("tabs");
+  const tShows = useTranslations("shows");
   const searchParams = useSearchParams();
   const router = useRouter();
   const activeTab = searchParams.get("tab") || "wait-times";
@@ -71,11 +73,11 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
           <TabsList className="w-full rounded-3xl">
             <TabsTrigger value="wait-times" className="rounded-3xl">
               <Clock />
-              Wait Times
+              {tTabs("waitTimes")}
             </TabsTrigger>
             <TabsTrigger value="show-times" className="rounded-3xl">
               <Drama />
-              Show Times
+              {tTabs("shows")}
             </TabsTrigger>
           </TabsList>
         )}
@@ -103,7 +105,7 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
           </p>
         )}
         {park.shows.length > 0 && activeTab === "show-times" && (
-          <p>Shows are updated every hour</p>
+          <p>{tShows("updateInfo")}</p>
         )}
       </div>
     </Card>

@@ -31,6 +31,16 @@
     "open": "开园中",
     "closed": "已闭园"
   },
+  "tabs": {
+    "waitTimes": "排队时间",
+    "shows": "演出"
+  },
+  "shows": {
+    "show": "演出",
+    "schedules": "时间表",
+    "updateInfo": "演出每小时更新一次",
+    "noMoreToday": "今天没有更多演出"
+  },
   "waitTimeTable": {
     "attraction": "游乐设施",
     "waitTime": "排队时间",

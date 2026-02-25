@@ -31,6 +31,16 @@
     "open": "운영 중",
     "closed": "운영 종료"
   },
+  "tabs": {
+    "waitTimes": "대기 시간",
+    "shows": "쇼"
+  },
+  "shows": {
+    "show": "쇼",
+    "schedules": "일정",
+    "updateInfo": "쇼는 매시간 업데이트됩니다",
+    "noMoreToday": "오늘은 더 이상 쇼가 없습니다"
+  },
   "waitTimeTable": {
     "attraction": "어트랙션",
     "waitTime": "대기 시간",

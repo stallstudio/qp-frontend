@@ -31,6 +31,16 @@
     "open": "Offen",
     "closed": "Geschlossen"
   },
+  "tabs": {
+    "waitTimes": "Wartezeiten",
+    "shows": "Shows"
+  },
+  "shows": {
+    "show": "Show",
+    "schedules": "Zeiten",
+    "updateInfo": "Shows werden stündlich aktualisiert",
+    "noMoreToday": "Keine weiteren Shows heute"
+  },
   "waitTimeTable": {
     "attraction": "Attraktion",
     "waitTime": "Wartezeit",

@@ -31,6 +31,16 @@
     "open": "Open",
     "closed": "Gesloten"
   },
+  "tabs": {
+    "waitTimes": "Wachttijden",
+    "shows": "Shows"
+  },
+  "shows": {
+    "show": "Show",
+    "schedules": "Tijden",
+    "updateInfo": "Shows worden elk uur bijgewerkt",
+    "noMoreToday": "Geen shows meer vandaag"
+  },
   "waitTimeTable": {
     "attraction": "Attractie",
     "waitTime": "Wachttijd",

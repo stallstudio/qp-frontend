@@ -2,11 +2,11 @@
 
 import { ParkData } from "@/types/park";
 import ParkCoverImage from "./cover-image";
-import ParkOpeningHours from "./openingHours";
-import ParkLocalTime from "./localTime";
+import ParkOpeningHours from "./opening-hours";
+import ParkLocalTime from "./local-time";
 import Link from "next/link";
 import { Undo2 } from "lucide-react";
-import ParkNameStatus from "./nameStatus";
+import ParkNameStatus from "./name-status";
 import { useEffect, useState } from "react";
 import { getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";

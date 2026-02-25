@@ -31,6 +31,16 @@
     "open": "Åben",
     "closed": "Lukket"
   },
+  "tabs": {
+    "waitTimes": "Ventetider",
+    "shows": "Shows"
+  },
+  "shows": {
+    "show": "Show",
+    "schedules": "Tider",
+    "updateInfo": "Shows opdateres hver time",
+    "noMoreToday": "Ikke flere shows i dag"
+  },
   "waitTimeTable": {
     "attraction": "Forlystelse",
     "waitTime": "Ventetid",

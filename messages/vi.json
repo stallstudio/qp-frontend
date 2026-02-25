@@ -31,6 +31,16 @@
     "open": "Đang mở cửa",
     "closed": "Đã đóng cửa"
   },
+  "tabs": {
+    "waitTimes": "Thời gian chờ",
+    "shows": "Chương trình biểu diễn"
+  },
+  "shows": {
+    "show": "Chương trình",
+    "schedules": "Lịch trình",
+    "updateInfo": "Chương trình được cập nhật mỗi giờ",
+    "noMoreToday": "Không còn chương trình nào hôm nay"
+  },
   "waitTimeTable": {
     "attraction": "Trò chơi",
     "waitTime": "Thời gian chờ",
