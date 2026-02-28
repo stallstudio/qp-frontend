@@ -82,7 +82,7 @@ export default function ParkCoverImage({
         }}
         fetchPriority="high"
         loading="eager"
-        onLoad={() => setIsImageLoaded(true)}
+        onLoadingComplete={() => setIsImageLoaded(true)}
       />
 
       <Image
