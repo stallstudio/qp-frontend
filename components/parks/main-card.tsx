@@ -62,7 +62,7 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
 
   return (
     <Card
-      className={`w-full rounded-4xl px-4 py-4 gap-0 pb-0 card-shine ${justUpdated ? "card-shine-active" : ""}`}
+      className={`w-full rounded-4xl p-4 gap-0 pb-0 card-shine ${justUpdated ? "card-shine-active" : ""}`}
     >
       <Tabs
         value={activeTab}

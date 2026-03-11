@@ -1,6 +1,5 @@
 import { Link } from "@/i18n/routing";
-import { getParkLink, getParkStatus } from "@/lib/utils";
-import Flag from "react-flagkit";
+import { getCountryName, getParkLink, getParkStatus } from "@/lib/utils";
 import TitleWithStatus from "./title-with-status";
 import { ParkList } from "@/types/park";
 
@@ -13,13 +12,13 @@ interface ParkCardProps {
 const getBadgeColor = (type: string) => {
   switch (type) {
     case "new":
-      return "from-green-600 to-green-300";
+      return "from-green-600 to-green-400";
     case "featured":
-      return "from-blue-600 to-blue-300";
+      return "from-blue-600 to-blue-400";
     case "updated":
-      return "from-yellow-600 to-yellow-300";
+      return "from-yellow-600 to-yellow-400";
     default:
-      return "from-yellow-600 to-yellow-300";
+      return "from-yellow-600 to-yellow-400";
   }
 };
 
@@ -49,12 +48,10 @@ export default function ParkCard({
               {park.badge.toLocaleUpperCase()}
             </div>
           )}
-          <div className="w-6 h-4.5 border rounded-sm">
-            <Flag
-              country={park.country || ""}
-              className="w-full h-full object-cover rounded-sm"
-            />
-          </div>
+
+          <div
+            className={`twa twa-flag-${getCountryName(park.country).toLocaleLowerCase().replace(/\s+/g, "-")} twa-lg`}
+          />
         </div>
       </div>
     </Link>

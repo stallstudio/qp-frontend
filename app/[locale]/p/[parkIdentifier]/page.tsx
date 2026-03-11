@@ -15,14 +15,13 @@ export default function ParkPage({
   params,
 }: {
   params: Promise<{
-    groupIdentifier: string;
     parkIdentifier: string;
     locale: string;
   }>;
 }) {
   const t = useTranslations("errors");
   const router = useRouter();
-  const { groupIdentifier, parkIdentifier } = use(params);
+  const { parkIdentifier } = use(params);
   const [parkData, setParkData] = useState<ParkData | null>(null);
   const [loading, setLoading] = useState(true);
 

@@ -1,10 +1,9 @@
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./language-switcher";
-import { ThemeToggle } from "./theme-toggle";
-import { useState } from "react";
+import { AnimatedThemeToggler } from "./animated-theme-toggler";
+import { buttonVariants } from "./button";
 
 export default function Footer() {
-  const [pageHeight, setPageHeight] = useState<number>(0);
   const t = useTranslations("footer");
   const currentYear = new Date().getFullYear();
   return (
@@ -25,13 +24,15 @@ export default function Footer() {
           >
             contact@queue-park.com
           </a>
-          . {pageHeight}px
+          .
         </p>
       </div>
       <div className="flex items-center justify-center sm:justify-end gap-2 order-1 sm:order-2">
         <LanguageSwitcher />
         <span>|</span>
-        <ThemeToggle />
+        <AnimatedThemeToggler
+          className={buttonVariants({ variant: "secondary" })}
+        />
       </div>
     </footer>
   );

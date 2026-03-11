@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./twemoji-amazing.css";
 import { ThemeProvider } from "../components/theme-provider";
 import { Toaster } from "sonner";
 import NextTopLoader from "nextjs-toploader";
