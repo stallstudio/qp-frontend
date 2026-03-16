@@ -86,6 +86,10 @@ export default function ParksList({ parks }: ParksListProps) {
 
     return { leftColumn, rightColumn };
   };
+
+  const getMobileParks = () => {
+    return Object.entries(getGroupedParks());
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -100,7 +104,7 @@ export default function ParksList({ parks }: ParksListProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* First Column */}
-        <div className="space-y-8">
+        <div className="space-y-8 hidden md:block">
           {splitGroupsBalanced().leftColumn.map(([groupName, groupParks]) => (
             <ParkCategoryCard
               key={groupName}
@@ -111,8 +115,18 @@ export default function ParksList({ parks }: ParksListProps) {
         </div>
 
         {/* Second Column */}
-        <div className="space-y-8">
+        <div className="space-y-8 hidden md:block">
           {splitGroupsBalanced().rightColumn.map(([groupName, groupParks]) => (
+            <ParkCategoryCard
+              key={groupName}
+              groupName={groupName}
+              parks={groupParks}
+            />
+          ))}
+        </div>
+        {/* Not splitted on mobile */}
+        <div className="space-y-8 block md:hidden">
+          {getMobileParks().map(([groupName, groupParks]) => (
             <ParkCategoryCard
               key={groupName}
               groupName={groupName}
