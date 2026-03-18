@@ -21,7 +21,7 @@ type WaitTimeTableProps = {
 export default function ParkWaitTimeTable({ waitTimes }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
 
-  const changedRides = useWaitTimeChanges(waitTimes, 1000);
+  const changedRides = useWaitTimeChanges(waitTimes, 2000);
 
   const sortedWaitTimes = useMemo(
     () =>

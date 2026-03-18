@@ -11,13 +11,23 @@ interface SearchResultProps {
 
 export default function SearchResult({ park }: SearchResultProps) {
   const status = getParkStatus(park.openingHours);
+
+  const getParkCover = (covers: string[]) => {
+    let cover = "/default_cover.webp";
+    if (covers.length > 0) {
+      if (cover[0] !== "") {
+        cover = covers[0];
+      }
+    }
+    return cover || "";
+  };
   return (
     <Link
       href={getParkLink(park)}
       className="border rounded-2xl hover:bg-accent cursor-pointer group transition-colors duration-300"
     >
       <Image
-        src={park.cover[0]}
+        src={getParkCover(park.cover)}
         alt={park.name}
         height={500}
         width={500}
