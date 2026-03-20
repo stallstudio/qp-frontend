@@ -47,7 +47,6 @@ export default function SearchBar({ parks }: SearchBarProps) {
   const shouldShowResults = searchQuery.trim() && searchQuery.length >= 2;
 
   const getHeightClass = () => {
-    console.log(searchResults.length);
     if (!shouldShowResults) {
       return "h-0";
     }

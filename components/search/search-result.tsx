@@ -14,7 +14,7 @@ export default function SearchResult({ park }: SearchResultProps) {
 
   const getParkCover = (covers: string[]) => {
     let cover = "/default_cover.webp";
-    if (covers.length > 0) {
+    if (covers && covers.length > 0) {
       if (cover[0] !== "") {
         cover = covers[0];
       }

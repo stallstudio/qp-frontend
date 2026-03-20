@@ -42,7 +42,6 @@ export default function ParkPage({
           },
         });
         setParkData(response.data);
-        console.log(response.data.shows);
       } catch (error: unknown) {
         router.push("/");
         toast.error(t("parkNotFound"));
