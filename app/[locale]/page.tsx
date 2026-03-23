@@ -13,6 +13,7 @@ import { ParkList, ParkListResponse } from "@/types/park";
 export default function Home() {
   const t = useTranslations("errors");
   const [parks, setParks] = useState<ParkList[]>([]);
+  const [popularParks, setPopularParks] = useState<ParkList[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchParks = useCallback(async () => {
@@ -32,6 +33,13 @@ export default function Home() {
         },
       });
       setParks(response.data.parks);
+
+      const popularParksData = response.data.popularParks
+        .map((identifier) =>
+          response.data.parks.find((park) => park.identifier === identifier),
+        )
+        .filter((park): park is ParkList => park !== undefined);
+      setPopularParks(popularParksData);
     } catch (error) {
       console.error(t("fetchError"), error);
     } finally {
@@ -54,7 +62,7 @@ export default function Home() {
 
         <SearchBar parks={parks} />
 
-        <PopularParks popularParks={parks.slice(0, 6)} />
+        <PopularParks popularParks={popularParks} />
 
         <ParksList parks={parks} />
       </main>

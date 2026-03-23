@@ -9,6 +9,7 @@ import { WaitTime } from "./waitTime";
 
 export type ParkListResponse = {
   parks: ParkList[];
+  popularParks: string[];
 };
 
 export interface ParkList {

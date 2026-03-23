@@ -11,6 +11,11 @@ interface PopularParksProps {
 
 export default function PopularParks({ popularParks }: PopularParksProps) {
   const t = useTranslations("popularParks");
+
+  if (popularParks.length <= 3) {
+    return null;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-1">
@@ -26,12 +31,7 @@ export default function PopularParks({ popularParks }: PopularParksProps) {
         {popularParks.map((park, index) => (
           <Card className="p-0" key={index}>
             <CardContent className="p-0">
-              <ParkCard
-                key={park.identifier}
-                park={park}
-                showBadge={false}
-                note={`${Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000} ${t("visitsNote")}`}
-              />
+              <ParkCard key={park.identifier} park={park} showBadge={false} />
             </CardContent>
           </Card>
         ))}
