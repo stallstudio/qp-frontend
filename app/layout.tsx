@@ -4,6 +4,7 @@ import "./twemoji-amazing.css";
 import { ThemeProvider } from "../components/theme-provider";
 import { Toaster } from "sonner";
 import NextTopLoader from "nextjs-toploader";
+import { GoogleAnalytics } from "../components/google-analytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +26,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <GoogleAnalytics />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

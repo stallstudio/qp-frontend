@@ -49,7 +49,7 @@ export default function ParkWaitTimeTable({ waitTimes }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const [expandedRides, setExpandedRides] = useState<Set<string>>(new Set());
 
-  const changedRides = useWaitTimeChanges(waitTimes, 2000);
+  const changedRides = useWaitTimeChanges(waitTimes, 3000);
 
   const toggleExpand = (rideName: string) => {
     setExpandedRides((prev) => {

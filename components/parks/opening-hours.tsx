@@ -67,7 +67,7 @@ export default function ParkOpeningHours({
 
           return (
             <div key={index} className="flex items-center gap-2 text-white">
-              <Icon className="w-4 h-4" />
+              <Icon className="w-4 h-4 shrink-0" />
               <p>
                 <span className="font-medium">{label}</span>:{" "}
                 {formatTime(openingHour.openTime!, timezone)} -{" "}

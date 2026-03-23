@@ -36,10 +36,7 @@ export default function ParkCard({
       className="block group"
     >
       <div className="flex items-center gap-4 justify-between hover:bg-accent transition-colors duration-300 px-2 py-1.5 rounded-lg">
-        <div className="flex flex-col items-start min-w-0">
-          <TitleWithStatus parkName={park.name} status={status} />
-          {note && <p className="text-xs text-muted-foreground">{note}</p>}
-        </div>
+        <TitleWithStatus parkName={park.name} status={status} />
         <div className="flex items-center gap-1">
           {park.badge && showBadge && (
             <div
