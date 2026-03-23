@@ -36,7 +36,7 @@ export function getParkStatus(openingHours: OpeningHour[]): ParkStatus {
 }
 
 export const getParkLink = (park: ParkList) => {
-  return `/p/${park.identifier}`;
+  return `/park/${park.identifier}`;
 };
 
 export function getCountryName(code: string): string {

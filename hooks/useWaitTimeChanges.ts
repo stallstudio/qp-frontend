@@ -3,7 +3,7 @@ import { WaitTime } from "@/types/waitTime";
 
 export function useWaitTimeChanges(
   waitTimes: WaitTime[],
-  highlightDuration: number = 1000
+  highlightDuration: number = 1000,
 ) {
   const [changedRides, setChangedRides] = useState<Set<string>>(new Set());
   const previousWaitTimesRef = useRef<WaitTime[]>(waitTimes);
@@ -16,17 +16,29 @@ export function useWaitTimeChanges(
 
     current.forEach((currentRide) => {
       const previousRide = previous.find(
-        (r) => r.rideName === currentRide.rideName
+        (r) => r.rideName === currentRide.rideName,
       );
 
       if (previousRide) {
-        // Check if wait time or status changed
-        if (
-          previousRide.waitTime !== currentRide.waitTime ||
-          previousRide.status !== currentRide.status
-        ) {
-          changed.add(currentRide.rideName);
-        }
+        // Check each queue type for changes
+        currentRide.queues.forEach((currentQueue) => {
+          const previousQueue = previousRide.queues.find(
+            (q) => q.type === currentQueue.type,
+          );
+
+          if (previousQueue) {
+            // Check if wait time or status changed for this queue type
+            if (
+              previousQueue.waitTime !== currentQueue.waitTime ||
+              previousQueue.status !== currentQueue.status
+            ) {
+              changed.add(`${currentRide.rideName}-${currentQueue.type}`);
+            }
+          } else {
+            // New queue type added
+            changed.add(`${currentRide.rideName}-${currentQueue.type}`);
+          }
+        });
       }
     });
 
