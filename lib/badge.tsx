@@ -1,4 +1,4 @@
-import { WaitTime } from "@/types/waitTime";
+import { WaitTimeStatus } from "@/types/waitTime";
 
 function getWaitTimeColorClass(waitTime: number): string {
   if (waitTime < 0) {
@@ -25,7 +25,7 @@ function getWaitTimeBadge(waitTime: number) {
   );
 }
 
-function getStatusColorClass(status: WaitTime["status"]) {
+function getStatusColorClass(status: WaitTimeStatus) {
   if (status === "open") {
     return "bg-green-100 text-green-800";
   }
@@ -40,7 +40,7 @@ function getStatusColorClass(status: WaitTime["status"]) {
   }
 }
 
-function getStatusDotColorClass(status: WaitTime["status"]) {
+function getStatusDotColorClass(status: WaitTimeStatus) {
   if (status === "open") {
     return "bg-green-400";
   }
@@ -55,7 +55,7 @@ function getStatusDotColorClass(status: WaitTime["status"]) {
   }
 }
 
-function getStatusLabel(status: WaitTime["status"]) {
+function getStatusLabel(status: WaitTimeStatus) {
   if (status === "open") {
     return "Open";
   }
@@ -70,7 +70,7 @@ function getStatusLabel(status: WaitTime["status"]) {
   }
 }
 
-function getStatusBadge(status: WaitTime["status"]) {
+function getStatusBadge(status: WaitTimeStatus) {
   const colorClass = getStatusColorClass(status);
   const dotColorClass = getStatusDotColorClass(status);
 

@@ -1,7 +1,9 @@
+export type WaitTimeStatus = "open" | "closed" | "down" | "maintenance";
+
 export type QueueTime = {
   type: string;
   waitTime: number;
-  status: "open" | "closed" | "down" | "maintenance";
+  status: WaitTimeStatus;
 };
 
 export type WaitTime = {
