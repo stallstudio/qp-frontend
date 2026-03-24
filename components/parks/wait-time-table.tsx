@@ -43,13 +43,27 @@ const QUEUE_TYPE_MAP: Record<string, QueueTypeInfo> = {
 
 type WaitTimeTableProps = {
   waitTimes: WaitTime[];
+  queueTypeLabels?: Record<string, string> | null;
 };
 
-export default function ParkWaitTimeTable({ waitTimes }: WaitTimeTableProps) {
+export default function ParkWaitTimeTable({
+  waitTimes,
+  queueTypeLabels,
+}: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const [expandedRides, setExpandedRides] = useState<Set<string>>(new Set());
 
   const changedRides = useWaitTimeChanges(waitTimes, 3000);
+
+  const getQueueLabel = (queueType: string): string => {
+    if (queueTypeLabels && queueTypeLabels[queueType]) {
+      return queueTypeLabels[queueType];
+    }
+    if (QUEUE_TYPE_MAP[queueType]) {
+      return QUEUE_TYPE_MAP[queueType].label;
+    }
+    return queueType.charAt(0).toUpperCase() + queueType.slice(1);
+  };
 
   const toggleExpand = (rideName: string) => {
     setExpandedRides((prev) => {
@@ -168,18 +182,13 @@ export default function ParkWaitTimeTable({ waitTimes }: WaitTimeTableProps) {
                   >
                     <TableCell className="font-medium w-4/6 whitespace-normal wrap-break-word">
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        {QUEUE_TYPE_MAP[queue.type] ? (
-                          <>
-                            <CornerDownRight className="size-3.5" />
-                            <span>{QUEUE_TYPE_MAP[queue.type].label}</span>
-                            {(() => {
-                              const Icon = QUEUE_TYPE_MAP[queue.type].icon;
-                              return <Icon className="size-3.5" />;
-                            })()}
-                          </>
-                        ) : (
-                          <span className="capitalize">{queue.type}</span>
-                        )}
+                        <CornerDownRight className="size-3.5" />
+                        <span>{getQueueLabel(queue.type)}</span>
+                        {QUEUE_TYPE_MAP[queue.type] &&
+                          (() => {
+                            const Icon = QUEUE_TYPE_MAP[queue.type].icon;
+                            return <Icon className="size-3.5" />;
+                          })()}
                       </div>
                     </TableCell>
                     <TableCell className="text-left w-1/6 overflow-hidden">

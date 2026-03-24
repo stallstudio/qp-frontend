@@ -82,7 +82,10 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
           </TabsList>
         )}
         <TabsContent value="wait-times">
-          <ParkWaitTimeTable waitTimes={park.waitTimes} />
+          <ParkWaitTimeTable
+            waitTimes={park.waitTimes}
+            queueTypeLabels={park.queueTypeLabels}
+          />
         </TabsContent>
         <TabsContent value="show-times">
           <ParkShowTimeTable shows={park.shows} timezone={park.timezone} />

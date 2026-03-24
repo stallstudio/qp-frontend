@@ -32,6 +32,7 @@ export type ParkData = {
   name: string;
   cover: string[];
   timezone: string;
+  queueTypeLabels?: Record<string, string> | null;
   openingHours: OpeningHour[];
   waitTimes: WaitTime[];
   shows: ShowTime[];
