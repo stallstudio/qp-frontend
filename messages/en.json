@@ -10,11 +10,11 @@
   },
   "parksList": {
     "title": "All Theme Parks",
-    "sortByGroup": "By Group",
-    "sortByCountry": "By Country"
+    "sortByGroup": "By group",
+    "sortByCountry": "By country"
   },
   "popularParks": {
-    "title": "Popular Parks",
+    "title": "Popular parks",
     "trendingText": "Trending over the past 2 hours",
     "visitsNote": "visits"
   },

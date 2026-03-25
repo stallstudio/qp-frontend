@@ -2,15 +2,15 @@ import { WaitTimeStatus } from "@/types/waitTime";
 
 function getWaitTimeColorClass(waitTime: number): string {
   if (waitTime < 0) {
-    return "bg-gray-100 text-gray-800";
+    return "bg-gray-200 text-gray-700";
   }
   if (waitTime <= 20) {
-    return "bg-green-100 text-green-800";
+    return "bg-green-100 text-green-700";
   }
-  if (waitTime <= 45) {
-    return "bg-orange-100 text-orange-800";
+  if (waitTime <= 40) {
+    return "bg-orange-100 text-orange-700";
   }
-  return "bg-red-100 text-red-800";
+  return "bg-red-100 text-red-700";
 }
 
 function getWaitTimeBadge(waitTime: number) {
@@ -27,16 +27,16 @@ function getWaitTimeBadge(waitTime: number) {
 
 function getStatusColorClass(status: WaitTimeStatus) {
   if (status === "open") {
-    return "bg-green-100 text-green-800";
+    return "bg-green-100 text-green-700";
   }
   if (status === "closed") {
-    return "bg-red-100 text-red-800";
+    return "bg-red-100 text-red-700";
   }
   if (status === "down") {
-    return "bg-orange-100 text-orange-800";
+    return "bg-orange-100 text-orange-700";
   }
   if (status === "maintenance") {
-    return "bg-red-100 text-red-800";
+    return "bg-red-100 text-red-700";
   }
 }
 
