@@ -56,6 +56,10 @@
     "copyright": "© {year} Queue Park. Bảo lưu mọi quyền.",
     "contactText": "Liên hệ với tôi tại"
   },
+  "noData": {
+    "title": "Rất tiếc!",
+    "message": "Hiện tại chúng tôi không có thông tin để hiển thị cho công viên này. Hãy quay lại sau nhé!"
+  },
   "errors": {
     "configError": "Lỗi cấu hình. Vui lòng liên hệ hỗ trợ.",
     "fetchError": "Không thể tải dữ liệu công viên:",

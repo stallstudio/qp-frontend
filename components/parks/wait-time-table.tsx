@@ -147,16 +147,30 @@ export default function ParkWaitTimeTable({
                   }
                 >
                   <TableCell className="font-medium w-4/6 whitespace-normal wrap-break-word">
-                    <div className="flex items-center gap-2">
-                      {waitTime.rideName}
-                      {hasMultipleQueues && (
-                        <ChevronRight
-                          className={`h-4 w-4 transition-transform duration-200 ${
-                            isExpanded ? "rotate-90" : ""
-                          }`}
-                        />
-                      )}
-                    </div>
+                    {hasMultipleQueues ? (
+                      <>
+                        {(() => {
+                          const words = waitTime.rideName.trim().split(" ");
+                          const lastWord = words.pop();
+                          const beginning = words.join(" ");
+                          return (
+                            <>
+                              {beginning}{" "}
+                              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                                {lastWord}
+                                <ChevronRight
+                                  className={`size-3.5 transition-transform duration-200 ${
+                                    isExpanded ? "rotate-90" : ""
+                                  }`}
+                                />
+                              </span>
+                            </>
+                          );
+                        })()}
+                      </>
+                    ) : (
+                      waitTime.rideName
+                    )}
                   </TableCell>
                   <TableCell className="text-left w-1/6 overflow-hidden">
                     {getWaitTimeBadge(standbyQueue.waitTime)}
@@ -181,7 +195,7 @@ export default function ParkWaitTimeTable({
                     }`}
                   >
                     <TableCell className="font-medium w-4/6 whitespace-normal wrap-break-word">
-                      <div className="flex items-center gap-2 text-muted-foreground">
+                      <div className="flex items-center gap-1 text-muted-foreground">
                         <CornerDownRight className="size-3.5" />
                         <span>{getQueueLabel(queue.type)}</span>
                         {QUEUE_TYPE_MAP[queue.type] &&

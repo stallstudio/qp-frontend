@@ -2,14 +2,14 @@
 
 import { ParkData } from "@/types/park";
 import { Card } from "@/components/ui/card";
-import { Clock, Drama, Loader2 } from "lucide-react";
+import { AlertCircle, Clock, Drama, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { usePageVisibility } from "@/hooks/usePageVisibility";
 import ParkWaitTimeTable from "./wait-time-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import ParkShowTimeTable from "./show-time-table";
 import { useEffect, useState } from "react";
+import ParkShowTimeTableV2 from "./show-time-table-v2";
 
 type MainCardProps = {
   park: ParkData;
@@ -21,6 +21,7 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
   const t = useTranslations("waitTimeTable");
   const tTabs = useTranslations("tabs");
   const tShows = useTranslations("shows");
+  const tNoData = useTranslations("noData");
 
   const {
     timeSinceLastUpdate,
@@ -64,7 +65,7 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
         setActiveTab("wait-times");
       }
     }
-  }, [park]);
+  }, []);
   return (
     <Card
       className={`w-full rounded-4xl p-4 gap-0 pb-0 card-shine ${justUpdated ? "card-shine-active" : ""}`}
@@ -88,7 +89,7 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
             />
           </TabsContent>
           <TabsContent value="show-times">
-            <ParkShowTimeTable shows={park.shows} timezone={park.timezone} />
+            <ParkShowTimeTableV2 shows={park.shows} timezone={park.timezone} />
           </TabsContent>
         </Tabs>
       ) : hasWaitTimes ? (
@@ -97,8 +98,19 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
           queueTypeLabels={park.queueTypeLabels}
         />
       ) : hasShows ? (
-        <ParkShowTimeTable shows={park.shows} timezone={park.timezone} />
+        <ParkShowTimeTableV2 shows={park.shows} timezone={park.timezone} />
       ) : null}
+      {park.shows.length === 0 && park.waitTimes.length === 0 && (
+        <div className="flex items-center justify-center flex-col gap-y-0.5 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <AlertCircle className="size-3.5" />
+            <h3 className="font-medium tracking-tight text-center">
+              {tNoData("title")}
+            </h3>
+          </div>
+          <p className="text-center">{tNoData("message")}</p>
+        </div>
+      )}
       <div className="flex justify-center text-sm text-muted-foreground my-4 flex-col items-center">
         {timeSinceLastUpdate > 0 ? (
           <p>

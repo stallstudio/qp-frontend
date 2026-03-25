@@ -56,6 +56,10 @@
     "copyright": "© {year} Queue Park. All rights reserved.",
     "contactText": "Contact me at"
   },
+  "noData": {
+    "title": "Oops, sorry!",
+    "message": "We currently have no information to display for this park. Come back later!"
+  },
   "errors": {
     "configError": "Configuration error. Please contact support.",
     "fetchError": "Failed to fetch parks:",

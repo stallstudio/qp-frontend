@@ -56,6 +56,10 @@
     "copyright": "© {year} Queue Park. Alle rettigheder forbeholdes.",
     "contactText": "Kontakt mig på"
   },
+  "noData": {
+    "title": "Ups, undskyld!",
+    "message": "Vi har i øjeblikket ingen information at vise for denne park. Kom tilbage senere!"
+  },
   "errors": {
     "configError": "Konfigurationsfejl. Kontakt venligst support.",
     "fetchError": "Kunne ikke hente parker:",

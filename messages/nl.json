@@ -56,6 +56,10 @@
     "copyright": "© {year} Queue Park. Alle rechten voorbehouden.",
     "contactText": "Neem contact met me op via"
   },
+  "noData": {
+    "title": "Oeps, sorry!",
+    "message": "We hebben momenteel geen informatie om te tonen voor dit park. Kom later terug!"
+  },
   "errors": {
     "configError": "Configuratiefout. Neem contact op met de klantenservice.",
     "fetchError": "Fout bij het ophalen van parken:",

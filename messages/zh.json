@@ -56,6 +56,10 @@
     "copyright": "© {year} Queue Park. 保留所有权利。",
     "contactText": "联系我："
   },
+  "noData": {
+    "title": "哎呀，抱歉！",
+    "message": "我们目前没有此乐园的信息可显示。请稍后再来！"
+  },
   "errors": {
     "configError": "配置错误。请联系支持人员。",
     "fetchError": "无法获取乐园信息：",

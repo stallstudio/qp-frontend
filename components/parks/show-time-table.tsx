@@ -26,6 +26,10 @@ export default function ParkShowTimeTable({
   const t = useTranslations("waitTimeTable");
   const tShows = useTranslations("shows");
 
+  const hasDuration = useMemo(() => {
+    return shows.some((show) => show.duration > 0);
+  }, [shows]);
+
   const sortedShows = useMemo(() => {
     const now = DateTime.now().setZone(timezone);
 
@@ -63,6 +67,11 @@ export default function ParkShowTimeTable({
       <TableHeader>
         <TableRow>
           <TableHead className="text-left">{tShows("show")}</TableHead>
+          {hasDuration && (
+            <TableHead className="text-center w-[100px]">
+              {tShows("duration")}
+            </TableHead>
+          )}
           <TableHead className="text-center w-[150px] sm:w-[200px] md:w-[250px] lg:w-[300px] xl:w-[400px]">
             {tShows("schedules")}
           </TableHead>
@@ -73,10 +82,14 @@ export default function ParkShowTimeTable({
           sortedShows.map((showTime, index) => (
             <TableRow key={index} className="max-w-full">
               <TableCell className="font-medium whitespace-normal wrap-break-word">
-                {showTime.showName}{" "}
-                {showTime.duration > 0 && `(${showTime.duration} min)`}
+                {showTime.showName}
               </TableCell>
-              <TableCell className="w-[150px] sm:w-[200px] md:w-[250px] lg:w-[300px] xl:w-[400px]">
+              {hasDuration && (
+                <TableCell className="text-center">
+                  {showTime.duration > 0 ? `${showTime.duration} min` : "-"}
+                </TableCell>
+              )}
+              <TableCell className="w-[150px] sm:w-[200px] md:w-[250px] lg:w-[300px] xl:w-[400px] py-2">
                 <DisplaySchedules
                   schedules={showTime.schedules}
                   timezone={timezone}
@@ -87,7 +100,7 @@ export default function ParkShowTimeTable({
         ) : (
           <TableRow>
             <TableCell
-              colSpan={3}
+              colSpan={hasDuration ? 3 : 2}
               className="text-center text-muted-foreground"
             >
               {t("noWaitTimes")}

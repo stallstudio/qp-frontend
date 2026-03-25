@@ -56,6 +56,10 @@
     "copyright": "© {year} Queue Park. Alla rättigheter förbehållna.",
     "contactText": "Kontakta mig på"
   },
+  "noData": {
+    "title": "Hoppsan, förlåt!",
+    "message": "Vi har för närvarande ingen information att visa för denna park. Kom tillbaka senare!"
+  },
   "errors": {
     "configError": "Konfigurationsfel. Vänligen kontakta support.",
     "fetchError": "Misslyckades med att hämta parker:",

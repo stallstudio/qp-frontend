@@ -56,6 +56,10 @@
     "copyright": "© {year} Queue Park. Wszelkie prawa zastrzeżone.",
     "contactText": "Kontakt ze mną:"
   },
+  "noData": {
+    "title": "Ups, przepraszamy!",
+    "message": "Obecnie nie mamy żadnych informacji do wyświetlenia dla tego parku. Wróć później!"
+  },
   "errors": {
     "configError": "Błąd konfiguracji. Skontaktuj się ze wsparciem.",
     "fetchError": "Nie udało się pobrać danych o parkach:",

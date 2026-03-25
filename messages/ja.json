@@ -56,6 +56,10 @@
     "copyright": "© {year} Queue Park. All rights reserved.",
     "contactText": "お問い合わせ先："
   },
+  "noData": {
+    "title": "おっと、ごめんなさい！",
+    "message": "現在、このパークに関する情報がありません。後でまたお越しください！"
+  },
   "errors": {
     "configError": "設定エラーが発生しました。サポートにお問い合わせください。",
     "fetchError": "データの取得に失敗しました：",
