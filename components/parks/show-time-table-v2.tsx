@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { ShowTime } from "@/types/show";
 import { DateTime } from "luxon";
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 
 type ShowTimeTableV2Props = {
   shows: ShowTime[];
@@ -17,6 +17,9 @@ export default function ParkShowTimeTableV2({
   const t = useTranslations("waitTimeTable");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const currentTimeRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   const parkHours = useMemo(() => {
     const hours: number[] = [];
@@ -142,6 +145,37 @@ export default function ParkShowTimeTableV2({
     }
   }, []);
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+    scrollContainerRef.current.style.cursor = "grabbing";
+    scrollContainerRef.current.style.userSelect = "none";
+  };
+
+  const handleMouseLeave = () => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(false);
+    scrollContainerRef.current.style.cursor = "grab";
+    scrollContainerRef.current.style.userSelect = "auto";
+  };
+
+  const handleMouseUp = () => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(false);
+    scrollContainerRef.current.style.cursor = "grab";
+    scrollContainerRef.current.style.userSelect = "auto";
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
   const PIXEL_PER_MINUTE = 2;
   const BASE_ROW_HEIGHT = 10;
   const LANE_HEIGHT = 24;
@@ -164,7 +198,7 @@ export default function ParkShowTimeTableV2({
             return (
               <div
                 key={index}
-                className="border-b flex items-center px-3 text-sm font-medium text-nowrap overflow-auto"
+                className="border-b flex items-center px-3 text-sm font-medium text-nowrap overflow-auto scrollbar-hide"
                 style={{ height: `${rowHeight}px` }}
               >
                 {item.show.showName}
@@ -178,7 +212,14 @@ export default function ParkShowTimeTableV2({
           })}
         </div>
 
-        <div className="flex-1 overflow-x-auto" ref={scrollContainerRef}>
+        <div
+          className="flex-1 overflow-x-auto scrollbar-hide cursor-grab"
+          ref={scrollContainerRef}
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+        >
           <div
             className="relative"
             style={{
