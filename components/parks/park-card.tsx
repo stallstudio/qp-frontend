@@ -5,7 +5,7 @@ import { ParkList } from "@/types/park";
 
 interface ParkCardProps {
   park: ParkList;
-  note?: string | null;
+  className?: string;
   showBadge?: boolean;
 }
 
@@ -24,7 +24,7 @@ const getBadgeColor = (type: string) => {
 
 export default function ParkCard({
   park,
-  note,
+
   showBadge = true,
 }: ParkCardProps) {
   const status = getParkStatus(park.openingHours);

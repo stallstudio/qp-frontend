@@ -34,15 +34,13 @@ export default function SearchResult({ park }: SearchResultProps) {
         className="h-22 w-full object-cover rounded-t-lg"
       />
       <div className="flex items-center justify-between p-2">
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0">
           <TitleWithStatus
             parkName={park.name}
             status={status}
-            className="line-clamp-1"
+            className="truncate"
           />
-          <p className="text-xs text-muted-foreground line-clamp-1">
-            {park.group.name}
-          </p>
+          <p className="text-xs text-muted-foreground ">{park.group.name}</p>
         </div>
         <div className="w-6 h-4.5 border rounded-sm">
           <Flag

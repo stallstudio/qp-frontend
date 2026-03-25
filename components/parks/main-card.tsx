@@ -9,7 +9,7 @@ import { usePageVisibility } from "@/hooks/usePageVisibility";
 import ParkWaitTimeTable from "./wait-time-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import ParkShowTimeTable from "./show-time-table";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type MainCardProps = {
   park: ParkData;
@@ -17,18 +17,10 @@ type MainCardProps = {
 };
 
 export default function MainCard({ park, onRefresh }: MainCardProps) {
+  const [activeTab, setActiveTab] = useState<string>("");
   const t = useTranslations("waitTimeTable");
   const tTabs = useTranslations("tabs");
   const tShows = useTranslations("shows");
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const activeTab = searchParams.get("tab") || "wait-times";
-
-  const handleTabChange = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", value);
-    router.push(`?${params.toString()}`, { scroll: false });
-  };
 
   const {
     timeSinceLastUpdate,
@@ -60,16 +52,25 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
     60000,
   );
 
+  const hasWaitTimes = park.waitTimes && park.waitTimes.length > 0;
+  const hasShows = park.shows && park.shows.length > 0;
+  const showTabs = hasWaitTimes && hasShows;
+
+  useEffect(() => {
+    if (showTabs) {
+      if (hasShows && !hasWaitTimes) {
+        setActiveTab("show-times");
+      } else {
+        setActiveTab("wait-times");
+      }
+    }
+  }, [park]);
   return (
     <Card
       className={`w-full rounded-4xl p-4 gap-0 pb-0 card-shine ${justUpdated ? "card-shine-active" : ""}`}
     >
-      <Tabs
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className="w-full"
-      >
-        {park.shows.length > 0 && (
+      {showTabs ? (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full rounded-3xl">
             <TabsTrigger value="wait-times" className="rounded-3xl">
               <Clock />
@@ -80,17 +81,24 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
               {tTabs("shows")}
             </TabsTrigger>
           </TabsList>
-        )}
-        <TabsContent value="wait-times">
-          <ParkWaitTimeTable
-            waitTimes={park.waitTimes}
-            queueTypeLabels={park.queueTypeLabels}
-          />
-        </TabsContent>
-        <TabsContent value="show-times">
-          <ParkShowTimeTable shows={park.shows} timezone={park.timezone} />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="wait-times">
+            <ParkWaitTimeTable
+              waitTimes={park.waitTimes}
+              queueTypeLabels={park.queueTypeLabels}
+            />
+          </TabsContent>
+          <TabsContent value="show-times">
+            <ParkShowTimeTable shows={park.shows} timezone={park.timezone} />
+          </TabsContent>
+        </Tabs>
+      ) : hasWaitTimes ? (
+        <ParkWaitTimeTable
+          waitTimes={park.waitTimes}
+          queueTypeLabels={park.queueTypeLabels}
+        />
+      ) : hasShows ? (
+        <ParkShowTimeTable shows={park.shows} timezone={park.timezone} />
+      ) : null}
       <div className="flex justify-center text-sm text-muted-foreground my-4 flex-col items-center">
         {timeSinceLastUpdate > 0 ? (
           <p>

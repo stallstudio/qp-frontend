@@ -20,11 +20,11 @@ const TitleWithStatus = ({
   return (
     <h3
       className={cn(
-        "font-medium group-hover:text-primary transition-colors duration-300",
+        "font-medium group-hover:text-primary transition-colors duration-300 min-w-0",
         className,
       )}
     >
-      {beginning} {/* C'est ici que la magie opère */}
+      {beginning}{" "}
       <span className="inline-flex items-center whitespace-nowrap">
         {lastWord}
         {getParkStatusDot(status, "sm", "ml-2")}

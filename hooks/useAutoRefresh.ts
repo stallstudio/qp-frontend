@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 export function useAutoRefresh(
   lastUpdate: string,
   onRefresh?: () => Promise<void>,
-  refreshInterval: number = 60000
+  refreshInterval: number = 60000,
 ) {
   const [timeSinceLastUpdate, setTimeSinceLastUpdate] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -60,7 +60,7 @@ export function useAutoRefresh(
         }
       }, 2000);
     },
-    [clearIntervals, handleRefresh]
+    [clearIntervals, handleRefresh],
   );
 
   useEffect(() => {
