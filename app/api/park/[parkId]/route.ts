@@ -1,46 +1,12 @@
 import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
-import { calculateParkDate } from "@/lib/opening-hours";
-
-type QueueTime = {
-  type: string;
-  waitTime: number;
-  status: string;
-};
-
-type SimplifiedWaitTime = {
-  rideName: string;
-  queues: QueueTime[];
-};
-
-type SimplifiedOpeningHours = {
-  type: string;
-  openTime: Date | null;
-  closeTime: Date | null;
-};
-
-type ShowSchedule = {
-  startTime: string;
-  endTime: string | null;
-};
-
-type SimplifiedShowTime = {
-  showName: string;
-  duration: number;
-  schedules: ShowSchedule[];
-};
-
-type ParkData = {
-  identifier: string;
-  name: string;
-  timezone: string;
-  cover: string[] | null;
-  queueTypeLabels: Record<string, string> | null;
-  openingHours: SimplifiedOpeningHours[];
-  waitTimes: SimplifiedWaitTime[];
-  shows: SimplifiedShowTime[];
-  lastUpdate: string | null;
-};
+import {
+  calculateParkDate,
+  getOpeningHoursByParkAndDate,
+} from "@/lib/opening-hours";
+import { getLatestWaitTimesByPark } from "@/lib/wait-times";
+import { getShowTimesByParkAndDate } from "@/lib/show-times";
+import { ParkLiveData } from "@/types/api";
 
 export async function GET(
   request: Request,
@@ -114,102 +80,9 @@ export async function GET(
       );
     }
 
-    const [activeWaitTimes, openingHours, showTimes] = await Promise.all([
-      prisma.waitTime.findMany({
-        where: {
-          parkId: park.id,
-          endTime: null,
-        },
-        include: {
-          ride: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: {
-          startTime: "desc",
-        },
-      }),
-      prisma.openingHours.findMany({
-        where: {
-          parkId: park.id,
-          date: today,
-        },
-        select: {
-          type: true,
-          openTime: true,
-          closeTime: true,
-        },
-        orderBy: {
-          type: "asc",
-        },
-      }),
-      prisma.showTime.findMany({
-        where: {
-          parkId: park.id,
-          date: today,
-        },
-        include: {
-          show: {
-            select: {
-              id: true,
-              name: true,
-              duration: true,
-            },
-          },
-        },
-        orderBy: {
-          startTime: "asc",
-        },
-      }),
-    ]);
-
-    // Group wait times by ride
-    const rideMap = new Map<number, SimplifiedWaitTime>();
-
-    activeWaitTimes.forEach((wt: (typeof activeWaitTimes)[number]) => {
-      const rideId = wt.rideId!;
-      const rideName = wt.ride?.name || "Unknown";
-
-      if (!rideMap.has(rideId)) {
-        rideMap.set(rideId, {
-          rideName,
-          queues: [],
-        });
-      }
-
-      rideMap.get(rideId)!.queues.push({
-        type: wt.type,
-        waitTime: wt.waitTime,
-        status: wt.status,
-      });
-    });
-
-    const waitTimes: SimplifiedWaitTime[] = Array.from(rideMap.values());
-
-    // Group show times by show
-    const showsMap = new Map<string, SimplifiedShowTime>();
-
-    for (const st of showTimes) {
-      const externalId = st.externalId;
-
-      if (!showsMap.has(externalId)) {
-        showsMap.set(externalId, {
-          showName: st.show?.name ?? "Unknown",
-          duration: st.show?.duration ?? 0,
-          schedules: [],
-        });
-      }
-
-      showsMap.get(externalId)!.schedules.push({
-        startTime: st.startTime.toISOString(),
-        endTime: st.endTime ? st.endTime.toISOString() : null,
-      });
-    }
-
-    const shows: SimplifiedShowTime[] = Array.from(showsMap.values());
+    const waitTimes = await getLatestWaitTimesByPark(park.id);
+    const showTimes = await getShowTimesByParkAndDate(park.id, today);
+    const openingHours = await getOpeningHoursByParkAndDate(park.id, today);
 
     const lastUpdate = park.lastUpdatedAt?.toISOString() || null;
 
@@ -224,7 +97,7 @@ export async function GET(
       },
     });
 
-    const parkData: ParkData = {
+    const parkLiveData: ParkLiveData = {
       identifier: park.identifier,
       name: park.name,
       timezone: park.timezone,
@@ -232,7 +105,7 @@ export async function GET(
       queueTypeLabels: park.queueTypeLabels as Record<string, string> | null,
       openingHours: openingHours ?? [],
       waitTimes,
-      shows: shows ?? [],
+      shows: showTimes ?? [],
       lastUpdate,
     };
 
@@ -241,11 +114,11 @@ export async function GET(
       message: `Park data for ${park.name} retrieved successfully`,
       disclaimer:
         "This data is provided by the TWTS (Thrills Wait Times Service) and is strictly intended for authorized use only. Access and usage are exclusively permitted for thrills.world and queue-park.com. Any unauthorized access, use, reproduction, or distribution is strictly prohibited. If you wish to use or integrate this data, you must obtain prior written permission by contacting contact@queue-park.com. Unauthorized usage may result in immediate actions including permanent IP banning and revocation of access without notice. We actively monitor access to ensure compliance. By accessing this data, you agree to these terms.",
-      data: parkData,
+      data: parkLiveData,
       counts: {
         waitTimes: waitTimes.length,
         openingHours: openingHours.length,
-        shows: shows.length,
+        showTimes: showTimes.length,
       },
     });
   } catch (error) {

@@ -3,13 +3,13 @@
 import ParkHeader from "@/components/parks/header";
 import ParkSkeleton from "@/components/parks/skeleton";
 import Footer from "@/components/ui/footer";
-import { ParkData } from "@/types/park";
 import axios from "axios";
 import { useRouter } from "@/i18n/routing";
 import { use, useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import MainCard from "@/components/parks/main-card";
+import { ParkLiveData } from "@/types/api";
 
 export default function ParkPage({
   params,
@@ -22,14 +22,14 @@ export default function ParkPage({
   const t = useTranslations("errors");
   const router = useRouter();
   const { parkIdentifier } = use(params);
-  const [parkData, setParkData] = useState<ParkData | null>(null);
+  const [parkData, setParkData] = useState<ParkLiveData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchParkData = useCallback(
     async (showLoading: boolean) => {
       if (showLoading) setLoading(true);
       try {
-        const response = await axios.get<{ data: ParkData }>(
+        const response = await axios.get<{ data: ParkLiveData }>(
           `/api/park/${parkIdentifier}`,
         );
         setParkData(response.data.data);

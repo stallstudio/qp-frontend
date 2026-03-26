@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import { getPrisma } from "@/lib/prisma";
+import { OpeningHour } from "@/types/openingHour";
 
 type Park = {
   id: number;
@@ -79,4 +80,29 @@ export async function fetchOpeningHoursForParks(
   });
 
   return openingHoursByPark;
+}
+
+export async function getOpeningHoursByParkAndDate(
+  parkId: number,
+  date: string,
+): Promise<OpeningHour[]> {
+  try {
+    const prisma = getPrisma();
+
+    const entries = await prisma.openingHours.findMany({
+      where: {
+        parkId,
+        date,
+      },
+    });
+
+    return entries.map((entry) => ({
+      date: entry.date,
+      type: entry.type as "standard" | "early_access" | "extension",
+      openTime: entry.openTime ? entry.openTime.toISOString() : null,
+      closeTime: entry.closeTime ? entry.closeTime.toISOString() : null,
+    }));
+  } catch (error) {
+    return [];
+  }
 }

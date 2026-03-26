@@ -9,7 +9,7 @@ import PopularParks from "@/components/home/popular-parks";
 import ParksList from "@/components/home/parks-list";
 import HomeSkeleton from "@/components/home/home-skeleton";
 import { useTranslations } from "next-intl";
-import { ParkList, ParkListResponse } from "@/types/park";
+import { ParkList, ParkListData } from "@/types/api";
 export default function Home() {
   const t = useTranslations("errors");
   const [parks, setParks] = useState<ParkList[]>([]);
@@ -20,9 +20,7 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const response = await axios.get<{ data: ParkListResponse }>(
-        "/api/parks",
-      );
+      const response = await axios.get<{ data: ParkListData }>("/api/parks");
       setParks(response.data.data.parks);
 
       const popularParksData = response.data.data.popularParks
