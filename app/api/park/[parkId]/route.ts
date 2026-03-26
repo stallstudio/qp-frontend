@@ -169,7 +169,7 @@ export async function GET(
     // Group wait times by ride
     const rideMap = new Map<number, SimplifiedWaitTime>();
 
-    activeWaitTimes.forEach((wt) => {
+    activeWaitTimes.forEach((wt: (typeof activeWaitTimes)[number]) => {
       const rideId = wt.rideId!;
       const rideName = wt.ride?.name || "Unknown";
 
