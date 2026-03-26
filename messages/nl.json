@@ -74,5 +74,8 @@
     "ogDescription": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen en plan je bezoek met live data.",
     "twitterTitle": "Queue Park - Live Wachttijden voor Attractieparken",
     "twitterDescription": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen en plan je bezoek."
+  },
+  "settings": {
+    "timeFormat": "Tijdformaat"
   }
 }

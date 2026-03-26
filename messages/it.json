@@ -74,5 +74,8 @@
     "ogDescription": "Tempi di attesa in tempo reale per oltre 100 parchi divertimento in tutto il mondo. Monitora le code e pianifica la tua visita con dati in tempo reale.",
     "twitterTitle": "Queue Park - Tempi di Attesa dei Parchi in Tempo Reale",
     "twitterDescription": "Tempi di attesa in tempo reale per oltre 100 parchi divertimento in tutto il mondo. Monitora le code e pianifica la tua visita."
+  },
+  "settings": {
+    "timeFormat": "Formato ora"
   }
 }

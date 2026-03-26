@@ -74,5 +74,8 @@
     "ogDescription": "Thời gian chờ theo thời gian thực cho hơn 100 công viên chủ đề trên toàn thế giới. Theo dõi hàng đợi và lên kế hoạch chuyến thăm với dữ liệu trực tiếp.",
     "twitterTitle": "Queue Park - Thời Gian Chờ Công Viên Theo Thời Gian Thực",
     "twitterDescription": "Thời gian chờ theo thời gian thực cho hơn 100 công viên chủ đề trên toàn thế giới. Theo dõi hàng đợi và lên kế hoạch chuyến thăm."
+  },
+  "settings": {
+    "timeFormat": "Định dạng giờ"
   }
 }

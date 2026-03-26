@@ -9,9 +9,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Convert time format type to Luxon format string
+export function getLuxonFormat(is12Hour: boolean): string {
+  return is12Hour ? "h:mm a" : "HH:mm";
+}
+
 // Get current time from a specified timezone
-export function getLocalTime(timezone: string) {
-  return DateTime.now().setZone(timezone).toFormat("HH:mm");
+export function getLocalTime(timezone: string, is12Hour: boolean) {
+  const format = getLuxonFormat(is12Hour);
+  return DateTime.now().setZone(timezone).toFormat(format);
 }
 
 export function getParkStatus(openingHours: OpeningHour[]): ParkStatus {

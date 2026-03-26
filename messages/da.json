@@ -74,5 +74,8 @@
     "ogDescription": "Ventetider i realtid for over 100 forlystelsesparker verden over. Spor køer og planlæg dit besøg med live data.",
     "twitterTitle": "Queue Park - Live Ventetider for Forlystelsesparker",
     "twitterDescription": "Ventetider i realtid for over 100 forlystelsesparker verden over. Spor køer og planlæg dit besøg."
+  },
+  "settings": {
+    "timeFormat": "Tidsformat"
   }
 }

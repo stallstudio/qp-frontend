@@ -74,5 +74,8 @@
     "ogDescription": "Echtzeit-Wartezeiten für über 100 Freizeitparks weltweit. Verfolgen Sie Warteschlangen und planen Sie Ihren Besuch mit Live-Daten.",
     "twitterTitle": "Queue Park - Live Wartezeiten für Freizeitparks",
     "twitterDescription": "Echtzeit-Wartezeiten für über 100 Freizeitparks weltweit. Verfolgen Sie Warteschlangen und planen Sie Ihren Besuch."
+  },
+  "settings": {
+    "timeFormat": "Zeitformat"
   }
 }

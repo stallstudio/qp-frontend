@@ -74,5 +74,8 @@
     "ogDescription": "Väntetider i realtid för över 100 nöjesparker världen över. Spåra köer och planera ditt besök med livedata.",
     "twitterTitle": "Queue Park - Live Väntetider för Nöjesparker",
     "twitterDescription": "Väntetider i realtid för över 100 nöjesparker världen över. Spåra köer och planera ditt besök."
+  },
+  "settings": {
+    "timeFormat": "Tidsformat"
   }
 }

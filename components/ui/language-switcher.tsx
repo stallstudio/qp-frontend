@@ -2,14 +2,16 @@
 
 import { useLocale } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
-import { Check, Languages } from "lucide-react";
+import { Check, Languages, Clock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./button";
+import { useTimeFormat } from "@/hooks/useTimeFormat";
 
 const languages = [
   { code: "en", name: "English", flag: "🇬🇧" },
@@ -32,6 +34,7 @@ export default function LanguageSwitcher() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const { timeFormat, toggleTimeFormat } = useTimeFormat();
 
   const handleLanguageChange = (newLocale: string) => {
     router.replace(pathname, { locale: newLocale });
@@ -63,6 +66,19 @@ export default function LanguageSwitcher() {
             )}
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={toggleTimeFormat}
+          className="flex items-center justify-between cursor-pointer"
+        >
+          <span className="flex items-center gap-2">
+            <Clock className="size-4" />
+            <span>Time format</span>
+          </span>
+          <span className="text-muted-foreground text-sm">
+            {timeFormat === "12h" ? "12h" : "24h"}
+          </span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

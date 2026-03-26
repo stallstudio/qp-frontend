@@ -74,5 +74,8 @@
     "ogDescription": "全球100多个主题乐园的实时排队时间。通过实时数据追踪排队情况并规划您的游览。",
     "twitterTitle": "Queue Park - 主题乐园实时排队时间",
     "twitterDescription": "全球100多个主题乐园的实时排队时间。通过实时数据追踪排队情况并规划您的游览。"
+  },
+  "settings": {
+    "timeFormat": "时间格式"
   }
 }

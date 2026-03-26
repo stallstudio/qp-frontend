@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useTranslations } from "next-intl";
+import { getLuxonFormat } from "@/lib/utils";
+import { useTimeFormat } from "@/hooks/useTimeFormat";
 
 type ParkOpeningHoursProps = {
   openingHours: OpeningHour[];
@@ -26,10 +28,15 @@ const typeOrder: Record<OpeningHour["type"], number> = {
   extension: 2,
 };
 
-const formatTime = (timeString: string, timezone: string): string => {
+const formatTime = (
+  timeString: string,
+  timezone: string,
+  is12Hour: boolean,
+): string => {
+  const format = getLuxonFormat(is12Hour);
   return DateTime.fromISO(timeString, { zone: "utc" })
     .setZone(timezone)
-    .toFormat("HH:mm");
+    .toFormat(format);
 };
 
 export default function ParkOpeningHours({
@@ -37,6 +44,7 @@ export default function ParkOpeningHours({
   timezone,
 }: ParkOpeningHoursProps) {
   const t = useTranslations("parkPage");
+  const { is12Hour } = useTimeFormat();
 
   const typeLabelMap: Record<OpeningHour["type"], string> = {
     standard: t("todayHours"),
@@ -70,8 +78,8 @@ export default function ParkOpeningHours({
               <Icon className="w-4 h-4 shrink-0" />
               <p>
                 <span className="font-medium">{label}</span>:{" "}
-                {formatTime(openingHour.openTime!, timezone)} -{" "}
-                {formatTime(openingHour.closeTime!, timezone)}
+                {formatTime(openingHour.openTime!, timezone, is12Hour)} -{" "}
+                {formatTime(openingHour.closeTime!, timezone, is12Hour)}
               </p>
             </div>
           );

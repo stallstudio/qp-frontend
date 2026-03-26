@@ -74,5 +74,8 @@
     "ogDescription": "Tiempos de espera en tiempo real para más de 100 parques temáticos en todo el mundo. Sigue las colas y planifica tu visita con datos en vivo.",
     "twitterTitle": "Queue Park - Tiempos de Espera en Vivo de Parques",
     "twitterDescription": "Tiempos de espera en tiempo real para más de 100 parques temáticos en todo el mundo. Sigue las colas y planifica tu visita."
+  },
+  "settings": {
+    "timeFormat": "Formato de hora"
   }
 }

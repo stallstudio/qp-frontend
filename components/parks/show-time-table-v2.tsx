@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { ShowTime } from "@/types/show";
 import { DateTime } from "luxon";
 import { useMemo, useRef, useEffect, useState } from "react";
+import { getLuxonFormat } from "@/lib/utils";
+import { useTimeFormat } from "@/hooks/useTimeFormat";
 
 type ShowTimeTableV2Props = {
   shows: ShowTime[];
@@ -15,6 +17,7 @@ export default function ParkShowTimeTableV2({
   timezone,
 }: ShowTimeTableV2Props) {
   const t = useTranslations("waitTimeTable");
+  const { is12Hour } = useTimeFormat();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const currentTimeRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -228,15 +231,21 @@ export default function ParkShowTimeTableV2({
             }}
           >
             <div className="h-10 border-b flex relative">
-              {parkHours.map((hour, index) => (
-                <div
-                  key={hour}
-                  className="shrink-0 border-r border-border/50 flex items-center justify-center text-xs font-semibold text-muted-foreground"
-                  style={{ width: `${60 * PIXEL_PER_MINUTE}px` }}
-                >
-                  {String(hour).padStart(2, "0")}:00
-                </div>
-              ))}
+              {parkHours.map((hour, index) => {
+                const hourTime = DateTime.now()
+                  .setZone(timezone)
+                  .set({ hour, minute: 0 });
+                const timeFormat = getLuxonFormat(is12Hour);
+                return (
+                  <div
+                    key={hour}
+                    className="shrink-0 border-r border-border/50 flex items-center justify-center text-xs font-semibold text-muted-foreground"
+                    style={{ width: `${60 * PIXEL_PER_MINUTE}px` }}
+                  >
+                    {hourTime.toFormat(timeFormat)}
+                  </div>
+                );
+              })}
 
               {now.hour >= parkHours[0] &&
                 now.hour <= parkHours[parkHours.length - 1] && (
@@ -303,7 +312,7 @@ export default function ParkShowTimeTableV2({
                         }}
                       >
                         <span className="truncate">
-                          {scheduleTime.toFormat("HH:mm")}
+                          {scheduleTime.toFormat(getLuxonFormat(is12Hour))}
                         </span>
                       </div>
                     );

@@ -82,7 +82,8 @@ export default function ParkCoverImage({
         }}
         fetchPriority="high"
         loading="eager"
-        onLoadingComplete={() => setIsImageLoaded(true)}
+        onLoad={() => setIsImageLoaded(true)}
+        priority
       />
 
       <Image
@@ -98,6 +99,7 @@ export default function ParkCoverImage({
         }}
         fetchPriority="high"
         loading="eager"
+        priority
       />
 
       {coverUrls && coverUrls.length > 1 && (
