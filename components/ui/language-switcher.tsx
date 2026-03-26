@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { Check, Languages, Clock } from "lucide-react";
 import {
@@ -35,6 +35,8 @@ export default function LanguageSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
   const { timeFormat, toggleTimeFormat } = useTimeFormat();
+
+  const t = useTranslations("settings");
 
   const handleLanguageChange = (newLocale: string) => {
     router.replace(pathname, { locale: newLocale });
@@ -73,7 +75,7 @@ export default function LanguageSwitcher() {
         >
           <span className="flex items-center gap-2">
             <Clock className="size-4" />
-            <span>Time format</span>
+            <span>{t("timeFormat")}</span>
           </span>
           <span className="text-muted-foreground text-sm">
             {timeFormat === "12h" ? "12h" : "24h"}
