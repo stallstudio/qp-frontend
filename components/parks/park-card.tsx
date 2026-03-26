@@ -1,7 +1,7 @@
 import { Link } from "@/i18n/routing";
 import { getCountryName, getParkLink, getParkStatus } from "@/lib/utils";
 import TitleWithStatus from "./title-with-status";
-import { ParkList } from "@/types/park";
+import { ParkList } from "@/types/api";
 
 interface ParkCardProps {
   park: ParkList;

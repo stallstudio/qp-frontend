@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import ParkCard from "./park-card";
-import { ParkList } from "@/types/park";
+import { ParkList } from "@/types/api";
 
 interface ParkCategoryCardProps {
   groupName: string;

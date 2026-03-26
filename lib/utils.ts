@@ -2,7 +2,8 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { DateTime } from "luxon";
 import { OpeningHour } from "@/types/openingHour";
-import { ParkList, ParkStatus } from "@/types/park";
+import { ParkStatus } from "@/types/park";
+import { ParkList } from "@/types/api";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

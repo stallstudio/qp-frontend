@@ -1,6 +1,5 @@
 "use client";
 
-import { ParkData } from "@/types/park";
 import { Card } from "@/components/ui/card";
 import { AlertCircle, Clock, Drama, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -10,9 +9,10 @@ import ParkWaitTimeTable from "./wait-time-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useEffect, useState } from "react";
 import ParkShowTimeTableV2 from "./show-time-table-v2";
+import { ParkLiveData } from "@/types/api";
 
 type MainCardProps = {
-  park: ParkData;
+  park: ParkLiveData;
   onRefresh?: () => Promise<void>;
 };
 

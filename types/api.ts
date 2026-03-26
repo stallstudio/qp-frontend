@@ -12,7 +12,7 @@ export type ParkLiveData = {
   openingHours: OpeningHour[];
   waitTimes: WaitTime[];
   shows: ShowTime[];
-  lastUpdate: string | null;
+  lastUpdate: string;
 };
 
 export type ParkListData = {

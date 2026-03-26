@@ -84,7 +84,8 @@ export async function GET(
     const showTimes = await getShowTimesByParkAndDate(park.id, today);
     const openingHours = await getOpeningHoursByParkAndDate(park.id, today);
 
-    const lastUpdate = park.lastUpdatedAt?.toISOString() || null;
+    const lastUpdate =
+      park.lastUpdatedAt?.toISOString() || new Date().toISOString();
 
     await prisma.apiRequestLog.create({
       data: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { ParkList } from "@/types/park";
+import { ParkList } from "@/types/api";
 import { Dices, Search } from "lucide-react";
 import { Input } from "../ui/input";
 import { useEffect, useState, useCallback } from "react";

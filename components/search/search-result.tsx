@@ -1,5 +1,5 @@
 import { getParkLink, getParkStatus } from "@/lib/utils";
-import { ParkList } from "@/types/park";
+import { ParkList } from "@/types/api";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import Flag from "react-flagkit";

@@ -1,6 +1,5 @@
 "use client";
 
-import { ParkData } from "@/types/park";
 import ParkCoverImage from "./cover-image";
 import ParkOpeningHours from "./opening-hours";
 import ParkLocalTime from "./local-time";
@@ -10,6 +9,7 @@ import ParkNameStatus from "./name-status";
 import { useEffect, useState } from "react";
 import { getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { ParkLiveData } from "@/types/api";
 
 const EXPANDED_HEIGHT = 288;
 const COLLAPSED_HEIGHT = 96;
@@ -19,7 +19,7 @@ const FIXED_TOP = 16;
 const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
 
 type ParkHeaderProps = {
-  park: ParkData;
+  park: ParkLiveData;
 };
 
 export default function ParkHeader({ park }: ParkHeaderProps) {

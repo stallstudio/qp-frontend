@@ -1,9 +1,9 @@
-import { ParkList } from "@/types/park";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ParkCategoryCard from "../parks/park-category-card";
 import { useState } from "react";
 import { getCountryName } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { ParkList } from "@/types/api";
 
 interface ParksListProps {
   parks: ParkList[];

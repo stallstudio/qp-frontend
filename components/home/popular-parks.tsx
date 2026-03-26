@@ -1,4 +1,4 @@
-import { ParkList } from "@/types/park";
+import { ParkList } from "@/types/api";
 import { AnimatedShinyText } from "../ui/animated-shiny-text";
 import { TrendingUp } from "lucide-react";
 import ParkCard from "../parks/park-card";
