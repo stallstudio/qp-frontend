@@ -61,7 +61,7 @@ export async function GET() {
     }));
 
     const popularParks = popularParksData
-      .map((item) => item.parkId)
+      .map((item: (typeof popularParksData)[number]) => item.parkId)
       .filter((id): id is string => id !== null);
 
     return NextResponse.json({
