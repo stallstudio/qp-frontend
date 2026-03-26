@@ -55,14 +55,14 @@ export async function GET() {
 
     const openingHoursByPark = await fetchOpeningHoursForParks(parks);
 
-    const parksWithOpeningHours = parks.map((park: (typeof parks)[number]) => ({
+    const parksWithOpeningHours = parks.map((park) => ({
       ...park,
       openingHours: openingHoursByPark.get(park.id) || [],
     }));
 
     const popularParks = popularParksData
-      .map((item: (typeof popularParksData)[number]) => item.parkId)
-      .filter((id: string | null): id is string => id !== null);
+      .map((item) => item.parkId)
+      .filter((id): id is string => id !== null);
 
     return NextResponse.json({
       success: true,
