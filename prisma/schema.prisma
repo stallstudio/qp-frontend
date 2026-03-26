@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+//
+// OUR DATA
+//
+
+model Group {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parks Park[]
+
+  @@map("groups")
+}
+
+model Park {
+  id              Int       @id @default(autoincrement())
+  identifier      String    @unique @db.VarChar(100)
+  name            String    @db.VarChar(255)
+  timezone        String    @default("Europe/Paris") @db.VarChar(50)
+  cover           Json?
+  badge           String?   @db.VarChar(255)
+  country         String?   @db.VarChar(100)
+  groupId         Int?
+  display         Boolean   @default(false)
+  queueTypeLabels Json?
+  lastUpdatedAt   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  openingHours    OpeningHours[]
+  rides           Ride[]
+  waitTimes       WaitTime[]
+  unmatchedAlerts UnmatchedAlert[]
+  shows           Show[]
+  showTimes       ShowTime[]
+  poiChanges      PoiChange[]
+
+  @@index([groupId])
+  @@map("parks")
+}
+
+model Ride {
+  id         Int        @id @default(autoincrement())
+  name       String     @db.VarChar(255)
+  parkId     Int
+  park       Park       @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  externalId String     @db.VarChar(255)
+  thrillsId  String?    @db.VarChar(255)
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  waitTimes  WaitTime[]
+
+  @@unique([parkId, externalId])
+  @@index([parkId])
+  @@index([thrillsId])
+  @@map("rides")
+}
+
+model Show {
+  id         Int        @id @default(autoincrement())
+  name       String     @db.VarChar(255)
+  parkId     Int
+  park       Park       @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  externalId String     @db.VarChar(255)
+  thrillsId  String?    @db.VarChar(255)
+  duration   Int?
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  showTimes  ShowTime[]
+
+  @@unique([parkId, externalId])
+  @@index([parkId])
+  @@map("shows")
+}
+
+//
+// PARK DATA
+//
+
+enum WaitTimeStatus {
+  open
+  closed
+  down
+  maintenance
+}
+
+model WaitTime {
+  id         Int            @id @default(autoincrement())
+  rideId     Int?
+  ride       Ride?          @relation(fields: [rideId], references: [id], onDelete: SetNull)
+  parkId     Int
+  park       Park           @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  externalId String         @db.VarChar(255)
+  type       String         @default("standby") @db.VarChar(50)
+  waitTime   Int
+  status     WaitTimeStatus
+  customText String?        @db.Text
+  startTime  DateTime
+  endTime    DateTime?
+  stateHash  String         @db.Char(32)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([rideId, endTime])
+  @@index([parkId, endTime])
+  @@index([externalId, endTime])
+  @@index([rideId, startTime])
+  @@index([stateHash, rideId])
+  @@index([rideId, type, endTime])
+  @@map("wait_times")
+}
+
+model OpeningHours {
+  id        Int       @id @default(autoincrement())
+  parkId    Int
+  park      Park      @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  date      String    @db.VarChar(10)
+  type      String    @db.VarChar(20)
+  openTime  DateTime?
+  closeTime DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([parkId, date, type])
+  @@index([parkId])
+  @@index([date])
+  @@index([parkId, date])
+  @@map("opening_hours")
+}
+
+model ShowTime {
+  id         Int       @id @default(autoincrement())
+  showId     Int?
+  show       Show?     @relation(fields: [showId], references: [id], onDelete: SetNull)
+  parkId     Int
+  park       Park      @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  externalId String    @db.VarChar(255)
+  date       String    @db.VarChar(10)
+  startTime  DateTime
+  endTime    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([showId, date])
+  @@index([parkId, date])
+  @@index([externalId, date])
+  @@index([date])
+  @@map("show_times")
+}
+
+//
+// STATS & MONITORING
+//
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  level     String   @db.VarChar(20)
+  message   String   @db.Text
+  context   String?  @db.LongText
+  timestamp DateTime @default(now())
+
+  @@index([level])
+  @@index([timestamp])
+  @@map("logs")
+}
+
+model ApiRequestLog {
+  id         Int      @id @default(autoincrement())
+  endpoint   String   @db.VarChar(255)
+  parkId     String?  @db.VarChar(100)
+  ipAddress  String   @db.VarChar(45)
+  userAgent  String?  @db.Text
+  referer    String?  @db.Text
+  statusCode Int
+  createdAt  DateTime @default(now())
+
+  @@index([parkId])
+  @@index([ipAddress])
+  @@index([createdAt])
+  @@index([parkId, createdAt])
+  @@index([ipAddress, createdAt])
+  @@map("api_request_logs")
+}
+
+model UnmatchedAlert {
+  id         Int      @id @default(autoincrement())
+  parkId     Int
+  park       Park     @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  externalId String   @db.VarChar(255)
+  type       String   @db.VarChar(10)
+  fixed      Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([parkId, externalId, type])
+  @@index([parkId])
+  @@index([fixed])
+  @@index([type])
+  @@map("unmatched_alerts")
+}
+
+model UnknownStatus {
+  id         Int      @id @default(autoincrement())
+  parkId     String   @db.VarChar(100)
+  status     String   @db.VarChar(255)
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @updatedAt
+
+  @@unique([parkId, status])
+  @@index([parkId])
+  @@index([resolved])
+  @@index([lastSeenAt])
+  @@map("unknown_statuses")
+}
+
+enum JobStatus {
+  running
+  success
+  failed
+}
+
+model JobExecution {
+  id           Int       @id @default(autoincrement())
+  jobName      String    @db.VarChar(100)
+  startedAt    DateTime
+  completedAt  DateTime?
+  durationMs   Int?
+  status       JobStatus
+  errorMessage String?   @db.Text
+  metadata     String?   @db.Text
+  createdAt    DateTime  @default(now())
+
+  @@index([jobName])
+  @@index([startedAt])
+  @@index([status])
+  @@index([jobName, startedAt])
+  @@map("job_executions")
+}
+
+model PoiChange {
+  id         Int      @id @default(autoincrement())
+  parkId     Int
+  park       Park     @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  externalId String   @db.VarChar(255)
+  name       String   @db.VarChar(255)
+  type       String   @db.VarChar(10)
+  changeType String   @db.VarChar(20)
+  oldValue   String?  @db.VarChar(255)
+  newValue   String?  @db.VarChar(255)
+  createdAt  DateTime @default(now())
+
+  @@index([parkId])
+  @@index([changeType])
+  @@index([type])
+  @@index([createdAt])
+  @@map("poi_changes")
+}
+
+//
+// MISC
+//
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  name      String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Article {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(255)
+  slug      String   @unique @db.VarChar(255)
+  content   String   @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@map("articles")
+}

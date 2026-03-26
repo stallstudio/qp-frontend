@@ -18,25 +18,18 @@ export default function Home() {
 
   const fetchParks = useCallback(async () => {
     setLoading(true);
-    const apiUrl = process.env.NEXT_PUBLIC_WORKER_API_URL;
-    const apiToken = process.env.NEXT_PUBLIC_WORKER_API_KEY;
-
-    if (!apiToken || !apiUrl) {
-      console.error(t("configError"));
-      return;
-    }
 
     try {
-      const response = await axios.get<ParkListResponse>(`${apiUrl}/parks`, {
-        headers: {
-          "x-api-key": apiToken,
-        },
-      });
-      setParks(response.data.parks);
+      const response = await axios.get<{ data: ParkListResponse }>(
+        "/api/parks",
+      );
+      setParks(response.data.data.parks);
 
-      const popularParksData = response.data.popularParks
+      const popularParksData = response.data.data.popularParks
         .map((identifier) =>
-          response.data.parks.find((park) => park.identifier === identifier),
+          response.data.data.parks.find(
+            (park) => park.identifier === identifier,
+          ),
         )
         .filter((park): park is ParkList => park !== undefined);
       setPopularParks(popularParksData);

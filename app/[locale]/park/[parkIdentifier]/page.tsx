@@ -28,20 +28,11 @@ export default function ParkPage({
   const fetchParkData = useCallback(
     async (showLoading: boolean) => {
       if (showLoading) setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_WORKER_API_URL;
-      const apiToken = process.env.NEXT_PUBLIC_WORKER_API_KEY;
-      if (!apiToken || !apiUrl) {
-        router.push("/");
-        toast.error(t("configError"));
-        return;
-      }
       try {
-        const response = await axios.get(`${apiUrl}/park/${parkIdentifier}`, {
-          headers: {
-            "x-api-key": apiToken,
-          },
-        });
-        setParkData(response.data);
+        const response = await axios.get<{ data: ParkData }>(
+          `/api/park/${parkIdentifier}`,
+        );
+        setParkData(response.data.data);
       } catch (error: unknown) {
         router.push("/");
         toast.error(t("parkNotFound"));

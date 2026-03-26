@@ -302,7 +302,7 @@ export default function ParkShowTimeTableV2({
                           height: `${height}px`,
                         }}
                       >
-                        <span className="truncate px-2">
+                        <span className="truncate">
                           {scheduleTime.toFormat("HH:mm")}
                         </span>
                       </div>
