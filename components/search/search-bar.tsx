@@ -91,8 +91,11 @@ export default function SearchBar({ parks }: SearchBarProps) {
             className="rounded-4xl h-12 pl-11 pe-12 truncate"
           />
           <Search className="absolute left-3.5 top-3.5 size-5 text-muted-foreground" />
-          <div className="absolute top-0 right-0 h-12 w-12 rounded-4xl flex items-center justify-center border-s text-primary border-input cursor-pointer">
-            <Dices className="size-5" onClick={getRandomPark} />
+          <div
+            className="absolute top-0 right-0 h-12 w-12 rounded-4xl flex items-center justify-center border-s text-primary border-input cursor-pointer"
+            onClick={getRandomPark}
+          >
+            <Dices className="size-5" />
           </div>
         </div>
       </div>

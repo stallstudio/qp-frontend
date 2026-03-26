@@ -33,9 +33,9 @@ export default function ParkCard({
     <Link
       key={park.identifier}
       href={getParkLink(park)}
-      className="block group"
+      className="block group h-full"
     >
-      <div className="flex items-center gap-4 justify-between hover:bg-accent transition-colors duration-300 px-2 py-1.5 rounded-lg">
+      <div className="flex items-center gap-4 justify-between hover:bg-accent transition-colors duration-300 px-2 py-1.5 rounded-lg h-full">
         <TitleWithStatus parkName={park.name} status={status} />
         <div className="flex items-center gap-1">
           {park.badge && showBadge && (
