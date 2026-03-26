@@ -8,7 +8,7 @@ RUN apk add --no-cache libc6-compat
 # ---- Dependencies ----
 FROM base AS deps
 COPY package.json package-lock.json* ./
-RUN npm install
+RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 
 # ---- Builder ----
 FROM base AS builder

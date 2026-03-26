@@ -55,7 +55,7 @@ export async function GET() {
 
     const openingHoursByPark = await fetchOpeningHoursForParks(parks);
 
-    const parksWithOpeningHours = parks.map((park) => ({
+    const parksWithOpeningHours = parks.map((park: (typeof parks)[number]) => ({
       ...park,
       openingHours: openingHoursByPark.get(park.id) || [],
     }));
