@@ -130,7 +130,7 @@ export default function ParkWaitTimeTable({
             const isExpanded = expandedRides.has(waitTime.rideName);
             const hasMultipleQueues = sortedQueues.length > 1;
 
-            const rows = [];
+            const rows: React.ReactElement[] = [];
 
             // Always show standby queue
             if (standbyQueue) {
