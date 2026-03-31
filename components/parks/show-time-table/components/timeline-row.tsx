@@ -57,12 +57,18 @@ export function TimelineRow({
         const startTime = DateTime.fromISO(scheduleItem.schedule.startTime, {
           zone: timezone,
         });
-        const endTime = startTime.plus({ minutes: scheduleItem.duration });
+
+        // Compare using timeline positions (minutes from park hours start)
+        // This avoids timezone issues by comparing relative positions
+        const slotStartMinutes = scheduleItem.left;
+        const slotEndMinutes = scheduleItem.left + scheduleItem.duration;
 
         // Determine badge state: past, ongoing, or upcoming
-        const isPast = endTime <= now;
-        const isOngoing = startTime <= now && now < endTime;
-        // isUpcoming = startTime > now (default case)
+        const isPast = slotEndMinutes <= currentHourPosition;
+        const isOngoing =
+          slotStartMinutes <= currentHourPosition &&
+          currentHourPosition < slotEndMinutes;
+        // isUpcoming = slotStartMinutes > currentHourPosition (default case)
 
         const widthPx = scheduleItem.width * PIXEL_PER_MINUTE;
         const showTimeText = widthPx >= MIN_WIDTH_FOR_TEXT;
