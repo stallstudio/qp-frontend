@@ -11,7 +11,8 @@
   "parksList": {
     "title": "すべてのテーマパーク",
     "sortByGroup": "グループ別",
-    "sortByCountry": "国別"
+    "sortByCountry": "国別",
+    "hideClosedParks": "休園中のパークを非表示"
   },
   "popularParks": {
     "title": "人気のパーク",
@@ -77,5 +78,26 @@
   },
   "settings": {
     "timeFormat": "時刻形式"
+  },
+  "welcome": {
+    "welcomeTo": "ようこそ",
+    "title": "v2へようこそ！🕝",
+    "description": "より良い体験を提供するため、アプリを完全にリニューアルしました。新しいインターフェース、新機能、その他多くの改善をお楽しみください！",
+    "button": "了解！",
+    "features": {
+      "showsTimeline": "ショータイムライン",
+      "newParks": "新しいパーク",
+      "darkMode": "ダークモード",
+      "brandNewUI": "新しいUI",
+      "fastlaneWaitTimes": "ファストレーン待ち時間",
+      "autoRefresh": "自動更新",
+      "rotatingParkCovers": "ローテーションカバー",
+      "parkStatusIndicator": "パーク状況表示",
+      "singleRiderWaitTimes": "シングルライダー待ち時間",
+      "multiLanguage": "多言語対応",
+      "improvedPerformance": "パフォーマンス改善",
+      "countryParkFiltering": "国別フィルター",
+      "groupParkFiltering": "グループ別フィルター"
+    }
   }
 }

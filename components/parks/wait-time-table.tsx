@@ -108,9 +108,11 @@ export default function ParkWaitTimeTable({
     <Table className="border-b">
       <TableHeader>
         <TableRow>
-          <TableHead className="text-left w-4/6">{t("attraction")}</TableHead>
+          <TableHead className="text-left w-4/6 ps-0">
+            {t("attraction")}
+          </TableHead>
           <TableHead className="text-left w-1/6">{t("waitTime")}</TableHead>
-          <TableHead className="text-left w-1/6">{t("status")}</TableHead>
+          <TableHead className="text-left w-1/6 pe-0">{t("status")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody className="w-full">
@@ -146,7 +148,7 @@ export default function ParkWaitTimeTable({
                     hasMultipleQueues && toggleExpand(waitTime.rideName)
                   }
                 >
-                  <TableCell className="font-medium w-4/6 whitespace-normal wrap-break-word">
+                  <TableCell className="ps-0 font-medium w-4/6 whitespace-normal wrap-break-word">
                     {hasMultipleQueues ? (
                       <>
                         {(() => {
@@ -175,7 +177,7 @@ export default function ParkWaitTimeTable({
                   <TableCell className="text-left w-1/6 overflow-hidden">
                     {getWaitTimeBadge(standbyQueue.waitTime)}
                   </TableCell>
-                  <TableCell className="text-left w-1/6 overflow-hidden">
+                  <TableCell className="text-left w-1/6 overflow-hidden pe-0">
                     {getStatusBadge(standbyQueue.status)}
                   </TableCell>
                 </TableRow>,
@@ -194,7 +196,7 @@ export default function ParkWaitTimeTable({
                         : ""
                     }`}
                   >
-                    <TableCell className="font-medium w-4/6 whitespace-normal wrap-break-word">
+                    <TableCell className="ps-0 font-medium w-4/6 whitespace-normal wrap-break-word">
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <CornerDownRight className="size-3.5" />
                         <span>{getQueueLabel(queue.type)}</span>
@@ -208,7 +210,7 @@ export default function ParkWaitTimeTable({
                     <TableCell className="text-left w-1/6 overflow-hidden">
                       {getWaitTimeBadge(queue.waitTime)}
                     </TableCell>
-                    <TableCell className="text-left w-1/6 overflow-hidden">
+                    <TableCell className="text-left w-1/6 overflow-hidden pe-0">
                       {getStatusBadge(queue.status)}
                     </TableCell>
                   </TableRow>,

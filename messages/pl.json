@@ -11,7 +11,8 @@
   "parksList": {
     "title": "Wszystkie Parki Tematyczne",
     "sortByGroup": "Według grupy",
-    "sortByCountry": "Według kraju"
+    "sortByCountry": "Według kraju",
+    "hideClosedParks": "Ukryj zamknięte parki"
   },
   "popularParks": {
     "title": "Popularne Parki",
@@ -77,5 +78,26 @@
   },
   "settings": {
     "timeFormat": "Format czasu"
+  },
+  "welcome": {
+    "welcomeTo": "Witamy w",
+    "title": "Witamy w wersji 2! 🕝",
+    "description": "Całkowicie przeprojektowaliśmy aplikację, aby zapewnić Ci lepsze wrażenia. Odkryj nowy interfejs, nowe funkcje i wiele więcej!",
+    "button": "Ok, świetnie!",
+    "features": {
+      "showsTimeline": "Timeline pokazów",
+      "newParks": "Nowe parki",
+      "darkMode": "Tryb ciemny",
+      "brandNewUI": "Nowy interfejs",
+      "fastlaneWaitTimes": "Czasy Fastlane",
+      "autoRefresh": "Auto-odświeżanie",
+      "rotatingParkCovers": "Rotujące okładki",
+      "parkStatusIndicator": "Wskaźnik statusu",
+      "singleRiderWaitTimes": "Czasy Single Rider",
+      "multiLanguage": "Wielojęzyczność",
+      "improvedPerformance": "Lepsza wydajność",
+      "countryParkFiltering": "Filtr krajów",
+      "groupParkFiltering": "Filtr grup"
+    }
   }
 }

@@ -11,7 +11,8 @@
   "parksList": {
     "title": "Alle forlystelsesparker",
     "sortByGroup": "Efter gruppe",
-    "sortByCountry": "Efter land"
+    "sortByCountry": "Efter land",
+    "hideClosedParks": "Skjul lukkede parker"
   },
   "popularParks": {
     "title": "Populære parker",
@@ -77,5 +78,26 @@
   },
   "settings": {
     "timeFormat": "Tidsformat"
+  },
+  "welcome": {
+    "welcomeTo": "Velkommen til",
+    "title": "Velkommen til v2! 🕝",
+    "description": "Vi har fuldstændigt redesignet appen for at give dig en bedre oplevelse. Oplev en ny grænseflade, nye funktioner og meget mere!",
+    "button": "Ok, fedt!",
+    "features": {
+      "showsTimeline": "Show-tidslinje",
+      "newParks": "Nye parker",
+      "darkMode": "Mørk tilstand",
+      "brandNewUI": "Ny grænseflade",
+      "fastlaneWaitTimes": "Fastlane ventetider",
+      "autoRefresh": "Auto-opdatering",
+      "rotatingParkCovers": "Roterende park-covers",
+      "parkStatusIndicator": "Park-statusindikator",
+      "singleRiderWaitTimes": "Single Rider ventetider",
+      "multiLanguage": "Flersproget",
+      "improvedPerformance": "Forbedret ydeevne",
+      "countryParkFiltering": "Landefilter",
+      "groupParkFiltering": "Gruppefilter"
+    }
   }
 }

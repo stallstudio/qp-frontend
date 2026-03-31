@@ -11,7 +11,8 @@
   "parksList": {
     "title": "Tất cả công viên chủ đề",
     "sortByGroup": "Theo tập đoàn",
-    "sortByCountry": "Theo quốc gia"
+    "sortByCountry": "Theo quốc gia",
+    "hideClosedParks": "Ẩn công viên đã đóng cửa"
   },
   "popularParks": {
     "title": "Công viên phổ biến",
@@ -77,5 +78,26 @@
   },
   "settings": {
     "timeFormat": "Định dạng giờ"
+  },
+  "welcome": {
+    "welcomeTo": "Chào mừng đến với",
+    "title": "Chào mừng đến v2! 🕝",
+    "description": "Chúng tôi đã hoàn toàn thiết kế lại ứng dụng để mang đến cho bạn trải nghiệm tốt hơn. Khám phá giao diện mới, tính năng mới và nhiều hơn nữa!",
+    "button": "Ok, tuyệt vời!",
+    "features": {
+      "showsTimeline": "Timeline chương trình",
+      "newParks": "Công viên mới",
+      "darkMode": "Chế độ tối",
+      "brandNewUI": "Giao diện mới",
+      "fastlaneWaitTimes": "Thời gian Fastlane",
+      "autoRefresh": "Tự động làm mới",
+      "rotatingParkCovers": "Ảnh bìa xoay",
+      "parkStatusIndicator": "Chỉ báo trạng thái",
+      "singleRiderWaitTimes": "Thời gian Single Rider",
+      "multiLanguage": "Đa ngôn ngữ",
+      "improvedPerformance": "Hiệu suất cải thiện",
+      "countryParkFiltering": "Lọc theo quốc gia",
+      "groupParkFiltering": "Lọc theo tập đoàn"
+    }
   }
 }

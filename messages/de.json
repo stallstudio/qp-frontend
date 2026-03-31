@@ -11,7 +11,8 @@
   "parksList": {
     "title": "Alle Freizeitparks",
     "sortByGroup": "Nach Gruppe",
-    "sortByCountry": "Nach Land"
+    "sortByCountry": "Nach Land",
+    "hideClosedParks": "Geschlossene Parks ausblenden"
   },
   "popularParks": {
     "title": "Beliebte Parks",
@@ -77,5 +78,26 @@
   },
   "settings": {
     "timeFormat": "Zeitformat"
+  },
+  "welcome": {
+    "welcomeTo": "Willkommen bei",
+    "title": "Willkommen bei v2! 🕝",
+    "description": "Wir haben die App komplett überarbeitet, um dir ein besseres Erlebnis zu bieten. Entdecke eine neue Oberfläche, neue Funktionen und vieles mehr!",
+    "button": "Ok, super!",
+    "features": {
+      "showsTimeline": "Show-Timeline",
+      "newParks": "Neue Parks",
+      "darkMode": "Dunkelmodus",
+      "brandNewUI": "Neue Oberfläche",
+      "fastlaneWaitTimes": "Fastlane-Wartezeiten",
+      "autoRefresh": "Auto-Aktualisierung",
+      "rotatingParkCovers": "Rotierende Park-Cover",
+      "parkStatusIndicator": "Park-Statusanzeige",
+      "singleRiderWaitTimes": "Single Rider Wartezeiten",
+      "multiLanguage": "Mehrsprachig",
+      "improvedPerformance": "Verbesserte Leistung",
+      "countryParkFiltering": "Länderfilter",
+      "groupParkFiltering": "Gruppenfilter"
+    }
   }
 }

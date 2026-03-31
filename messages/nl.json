@@ -11,7 +11,8 @@
   "parksList": {
     "title": "Alle Attractieparken",
     "sortByGroup": "Op Groep",
-    "sortByCountry": "Op Land"
+    "sortByCountry": "Op Land",
+    "hideClosedParks": "Verberg gesloten parken"
   },
   "popularParks": {
     "title": "Populaire Parken",
@@ -77,5 +78,26 @@
   },
   "settings": {
     "timeFormat": "Tijdformaat"
+  },
+  "welcome": {
+    "welcomeTo": "Welkom bij",
+    "title": "Welkom bij v2! 🕝",
+    "description": "We hebben de app volledig opnieuw ontworpen om je een betere ervaring te bieden. Ontdek een nieuwe interface, nieuwe functies en nog veel meer!",
+    "button": "Ok, geweldig!",
+    "features": {
+      "showsTimeline": "Shows tijdlijn",
+      "newParks": "Nieuwe parken",
+      "darkMode": "Donkere modus",
+      "brandNewUI": "Nieuwe interface",
+      "fastlaneWaitTimes": "Fastlane wachttijden",
+      "autoRefresh": "Auto-verversing",
+      "rotatingParkCovers": "Roterende park covers",
+      "parkStatusIndicator": "Park status indicator",
+      "singleRiderWaitTimes": "Single Rider wachttijden",
+      "multiLanguage": "Meertalig",
+      "improvedPerformance": "Verbeterde prestaties",
+      "countryParkFiltering": "Landfilter",
+      "groupParkFiltering": "Groepsfilter"
+    }
   }
 }

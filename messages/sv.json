@@ -11,7 +11,8 @@
   "parksList": {
     "title": "Alla temaparker",
     "sortByGroup": "Efter grupp",
-    "sortByCountry": "Efter land"
+    "sortByCountry": "Efter land",
+    "hideClosedParks": "Dölj stängda parker"
   },
   "popularParks": {
     "title": "Populära parker",
@@ -77,5 +78,26 @@
   },
   "settings": {
     "timeFormat": "Tidsformat"
+  },
+  "welcome": {
+    "welcomeTo": "Välkommen till",
+    "title": "Välkommen till v2! 🕝",
+    "description": "Vi har helt omdesignat appen för att ge dig en bättre upplevelse. Upptäck ett nytt gränssnitt, nya funktioner och mycket mer!",
+    "button": "Ok, toppen!",
+    "features": {
+      "showsTimeline": "Show-tidslinje",
+      "newParks": "Nya parker",
+      "darkMode": "Mörkt läge",
+      "brandNewUI": "Nytt gränssnitt",
+      "fastlaneWaitTimes": "Fastlane väntetider",
+      "autoRefresh": "Auto-uppdatering",
+      "rotatingParkCovers": "Roterande park-omslag",
+      "parkStatusIndicator": "Park-statusindikator",
+      "singleRiderWaitTimes": "Single Rider väntetider",
+      "multiLanguage": "Flerspråkig",
+      "improvedPerformance": "Förbättrad prestanda",
+      "countryParkFiltering": "Landsfilter",
+      "groupParkFiltering": "Gruppfilter"
+    }
   }
 }

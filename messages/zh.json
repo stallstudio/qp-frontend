@@ -11,7 +11,8 @@
   "parksList": {
     "title": "所有主题乐园",
     "sortByGroup": "按集团",
-    "sortByCountry": "按国家"
+    "sortByCountry": "按国家",
+    "hideClosedParks": "隐藏已闭园的乐园"
   },
   "popularParks": {
     "title": "热门乐园",
@@ -77,5 +78,26 @@
   },
   "settings": {
     "timeFormat": "时间格式"
+  },
+  "welcome": {
+    "welcomeTo": "欢迎来到",
+    "title": "欢迎使用 v2！🕝",
+    "description": "我们完全重新设计了应用程序，为您提供更好的体验。探索全新界面、新功能等更多精彩内容！",
+    "button": "好的，太棒了！",
+    "features": {
+      "showsTimeline": "演出时间线",
+      "newParks": "新乐园",
+      "darkMode": "深色模式",
+      "brandNewUI": "全新界面",
+      "fastlaneWaitTimes": "快速通道时间",
+      "autoRefresh": "自动刷新",
+      "rotatingParkCovers": "轮播封面",
+      "parkStatusIndicator": "乐园状态指示",
+      "singleRiderWaitTimes": "单人通道时间",
+      "multiLanguage": "多语言",
+      "improvedPerformance": "性能提升",
+      "countryParkFiltering": "国家筛选",
+      "groupParkFiltering": "集团筛选"
+    }
   }
 }

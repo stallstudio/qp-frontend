@@ -8,8 +8,8 @@ import { usePageVisibility } from "@/hooks/usePageVisibility";
 import ParkWaitTimeTable from "./wait-time-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useEffect, useState } from "react";
-import ParkShowTimeTableV2 from "./show-time-table-v2";
 import { ParkLiveData } from "@/types/api";
+import ParkShowTimeTable from "./show-time-table";
 
 type MainCardProps = {
   park: ParkLiveData;
@@ -89,7 +89,7 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
             />
           </TabsContent>
           <TabsContent value="show-times">
-            <ParkShowTimeTableV2 shows={park.shows} timezone={park.timezone} />
+            <ParkShowTimeTable shows={park.shows} timezone={park.timezone} />
           </TabsContent>
         </Tabs>
       ) : hasWaitTimes ? (
@@ -98,7 +98,7 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
           queueTypeLabels={park.queueTypeLabels}
         />
       ) : hasShows ? (
-        <ParkShowTimeTableV2 shows={park.shows} timezone={park.timezone} />
+        <ParkShowTimeTable shows={park.shows} timezone={park.timezone} />
       ) : null}
       {park.shows.length === 0 && park.waitTimes.length === 0 && (
         <div className="flex items-center justify-center flex-col gap-y-0.5 text-sm text-muted-foreground">

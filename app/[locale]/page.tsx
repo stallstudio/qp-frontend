@@ -10,6 +10,7 @@ import ParksList from "@/components/home/parks-list";
 import HomeSkeleton from "@/components/home/home-skeleton";
 import { useTranslations } from "next-intl";
 import { ParkList, ParkListData } from "@/types/api";
+import WelcomeV2 from "@/components/home/welcome-v2";
 export default function Home() {
   const t = useTranslations("errors");
   const [parks, setParks] = useState<ParkList[]>([]);
@@ -48,6 +49,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full mx-auto max-w-4xl flex-col px-4 gap-8">
+      <WelcomeV2 />
       <main className="flex-1 flex flex-col gap-8">
         <HomeHeader />
 

@@ -1,9 +1,11 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ParkCategoryCard from "../parks/park-category-card";
 import { useState } from "react";
-import { getCountryName } from "@/lib/utils";
+import { getCountryName, getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { ParkList } from "@/types/api";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
 
 interface ParksListProps {
   parks: ParkList[];
@@ -12,6 +14,7 @@ interface ParksListProps {
 export default function ParksList({ parks }: ParksListProps) {
   const t = useTranslations("parksList");
   const [sortBy, setSortBy] = useState<"group" | "country">("group");
+  const [onlyOpenParks, setOnlyOpenParks] = useState<boolean>(false);
 
   const handleSortByChange = (value: string) => {
     if (value === "group" || value === "country") {
@@ -19,9 +22,13 @@ export default function ParksList({ parks }: ParksListProps) {
     }
   };
 
+  const filteredParks = onlyOpenParks
+    ? parks.filter((park) => getParkStatus(park.openingHours) === "open")
+    : parks;
+
   const groupParksByGroup = () => {
     const grouped: Record<string, ParkList[]> = {};
-    parks.forEach((park) => {
+    filteredParks.forEach((park) => {
       const groupName = park.group.name;
       if (!grouped[groupName]) {
         grouped[groupName] = [];
@@ -42,7 +49,7 @@ export default function ParksList({ parks }: ParksListProps) {
 
   const groupParksByCountry = () => {
     const grouped: Record<string, ParkList[]> = {};
-    parks.forEach((park) => {
+    filteredParks.forEach((park) => {
       const countryName = getCountryName(park.country || "Unknown Country");
       if (!grouped[countryName]) {
         grouped[countryName] = [];
@@ -94,12 +101,25 @@ export default function ParksList({ parks }: ParksListProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-3xl font-bold">{t("title")}</h1>
-        <Tabs defaultValue="group" onValueChange={handleSortByChange}>
-          <TabsList>
-            <TabsTrigger value="group">{t("sortByGroup")}</TabsTrigger>
-            <TabsTrigger value="country">{t("sortByCountry")}</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="only-open-parks"
+              onCheckedChange={setOnlyOpenParks}
+              checked={onlyOpenParks}
+              className="cursor-pointer"
+            />
+            <Label htmlFor="only-open-parks" className="cursor-pointer">
+              {t("hideClosedParks")}
+            </Label>
+          </div>
+          <Tabs defaultValue="group" onValueChange={handleSortByChange}>
+            <TabsList>
+              <TabsTrigger value="group">{t("sortByGroup")}</TabsTrigger>
+              <TabsTrigger value="country">{t("sortByCountry")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -11,7 +11,8 @@
   "parksList": {
     "title": "모든 테마파크",
     "sortByGroup": "그룹별",
-    "sortByCountry": "국가별"
+    "sortByCountry": "국가별",
+    "hideClosedParks": "휴장 중인 파크 숨기기"
   },
   "popularParks": {
     "title": "인기 파크",
@@ -77,5 +78,26 @@
   },
   "settings": {
     "timeFormat": "시간 형식"
+  },
+  "welcome": {
+    "welcomeTo": "환영합니다",
+    "title": "v2에 오신 것을 환영합니다! 🕝",
+    "description": "더 나은 경험을 제공하기 위해 앱을 완전히 새롭게 디자인했습니다. 새로운 인터페이스, 새로운 기능 등 다양한 개선 사항을 확인해 보세요!",
+    "button": "좋아요!",
+    "features": {
+      "showsTimeline": "쇼 타임라인",
+      "newParks": "새로운 파크",
+      "darkMode": "다크 모드",
+      "brandNewUI": "새로운 UI",
+      "fastlaneWaitTimes": "패스트레인 대기 시간",
+      "autoRefresh": "자동 새로고침",
+      "rotatingParkCovers": "회전 커버",
+      "parkStatusIndicator": "파크 상태 표시",
+      "singleRiderWaitTimes": "싱글 라이더 대기 시간",
+      "multiLanguage": "다국어 지원",
+      "improvedPerformance": "향상된 성능",
+      "countryParkFiltering": "국가별 필터",
+      "groupParkFiltering": "그룹별 필터"
+    }
   }
 }

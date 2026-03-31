@@ -11,7 +11,8 @@
   "parksList": {
     "title": "All Theme Parks",
     "sortByGroup": "By group",
-    "sortByCountry": "By country"
+    "sortByCountry": "By country",
+    "hideClosedParks": "Hide closed parks"
   },
   "popularParks": {
     "title": "Popular parks",
@@ -77,5 +78,26 @@
   },
   "settings": {
     "timeFormat": "Time format"
+  },
+  "welcome": {
+    "welcomeTo": "Welcome to",
+    "title": "Welcome to v2! 🕝",
+    "description": "We have completely redesigned the app to offer you a better experience. Discover a new interface, new features, and much more!",
+    "button": "Ok, great!",
+    "features": {
+      "showsTimeline": "Shows Timeline",
+      "newParks": "New parks",
+      "darkMode": "Dark mode",
+      "brandNewUI": "Brand new UI",
+      "fastlaneWaitTimes": "Fastlane wait times",
+      "autoRefresh": "Auto-refresh",
+      "rotatingParkCovers": "Rotating park covers",
+      "parkStatusIndicator": "Park status indicator",
+      "singleRiderWaitTimes": "Single rider wait times",
+      "multiLanguage": "Multi language",
+      "improvedPerformance": "Improved performance",
+      "countryParkFiltering": "Country park filtering",
+      "groupParkFiltering": "Group park filtering"
+    }
   }
 }

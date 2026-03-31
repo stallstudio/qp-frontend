@@ -71,6 +71,15 @@
       background-position: 0% 0%;
     }
   }
+  --animate-marquee: marquee 20s linear infinite;
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 :root {
@@ -188,6 +197,7 @@
 
 .card-shine::after {
   content: "";
+  z-index: 40000;
   position: absolute;
 
   /* rendre BEAUCOUP plus grand que la card */

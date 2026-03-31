@@ -30,7 +30,15 @@ const languages = [
   { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
 ];
 
-export default function LanguageSwitcher() {
+interface LanguageSwitcherProps {
+  showText?: boolean;
+  onLanguageChange?: () => void;
+}
+
+export default function LanguageSwitcher({
+  showText = true,
+  onLanguageChange,
+}: LanguageSwitcherProps) {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -39,6 +47,7 @@ export default function LanguageSwitcher() {
   const t = useTranslations("settings");
 
   const handleLanguageChange = (newLocale: string) => {
+    onLanguageChange?.();
     router.replace(pathname, { locale: newLocale });
   };
 
@@ -49,7 +58,7 @@ export default function LanguageSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button variant="secondary">
           <Languages />
-          {currentLanguage?.name}
+          {showText && currentLanguage?.name}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
