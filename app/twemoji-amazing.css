@@ -2318,7 +2318,7 @@ licensed under MIT: https://ellekasai.mit-license.org/
 .twa-flag-chile {
     background-image: url("https://cdn.jsdelivr.net/gh/twitter/twemoji@master/assets/svg/1f1e8-1f1f1.svg")
 }
-.twa-flag-china {
+.twa-flag-china, .twa-flag-china-mainland {
     background-image: url("https://cdn.jsdelivr.net/gh/twitter/twemoji@master/assets/svg/1f1e8-1f1f3.svg")
 }
 .twa-flag-christmas-island {
@@ -2489,7 +2489,7 @@ licensed under MIT: https://ellekasai.mit-license.org/
 .twa-flag-honduras {
     background-image: url("https://cdn.jsdelivr.net/gh/twitter/twemoji@master/assets/svg/1f1ed-1f1f3.svg")
 }
-.twa-flag-hong-kong-sar-china {
+.twa-flag-hong-kong-sar-china, .twa-flag-hong-kong {
     background-image: url("https://cdn.jsdelivr.net/gh/twitter/twemoji@master/assets/svg/1f1ed-1f1f0.svg")
 }
 .twa-flag-hungary {

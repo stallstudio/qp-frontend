@@ -22,19 +22,23 @@ model Group {
 }
 
 model Park {
-  id              Int       @id @default(autoincrement())
-  identifier      String    @unique @db.VarChar(100)
-  name            String    @db.VarChar(255)
-  timezone        String    @default("Europe/Paris") @db.VarChar(50)
-  cover           Json?
-  badge           String?   @db.VarChar(255)
-  country         String?   @db.VarChar(100)
-  groupId         Int?
-  display         Boolean   @default(false)
-  queueTypeLabels Json?
-  lastUpdatedAt   DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                    Int       @id @default(autoincrement())
+  identifier            String    @unique @db.VarChar(100)
+  name                  String    @db.VarChar(255)
+  timezone              String    @default("Europe/Paris") @db.VarChar(50)
+  cover                 Json?
+  badge                 String?   @db.VarChar(255)
+  country               String?   @db.VarChar(100)
+  groupId               Int?
+  display               Boolean   @default(false)
+  queueTypeLabels       Json?
+  lastUpdatedAt         DateTime?
+  wait_times_fetcher    Boolean   @default(false)
+  opening_hours_fetcher Boolean   @default(false)
+  pois_fetcher          Boolean   @default(false)
+  show_times_fetcher    Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
