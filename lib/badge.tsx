@@ -20,7 +20,11 @@ function getWaitTimeBadge(waitTime: number) {
     <span
       className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
     >
-      {waitTime === -1 ? "Unavailable" : `${waitTime} min`}
+      {waitTime === -1
+        ? "Unavailable"
+        : waitTime >= 91
+          ? "90+"
+          : `${waitTime} min`}
     </span>
   );
 }
