@@ -22,8 +22,8 @@ function getWaitTimeBadge(waitTime: number) {
     >
       {waitTime === -1
         ? "Unavailable"
-        : waitTime >= 91
-          ? "90+"
+        : waitTime === 91
+          ? "+90 min"
           : `${waitTime} min`}
     </span>
   );
