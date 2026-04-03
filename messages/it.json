@@ -99,5 +99,20 @@
       "countryParkFiltering": "Filtro per paese",
       "groupParkFiltering": "Filtro per gruppo"
     }
+  },
+  "reportProblem": {
+    "trigger": "Un problema? Segnalacelo",
+    "title": "Segnala un Problema",
+    "description": "Aiutaci a migliorare la qualità dei dati segnalando un problema che hai notato.",
+    "categoryLabel": "Cosa riguarda il problema?",
+    "categoryPlaceholder": "Seleziona un'opzione",
+    "subcategoryLabel": "Qual è il problema?",
+    "subcategoryPlaceholder": "Seleziona un'opzione",
+    "detailsLabel": "Descrivi il problema",
+    "detailsPlaceholder": "Descrivi il problema con il maggior numero di dettagli possibile in modo che possiamo analizzarlo e risolverlo al meglio.",
+    "cancel": "Annulla",
+    "submit": "Invia segnalazione",
+    "success": "Grazie per la tua segnalazione! La esamineremo.",
+    "error": "Si è verificato un errore durante l'invio della segnalazione. Riprova."
   }
 }

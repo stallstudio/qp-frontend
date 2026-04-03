@@ -99,5 +99,20 @@
       "countryParkFiltering": "Länderfilter",
       "groupParkFiltering": "Gruppenfilter"
     }
+  },
+  "reportProblem": {
+    "trigger": "Ein Problem? Melde es uns",
+    "title": "Problem Melden",
+    "description": "Hilf uns, die Datenqualität zu verbessern, indem du ein Problem meldest, das dir aufgefallen ist.",
+    "categoryLabel": "Was betrifft das Problem?",
+    "categoryPlaceholder": "Wähle eine Option",
+    "subcategoryLabel": "Was ist das Problem?",
+    "subcategoryPlaceholder": "Wähle eine Option",
+    "detailsLabel": "Beschreibe das Problem",
+    "detailsPlaceholder": "Beschreibe das Problem so detailliert wie möglich, damit wir es bestmöglich analysieren und lösen können.",
+    "cancel": "Abbrechen",
+    "submit": "Meldung senden",
+    "success": "Vielen Dank für deine Meldung! Wir werden sie prüfen.",
+    "error": "Beim Senden der Meldung ist ein Fehler aufgetreten. Bitte versuche es erneut."
   }
 }

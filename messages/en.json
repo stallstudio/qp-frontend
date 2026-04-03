@@ -99,5 +99,20 @@
       "countryParkFiltering": "Country park filtering",
       "groupParkFiltering": "Group park filtering"
     }
+  },
+  "reportProblem": {
+    "trigger": "Found a problem? Report it to us",
+    "title": "Report a Problem",
+    "description": "Help us improve data quality by reporting an issue you've noticed.",
+    "categoryLabel": "What does the problem concern?",
+    "categoryPlaceholder": "Select an option",
+    "subcategoryLabel": "What is the problem?",
+    "subcategoryPlaceholder": "Select an option",
+    "detailsLabel": "Describe the problem",
+    "detailsPlaceholder": "Describe the problem with as much detail as possible so we can analyze and resolve it effectively.",
+    "cancel": "Cancel",
+    "submit": "Submit Report",
+    "success": "Thank you for your report! We will review it.",
+    "error": "An error occurred while submitting the report. Please try again."
   }
 }

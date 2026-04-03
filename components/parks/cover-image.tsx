@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { CoverImage } from "@/types/api";
 
 const DEFAULT_COVER = "/default_cover.webp";
 
 type ParkCoverImageProps = {
   parkIdentifier: string;
   parkName: string;
-  coverUrls: string[] | null;
+  coverUrls: CoverImage[] | null;
   imageScale: number;
 };
 
@@ -18,7 +19,10 @@ export default function ParkCoverImage({
   coverUrls,
   imageScale,
 }: ParkCoverImageProps) {
-  const [selectedCover, setSelectedCover] = useState(DEFAULT_COVER);
+  const [selectedCover, setSelectedCover] = useState<CoverImage>({
+    url: DEFAULT_COVER,
+    credit: null,
+  });
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isRealImageReady, setIsRealImageReady] = useState(false);
   const hasProcessedRef = useRef<string | null>(null);
@@ -27,7 +31,7 @@ export default function ParkCoverImage({
     if (hasProcessedRef.current === parkIdentifier) return;
 
     if (!coverUrls || coverUrls.length === 0) {
-      setSelectedCover(DEFAULT_COVER);
+      setSelectedCover({ url: DEFAULT_COVER, credit: null });
       setIsImageLoaded(true);
     } else {
       let allIndexes: Record<string, number> = {};
@@ -54,25 +58,25 @@ export default function ParkCoverImage({
   }, [coverUrls, parkIdentifier]);
 
   useEffect(() => {
-    if (selectedCover === DEFAULT_COVER) {
+    if (selectedCover.url === DEFAULT_COVER) {
       setIsRealImageReady(true);
       return;
     }
 
     setIsRealImageReady(false);
     const img = document.createElement("img");
-    img.src = selectedCover;
+    img.src = selectedCover.url;
     img.onload = () => setIsRealImageReady(true);
     img.onerror = () => setIsRealImageReady(true);
   }, [selectedCover]);
 
   const showDefaultCover =
-    !isImageLoaded || !isRealImageReady || selectedCover === DEFAULT_COVER;
+    !isImageLoaded || !isRealImageReady || selectedCover.url === DEFAULT_COVER;
 
   return (
     <>
       <Image
-        src={selectedCover}
+        src={selectedCover.url}
         alt={parkName}
         fill
         sizes="(max-width: 896px) 100vw, 896px"
@@ -102,13 +106,21 @@ export default function ParkCoverImage({
         priority
       />
 
+      {selectedCover.credit && (
+        <div className="absolute top-3 right-4 z-50">
+          <span className="text-[10px] text-white/60">
+            © {selectedCover.credit}
+          </span>
+        </div>
+      )}
+
       {coverUrls && coverUrls.length > 1 && (
         <>
           {coverUrls
-            .filter((url) => url !== selectedCover)
+            .filter((c) => c.url !== selectedCover.url)
             .slice(0, 2)
-            .map((url, idx) => (
-              <link key={idx} rel="prefetch" href={url} as="image" />
+            .map((c, idx) => (
+              <link key={idx} rel="prefetch" href={c.url} as="image" />
             ))}
         </>
       )}

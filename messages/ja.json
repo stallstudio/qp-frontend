@@ -99,5 +99,20 @@
       "countryParkFiltering": "国別フィルター",
       "groupParkFiltering": "グループ別フィルター"
     }
+  },
+  "reportProblem": {
+    "trigger": "問題がありますか？報告してください",
+    "title": "問題を報告",
+    "description": "お気づきの問題を報告して、データ品質の向上にご協力ください。",
+    "categoryLabel": "問題の内容は何ですか？",
+    "categoryPlaceholder": "オプションを選択",
+    "subcategoryLabel": "どのような問題ですか？",
+    "subcategoryPlaceholder": "オプションを選択",
+    "detailsLabel": "問題の詳細",
+    "detailsPlaceholder": "問題をできるだけ詳しく説明してください。分析と解決に役立ちます。",
+    "cancel": "キャンセル",
+    "submit": "報告を送信",
+    "success": "ご報告ありがとうございます！確認いたします。",
+    "error": "報告の送信中にエラーが発生しました。もう一度お試しください。"
   }
 }

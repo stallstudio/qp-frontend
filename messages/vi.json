@@ -99,5 +99,20 @@
       "countryParkFiltering": "Lọc theo quốc gia",
       "groupParkFiltering": "Lọc theo tập đoàn"
     }
+  },
+  "reportProblem": {
+    "trigger": "Có vấn đề? Báo cáo cho chúng tôi",
+    "title": "Báo Cáo Vấn Đề",
+    "description": "Giúp chúng tôi cải thiện chất lượng dữ liệu bằng cách báo cáo vấn đề bạn đã phát hiện.",
+    "categoryLabel": "Vấn đề liên quan đến gì?",
+    "categoryPlaceholder": "Chọn một tùy chọn",
+    "subcategoryLabel": "Vấn đề là gì?",
+    "subcategoryPlaceholder": "Chọn một tùy chọn",
+    "detailsLabel": "Mô tả chi tiết vấn đề",
+    "detailsPlaceholder": "Mô tả vấn đề càng chi tiết càng tốt để chúng tôi có thể phân tích và giải quyết hiệu quả nhất.",
+    "cancel": "Hủy",
+    "submit": "Gửi báo cáo",
+    "success": "Cảm ơn bạn đã báo cáo! Chúng tôi sẽ xem xét.",
+    "error": "Đã xảy ra lỗi khi gửi báo cáo. Vui lòng thử lại."
   }
 }

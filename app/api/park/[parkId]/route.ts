@@ -6,7 +6,19 @@ import {
 } from "@/lib/opening-hours";
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDate } from "@/lib/show-times";
-import { ParkLiveData } from "@/types/api";
+import { ParkLiveData, CoverImage } from "@/types/api";
+
+function normalizeCover(raw: unknown): CoverImage[] | null {
+  if (!raw || !Array.isArray(raw) || raw.length === 0) return null;
+  return raw.map((item: unknown) => {
+    if (typeof item === "string") return { url: item, credit: null };
+    if (typeof item === "object" && item !== null && "url" in item) {
+      const obj = item as { url: string; credit?: string | null };
+      return { url: obj.url, credit: obj.credit ?? null };
+    }
+    return { url: String(item), credit: null };
+  });
+}
 
 export async function GET(
   request: Request,
@@ -102,7 +114,7 @@ export async function GET(
       identifier: park.identifier,
       name: park.name,
       timezone: park.timezone,
-      cover: park.cover as string[] | null,
+      cover: normalizeCover(park.cover),
       queueTypeLabels: park.queueTypeLabels as Record<string, string> | null,
       openingHours: openingHours ?? [],
       waitTimes,

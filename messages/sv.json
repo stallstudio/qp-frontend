@@ -99,5 +99,20 @@
       "countryParkFiltering": "Landsfilter",
       "groupParkFiltering": "Gruppfilter"
     }
+  },
+  "reportProblem": {
+    "trigger": "Ett problem? Rapportera det till oss",
+    "title": "Rapportera ett Problem",
+    "description": "Hjälp oss att förbättra datakvaliteten genom att rapportera ett problem du har märkt.",
+    "categoryLabel": "Vad gäller problemet?",
+    "categoryPlaceholder": "Välj ett alternativ",
+    "subcategoryLabel": "Vad är problemet?",
+    "subcategoryPlaceholder": "Välj ett alternativ",
+    "detailsLabel": "Beskriv problemet",
+    "detailsPlaceholder": "Beskriv problemet så detaljerat som möjligt så att vi kan analysera och lösa det på bästa sätt.",
+    "cancel": "Avbryt",
+    "submit": "Skicka rapport",
+    "success": "Tack för din rapport! Vi kommer att granska den.",
+    "error": "Ett fel uppstod när rapporten skickades. Försök igen."
   }
 }

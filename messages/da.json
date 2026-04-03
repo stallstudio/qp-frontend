@@ -99,5 +99,20 @@
       "countryParkFiltering": "Landefilter",
       "groupParkFiltering": "Gruppefilter"
     }
+  },
+  "reportProblem": {
+    "trigger": "Et problem? Rapporter det til os",
+    "title": "Rapporter et Problem",
+    "description": "Hjælp os med at forbedre datakvaliteten ved at rapportere et problem, du har bemærket.",
+    "categoryLabel": "Hvad angår problemet?",
+    "categoryPlaceholder": "Vælg en mulighed",
+    "subcategoryLabel": "Hvad er problemet?",
+    "subcategoryPlaceholder": "Vælg en mulighed",
+    "detailsLabel": "Beskriv problemet",
+    "detailsPlaceholder": "Beskriv problemet så detaljeret som muligt, så vi kan analysere og løse det bedst muligt.",
+    "cancel": "Annuller",
+    "submit": "Send rapport",
+    "success": "Tak for din rapport! Vi vil gennemgå den.",
+    "error": "Der opstod en fejl ved afsendelse af rapporten. Prøv venligst igen."
   }
 }

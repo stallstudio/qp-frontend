@@ -99,5 +99,20 @@
       "countryParkFiltering": "국가별 필터",
       "groupParkFiltering": "그룹별 필터"
     }
+  },
+  "reportProblem": {
+    "trigger": "문제가 있나요? 신고해 주세요",
+    "title": "문제 신고",
+    "description": "발견하신 문제를 신고하여 데이터 품질 개선에 도움을 주세요.",
+    "categoryLabel": "문제가 무엇에 관한 것인가요?",
+    "categoryPlaceholder": "옵션 선택",
+    "subcategoryLabel": "어떤 문제인가요?",
+    "subcategoryPlaceholder": "옵션 선택",
+    "detailsLabel": "문제 설명",
+    "detailsPlaceholder": "문제를 최대한 자세히 설명해 주시면 분석하고 해결하는 데 도움이 됩니다.",
+    "cancel": "취소",
+    "submit": "신고 제출",
+    "success": "신고해 주셔서 감사합니다! 검토하겠습니다.",
+    "error": "신고를 제출하는 중 오류가 발생했습니다. 다시 시도해 주세요."
   }
 }

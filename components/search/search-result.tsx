@@ -1,5 +1,5 @@
 import { getParkLink, getParkStatus } from "@/lib/utils";
-import { ParkList } from "@/types/api";
+import { ParkList, CoverImage } from "@/types/api";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import Flag from "react-flagkit";
@@ -12,14 +12,11 @@ interface SearchResultProps {
 export default function SearchResult({ park }: SearchResultProps) {
   const status = getParkStatus(park.openingHours);
 
-  const getParkCover = (covers: string[]) => {
-    let cover = "/default_cover.webp";
-    if (covers && covers.length > 0) {
-      if (cover[0] !== "") {
-        cover = covers[0];
-      }
+  const getParkCover = (covers: CoverImage[]) => {
+    if (covers && covers.length > 0 && covers[0].url !== "") {
+      return covers[0].url;
     }
-    return cover || "";
+    return "/default_cover.webp";
   };
   return (
     <Link

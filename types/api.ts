@@ -3,11 +3,16 @@ import { OpeningHour } from "./openingHour";
 import { ShowTime } from "./show";
 import { WaitTime } from "./waitTime";
 
+export type CoverImage = {
+  url: string;
+  credit: string | null;
+};
+
 export type ParkLiveData = {
   identifier: string;
   name: string;
   timezone: string;
-  cover: string[] | null;
+  cover: CoverImage[] | null;
   queueTypeLabels: Record<string, string> | null;
   openingHours: OpeningHour[];
   waitTimes: WaitTime[];
@@ -24,7 +29,7 @@ export interface ParkList {
   identifier: string;
   name: string;
   timezone: string;
-  cover: string[];
+  cover: CoverImage[];
   badge?: string;
   country: string;
   group: Group;

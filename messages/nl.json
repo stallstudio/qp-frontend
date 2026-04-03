@@ -99,5 +99,20 @@
       "countryParkFiltering": "Landfilter",
       "groupParkFiltering": "Groepsfilter"
     }
+  },
+  "reportProblem": {
+    "trigger": "Een probleem? Meld het ons",
+    "title": "Meld een Probleem",
+    "description": "Help ons de datakwaliteit te verbeteren door een probleem te melden dat je hebt opgemerkt.",
+    "categoryLabel": "Waar gaat het probleem over?",
+    "categoryPlaceholder": "Selecteer een optie",
+    "subcategoryLabel": "Wat is het probleem?",
+    "subcategoryPlaceholder": "Selecteer een optie",
+    "detailsLabel": "Beschrijf het probleem",
+    "detailsPlaceholder": "Beschrijf het probleem zo gedetailleerd mogelijk zodat we het goed kunnen analyseren en oplossen.",
+    "cancel": "Annuleren",
+    "submit": "Melding versturen",
+    "success": "Bedankt voor je melding! We gaan het bekijken.",
+    "error": "Er is een fout opgetreden bij het versturen van de melding. Probeer het opnieuw."
   }
 }

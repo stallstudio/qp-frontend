@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import MainCard from "@/components/parks/main-card";
 import { ParkLiveData } from "@/types/api";
+import ReportProblemDialog from "@/components/parks/report-problem-dialog";
 
 export default function ParkPage({
   params,
@@ -70,7 +71,11 @@ export default function ParkPage({
       <main className="flex-1 flex flex-col gap-1 mt-4">
         <ParkHeader park={parkData} />
         <MainCard park={parkData} onRefresh={() => fetchParkData(false)} />
+        <div className="flex justify-center mt-4">
+          <ReportProblemDialog parkIdentifier={parkIdentifier} />
+        </div>
       </main>
+
       <Footer />
     </div>
   );

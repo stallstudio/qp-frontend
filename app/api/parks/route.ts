@@ -2,6 +2,19 @@ import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { DateTime } from "luxon";
 import { fetchOpeningHoursForParks } from "@/lib/opening-hours";
+import { CoverImage } from "@/types/api";
+
+function normalizeCover(raw: unknown): CoverImage[] {
+  if (!raw || !Array.isArray(raw) || raw.length === 0) return [];
+  return raw.map((item: unknown) => {
+    if (typeof item === "string") return { url: item, credit: null };
+    if (typeof item === "object" && item !== null && "url" in item) {
+      const obj = item as { url: string; credit?: string | null };
+      return { url: obj.url, credit: obj.credit ?? null };
+    }
+    return { url: String(item), credit: null };
+  });
+}
 
 export async function GET() {
   try {
@@ -57,6 +70,7 @@ export async function GET() {
 
     const parksWithOpeningHours = parks.map((park) => ({
       ...park,
+      cover: normalizeCover(park.cover),
       openingHours: openingHoursByPark.get(park.id) || [],
     }));
 
