@@ -45,7 +45,7 @@ export async function generateMetadata({
       siteName: "Queue Park",
       images: [
         {
-          url: "/header.jpg",
+          url: "/default_cover.webp",
           width: 1200,
           height: 630,
           alt: "Queue Park - Theme Park Wait Times",
@@ -56,7 +56,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: t("twitterTitle"),
       description: t("twitterDescription"),
-      images: ["/header.jpg"],
+      images: ["/default_cover.webp"],
     },
     robots: {
       index: true,
