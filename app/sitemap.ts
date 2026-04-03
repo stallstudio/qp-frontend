@@ -2,6 +2,8 @@ import { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
 import { getPrisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://queue-park.com";
   const prisma = getPrisma();
@@ -28,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
       alternates: {
         languages: Object.fromEntries(
-          locales.map((l) => [l, `${baseUrl}/${l}`])
+          locales.map((l) => [l, `${baseUrl}/${l}`]),
         ),
       },
     });
@@ -41,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
         alternates: {
           languages: Object.fromEntries(
-            locales.map((l) => [l, `${baseUrl}/${l}/park/${park.identifier}`])
+            locales.map((l) => [l, `${baseUrl}/${l}/park/${park.identifier}`]),
           ),
         },
       });
