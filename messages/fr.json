@@ -5,7 +5,7 @@
   },
   "search": {
     "placeholder": "Rechercher un parc par nom, groupe ou pays...",
-    "noResults": "Aucun parc ne correspond à votre recherche. Réessayez !",
+    "noResults": "Aucun parc ne correspond à votre recherche. Réessayez !",
     "randomParkToast": "Vos dés sont tombés sur :"
   },
   "parksList": {
@@ -58,12 +58,12 @@
     "contactText": "Contactez-moi à"
   },
   "noData": {
-    "title": "Oups, désolé!",
-    "message": "Nous n'avons actuellement pas d'informations à afficher pour ce parc. Revenez plus tard !"
+    "title": "Oups, désolé !",
+    "message": "Nous n'avons actuellement pas d'informations à afficher pour ce parc. Revenez plus tard !"
   },
   "errors": {
     "configError": "Erreur de configuration. Veuillez contacter le support.",
-    "fetchError": "Échec de la récupération des parcs :",
+    "fetchError": "Échec de la récupération des parcs :",
     "parkNotFound": "Le parc que vous recherchez n'existe pas"
   },
   "metadata": {
@@ -101,10 +101,10 @@
     }
   },
   "reportProblem": {
-    "trigger": "Un problème ? Rapporter-le nous",
+    "trigger": "Un problème ? Rapportez-le-nous",
     "title": "Rapporter un problème",
     "description": "Aidez-nous à améliorer la qualité des données en signalant un problème que vous avez remarqué.",
-    "categoryLabel": "Que concerne le problème ?",
+    "categoryLabel": "De quoi s'agit-il ?",
     "categoryPlaceholder": "Sélectionnez une option",
     "subcategoryLabel": "Quel est le problème ?",
     "subcategoryPlaceholder": "Sélectionnez une option",
