@@ -29,9 +29,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1.0,
       alternates: {
-        languages: Object.fromEntries(
-          locales.map((l) => [l, `${baseUrl}/${l}`]),
-        ),
+        languages: {
+          "x-default": `${baseUrl}/en`,
+          ...Object.fromEntries(locales.map((l) => [l, `${baseUrl}/${l}`])),
+        },
       },
     });
 
@@ -42,9 +43,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "hourly",
         priority: 0.8,
         alternates: {
-          languages: Object.fromEntries(
-            locales.map((l) => [l, `${baseUrl}/${l}/park/${park.identifier}`]),
-          ),
+          languages: {
+            "x-default": `${baseUrl}/en/park/${park.identifier}`,
+            ...Object.fromEntries(
+              locales.map((l) => [
+                l,
+                `${baseUrl}/${l}/park/${park.identifier}`,
+              ]),
+            ),
+          },
         },
       });
     }
