@@ -26,7 +26,9 @@
     "extraOpeningHours": "额外开放时间",
     "extendedHours": "延长营业时间",
     "closedToday": "今日闭园",
-    "hoursUnavailable": "暂无营业时间信息"
+    "hoursUnavailable": "暂无营业时间信息",
+    "privateEvent": "包场活动",
+    "privateEventNoHours": "今日包场活动"
   },
   "parkStatus": {
     "open": "开园中",

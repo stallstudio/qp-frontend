@@ -26,7 +26,9 @@
     "extraOpeningHours": "추가 운영 시간",
     "extendedHours": "연장 운영",
     "closedToday": "오늘 휴장",
-    "hoursUnavailable": "운영 시간을 현재 확인할 수 없습니다"
+    "hoursUnavailable": "운영 시간을 현재 확인할 수 없습니다",
+    "privateEvent": "전세 운영",
+    "privateEventNoHours": "오늘 전세 운영"
   },
   "parkStatus": {
     "open": "운영 중",

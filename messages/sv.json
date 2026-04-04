@@ -26,7 +26,9 @@
     "extraOpeningHours": "Extra öppettider",
     "extendedHours": "Förlängda öppettider",
     "closedToday": "Stängt idag",
-    "hoursUnavailable": "Öppettider är för närvarande inte tillgängliga"
+    "hoursUnavailable": "Öppettider är för närvarande inte tillgängliga",
+    "privateEvent": "Park privatbokad",
+    "privateEventNoHours": "Park privatbokad idag"
   },
   "parkStatus": {
     "open": "Öppet",

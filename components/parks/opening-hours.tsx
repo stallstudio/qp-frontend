@@ -2,6 +2,7 @@ import { OpeningHour } from "@/types/openingHour";
 import {
   CalendarClock,
   CalendarX2,
+  Lock,
   LucideIcon,
   Maximize2,
   Sunrise,
@@ -20,12 +21,14 @@ const typeIconMap: Record<OpeningHour["type"], LucideIcon> = {
   standard: CalendarClock,
   early_access: Sunrise,
   extension: Maximize2,
+  private_event: Lock,
 };
 
 const typeOrder: Record<OpeningHour["type"], number> = {
   standard: 0,
   early_access: 1,
   extension: 2,
+  private_event: 3,
 };
 
 const formatTime = (
@@ -50,10 +53,16 @@ export default function ParkOpeningHours({
     standard: t("todayHours"),
     early_access: t("extraOpeningHours"),
     extension: t("extendedHours"),
+    private_event: t("privateEvent"),
   };
 
   const sortedOpeningHours = [...openingHours].sort(
     (a, b) => typeOrder[a.type] - typeOrder[b.type],
+  );
+
+  // Check if there's a private event without hours
+  const hasPrivateEventNoHours = sortedOpeningHours.some(
+    (hour) => hour.type === "private_event" && !hour.openTime && !hour.closeTime
   );
 
   // Check if all opening hours have null openTime and closeTime
@@ -63,7 +72,12 @@ export default function ParkOpeningHours({
 
   return (
     <div>
-      {allTimesNull ? (
+      {hasPrivateEventNoHours ? (
+        <div className="flex items-center gap-2 text-white">
+          <Lock className="w-4 h-4" />
+          <p>{t("privateEventNoHours")}</p>
+        </div>
+      ) : allTimesNull ? (
         <div className="flex items-center gap-2 text-white">
           <CalendarX2 className="w-4 h-4" />
           <p>{t("closedToday")}</p>

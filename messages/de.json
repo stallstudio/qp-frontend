@@ -26,7 +26,9 @@
     "extraOpeningHours": "Zusätzliche Öffnungszeiten",
     "extendedHours": "Verlängerte Öffnungszeiten",
     "closedToday": "Heute geschlossen",
-    "hoursUnavailable": "Öffnungszeiten sind derzeit nicht verfügbar"
+    "hoursUnavailable": "Öffnungszeiten sind derzeit nicht verfügbar",
+    "privateEvent": "Park privat gebucht",
+    "privateEventNoHours": "Park heute privat gebucht"
   },
   "parkStatus": {
     "open": "Offen",
