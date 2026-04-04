@@ -83,21 +83,23 @@ export default function ParkOpeningHours({
           <p>{t("closedToday")}</p>
         </div>
       ) : sortedOpeningHours.length > 0 ? (
-        sortedOpeningHours.map((openingHour, index) => {
-          const Icon = typeIconMap[openingHour.type];
-          const label = typeLabelMap[openingHour.type];
+        sortedOpeningHours
+          .filter((hour) => hour.openTime && hour.closeTime)
+          .map((openingHour, index) => {
+            const Icon = typeIconMap[openingHour.type];
+            const label = typeLabelMap[openingHour.type];
 
-          return (
-            <div key={index} className="flex items-center gap-2 text-white">
-              <Icon className="w-4 h-4 shrink-0" />
-              <p>
-                <span className="font-medium">{label}</span>:{" "}
-                {formatTime(openingHour.openTime!, timezone, is12Hour)} -{" "}
-                {formatTime(openingHour.closeTime!, timezone, is12Hour)}
-              </p>
-            </div>
-          );
-        })
+            return (
+              <div key={index} className="flex items-center gap-2 text-white">
+                <Icon className="w-4 h-4 shrink-0" />
+                <p>
+                  <span className="font-medium">{label}</span>:{" "}
+                  {formatTime(openingHour.openTime!, timezone, is12Hour)} -{" "}
+                  {formatTime(openingHour.closeTime!, timezone, is12Hour)}
+                </p>
+              </div>
+            );
+          })
       ) : (
         <div className="flex items-center gap-2 text-white">
           <CalendarClock className="w-4 h-4" />
