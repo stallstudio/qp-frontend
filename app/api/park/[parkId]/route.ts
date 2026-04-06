@@ -7,6 +7,7 @@ import {
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDate } from "@/lib/show-times";
 import { ParkLiveData, CoverImage } from "@/types/api";
+import { isBlacklisted } from "@/lib/ip-rules";
 
 function normalizeCover(raw: unknown): CoverImage[] | null {
   if (!raw || !Array.isArray(raw) || raw.length === 0) return null;
@@ -35,6 +36,29 @@ export async function GET(
 
   try {
     const prisma = getPrisma();
+
+    if (await isBlacklisted(ipAddress)) {
+      await prisma.apiRequestLog.create({
+        data: {
+          endpoint: `/api/park/${parkId}`,
+          parkId,
+          ipAddress,
+          userAgent,
+          referer,
+          statusCode: 403,
+        },
+      });
+
+      return NextResponse.json(
+        {
+          error: "Forbidden",
+          message:
+            "Your IP address has been blocked. If you believe this is an error, contact contact@queue-park.com.",
+        },
+        { status: 403 },
+      );
+    }
+
     const park = await prisma.park.findUnique({
       where: { identifier: parkId, display: true },
       select: {

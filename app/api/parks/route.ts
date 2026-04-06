@@ -3,6 +3,7 @@ import { getPrisma } from "@/lib/prisma";
 import { DateTime } from "luxon";
 import { fetchOpeningHoursForParks } from "@/lib/opening-hours";
 import { CoverImage } from "@/types/api";
+import { getWhitelistedIps } from "@/lib/ip-rules";
 
 function normalizeCover(raw: unknown): CoverImage[] {
   if (!raw || !Array.isArray(raw) || raw.length === 0) return [];
@@ -21,6 +22,8 @@ export async function GET() {
     const prisma = getPrisma();
 
     const twoHoursAgo = DateTime.now().minus({ hours: 2 }).toJSDate();
+
+    const whitelistedIps = await getWhitelistedIps();
 
     const [parks, popularParksData] = await Promise.all([
       prisma.park.findMany({
@@ -53,6 +56,9 @@ export async function GET() {
           parkId: {
             not: null,
           },
+          ...(whitelistedIps.length > 0 && {
+            ipAddress: { notIn: whitelistedIps },
+          }),
         },
         _count: {
           parkId: true,

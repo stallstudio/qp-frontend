@@ -300,6 +300,23 @@ model Article {
   @@map("articles")
 }
 
+enum IpRuleType {
+  whitelist
+  blacklist
+}
+
+model IpRule {
+  id        Int        @id @default(autoincrement())
+  ipAddress String     @unique @db.VarChar(45)
+  type      IpRuleType
+  label     String?    @db.VarChar(255)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([type])
+  @@map("ip_rules")
+}
+
 model Report {
   id             Int      @id @default(autoincrement())
   parkIdentifier String   @db.VarChar(100)
