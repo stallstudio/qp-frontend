@@ -26,7 +26,9 @@
     "extraOpeningHours": "Horas de apertura extra",
     "extendedHours": "Horario extendido",
     "closedToday": "Cerrado hoy",
-    "hoursUnavailable": "Los horarios de apertura no están disponibles actualmente"
+    "hoursUnavailable": "Los horarios de apertura no están disponibles actualmente",
+    "privateEvent": "Parque reservado privadamente",
+    "privateEventNoHours": "Parque reservado privadamente hoy"
   },
   "parkStatus": {
     "open": "Abierto",
@@ -101,10 +103,10 @@
     }
   },
   "reportProblem": {
-    "trigger": "¿Un problema? Repórtalo",
+    "trigger": "¿Un problema? Repórtanoslo",
     "title": "Reportar un Problema",
     "description": "Ayúdanos a mejorar la calidad de los datos reportando un problema que hayas notado.",
-    "categoryLabel": "¿Qué concierne el problema?",
+    "categoryLabel": "¿De qué se trata el problema?",
     "categoryPlaceholder": "Selecciona una opción",
     "subcategoryLabel": "¿Cuál es el problema?",
     "subcategoryPlaceholder": "Selecciona una opción",

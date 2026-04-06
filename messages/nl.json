@@ -26,7 +26,9 @@
     "extraOpeningHours": "Extra openingstijden",
     "extendedHours": "Verlengde openingstijden",
     "closedToday": "Vandaag gesloten",
-    "hoursUnavailable": "Openingstijden zijn momenteel niet beschikbaar"
+    "hoursUnavailable": "Openingstijden zijn momenteel niet beschikbaar",
+    "privateEvent": "Park privé geboekt",
+    "privateEventNoHours": "Park privé geboekt vandaag"
   },
   "parkStatus": {
     "open": "Open",

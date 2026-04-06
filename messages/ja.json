@@ -26,7 +26,9 @@
     "extraOpeningHours": "特別営業時間",
     "extendedHours": "延長営業",
     "closedToday": "本日は休園です",
-    "hoursUnavailable": "現在、営業時間は利用できません"
+    "hoursUnavailable": "現在、営業時間は利用できません",
+    "privateEvent": "貸切営業",
+    "privateEventNoHours": "本日は貸切営業です"
   },
   "parkStatus": {
     "open": "開園中",
@@ -54,7 +56,7 @@
     "lastUpdate": "最終更新"
   },
   "footer": {
-    "copyright": "© {year} Queue Park. All rights reserved.",
+    "copyright": "© {year} Queue Park. すべての権利は保護されています。",
     "contactText": "お問い合わせ先："
   },
   "noData": {

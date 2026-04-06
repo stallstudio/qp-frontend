@@ -26,7 +26,9 @@
     "extraOpeningHours": "Giờ mở cửa bổ sung",
     "extendedHours": "Giờ kéo dài",
     "closedToday": "Đóng cửa hôm nay",
-    "hoursUnavailable": "Hiện không có thông tin về giờ mở cửa"
+    "hoursUnavailable": "Hiện không có thông tin về giờ mở cửa",
+    "privateEvent": "Công viên được đặt riêng",
+    "privateEventNoHours": "Công viên được đặt riêng hôm nay"
   },
   "parkStatus": {
     "open": "Đang mở cửa",

@@ -26,7 +26,9 @@
     "extraOpeningHours": "Horário de abertura extra",
     "extendedHours": "Horário alargado",
     "closedToday": "Fechado hoje",
-    "hoursUnavailable": "Os horários de abertura estão indisponíveis de momento"
+    "hoursUnavailable": "Os horários de abertura estão indisponíveis de momento",
+    "privateEvent": "Parque reservado privativamente",
+    "privateEventNoHours": "Parque reservado privativamente hoje"
   },
   "parkStatus": {
     "open": "Aberto",
