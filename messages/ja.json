@@ -112,6 +112,8 @@
     "subcategoryPlaceholder": "オプションを選択",
     "detailsLabel": "問題の詳細",
     "detailsPlaceholder": "問題をできるだけ詳しく説明してください。分析と解決に役立ちます。",
+    "emailLabel": "メールアドレス",
+    "emailPlaceholder": "your@email.com",
     "cancel": "キャンセル",
     "submit": "報告を送信",
     "success": "ご報告ありがとうございます！確認いたします。",

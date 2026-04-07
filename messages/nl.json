@@ -112,6 +112,8 @@
     "subcategoryPlaceholder": "Selecteer een optie",
     "detailsLabel": "Beschrijf het probleem",
     "detailsPlaceholder": "Beschrijf het probleem zo gedetailleerd mogelijk zodat we het goed kunnen analyseren en oplossen.",
+    "emailLabel": "Je e-mailadres",
+    "emailPlaceholder": "jouw@email.com",
     "cancel": "Annuleren",
     "submit": "Melding versturen",
     "success": "Bedankt voor je melding! We gaan het bekijken.",

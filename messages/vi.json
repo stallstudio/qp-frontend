@@ -112,6 +112,8 @@
     "subcategoryPlaceholder": "Chọn một tùy chọn",
     "detailsLabel": "Mô tả chi tiết vấn đề",
     "detailsPlaceholder": "Mô tả vấn đề càng chi tiết càng tốt để chúng tôi có thể phân tích và giải quyết hiệu quả nhất.",
+    "emailLabel": "Địa chỉ email của bạn",
+    "emailPlaceholder": "your@email.com",
     "cancel": "Hủy",
     "submit": "Gửi báo cáo",
     "success": "Cảm ơn bạn đã báo cáo! Chúng tôi sẽ xem xét.",

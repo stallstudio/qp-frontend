@@ -10,9 +10,16 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { parkIdentifier, category, subcategory, details } = body;
+    const { parkIdentifier, category, subcategory, details, email, locale } =
+      body;
 
-    if (!parkIdentifier || !category || !subcategory || !details?.trim()) {
+    if (
+      !parkIdentifier ||
+      !category ||
+      !subcategory ||
+      !details?.trim() ||
+      !email?.trim()
+    ) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
@@ -27,6 +34,8 @@ export async function POST(request: Request) {
         category,
         subcategory,
         details: details.trim(),
+        email: email.trim().toLowerCase(),
+        locale: locale || "en",
         ipAddress,
         userAgent,
       },

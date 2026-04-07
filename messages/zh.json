@@ -112,6 +112,8 @@
     "subcategoryPlaceholder": "选择一个选项",
     "detailsLabel": "详细描述问题",
     "detailsPlaceholder": "请尽可能详细地描述问题，以便我们更好地分析和解决。",
+    "emailLabel": "您的电子邮件地址",
+    "emailPlaceholder": "your@email.com",
     "cancel": "取消",
     "submit": "提交报告",
     "success": "感谢您的报告！我们将进行审核。",

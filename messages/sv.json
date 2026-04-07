@@ -112,6 +112,8 @@
     "subcategoryPlaceholder": "Välj ett alternativ",
     "detailsLabel": "Beskriv problemet",
     "detailsPlaceholder": "Beskriv problemet så detaljerat som möjligt så att vi kan analysera och lösa det på bästa sätt.",
+    "emailLabel": "Din e-postadress",
+    "emailPlaceholder": "din@email.com",
     "cancel": "Avbryt",
     "submit": "Skicka rapport",
     "success": "Tack för din rapport! Vi kommer att granska den.",

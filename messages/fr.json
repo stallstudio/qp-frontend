@@ -112,6 +112,8 @@
     "subcategoryPlaceholder": "Sélectionnez une option",
     "detailsLabel": "Détaillez le problème",
     "detailsPlaceholder": "Décrivez le problème avec le plus de détails possible afin que nous puissions l'analyser et le résoudre au mieux.",
+    "emailLabel": "Votre adresse e-mail",
+    "emailPlaceholder": "votre@email.com",
     "cancel": "Annuler",
     "submit": "Envoyer le signalement",
     "success": "Merci pour votre signalement ! Nous allons l'analyser.",

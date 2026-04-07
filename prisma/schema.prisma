@@ -318,18 +318,23 @@ model IpRule {
 }
 
 model Report {
-  id             Int      @id @default(autoincrement())
-  parkIdentifier String   @db.VarChar(100)
-  category       String   @db.VarChar(50)
-  subcategory    String   @db.VarChar(50)
-  details        String   @db.Text
-  ipAddress      String   @db.VarChar(45)
-  userAgent      String?  @db.Text
-  resolved       Boolean  @default(false)
-  createdAt      DateTime @default(now())
+  id             Int       @id @default(autoincrement())
+  parkIdentifier String    @db.VarChar(100)
+  category       String    @db.VarChar(50)
+  subcategory    String    @db.VarChar(50)
+  details        String    @db.Text
+  email          String    @db.VarChar(255)
+  locale         String    @db.VarChar(10)
+  ipAddress      String    @db.VarChar(45)
+  userAgent      String?   @db.Text
+  resolved       Boolean   @default(false)
+  resolution     String?   @db.VarChar(50)
+  resolvedAt     DateTime?
+  createdAt      DateTime  @default(now())
 
   @@index([parkIdentifier])
   @@index([category])
   @@index([createdAt])
+  @@index([resolved])
   @@map("reports")
 }

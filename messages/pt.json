@@ -112,6 +112,8 @@
     "subcategoryPlaceholder": "Seleciona uma opção",
     "detailsLabel": "Detalha o problema",
     "detailsPlaceholder": "Descreve o problema com o máximo de detalhes possível para que possamos analisá-lo e resolvê-lo da melhor forma.",
+    "emailLabel": "O teu endereço de e-mail",
+    "emailPlaceholder": "teu@email.com",
     "cancel": "Cancelar",
     "submit": "Enviar reporte",
     "success": "Obrigado pelo teu reporte! Vamos analisá-lo.",

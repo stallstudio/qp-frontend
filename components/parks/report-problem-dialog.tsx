@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslations } from "next-intl";
@@ -224,6 +225,7 @@ export default function ReportProblemDialog({
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("");
   const [details, setDetails] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const getLocalizedString = (localizedString: LocalizedString): string => {
@@ -252,12 +254,15 @@ export default function ReportProblemDialog({
         category: selectedCategory,
         subcategory: selectedSubcategory,
         details,
+        email,
+        locale,
       });
       toast.success(t("success"));
       setOpen(false);
       setSelectedCategory("");
       setSelectedSubcategory("");
       setDetails("");
+      setEmail("");
     } catch {
       toast.error(t("error"));
     } finally {
@@ -320,16 +325,28 @@ export default function ReportProblemDialog({
           )}
 
           {selectedSubcategory && selectedSubcategoryData && (
-            <div className="grid gap-2">
-              <Label htmlFor="details">{t("detailsLabel")}</Label>
-              <Textarea
-                id="details"
-                placeholder={t("detailsPlaceholder")}
-                value={details}
-                onChange={(e) => setDetails(e.target.value)}
-                rows={4}
-              />
-            </div>
+            <>
+              <div className="grid gap-2">
+                <Label htmlFor="details">{t("detailsLabel")}</Label>
+                <Textarea
+                  id="details"
+                  placeholder={t("detailsPlaceholder")}
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">{t("emailLabel")}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder={t("emailPlaceholder")}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </>
           )}
         </div>
         <div className="flex justify-end gap-2">
@@ -342,6 +359,7 @@ export default function ReportProblemDialog({
               !selectedCategory ||
               !selectedSubcategory ||
               !details.trim() ||
+              !email.trim() ||
               loading
             }
           >

@@ -112,6 +112,8 @@
     "subcategoryPlaceholder": "옵션 선택",
     "detailsLabel": "문제 설명",
     "detailsPlaceholder": "문제를 최대한 자세히 설명해 주시면 분석하고 해결하는 데 도움이 됩니다.",
+    "emailLabel": "이메일 주소",
+    "emailPlaceholder": "your@email.com",
     "cancel": "취소",
     "submit": "신고 제출",
     "success": "신고해 주셔서 감사합니다! 검토하겠습니다.",
