@@ -113,10 +113,16 @@
     "detailsLabel": "Beschrijf het probleem",
     "detailsPlaceholder": "Beschrijf het probleem zo gedetailleerd mogelijk zodat we het goed kunnen analyseren en oplossen.",
     "emailLabel": "Je e-mailadres",
-    "emailPlaceholder": "jouw@email.com",
     "cancel": "Annuleren",
     "submit": "Melding versturen",
     "success": "Bedankt voor je melding! We gaan het bekijken.",
-    "error": "Er is een fout opgetreden bij het versturen van de melding. Probeer het opnieuw."
+    "error": "Er is een fout opgetreden bij het versturen van de melding. Probeer het opnieuw.",
+    "emailDescription": "We gebruiken je e-mailadres om je op de hoogte te houden van de oplossing van je melding.",
+    "validation": {
+      "categoryRequired": "Selecteer een categorie",
+      "subcategoryRequired": "Selecteer een subcategorie",
+      "detailsRequired": "Geef minimaal 10 tekens op",
+      "emailRequired": "Voer een geldig e-mailadres in"
+    }
   }
 }

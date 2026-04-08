@@ -90,24 +90,48 @@ export function calculateParkHours(
   timezone: string,
 ): number[] {
   const hours: number[] = [];
-  const allTimes = shows.flatMap((show) =>
-    show.schedules.map(
-      (s) => DateTime.fromISO(s.startTime, { zone: timezone }).hour,
-    ),
-  );
 
-  if (allTimes.length === 0) {
+  if (shows.length === 0) {
     for (let h = 9; h <= 23; h++) {
       hours.push(h);
     }
     return hours;
   }
 
-  const minHour = Math.min(...allTimes);
-  const maxHour = Math.max(...allTimes);
+  const allStartTimes: number[] = [];
+  const allEndTimes: number[] = [];
+
+  shows.forEach((show) => {
+    show.schedules.forEach((schedule, index) => {
+      const startTime = DateTime.fromISO(schedule.startTime, {
+        zone: timezone,
+      });
+      allStartTimes.push(startTime.hour);
+
+      const nextSchedule = show.schedules[index + 1] || null;
+      const duration = calculateSlotDuration(
+        schedule,
+        show.duration,
+        nextSchedule,
+        timezone,
+      );
+      const endTime = startTime.plus({ minutes: duration });
+      allEndTimes.push(endTime.hour);
+    });
+  });
+
+  if (allStartTimes.length === 0) {
+    for (let h = 9; h <= 23; h++) {
+      hours.push(h);
+    }
+    return hours;
+  }
+
+  const minHour = Math.min(...allStartTimes);
+  const maxHour = Math.max(...allEndTimes);
 
   const startHour = Math.max(0, minHour - 1);
-  const endHour = Math.min(23, maxHour + 2);
+  const endHour = Math.min(23, maxHour + 1);
 
   for (let h = startHour; h <= endHour; h++) {
     hours.push(h);

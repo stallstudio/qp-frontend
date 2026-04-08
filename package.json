@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@next/third-parties": "^16.2.1",
     "@prisma/adapter-mariadb": "^7.5.0",
     "@prisma/client": "^7.5.0",
+    "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.2.8",
     "axios": "^1.13.4",
@@ -34,9 +36,11 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-flagkit": "^2.0.4",
+    "react-hook-form": "^7.72.1",
     "slugify": "^1.6.6",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
+    "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

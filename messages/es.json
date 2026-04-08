@@ -113,10 +113,16 @@
     "detailsLabel": "Detalla el problema",
     "detailsPlaceholder": "Describe el problema con el mayor detalle posible para que podamos analizarlo y resolverlo de la mejor manera.",
     "emailLabel": "Tu dirección de correo electrónico",
-    "emailPlaceholder": "tu@email.com",
     "cancel": "Cancelar",
     "submit": "Enviar reporte",
     "success": "¡Gracias por tu reporte! Lo analizaremos.",
-    "error": "Ocurrió un error al enviar el reporte. Por favor, inténtalo de nuevo."
+    "error": "Ocurrió un error al enviar el reporte. Por favor, inténtalo de nuevo.",
+    "emailDescription": "Utilizaremos tu dirección de correo electrónico para mantenerte informado sobre la resolución de tu reporte.",
+    "validation": {
+      "categoryRequired": "Por favor selecciona una categoría",
+      "subcategoryRequired": "Por favor selecciona una subcategoría",
+      "detailsRequired": "Por favor proporciona al menos 10 caracteres",
+      "emailRequired": "Por favor introduce una dirección de correo electrónico válida"
+    }
   }
 }

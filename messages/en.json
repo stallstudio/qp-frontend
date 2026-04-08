@@ -113,10 +113,16 @@
     "detailsLabel": "Describe the problem",
     "detailsPlaceholder": "Describe the problem with as much detail as possible so we can analyze and resolve it effectively.",
     "emailLabel": "Your email address",
-    "emailPlaceholder": "your@email.com",
+    "emailDescription": "We will use your email address to keep you informed about the resolution of your report.",
     "cancel": "Cancel",
     "submit": "Submit Report",
     "success": "Thank you for your report! We will review it.",
-    "error": "An error occurred while submitting the report. Please try again."
+    "error": "An error occurred while submitting the report. Please try again.",
+    "validation": {
+      "categoryRequired": "Please select a category",
+      "subcategoryRequired": "Please select a subcategory",
+      "detailsRequired": "Please provide at least 10 characters",
+      "emailRequired": "Please enter a valid email address"
+    }
   }
 }

@@ -7,7 +7,8 @@ import {
   ScheduleWithPosition,
   PIXEL_PER_MINUTE,
   LANE_HEIGHT,
-  MIN_WIDTH_FOR_TEXT,
+  MIN_WIDTH_FOR_TEXT_24H,
+  MIN_WIDTH_FOR_TEXT_12H,
 } from "../types";
 
 type TimelineRowProps = {
@@ -71,7 +72,10 @@ export function TimelineRow({
         // isUpcoming = slotStartMinutes > currentHourPosition (default case)
 
         const widthPx = scheduleItem.width * PIXEL_PER_MINUTE;
-        const showTimeText = widthPx >= MIN_WIDTH_FOR_TEXT;
+        const minWidth = is12Hour
+          ? MIN_WIDTH_FOR_TEXT_12H
+          : MIN_WIDTH_FOR_TEXT_24H;
+        const showTimeText = widthPx >= minWidth;
 
         const top = verticalPadding + scheduleItem.lane * LANE_HEIGHT + 2;
         const height = LANE_HEIGHT - 4;

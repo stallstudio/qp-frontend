@@ -113,10 +113,16 @@
     "detailsLabel": "详细描述问题",
     "detailsPlaceholder": "请尽可能详细地描述问题，以便我们更好地分析和解决。",
     "emailLabel": "您的电子邮件地址",
-    "emailPlaceholder": "your@email.com",
     "cancel": "取消",
     "submit": "提交报告",
     "success": "感谢您的报告！我们将进行审核。",
-    "error": "提交报告时发生错误。请重试。"
+    "error": "提交报告时发生错误。请重试。",
+    "emailDescription": "我们将使用您的电子邮件地址向您通报报告的解决情况。",
+    "validation": {
+      "categoryRequired": "请选择一个类别",
+      "subcategoryRequired": "请选择一个子类别",
+      "detailsRequired": "请提供至少10个字符",
+      "emailRequired": "请输入有效的电子邮件地址"
+    }
   }
 }

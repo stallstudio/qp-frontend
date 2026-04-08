@@ -113,10 +113,16 @@
     "detailsLabel": "Beschreibe das Problem",
     "detailsPlaceholder": "Beschreibe das Problem so detailliert wie möglich, damit wir es bestmöglich analysieren und lösen können.",
     "emailLabel": "Deine E-Mail-Adresse",
-    "emailPlaceholder": "deine@email.com",
     "cancel": "Abbrechen",
     "submit": "Meldung senden",
     "success": "Vielen Dank für deine Meldung! Wir werden sie prüfen.",
-    "error": "Beim Senden der Meldung ist ein Fehler aufgetreten. Bitte versuche es erneut."
+    "error": "Beim Senden der Meldung ist ein Fehler aufgetreten. Bitte versuche es erneut.",
+    "emailDescription": "Wir verwenden deine E-Mail-Adresse, um dich über die Lösung deiner Meldung zu informieren.",
+    "validation": {
+      "categoryRequired": "Bitte wähle eine Kategorie aus",
+      "subcategoryRequired": "Bitte wähle eine Unterkategorie aus",
+      "detailsRequired": "Bitte gib mindestens 10 Zeichen ein",
+      "emailRequired": "Bitte gib eine gültige E-Mail-Adresse ein"
+    }
   }
 }

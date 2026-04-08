@@ -113,10 +113,16 @@
     "detailsLabel": "Détaillez le problème",
     "detailsPlaceholder": "Décrivez le problème avec le plus de détails possible afin que nous puissions l'analyser et le résoudre au mieux.",
     "emailLabel": "Votre adresse e-mail",
-    "emailPlaceholder": "votre@email.com",
+    "emailDescription": "Nous utiliserons votre adresse e-mail pour vous tenir informé de la résolution de votre signalement.",
     "cancel": "Annuler",
     "submit": "Envoyer le signalement",
     "success": "Merci pour votre signalement ! Nous allons l'analyser.",
-    "error": "Une erreur est survenue lors de l'envoi du signalement. Veuillez réessayer."
+    "error": "Une erreur est survenue lors de l'envoi du signalement. Veuillez réessayer.",
+    "validation": {
+      "categoryRequired": "Veuillez sélectionner une catégorie",
+      "subcategoryRequired": "Veuillez sélectionner une sous-catégorie",
+      "detailsRequired": "Veuillez fournir au moins 10 caractères",
+      "emailRequired": "Veuillez entrer une adresse e-mail valide"
+    }
   }
 }

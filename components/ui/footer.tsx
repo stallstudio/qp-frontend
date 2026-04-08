@@ -8,7 +8,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   return (
     <footer
-      className="py-4 flex sm:justify-between flex-col sm:flex-row gap-2"
+      className="py-4 flex sm:justify-between flex-col sm:flex-row gap-2 w-full"
       id="footer"
     >
       <div className="flex flex-col order-2 sm:order-1">
