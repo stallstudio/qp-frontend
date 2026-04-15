@@ -101,14 +101,20 @@ export function calculateParkHours(
   const allStartTimes: number[] = [];
   const allEndTimes: number[] = [];
 
+  const today = DateTime.now().setZone(timezone).startOf("day");
+
   shows.forEach((show) => {
-    show.schedules.forEach((schedule, index) => {
+    const todaySchedules = show.schedules.filter((s) => {
+      const start = DateTime.fromISO(s.startTime, { zone: timezone });
+      return start >= today;
+    });
+    todaySchedules.forEach((schedule, index) => {
       const startTime = DateTime.fromISO(schedule.startTime, {
         zone: timezone,
       });
       allStartTimes.push(startTime.hour);
 
-      const nextSchedule = show.schedules[index + 1] || null;
+      const nextSchedule = todaySchedules[index + 1] || null;
       const duration = calculateSlotDuration(
         schedule,
         show.duration,
@@ -158,11 +164,18 @@ export function calculateScheduleLanes(
   parkHoursStart: number,
   timezone: string,
 ): { schedules: ScheduleWithPosition[]; totalLanes: number } {
-  const sortedSchedules = [...schedules].sort((a, b) => {
-    const aTime = DateTime.fromISO(a.startTime, { zone: timezone });
-    const bTime = DateTime.fromISO(b.startTime, { zone: timezone });
-    return aTime.toMillis() - bTime.toMillis();
-  });
+  const today = DateTime.now().setZone(timezone).startOf("day");
+
+  const sortedSchedules = [...schedules]
+    .filter((s) => {
+      const start = DateTime.fromISO(s.startTime, { zone: timezone });
+      return start >= today;
+    })
+    .sort((a, b) => {
+      const aTime = DateTime.fromISO(a.startTime, { zone: timezone });
+      const bTime = DateTime.fromISO(b.startTime, { zone: timezone });
+      return aTime.toMillis() - bTime.toMillis();
+    });
 
   const schedulesWithPositions: ScheduleWithPosition[] = sortedSchedules.map(
     (schedule, index) => {
