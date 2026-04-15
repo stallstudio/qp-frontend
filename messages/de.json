@@ -34,6 +34,13 @@
     "open": "Offen",
     "closed": "Geschlossen"
   },
+  "attractionStatus": {
+    "open": "Offen",
+    "closed": "Geschlossen",
+    "down": "Störung",
+    "maintenance": "Wartung",
+    "unavailable": "Nicht verfügbar"
+  },
   "tabs": {
     "waitTimes": "Wartezeiten",
     "shows": "Shows"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "Konfigurationsfehler. Bitte kontaktiere den Support.",
     "fetchError": "Fehler beim Abrufen der Parks:",
-    "parkNotFound": "Der gesuchte Park existiert nicht"
+    "parkNotFound": "Der gesuchte Park existiert nicht",
+    "networkErrorRefresh": "Beim Aktualisieren der Daten ist ein Netzwerkfehler aufgetreten",
+    "networkError": "Ein Netzwerkfehler ist aufgetreten. Bitte überprüfe deine Verbindung und versuche es erneut."
   },
   "metadata": {
     "title": "Queue Park - Live Wartezeiten für Freizeitparks",

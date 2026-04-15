@@ -51,7 +51,16 @@ export default function ParkWaitTimeTable({
   queueTypeLabels,
 }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
+  const tStatus = useTranslations("attractionStatus");
   const [expandedRides, setExpandedRides] = useState<Set<string>>(new Set());
+
+  const statusLabels: Record<string, string> = {
+    open: tStatus("open"),
+    closed: tStatus("closed"),
+    down: tStatus("down"),
+    maintenance: tStatus("maintenance"),
+  };
+  const unavailableLabel = tStatus("unavailable");
 
   const changedRides = useWaitTimeChanges(waitTimes, 3000);
 
@@ -175,10 +184,10 @@ export default function ParkWaitTimeTable({
                     )}
                   </TableCell>
                   <TableCell className="text-left w-1/6 overflow-hidden">
-                    {getWaitTimeBadge(standbyQueue.waitTime)}
+                    {getWaitTimeBadge(standbyQueue.waitTime, unavailableLabel)}
                   </TableCell>
                   <TableCell className="text-left w-1/6 overflow-hidden pe-0">
-                    {getStatusBadge(standbyQueue.status)}
+                    {getStatusBadge(standbyQueue.status, statusLabels)}
                   </TableCell>
                 </TableRow>,
               );
@@ -208,10 +217,10 @@ export default function ParkWaitTimeTable({
                       </div>
                     </TableCell>
                     <TableCell className="text-left w-1/6 overflow-hidden">
-                      {getWaitTimeBadge(queue.waitTime)}
+                      {getWaitTimeBadge(queue.waitTime, unavailableLabel)}
                     </TableCell>
                     <TableCell className="text-left w-1/6 overflow-hidden pe-0">
-                      {getStatusBadge(queue.status)}
+                      {getStatusBadge(queue.status, statusLabels)}
                     </TableCell>
                   </TableRow>,
                 );

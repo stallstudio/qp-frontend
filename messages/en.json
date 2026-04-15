@@ -34,6 +34,13 @@
     "open": "Open",
     "closed": "Closed"
   },
+  "attractionStatus": {
+    "open": "Open",
+    "closed": "Closed",
+    "down": "Down",
+    "maintenance": "Maintenance",
+    "unavailable": "Unavailable"
+  },
   "tabs": {
     "waitTimes": "Wait Times",
     "shows": "Shows"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "Configuration error. Please contact support.",
     "fetchError": "Failed to fetch parks:",
-    "parkNotFound": "The park you are looking for does not exist"
+    "parkNotFound": "The park you are looking for does not exist",
+    "networkErrorRefresh": "A network error occurred while refreshing data",
+    "networkError": "A network error occurred. Please check your connection and try again."
   },
   "metadata": {
     "title": "Queue Park - Live Theme Park Wait Times",

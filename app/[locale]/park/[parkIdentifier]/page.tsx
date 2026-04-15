@@ -5,7 +5,7 @@ import ParkSkeleton from "@/components/parks/skeleton";
 import Footer from "@/components/ui/footer";
 import axios from "axios";
 import { useRouter } from "@/i18n/routing";
-import { use, useEffect, useState, useCallback } from "react";
+import { use, useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import MainCard from "@/components/parks/main-card";
@@ -25,6 +25,7 @@ export default function ParkPage({
   const { parkIdentifier } = use(params);
   const [parkData, setParkData] = useState<ParkLiveData | null>(null);
   const [loading, setLoading] = useState(true);
+  const hasLoadedData = useRef(false);
 
   const fetchParkData = useCallback(
     async (showLoading: boolean) => {
@@ -34,9 +35,17 @@ export default function ParkPage({
           `/api/park/${parkIdentifier}`,
         );
         setParkData(response.data.data);
+        hasLoadedData.current = true;
       } catch (error: unknown) {
-        router.push("/");
-        toast.error(t("parkNotFound"));
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          router.push("/");
+          toast.error(t("parkNotFound"));
+        } else if (hasLoadedData.current) {
+          toast.error(t("networkErrorRefresh"));
+        } else {
+          router.push("/");
+          toast.error(t("networkError"));
+        }
 
         console.error(error instanceof Error ? error.message : error);
       } finally {
@@ -61,9 +70,7 @@ export default function ParkPage({
   }
 
   if (!parkData || !parkIdentifier) {
-    router.push("/");
-    toast.error(t("parkNotFound"));
-    return;
+    return null;
   }
 
   return (

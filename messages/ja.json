@@ -34,6 +34,13 @@
     "open": "開園中",
     "closed": "閉園"
   },
+  "attractionStatus": {
+    "open": "運営中",
+    "closed": "休止",
+    "down": "故障中",
+    "maintenance": "メンテナンス",
+    "unavailable": "情報なし"
+  },
   "tabs": {
     "waitTimes": "待ち時間",
     "shows": "ショー"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "設定エラーが発生しました。サポートにお問い合わせください。",
     "fetchError": "データの取得に失敗しました：",
-    "parkNotFound": "お探しのパークは見つかりませんでした"
+    "parkNotFound": "お探しのパークは見つかりませんでした",
+    "networkErrorRefresh": "データの更新中にネットワークエラーが発生しました",
+    "networkError": "ネットワークエラーが発生しました。接続を確認して再度お試しください。"
   },
   "metadata": {
     "title": "Queue Park - テーマパークのリアルタイム待ち時間",

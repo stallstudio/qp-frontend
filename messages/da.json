@@ -34,6 +34,13 @@
     "open": "Åben",
     "closed": "Lukket"
   },
+  "attractionStatus": {
+    "open": "Åben",
+    "closed": "Lukket",
+    "down": "Ude af drift",
+    "maintenance": "Vedligeholdelse",
+    "unavailable": "Utilgængelig"
+  },
   "tabs": {
     "waitTimes": "Ventetider",
     "shows": "Shows"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "Konfigurationsfejl. Kontakt venligst support.",
     "fetchError": "Kunne ikke hente parker:",
-    "parkNotFound": "Parken, du leder efter, findes ikke"
+    "parkNotFound": "Parken, du leder efter, findes ikke",
+    "networkErrorRefresh": "Der opstod en netværksfejl under opdatering af data",
+    "networkError": "Der opstod en netværksfejl. Tjek din forbindelse og prøv igen."
   },
   "metadata": {
     "title": "Queue Park - Live Ventetider for Forlystelsesparker",

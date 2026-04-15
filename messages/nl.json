@@ -34,6 +34,13 @@
     "open": "Open",
     "closed": "Gesloten"
   },
+  "attractionStatus": {
+    "open": "Open",
+    "closed": "Gesloten",
+    "down": "Storing",
+    "maintenance": "Onderhoud",
+    "unavailable": "Niet beschikbaar"
+  },
   "tabs": {
     "waitTimes": "Wachttijden",
     "shows": "Shows"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "Configuratiefout. Neem contact op met de klantenservice.",
     "fetchError": "Fout bij het ophalen van parken:",
-    "parkNotFound": "Het park dat je zoekt bestaat niet"
+    "parkNotFound": "Het park dat je zoekt bestaat niet",
+    "networkErrorRefresh": "Er is een netwerkfout opgetreden bij het vernieuwen van de gegevens",
+    "networkError": "Er is een netwerkfout opgetreden. Controleer je verbinding en probeer het opnieuw."
   },
   "metadata": {
     "title": "Queue Park - Live Wachttijden voor Attractieparken",

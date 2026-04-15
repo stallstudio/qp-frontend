@@ -34,6 +34,13 @@
     "open": "Öppet",
     "closed": "Stängt"
   },
+  "attractionStatus": {
+    "open": "Öppen",
+    "closed": "Stängd",
+    "down": "Ur funktion",
+    "maintenance": "Underhåll",
+    "unavailable": "Ej tillgänglig"
+  },
   "tabs": {
     "waitTimes": "Väntetider",
     "shows": "Shower"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "Konfigurationsfel. Vänligen kontakta support.",
     "fetchError": "Misslyckades med att hämta parker:",
-    "parkNotFound": "Parken du letar efter finns inte"
+    "parkNotFound": "Parken du letar efter finns inte",
+    "networkErrorRefresh": "Ett nätverksfel uppstod vid uppdatering av data",
+    "networkError": "Ett nätverksfel uppstod. Kontrollera din anslutning och försök igen."
   },
   "metadata": {
     "title": "Queue Park - Live Väntetider för Nöjesparker",

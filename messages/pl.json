@@ -34,6 +34,13 @@
     "open": "Otwarte",
     "closed": "Zamknięte"
   },
+  "attractionStatus": {
+    "open": "Otwarte",
+    "closed": "Zamknięte",
+    "down": "Awaria",
+    "maintenance": "Konserwacja",
+    "unavailable": "Niedostępne"
+  },
   "tabs": {
     "waitTimes": "Czasy oczekiwania",
     "shows": "Pokazy"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "Błąd konfiguracji. Skontaktuj się ze wsparciem.",
     "fetchError": "Nie udało się pobrać danych o parkach:",
-    "parkNotFound": "Park, którego szukasz, nie istnieje"
+    "parkNotFound": "Park, którego szukasz, nie istnieje",
+    "networkErrorRefresh": "Wystąpił błąd sieci podczas odświeżania danych",
+    "networkError": "Wystąpił błąd sieci. Sprawdź połączenie i spróbuj ponownie."
   },
   "metadata": {
     "title": "Queue Park - Czasy Oczekiwania w Parkach na Żywo",

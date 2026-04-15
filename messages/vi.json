@@ -34,6 +34,13 @@
     "open": "Đang mở cửa",
     "closed": "Đã đóng cửa"
   },
+  "attractionStatus": {
+    "open": "Đang hoạt động",
+    "closed": "Đã đóng",
+    "down": "Hỏng",
+    "maintenance": "Bảo trì",
+    "unavailable": "Không có thông tin"
+  },
   "tabs": {
     "waitTimes": "Thời gian chờ",
     "shows": "Chương trình biểu diễn"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "Lỗi cấu hình. Vui lòng liên hệ hỗ trợ.",
     "fetchError": "Không thể tải dữ liệu công viên:",
-    "parkNotFound": "Công viên bạn tìm kiếm không tồn tại"
+    "parkNotFound": "Công viên bạn tìm kiếm không tồn tại",
+    "networkErrorRefresh": "Đã xảy ra lỗi mạng khi làm mới dữ liệu",
+    "networkError": "Đã xảy ra lỗi mạng. Vui lòng kiểm tra kết nối và thử lại."
   },
   "metadata": {
     "title": "Queue Park - Thời Gian Chờ Công Viên Theo Thời Gian Thực",

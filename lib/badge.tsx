@@ -13,7 +13,7 @@ function getWaitTimeColorClass(waitTime: number): string {
   return "bg-red-100 text-red-700";
 }
 
-function getWaitTimeBadge(waitTime: number) {
+function getWaitTimeBadge(waitTime: number, unavailableLabel: string = "Unavailable") {
   const colorClass = getWaitTimeColorClass(waitTime);
 
   return (
@@ -21,7 +21,7 @@ function getWaitTimeBadge(waitTime: number) {
       className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
     >
       {waitTime === -1
-        ? "Unavailable"
+        ? unavailableLabel
         : waitTime === 91
           ? "+90 min"
           : `${waitTime} min`}
@@ -59,7 +59,10 @@ function getStatusDotColorClass(status: WaitTimeStatus) {
   }
 }
 
-function getStatusLabel(status: WaitTimeStatus) {
+function getStatusLabel(status: WaitTimeStatus, labels?: Record<string, string>) {
+  if (labels && labels[status]) {
+    return labels[status];
+  }
   if (status === "open") {
     return "Open";
   }
@@ -74,7 +77,7 @@ function getStatusLabel(status: WaitTimeStatus) {
   }
 }
 
-function getStatusBadge(status: WaitTimeStatus) {
+function getStatusBadge(status: WaitTimeStatus, labels?: Record<string, string>) {
   const colorClass = getStatusColorClass(status);
   const dotColorClass = getStatusDotColorClass(status);
 
@@ -83,7 +86,7 @@ function getStatusBadge(status: WaitTimeStatus) {
       className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
     >
       <div className={`w-2 h-2 ${dotColorClass} rounded-full`}></div>
-      {getStatusLabel(status)}
+      {getStatusLabel(status, labels)}
     </span>
   );
 }

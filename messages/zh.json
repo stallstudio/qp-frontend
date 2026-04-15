@@ -34,6 +34,13 @@
     "open": "开园中",
     "closed": "已闭园"
   },
+  "attractionStatus": {
+    "open": "运营中",
+    "closed": "已关闭",
+    "down": "故障",
+    "maintenance": "维护中",
+    "unavailable": "暂无信息"
+  },
   "tabs": {
     "waitTimes": "排队时间",
     "shows": "演出"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "配置错误。请联系支持人员。",
     "fetchError": "无法获取乐园信息：",
-    "parkNotFound": "您寻找的乐园不存在"
+    "parkNotFound": "您寻找的乐园不存在",
+    "networkErrorRefresh": "刷新数据时发生网络错误",
+    "networkError": "发生网络错误。请检查您的网络连接并重试。"
   },
   "metadata": {
     "title": "Queue Park - 主题乐园实时排队时间",

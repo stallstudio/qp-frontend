@@ -34,6 +34,13 @@
     "open": "운영 중",
     "closed": "운영 종료"
   },
+  "attractionStatus": {
+    "open": "운영 중",
+    "closed": "운영 종료",
+    "down": "고장",
+    "maintenance": "점검 중",
+    "unavailable": "정보 없음"
+  },
   "tabs": {
     "waitTimes": "대기 시간",
     "shows": "쇼"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "설정 오류가 발생했습니다. 고객 지원에 문의하세요.",
     "fetchError": "파크 정보를 가져오는 데 실패했습니다:",
-    "parkNotFound": "찾으시는 파크가 존재하지 않습니다"
+    "parkNotFound": "찾으시는 파크가 존재하지 않습니다",
+    "networkErrorRefresh": "데이터를 새로고침하는 중 네트워크 오류가 발생했습니다",
+    "networkError": "네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도해 주세요."
   },
   "metadata": {
     "title": "Queue Park - 테마파크 실시간 대기 시간",

@@ -34,6 +34,13 @@
     "open": "Aperto",
     "closed": "Chiuso"
   },
+  "attractionStatus": {
+    "open": "Aperto",
+    "closed": "Chiuso",
+    "down": "Guasto",
+    "maintenance": "Manutenzione",
+    "unavailable": "Non disponibile"
+  },
   "tabs": {
     "waitTimes": "Tempi di attesa",
     "shows": "Spettacoli"
@@ -66,7 +73,9 @@
   "errors": {
     "configError": "Errore di configurazione. Contatta il supporto.",
     "fetchError": "Impossibile recuperare i parchi:",
-    "parkNotFound": "Il parco che stai cercando non esiste"
+    "parkNotFound": "Il parco che stai cercando non esiste",
+    "networkErrorRefresh": "Si è verificato un errore di rete durante l'aggiornamento dei dati",
+    "networkError": "Si è verificato un errore di rete. Controlla la tua connessione e riprova."
   },
   "metadata": {
     "title": "Queue Park - Tempi di Attesa dei Parchi in Tempo Reale",
