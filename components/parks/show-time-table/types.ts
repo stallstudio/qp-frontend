@@ -3,6 +3,7 @@ import { ShowTime } from "@/types/show";
 export type ShowTimeTableProps = {
   shows: ShowTime[];
   timezone: string;
+  parkDate?: string | null;
 };
 
 export type ScheduleWithPosition = {

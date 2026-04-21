@@ -37,6 +37,7 @@ model Park {
   opening_hours_fetcher Boolean   @default(false)
   pois_fetcher          Boolean   @default(false)
   show_times_fetcher    Boolean   @default(false)
+  playStoreId           String?   @db.VarChar(255)
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
@@ -49,6 +50,7 @@ model Park {
   shows           Show[]
   showTimes       ShowTime[]
   poiChanges      PoiChange[]
+  appVersions     AppVersion[]
 
   @@index([groupId])
   @@map("parks")
@@ -271,6 +273,21 @@ model PoiChange {
   @@index([type])
   @@index([createdAt])
   @@map("poi_changes")
+}
+
+model AppVersion {
+  id            Int      @id @default(autoincrement())
+  parkId        Int
+  park          Park     @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  version       String   @db.VarChar(50)
+  updated       BigInt
+  recentChanges String?  @db.Text
+  createdAt     DateTime @default(now())
+
+  @@unique([parkId, version])
+  @@index([parkId])
+  @@index([createdAt])
+  @@map("app_versions")
 }
 
 //

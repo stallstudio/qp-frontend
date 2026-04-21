@@ -88,6 +88,7 @@ export function calculateSlotDuration(
 export function calculateParkHours(
   shows: ShowTime[],
   timezone: string,
+  parkDate?: string | null,
 ): number[] {
   const hours: number[] = [];
 
@@ -101,8 +102,9 @@ export function calculateParkHours(
   const allStartTimes: number[] = [];
   const allEndTimes: number[] = [];
 
-  const nowForHours = DateTime.now().setZone(timezone);
-  const today = (nowForHours.hour < 2 ? nowForHours.minus({ days: 1 }) : nowForHours).startOf("day");
+  const today = parkDate
+    ? DateTime.fromISO(parkDate, { zone: timezone }).startOf("day")
+    : DateTime.now().setZone(timezone).startOf("day");
 
   shows.forEach((show) => {
     const todaySchedules = show.schedules.filter((s) => {
@@ -164,9 +166,11 @@ export function calculateScheduleLanes(
   showDuration: number,
   parkHoursStart: number,
   timezone: string,
+  parkDate?: string | null,
 ): { schedules: ScheduleWithPosition[]; totalLanes: number } {
-  const nowForLanes = DateTime.now().setZone(timezone);
-  const today = (nowForLanes.hour < 2 ? nowForLanes.minus({ days: 1 }) : nowForLanes).startOf("day");
+  const today = parkDate
+    ? DateTime.fromISO(parkDate, { zone: timezone }).startOf("day")
+    : DateTime.now().setZone(timezone).startOf("day");
 
   const sortedSchedules = [...schedules]
     .filter((s) => {

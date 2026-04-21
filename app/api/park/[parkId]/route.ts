@@ -93,7 +93,7 @@ export async function GET(
       );
     }
 
-    const today = calculateParkDate(park.timezone);
+    const today = await calculateParkDate(park.id, park.timezone);
 
     if (!today) {
       await prisma.apiRequestLog.create({

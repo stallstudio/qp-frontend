@@ -26,6 +26,7 @@ import {
 export default function ParkShowTimeTable({
   shows,
   timezone,
+  parkDate,
 }: ShowTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const { is12Hour } = useTimeFormat();
@@ -40,8 +41,8 @@ export default function ParkShowTimeTable({
   const [rowHeights, setRowHeights] = useState<number[]>([]);
 
   const parkHours = useMemo(
-    () => calculateParkHours(shows, timezone),
-    [shows, timezone],
+    () => calculateParkHours(shows, timezone, parkDate),
+    [shows, timezone, parkDate],
   );
 
   const now = DateTime.now().setZone(timezone);
@@ -62,13 +63,14 @@ export default function ParkShowTimeTable({
         show.duration,
         parkHours[0],
         timezone,
+        parkDate,
       );
       return {
         show,
         ...laneInfo,
       };
     });
-  }, [shows, parkHours, timezone]);
+  }, [shows, parkHours, timezone, parkDate]);
 
   useEffect(() => {
     if (scrollContainerRef.current && currentTimeRef.current) {

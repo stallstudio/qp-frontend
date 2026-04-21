@@ -56,6 +56,7 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
   const hasWaitTimes = park.waitTimes && park.waitTimes.length > 0;
   const hasShows = park.shows && park.shows.length > 0;
   const showTabs = hasWaitTimes && hasShows;
+  const parkDate = park.openingHours?.[0]?.date ?? null;
 
   useEffect(() => {
     if (showTabs) {
@@ -89,7 +90,11 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
             />
           </TabsContent>
           <TabsContent value="show-times">
-            <ParkShowTimeTable shows={park.shows} timezone={park.timezone} />
+            <ParkShowTimeTable
+              shows={park.shows}
+              timezone={park.timezone}
+              parkDate={parkDate}
+            />
           </TabsContent>
         </Tabs>
       ) : hasWaitTimes ? (
@@ -98,7 +103,11 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
           queueTypeLabels={park.queueTypeLabels}
         />
       ) : hasShows ? (
-        <ParkShowTimeTable shows={park.shows} timezone={park.timezone} />
+        <ParkShowTimeTable
+          shows={park.shows}
+          timezone={park.timezone}
+          parkDate={parkDate}
+        />
       ) : null}
       {park.shows.length === 0 && park.waitTimes.length === 0 && (
         <div className="flex items-center justify-center flex-col gap-y-0.5 text-sm text-muted-foreground">
