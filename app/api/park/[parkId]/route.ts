@@ -116,7 +116,10 @@ export async function GET(
       );
     }
 
-    const waitTimes = await getLatestWaitTimesByPark(park.id);
+    const waitTimes = await getLatestWaitTimesByPark(
+      park.id,
+      park.lastUpdatedAt,
+    );
     const showTimes = await getShowTimesByParkAndDate(park.id, today);
     const openingHours = await getOpeningHoursByParkAndDate(park.id, today);
 

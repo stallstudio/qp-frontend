@@ -116,6 +116,7 @@ model WaitTime {
   customText String?        @db.Text
   startTime  DateTime
   endTime    DateTime?
+  lastSeenAt DateTime       @default(now())
   stateHash  String         @db.Char(32)
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
@@ -126,6 +127,7 @@ model WaitTime {
   @@index([rideId, startTime])
   @@index([stateHash, rideId])
   @@index([rideId, type, endTime])
+  @@index([parkId, endTime, lastSeenAt])
   @@map("wait_times")
 }
 
