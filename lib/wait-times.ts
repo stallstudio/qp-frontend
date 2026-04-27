@@ -10,7 +10,7 @@ import { getPrisma } from "./prisma";
 // afin de tolérer une panne totale de l'API du parc : si le cron ne
 // met plus le parc à jour, on continue d'afficher les dernières
 // données connues plutôt que tout faire disparaître.
-const STALE_WAIT_TIME_MS = 24 * 60 * 60 * 1000;
+const STALE_WAIT_TIME_MS = 30 * 24 * 60 * 60 * 1000;
 
 export async function getLatestWaitTimesByPark(
   parkId: number,
