@@ -16,7 +16,7 @@
   },
   "popularParks": {
     "title": "Parcs populaires",
-    "trendingText": "Tendances au cours des 2 dernières heures",
+    "trendingText": "Tendances de la dernière heure",
     "visitsNote": "vues"
   },
   "parkPage": {
