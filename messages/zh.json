@@ -16,7 +16,7 @@
   },
   "popularParks": {
     "title": "热门乐园",
-    "trendingText": "过去 2 小时的趋势",
+    "trendingText": "过去 1 小时的趋势",
     "visitsNote": "访问量"
   },
   "parkPage": {

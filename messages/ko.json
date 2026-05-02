@@ -16,7 +16,7 @@
   },
   "popularParks": {
     "title": "인기 파크",
-    "trendingText": "최근 2시간 동안의 트렌드",
+    "trendingText": "최근 1시간 동안의 트렌드",
     "visitsNote": "방문 수"
   },
   "parkPage": {

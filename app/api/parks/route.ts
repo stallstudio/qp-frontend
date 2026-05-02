@@ -21,7 +21,7 @@ export async function GET() {
   try {
     const prisma = getPrisma();
 
-    const twoHoursAgo = DateTime.now().minus({ hours: 2 }).toJSDate();
+    const oneHourAgo = DateTime.now().minus({ hours: 1 }).toJSDate();
 
     const whitelistedIps = await getWhitelistedIps();
 
@@ -50,7 +50,7 @@ export async function GET() {
         by: ["parkId"],
         where: {
           createdAt: {
-            gte: twoHoursAgo,
+            gte: oneHourAgo,
           },
           statusCode: 200,
           parkId: {
@@ -68,7 +68,7 @@ export async function GET() {
             parkId: "desc",
           },
         },
-        take: 6,
+        take: 10,
       }),
     ]);
 
@@ -80,9 +80,14 @@ export async function GET() {
       openingHours: openingHoursByPark.get(park.id) || [],
     }));
 
+    const displayableIdentifiers = new Set(parks.map((p) => p.identifier));
+
     const popularParks = popularParksData
       .map((item) => item.parkId)
-      .filter((id): id is string => id !== null);
+      .filter(
+        (id): id is string => id !== null && displayableIdentifiers.has(id),
+      )
+      .slice(0, 6);
 
     return NextResponse.json({
       success: true,

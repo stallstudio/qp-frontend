@@ -5,8 +5,11 @@ import { Skeleton } from "../ui/skeleton";
 import Footer from "../ui/footer";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { TrendingUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function HomeSkeleton() {
+  const tPopular = useTranslations("popularParks");
+  const tParks = useTranslations("parksList");
   return (
     <div className="flex min-h-screen w-full mx-auto max-w-4xl flex-col px-4">
       {/* Skeleton Content */}
@@ -24,9 +27,9 @@ export default function HomeSkeleton() {
         {/* Popular Parks Section Skeleton */}
         <div className="space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-1">
-            <h1 className="text-3xl font-bold">Popular Parks</h1>
+            <h1 className="text-3xl font-bold">{tPopular("title")}</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Trending over the past 2 hours</span>
+              <span>{tPopular("trendingText")}</span>
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
@@ -42,11 +45,11 @@ export default function HomeSkeleton() {
         {/* All Theme Parks Section Skeleton */}
         <div className="space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h1 className="text-3xl font-bold">All Theme Parks</h1>
+            <h1 className="text-3xl font-bold">{tParks("title")}</h1>
             <Tabs defaultValue="group">
               <TabsList>
-                <TabsTrigger value="group">By Group</TabsTrigger>
-                <TabsTrigger value="country">By Country</TabsTrigger>
+                <TabsTrigger value="group">{tParks("sortByGroup")}</TabsTrigger>
+                <TabsTrigger value="country">{tParks("sortByCountry")}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
