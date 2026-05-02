@@ -114,6 +114,7 @@ model WaitTime {
   waitTime   Int
   status     WaitTimeStatus
   customText String?        @db.Text
+  timeSlot   Json?
   startTime  DateTime
   endTime    DateTime?
   lastSeenAt DateTime       @default(now())
@@ -278,13 +279,15 @@ model PoiChange {
 }
 
 model AppVersion {
-  id            Int      @id @default(autoincrement())
-  parkId        Int
-  park          Park     @relation(fields: [parkId], references: [id], onDelete: Cascade)
-  version       String   @db.VarChar(50)
-  updated       BigInt
-  recentChanges String?  @db.Text
-  createdAt     DateTime @default(now())
+  id                Int      @id @default(autoincrement())
+  parkId            Int
+  park              Park     @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  version           String   @db.VarChar(50)
+  updated           BigInt
+  recentChanges     String?  @db.Text
+  translatedChanges String?  @db.Text
+  detectedLang      String?  @db.VarChar(10)
+  createdAt         DateTime @default(now())
 
   @@unique([parkId, version])
   @@index([parkId])

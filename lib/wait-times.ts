@@ -1,5 +1,12 @@
-import { WaitTime } from "@/types/waitTime";
+import { TimeSlot, WaitTime } from "@/types/waitTime";
 import { getPrisma } from "./prisma";
+
+function parseTimeSlot(raw: unknown): TimeSlot | null {
+  if (!raw || typeof raw !== "object") return null;
+  const obj = raw as { start?: unknown; end?: unknown };
+  if (typeof obj.start !== "string" || typeof obj.end !== "string") return null;
+  return { start: obj.start, end: obj.end };
+}
 
 // Tolérance entre la dernière update globale du parc et le dernier
 // rafraîchissement d'un ride spécifique. Si un ride n'a pas été "vu"
@@ -56,6 +63,7 @@ export async function getLatestWaitTimesByPark(
         type: wt.type,
         waitTime: wt.waitTime,
         status: wt.status,
+        timeSlot: parseTimeSlot(wt.timeSlot),
       });
     });
 

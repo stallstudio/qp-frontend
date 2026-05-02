@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { WaitTime } from "@/types/waitTime";
+import { TimeSlot, WaitTime } from "@/types/waitTime";
+
+function timeSlotsEqual(a: TimeSlot | null, b: TimeSlot | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.start === b.start && a.end === b.end;
+}
 
 export function useWaitTimeChanges(
   waitTimes: WaitTime[],
@@ -27,10 +33,11 @@ export function useWaitTimeChanges(
           );
 
           if (previousQueue) {
-            // Check if wait time or status changed for this queue type
+            // Check if wait time, status or time slot changed for this queue type
             if (
               previousQueue.waitTime !== currentQueue.waitTime ||
-              previousQueue.status !== currentQueue.status
+              previousQueue.status !== currentQueue.status ||
+              !timeSlotsEqual(previousQueue.timeSlot, currentQueue.timeSlot)
             ) {
               changed.add(`${currentRide.rideName}-${currentQueue.type}`);
             }

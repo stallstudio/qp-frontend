@@ -1,4 +1,6 @@
-import { WaitTimeStatus } from "@/types/waitTime";
+import { TimeSlot, WaitTimeStatus } from "@/types/waitTime";
+import { DateTime } from "luxon";
+import { getLuxonFormat } from "@/lib/utils";
 
 function getWaitTimeColorClass(waitTime: number): string {
   if (waitTime < 0) {
@@ -25,6 +27,24 @@ function getWaitTimeBadge(waitTime: number, unavailableLabel: string = "Unavaila
         : waitTime === 91
           ? "+90 min"
           : `${waitTime} min`}
+    </span>
+  );
+}
+
+function formatHHmm(hhmm: string, is12Hour: boolean): string {
+  const parsed = DateTime.fromFormat(hhmm, "HH:mm");
+  if (!parsed.isValid) return hhmm;
+  return parsed.toFormat(getLuxonFormat(is12Hour));
+}
+
+function getTimeSlotBadge(slot: TimeSlot, is12Hour: boolean) {
+  return (
+    <span
+      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap"
+    >
+      {formatHHmm(slot.start, is12Hour)}
+      {" – "}
+      {formatHHmm(slot.end, is12Hour)}
     </span>
   );
 }
@@ -117,4 +137,4 @@ function getParkStatusDot(
   return null;
 }
 
-export { getWaitTimeBadge, getStatusBadge, getParkStatusDot };
+export { getWaitTimeBadge, getTimeSlotBadge, getStatusBadge, getParkStatusDot };

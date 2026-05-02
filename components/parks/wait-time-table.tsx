@@ -9,10 +9,11 @@ import {
   TableRow,
   TableHead,
 } from "@/components/ui/table";
-import { getStatusBadge, getWaitTimeBadge } from "@/lib/badge";
+import { getStatusBadge, getTimeSlotBadge, getWaitTimeBadge } from "@/lib/badge";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useWaitTimeChanges } from "@/hooks/useWaitTimeChanges";
+import { useTimeFormat } from "@/hooks/useTimeFormat";
 import {
   ChevronRight,
   User,
@@ -52,6 +53,7 @@ export default function ParkWaitTimeTable({
 }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const tStatus = useTranslations("attractionStatus");
+  const { is12Hour } = useTimeFormat();
   const [expandedRides, setExpandedRides] = useState<Set<string>>(new Set());
 
   const statusLabels: Record<string, string> = {
@@ -148,11 +150,10 @@ export default function ParkWaitTimeTable({
               rows.push(
                 <TableRow
                   key={`${index}-standby`}
-                  className={`max-w-full transition-colors duration-500 ${
-                    changedRides.has(`${waitTime.rideName}-standby`)
-                      ? "bg-accent"
-                      : ""
-                  } ${hasMultipleQueues ? "cursor-pointer hover:bg-accent/50" : ""}`}
+                  className={`max-w-full transition-colors duration-500 ${changedRides.has(`${waitTime.rideName}-standby`)
+                    ? "bg-accent"
+                    : ""
+                    } ${hasMultipleQueues ? "cursor-pointer hover:bg-accent/50" : ""}`}
                   onClick={() =>
                     hasMultipleQueues && toggleExpand(waitTime.rideName)
                   }
@@ -170,9 +171,8 @@ export default function ParkWaitTimeTable({
                               <span className="inline-flex items-center gap-1 whitespace-nowrap">
                                 {lastWord}
                                 <ChevronRight
-                                  className={`size-3.5 transition-transform duration-200 ${
-                                    isExpanded ? "rotate-90" : ""
-                                  }`}
+                                  className={`size-3.5 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""
+                                    }`}
                                 />
                               </span>
                             </>
@@ -184,7 +184,9 @@ export default function ParkWaitTimeTable({
                     )}
                   </TableCell>
                   <TableCell className="text-left w-1/6 overflow-hidden">
-                    {getWaitTimeBadge(standbyQueue.waitTime, unavailableLabel)}
+                    {standbyQueue.timeSlot
+                      ? getTimeSlotBadge(standbyQueue.timeSlot, is12Hour)
+                      : getWaitTimeBadge(standbyQueue.waitTime, unavailableLabel)}
                   </TableCell>
                   <TableCell className="text-left w-1/6 overflow-hidden pe-0">
                     {getStatusBadge(standbyQueue.status, statusLabels)}
@@ -199,11 +201,10 @@ export default function ParkWaitTimeTable({
                 rows.push(
                   <TableRow
                     key={`${index}-${queue.type}`}
-                    className={`max-w-full transition-colors duration-500 ${
-                      changedRides.has(`${waitTime.rideName}-${queue.type}`)
-                        ? "bg-accent"
-                        : ""
-                    }`}
+                    className={`max-w-full transition-colors duration-500 ${changedRides.has(`${waitTime.rideName}-${queue.type}`)
+                      ? "bg-accent"
+                      : ""
+                      }`}
                   >
                     <TableCell className="ps-0 font-medium w-4/6 whitespace-normal wrap-break-word">
                       <div className="flex items-center gap-1 text-muted-foreground">
@@ -217,7 +218,9 @@ export default function ParkWaitTimeTable({
                       </div>
                     </TableCell>
                     <TableCell className="text-left w-1/6 overflow-hidden">
-                      {getWaitTimeBadge(queue.waitTime, unavailableLabel)}
+                      {queue.timeSlot
+                        ? getTimeSlotBadge(queue.timeSlot, is12Hour)
+                        : getWaitTimeBadge(queue.waitTime, unavailableLabel)}
                     </TableCell>
                     <TableCell className="text-left w-1/6 overflow-hidden pe-0">
                       {getStatusBadge(queue.status, statusLabels)}
