@@ -40,7 +40,7 @@ function formatHHmm(hhmm: string, is12Hour: boolean): string {
 function getTimeSlotBadge(slot: TimeSlot, is12Hour: boolean) {
   return (
     <span
-      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap"
+      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 whitespace-nowrap"
     >
       {formatHHmm(slot.start, is12Hour)}
       {" – "}
