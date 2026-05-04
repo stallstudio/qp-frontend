@@ -22,7 +22,7 @@ export function useWaitTimeChanges(
 
     current.forEach((currentRide) => {
       const previousRide = previous.find(
-        (r) => r.rideName === currentRide.rideName,
+        (r) => r.rideId === currentRide.rideId,
       );
 
       if (previousRide) {
@@ -39,11 +39,11 @@ export function useWaitTimeChanges(
               previousQueue.status !== currentQueue.status ||
               !timeSlotsEqual(previousQueue.timeSlot, currentQueue.timeSlot)
             ) {
-              changed.add(`${currentRide.rideName}-${currentQueue.type}`);
+              changed.add(`${currentRide.rideId}-${currentQueue.type}`);
             }
           } else {
             // New queue type added
-            changed.add(`${currentRide.rideName}-${currentQueue.type}`);
+            changed.add(`${currentRide.rideId}-${currentQueue.type}`);
           }
         });
       }

@@ -54,7 +54,7 @@ export default function ParkWaitTimeTable({
   const t = useTranslations("waitTimeTable");
   const tStatus = useTranslations("attractionStatus");
   const { is12Hour } = useTimeFormat();
-  const [expandedRides, setExpandedRides] = useState<Set<string>>(new Set());
+  const [expandedRides, setExpandedRides] = useState<Set<number>>(new Set());
 
   const statusLabels: Record<string, string> = {
     open: tStatus("open"),
@@ -76,13 +76,13 @@ export default function ParkWaitTimeTable({
     return queueType.charAt(0).toUpperCase() + queueType.slice(1);
   };
 
-  const toggleExpand = (rideName: string) => {
+  const toggleExpand = (rideId: number) => {
     setExpandedRides((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(rideName)) {
-        newSet.delete(rideName);
+      if (newSet.has(rideId)) {
+        newSet.delete(rideId);
       } else {
-        newSet.add(rideName);
+        newSet.add(rideId);
       }
       return newSet;
     });
@@ -140,7 +140,7 @@ export default function ParkWaitTimeTable({
             const otherQueues = sortedQueues.filter(
               (q) => q.type !== "standby",
             );
-            const isExpanded = expandedRides.has(waitTime.rideName);
+            const isExpanded = expandedRides.has(waitTime.rideId);
             const hasMultipleQueues = sortedQueues.length > 1;
 
             const rows: React.ReactElement[] = [];
@@ -149,13 +149,13 @@ export default function ParkWaitTimeTable({
             if (standbyQueue) {
               rows.push(
                 <TableRow
-                  key={`${index}-standby`}
-                  className={`max-w-full transition-colors duration-500 ${changedRides.has(`${waitTime.rideName}-standby`)
+                  key={`${waitTime.rideId}-standby`}
+                  className={`max-w-full transition-colors duration-500 ${changedRides.has(`${waitTime.rideId}-standby`)
                     ? "bg-accent"
                     : ""
                     } ${hasMultipleQueues ? "cursor-pointer hover:bg-accent/50" : ""}`}
                   onClick={() =>
-                    hasMultipleQueues && toggleExpand(waitTime.rideName)
+                    hasMultipleQueues && toggleExpand(waitTime.rideId)
                   }
                 >
                   <TableCell className="ps-0 font-medium w-4/6 whitespace-normal wrap-break-word">
@@ -200,8 +200,8 @@ export default function ParkWaitTimeTable({
               otherQueues.forEach((queue) => {
                 rows.push(
                   <TableRow
-                    key={`${index}-${queue.type}`}
-                    className={`max-w-full transition-colors duration-500 ${changedRides.has(`${waitTime.rideName}-${queue.type}`)
+                    key={`${waitTime.rideId}-${queue.type}`}
+                    className={`max-w-full transition-colors duration-500 ${changedRides.has(`${waitTime.rideId}-${queue.type}`)
                       ? "bg-accent"
                       : ""
                       }`}

@@ -54,6 +54,7 @@ export async function getLatestWaitTimesByPark(
 
       if (!rideMap.has(rideId)) {
         rideMap.set(rideId, {
+          rideId,
           rideName,
           queues: [],
         });

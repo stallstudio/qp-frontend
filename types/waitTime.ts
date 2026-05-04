@@ -13,6 +13,7 @@ export type QueueTime = {
 };
 
 export type WaitTime = {
+  rideId: number;
   rideName: string;
   queues: QueueTime[];
 };
