@@ -74,7 +74,7 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
         className="fixed left-0 right-0 z-50"
         style={{ top: `${FIXED_TOP}px` }}
       >
-        <div className="max-w-4xl mx-auto px-4">
+        <div className="max-w-4xl lg:max-w-6xl mx-auto px-4">
           <div
             className="relative w-full overflow-hidden rounded-4xl border border-white/10 shadow-sm"
             style={{ height: `${cardHeight}px` }}

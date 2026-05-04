@@ -74,7 +74,7 @@ export default function ParkPage({
   }
 
   return (
-    <div className="flex min-h-[123vh] w-full mx-auto max-w-4xl flex-col px-4 gap-8">
+    <div className="flex min-h-[123vh] w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-4 gap-8">
       <main className="flex-1 flex flex-col gap-1 mt-4">
         <ParkHeader park={parkData} />
         <MainCard park={parkData} onRefresh={() => fetchParkData(false)} />

@@ -72,31 +72,34 @@ export default function ParksList({ parks }: ParksListProps) {
     return sortBy === "group" ? groupParksByGroup() : groupParksByCountry();
   };
 
-  const splitGroupsBalanced = () => {
+  const splitGroupsBalanced = (numColumns: number) => {
     const grouped = getGroupedParks();
     const entries = Object.entries(grouped);
 
-    let leftColumn: [string, ParkList[]][] = [];
-    let rightColumn: [string, ParkList[]][] = [];
-    let leftCount = 0;
-    let rightCount = 0;
+    const columns: [string, ParkList[]][][] = Array.from(
+      { length: numColumns },
+      () => [],
+    );
+    const counts = new Array(numColumns).fill(0);
 
     entries.forEach(([groupName, groupParks]) => {
-      if (leftCount <= rightCount) {
-        leftColumn.push([groupName, groupParks]);
-        leftCount += groupParks.length;
-      } else {
-        rightColumn.push([groupName, groupParks]);
-        rightCount += groupParks.length;
+      let minIdx = 0;
+      for (let i = 1; i < numColumns; i++) {
+        if (counts[i] < counts[minIdx]) minIdx = i;
       }
+      columns[minIdx].push([groupName, groupParks]);
+      counts[minIdx] += groupParks.length;
     });
 
-    return { leftColumn, rightColumn };
+    return columns;
   };
 
   const getMobileParks = () => {
     return Object.entries(getGroupedParks());
   };
+
+  const twoColumns = splitGroupsBalanced(2);
+  const threeColumns = splitGroupsBalanced(3);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -122,29 +125,40 @@ export default function ParksList({ parks }: ParksListProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* First Column */}
-        <div className="space-y-8 hidden md:block">
-          {splitGroupsBalanced().leftColumn.map(([groupName, groupParks]) => (
-            <ParkCategoryCard
-              key={groupName}
-              groupName={groupName}
-              parks={groupParks}
-            />
-          ))}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Desktop (lg+): 3 columns */}
+        {threeColumns.map((column, columnIndex) => (
+          <div
+            key={`lg-col-${columnIndex}`}
+            className="space-y-8 hidden lg:block"
+          >
+            {column.map(([groupName, groupParks]) => (
+              <ParkCategoryCard
+                key={groupName}
+                groupName={groupName}
+                parks={groupParks}
+              />
+            ))}
+          </div>
+        ))}
 
-        {/* Second Column */}
-        <div className="space-y-8 hidden md:block">
-          {splitGroupsBalanced().rightColumn.map(([groupName, groupParks]) => (
-            <ParkCategoryCard
-              key={groupName}
-              groupName={groupName}
-              parks={groupParks}
-            />
-          ))}
-        </div>
-        {/* Not splitted on mobile */}
+        {/* Tablet (md only): 2 columns */}
+        {twoColumns.map((column, columnIndex) => (
+          <div
+            key={`md-col-${columnIndex}`}
+            className="space-y-8 hidden md:block lg:hidden"
+          >
+            {column.map(([groupName, groupParks]) => (
+              <ParkCategoryCard
+                key={groupName}
+                groupName={groupName}
+                parks={groupParks}
+              />
+            ))}
+          </div>
+        ))}
+
+        {/* Mobile: single column */}
         <div className="space-y-8 block md:hidden">
           {getMobileParks().map(([groupName, groupParks]) => (
             <ParkCategoryCard

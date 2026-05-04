@@ -11,7 +11,7 @@ export default function HomeSkeleton() {
   const tPopular = useTranslations("popularParks");
   const tParks = useTranslations("parksList");
   return (
-    <div className="flex min-h-screen w-full mx-auto max-w-4xl flex-col px-4">
+    <div className="flex min-h-screen w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-4">
       {/* Skeleton Content */}
       <main className="flex-1 flex flex-col gap-8">
         {/* Fixed Header */}
@@ -55,34 +55,27 @@ export default function HomeSkeleton() {
           </div>
 
           {/* Park Categories Skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* First Column */}
-            <div className="space-y-8">
-              {[1, 2, 3].map((i) => (
-                <div key={`col1-${i}`} className="space-y-4">
-                  <Skeleton className="h-6 w-24" />
-                  <div className="space-y-2">
-                    {[1, 2].map((j) => (
-                      <Skeleton key={`col1-${i}-${j}`} className="h-16" />
-                    ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map((col) => (
+              <div
+                key={`col-${col}`}
+                className={`space-y-8 ${col === 3 ? "hidden lg:block" : ""}`}
+              >
+                {[1, 2, 3].map((i) => (
+                  <div key={`col${col}-${i}`} className="space-y-4">
+                    <Skeleton className="h-6 w-24" />
+                    <div className="space-y-2">
+                      {[1, 2].map((j) => (
+                        <Skeleton
+                          key={`col${col}-${i}-${j}`}
+                          className="h-16"
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Second Column */}
-            <div className="space-y-8">
-              {[1, 2, 3].map((i) => (
-                <div key={`col2-${i}`} className="space-y-4">
-                  <Skeleton className="h-6 w-28" />
-                  <div className="space-y-2">
-                    {[1, 2].map((j) => (
-                      <Skeleton key={`col2-${i}-${j}`} className="h-16" />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       </main>

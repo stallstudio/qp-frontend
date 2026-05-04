@@ -7,7 +7,7 @@ import Image from "next/image";
 
 export default function ParkSkeleton() {
   return (
-    <div className="flex min-h-screen w-full mx-auto max-w-4xl flex-col px-4">
+    <div className="flex min-h-screen w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-4">
       <main className="flex-1 flex flex-col gap-1 mb-6 mt-4">
         {/* Header Skeleton */}
         <>
@@ -18,7 +18,7 @@ export default function ParkSkeleton() {
           <div className="fixed top-0 left-0 right-0 h-12 bg-background z-40" />
 
           <div className="fixed top-4 left-0 right-0 z-50">
-            <div className="max-w-4xl mx-auto px-4">
+            <div className="max-w-4xl lg:max-w-6xl mx-auto px-4">
               <div className="relative w-full rounded-4xl shadow-sm border h-72">
                 {/* Background image skeleton with fixed placeholder */}
                 <Image
