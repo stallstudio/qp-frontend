@@ -85,7 +85,8 @@
     "ogTitle": "Queue Park - Live Theme Park Wait Times",
     "ogDescription": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues and plan your visit with live data.",
     "twitterTitle": "Queue Park - Live Theme Park Wait Times",
-    "twitterDescription": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues and plan your visit."
+    "twitterDescription": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues and plan your visit.",
+    "liveWaitTimes": "Live Wait Times"
   },
   "settings": {
     "timeFormat": "Time format"
