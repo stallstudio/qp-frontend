@@ -21,7 +21,7 @@ export async function GET() {
   try {
     const prisma = getPrisma();
 
-    const oneHourAgo = DateTime.now().minus({ hours: 1 }).toJSDate();
+    const twoHoursAgo = DateTime.now().minus({ hours: 2 }).toJSDate();
 
     const whitelistedIps = await getWhitelistedIps();
 
@@ -50,7 +50,7 @@ export async function GET() {
         by: ["parkId"],
         where: {
           createdAt: {
-            gte: oneHourAgo,
+            gte: twoHoursAgo,
           },
           statusCode: 200,
           parkId: {
@@ -68,7 +68,7 @@ export async function GET() {
             parkId: "desc",
           },
         },
-        take: 10,
+        take: 8,
       }),
     ]);
 

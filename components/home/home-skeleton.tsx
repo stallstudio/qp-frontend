@@ -33,8 +33,8 @@ export default function HomeSkeleton() {
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
               <div key={i} className="bg-background rounded-lg border p-0">
                 <Skeleton className="h-13 rounded-lg" />
               </div>
