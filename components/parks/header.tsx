@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Undo2 } from "lucide-react";
 import ParkNameStatus from "./name-status";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { ParkLiveData } from "@/types/api";
@@ -25,6 +26,9 @@ type ParkHeaderProps = {
 export default function ParkHeader({ park }: ParkHeaderProps) {
   const t = useTranslations("parkPage");
   const [scrollY, setScrollY] = useState(0);
+  const searchParams = useSearchParams();
+  const backParam = searchParams.get("back");
+  const homeHref = backParam ? `/?${decodeURIComponent(backParam)}` : "/";
 
   useEffect(() => {
     let rafId = 0;
@@ -133,7 +137,7 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
               }}
             >
               <Link
-                href={`/`}
+                href={homeHref}
                 className="flex items-center gap-2 text-white text-sm"
               >
                 <Undo2 className="size-4" />

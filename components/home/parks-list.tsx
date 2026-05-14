@@ -1,11 +1,11 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ParkCategoryCard from "../parks/park-category-card";
-import { useState } from "react";
 import { getCountryName, getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { ParkList } from "@/types/api";
 import { Switch } from "../ui/switch";
 import { Label } from "../ui/label";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 interface ParksListProps {
   parks: ParkList[];
@@ -13,12 +13,27 @@ interface ParksListProps {
 
 export default function ParksList({ parks }: ParksListProps) {
   const t = useTranslations("parksList");
-  const [sortBy, setSortBy] = useState<"group" | "country">("group");
-  const [onlyOpenParks, setOnlyOpenParks] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const sortBy = (searchParams.get("sort") === "country" ? "country" : "group") as "group" | "country";
+  const onlyOpenParks = searchParams.get("open") === "true";
+
+  const updateParam = (key: string, value: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === null) {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+    const query = params.toString();
+    router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false });
+  };
 
   const handleSortByChange = (value: string) => {
     if (value === "group" || value === "country") {
-      setSortBy(value);
+      updateParam("sort", value === "group" ? null : value);
     }
   };
 
@@ -108,7 +123,7 @@ export default function ParksList({ parks }: ParksListProps) {
           <div className="flex items-center space-x-2">
             <Switch
               id="only-open-parks"
-              onCheckedChange={setOnlyOpenParks}
+              onCheckedChange={(checked) => updateParam("open", checked ? "true" : null)}
               checked={onlyOpenParks}
               className="cursor-pointer"
             />
@@ -116,7 +131,7 @@ export default function ParksList({ parks }: ParksListProps) {
               {t("hideClosedParks")}
             </Label>
           </div>
-          <Tabs defaultValue="group" onValueChange={handleSortByChange}>
+          <Tabs value={sortBy} onValueChange={handleSortByChange}>
             <TabsList>
               <TabsTrigger value="group">{t("sortByGroup")}</TabsTrigger>
               <TabsTrigger value="country">{t("sortByCountry")}</TabsTrigger>

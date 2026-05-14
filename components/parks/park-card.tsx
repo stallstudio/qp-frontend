@@ -1,7 +1,10 @@
+"use client";
+
 import { Link } from "@/i18n/routing";
 import { getCountryName, getParkLink, getParkStatus } from "@/lib/utils";
 import TitleWithStatus from "./title-with-status";
 import { ParkList } from "@/types/api";
+import { useSearchParams } from "next/navigation";
 
 interface ParkCardProps {
   park: ParkList;
@@ -28,11 +31,18 @@ export default function ParkCard({
   showBadge = true,
 }: ParkCardProps) {
   const status = getParkStatus(park.openingHours);
+  const searchParams = useSearchParams();
+
+  const parkHref = (() => {
+    const base = getParkLink(park);
+    const back = searchParams.toString();
+    return back ? `${base}?back=${encodeURIComponent(back)}` : base;
+  })();
 
   return (
     <Link
       key={park.identifier}
-      href={getParkLink(park)}
+      href={parkHref}
       className="block group h-full"
     >
       <div className="flex items-center gap-4 justify-between hover:bg-accent transition-colors duration-300 px-2 py-1.5 rounded-lg h-full">
