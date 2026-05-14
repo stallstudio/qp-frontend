@@ -16,7 +16,7 @@
   },
   "popularParks": {
     "title": "Parchi Popolari",
-    "trendingText": "Tendenze nell'ultima ora",
+    "trendingText": "Tendenze nelle ultime ore",
     "visitsNote": "visite"
   },
   "parkPage": {
@@ -85,7 +85,8 @@
     "ogTitle": "Queue Park - Tempi di Attesa dei Parchi in Tempo Reale",
     "ogDescription": "Tempi di attesa in tempo reale per oltre 100 parchi divertimento in tutto il mondo. Monitora le code e pianifica la tua visita con dati in tempo reale.",
     "twitterTitle": "Queue Park - Tempi di Attesa dei Parchi in Tempo Reale",
-    "twitterDescription": "Tempi di attesa in tempo reale per oltre 100 parchi divertimento in tutto il mondo. Monitora le code e pianifica la tua visita."
+    "twitterDescription": "Tempi di attesa in tempo reale per oltre 100 parchi divertimento in tutto il mondo. Monitora le code e pianifica la tua visita.",
+    "liveWaitTimes": "Tempi di attesa in tempo reale"
   },
   "settings": {
     "timeFormat": "Formato ora"

@@ -16,7 +16,7 @@
   },
   "popularParks": {
     "title": "Populaire Parken",
-    "trendingText": "Trending in het afgelopen uur",
+    "trendingText": "Trending in de afgelopen uren",
     "visitsNote": "bezoeken"
   },
   "parkPage": {
@@ -85,7 +85,8 @@
     "ogTitle": "Queue Park - Live Wachttijden voor Attractieparken",
     "ogDescription": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen en plan je bezoek met live data.",
     "twitterTitle": "Queue Park - Live Wachttijden voor Attractieparken",
-    "twitterDescription": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen en plan je bezoek."
+    "twitterDescription": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen en plan je bezoek.",
+    "liveWaitTimes": "Live wachttijden"
   },
   "settings": {
     "timeFormat": "Tijdformaat"

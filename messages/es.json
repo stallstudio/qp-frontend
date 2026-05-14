@@ -16,7 +16,7 @@
   },
   "popularParks": {
     "title": "Parques Populares",
-    "trendingText": "Tendencias en la última hora",
+    "trendingText": "Tendencias en las últimas horas",
     "visitsNote": "visitas"
   },
   "parkPage": {
@@ -85,7 +85,8 @@
     "ogTitle": "Queue Park - Tiempos de Espera en Vivo de Parques",
     "ogDescription": "Tiempos de espera en tiempo real para más de 100 parques temáticos en todo el mundo. Sigue las colas y planifica tu visita con datos en vivo.",
     "twitterTitle": "Queue Park - Tiempos de Espera en Vivo de Parques",
-    "twitterDescription": "Tiempos de espera en tiempo real para más de 100 parques temáticos en todo el mundo. Sigue las colas y planifica tu visita."
+    "twitterDescription": "Tiempos de espera en tiempo real para más de 100 parques temáticos en todo el mundo. Sigue las colas y planifica tu visita.",
+    "liveWaitTimes": "Tiempos de espera en vivo"
   },
   "settings": {
     "timeFormat": "Formato de hora"
