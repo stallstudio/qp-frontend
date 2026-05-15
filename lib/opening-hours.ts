@@ -131,10 +131,7 @@ export async function fetchOpeningHoursForParks(
     orderBy: { type: "asc" },
   });
 
-  const byParkAndDate = new Map<
-    number,
-    Map<string, typeof allOpeningHours>
-  >();
+  const byParkAndDate = new Map<number, Map<string, typeof allOpeningHours>>();
   for (const oh of allOpeningHours) {
     if (!byParkAndDate.has(oh.parkId)) {
       byParkAndDate.set(oh.parkId, new Map());
@@ -156,8 +153,7 @@ export async function fetchOpeningHoursForParks(
     } else {
       const yesterdayEntries = dateMap?.get(pd.yesterday) ?? [];
       resolvedDate =
-        resolveParkLogicalDate(pd.park.timezone, yesterdayEntries) ??
-        pd.today;
+        resolveParkLogicalDate(pd.park.timezone, yesterdayEntries) ?? pd.today;
     }
 
     const entries = dateMap?.get(resolvedDate) ?? [];
@@ -191,7 +187,12 @@ export async function getOpeningHoursByParkAndDate(
 
     return entries.map((entry) => ({
       date: entry.date,
-      type: entry.type as "standard" | "early_access" | "extension",
+      type: entry.type as
+        | "standard"
+        | "early_access"
+        | "extension"
+        | "private_event"
+        | "sold_out",
       openTime: entry.openTime ? entry.openTime.toISOString() : null,
       closeTime: entry.closeTime ? entry.closeTime.toISOString() : null,
     }));

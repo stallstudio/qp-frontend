@@ -26,6 +26,10 @@ export function getParkStatus(openingHours: OpeningHour[]): ParkStatus {
   if (openingHours.length === 0) {
     return "unknown";
   }
+
+  // Sold-out days: park is open but tickets are sold out (no hours exposed)
+  const hasSoldOut = openingHours.some((hour) => hour.type === "sold_out");
+
   for (const hour of openingHours) {
     if (!hour.openTime || !hour.closeTime) {
       continue;
@@ -37,6 +41,10 @@ export function getParkStatus(openingHours: OpeningHour[]): ParkStatus {
     if (now >= openTime && now < closeTime) {
       return "open";
     }
+  }
+
+  if (hasSoldOut) {
+    return "open";
   }
 
   return "closed";

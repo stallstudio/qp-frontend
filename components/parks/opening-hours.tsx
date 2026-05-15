@@ -22,6 +22,7 @@ const typeIconMap: Record<OpeningHour["type"], LucideIcon> = {
   early_access: Sunrise,
   extension: Maximize2,
   private_event: Lock,
+  sold_out: CalendarClock,
 };
 
 const typeOrder: Record<OpeningHour["type"], number> = {
@@ -29,6 +30,7 @@ const typeOrder: Record<OpeningHour["type"], number> = {
   early_access: 1,
   extension: 2,
   private_event: 3,
+  sold_out: 4,
 };
 
 const formatTime = (
@@ -54,6 +56,7 @@ export default function ParkOpeningHours({
     early_access: t("extraOpeningHours"),
     extension: t("extendedHours"),
     private_event: t("privateEvent"),
+    sold_out: t("hoursUnavailable"),
   };
 
   const sortedOpeningHours = [...openingHours].sort(
@@ -65,7 +68,12 @@ export default function ParkOpeningHours({
     (hour) => hour.type === "private_event" && !hour.openTime && !hour.closeTime
   );
 
-  // Check if all opening hours have null openTime and closeTime
+  // Check if there's a sold-out day (park is open but tickets are sold out)
+  const hasSoldOut = sortedOpeningHours.some(
+    (hour) => hour.type === "sold_out"
+  );
+
+  // Check if all opening hours have null openTime and closeTime (truly closed)
   const allTimesNull =
     sortedOpeningHours.length > 0 &&
     sortedOpeningHours.every((hour) => !hour.openTime && !hour.closeTime);
@@ -76,6 +84,11 @@ export default function ParkOpeningHours({
         <div className="flex items-center gap-2 text-white">
           <Lock className="w-4 h-4" />
           <p>{t("privateEventNoHours")}</p>
+        </div>
+      ) : hasSoldOut && allTimesNull ? (
+        <div className="flex items-center gap-2 text-white">
+          <CalendarClock className="w-4 h-4" />
+          <p>{t("hoursUnavailable")}</p>
         </div>
       ) : allTimesNull ? (
         <div className="flex items-center gap-2 text-white">
