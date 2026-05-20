@@ -20,15 +20,22 @@ export default function SearchBar({ parks }: SearchBarProps) {
   const [searchResults, setSearchResults] = useState<ParkList[]>([]);
   const router = useRouter();
 
+  const normalizeString = (str: string) => {
+    return str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+  };
+
   const filterParks = useCallback(
     (parksToFilter: ParkList[]) => {
-      const query = searchQuery.toLowerCase();
+      const query = normalizeString(searchQuery);
       return parksToFilter
         .filter(
           (park) =>
-            park.name.toLowerCase().includes(query) ||
-            park.group.name.toLowerCase().includes(query) ||
-            (park.country && park.country.toLowerCase().includes(query)),
+            normalizeString(park.name).includes(query) ||
+            normalizeString(park.group.name).includes(query) ||
+            (park.country && normalizeString(park.country).includes(query)),
         )
         .slice(0, 6);
     },
