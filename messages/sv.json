@@ -134,5 +134,48 @@
       "detailsRequired": "Vänligen ange minst 10 tecken",
       "emailRequired": "Vänligen ange en giltig e-postadress"
     }
+  },
+  "affluence": {
+    "trigger": "Historik & besökstryck",
+    "title": "Historik & besökstryck",
+    "subtitle": "Historik dag för dag",
+    "loading": "Laddar…",
+    "linkCopied": "Länk kopierad till urklipp",
+    "linkCopyError": "Kunde inte kopiera länken",
+    "prevMonth": "Föregående månad",
+    "nextMonth": "Nästa månad",
+    "today": "Idag",
+    "upcoming": "Kommande",
+    "closed": "Stängt",
+    "legendCalm": "Lugnt",
+    "legendPacked": "Fullpackat",
+    "levels": {
+      "calm": "Lugnt",
+      "moderate": "Måttligt",
+      "busy": "Livligt",
+      "high": "Mycket besök",
+      "packed": "Fullpackat"
+    },
+    "back": "Tillbaka",
+    "share": "Dela",
+    "noStatsForDay": "Inga data för denna dag",
+    "crowdLevel": "Besökstryck",
+    "crowdUnavailable": "Ej tillgängligt",
+    "openingHours": "Öppettider",
+    "hoursUnavailable": "Öppettider ej tillgängliga",
+    "dayProfile": "Dagsprofil",
+    "avgWait": "genomsnittlig väntetid",
+    "minutesShort": "min",
+    "waitLow": "≤ 20 min",
+    "waitMid": "21–40 min",
+    "waitHigh": "> 40 min",
+    "busiestAttractions": "Attraktioner",
+    "avgOfDay": "dagsgenomsnitt",
+    "rideStatus": {
+      "closed": "Stängd",
+      "down": "Ur drift",
+      "maintenance": "Underhåll"
+    },
+    "crowdExplain": "{pct} % — mer besökt än {pct} % av parkens registrerade dagar."
   }
 }

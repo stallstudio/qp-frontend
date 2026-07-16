@@ -134,5 +134,48 @@
       "detailsRequired": "Please provide at least 10 characters",
       "emailRequired": "Please enter a valid email address"
     }
+  },
+  "affluence": {
+    "trigger": "History & crowds",
+    "title": "History & crowds",
+    "subtitle": "Day-by-day history",
+    "loading": "Loading…",
+    "linkCopied": "Link copied to clipboard",
+    "linkCopyError": "Couldn't copy the link",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "today": "Today",
+    "upcoming": "Upcoming",
+    "closed": "Closed",
+    "legendCalm": "Quiet",
+    "legendPacked": "Packed",
+    "levels": {
+      "calm": "Quiet",
+      "moderate": "Moderate",
+      "busy": "Busy",
+      "high": "Crowded",
+      "packed": "Packed"
+    },
+    "back": "Back",
+    "share": "Share",
+    "noStatsForDay": "No data for this day",
+    "crowdLevel": "Crowd level",
+    "crowdUnavailable": "Unavailable",
+    "openingHours": "Hours",
+    "hoursUnavailable": "Hours unavailable",
+    "dayProfile": "Day profile",
+    "avgWait": "average wait",
+    "minutesShort": "min",
+    "waitLow": "≤ 20 min",
+    "waitMid": "21–40 min",
+    "waitHigh": "> 40 min",
+    "busiestAttractions": "Attractions",
+    "avgOfDay": "daily average",
+    "rideStatus": {
+      "closed": "Closed",
+      "down": "Down",
+      "maintenance": "Maintenance"
+    },
+    "crowdExplain": "{pct}% — busier than {pct}% of this park's recorded days."
   }
 }

@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import MainCard from "@/components/parks/main-card";
 import { ParkLiveData } from "@/types/api";
 import ReportProblemDialog from "@/components/parks/report-problem-dialog";
+import AffluenceDialog from "@/components/parks/affluence/affluence-dialog";
 
 export default function ParkPageClient({
   parkIdentifier,
@@ -68,7 +69,12 @@ export default function ParkPageClient({
       <main className="flex-1 flex flex-col gap-1 mt-4">
         <ParkHeader park={parkData} />
         <MainCard park={parkData} onRefresh={() => fetchParkData(false)} />
-        <div className="flex justify-center mt-4">
+        <div className="flex flex-col items-center gap-3 mt-4">
+          <AffluenceDialog
+            parkIdentifier={parkIdentifier}
+            parkName={parkData.name}
+            timezone={parkData.timezone}
+          />
           <ReportProblemDialog parkIdentifier={parkIdentifier} />
         </div>
       </main>

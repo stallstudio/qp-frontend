@@ -134,5 +134,48 @@
       "detailsRequired": "10文字以上入力してください",
       "emailRequired": "有効なメールアドレスを入力してください"
     }
+  },
+  "affluence": {
+    "trigger": "履歴と混雑",
+    "title": "履歴と混雑",
+    "subtitle": "日ごとの履歴",
+    "loading": "読み込み中…",
+    "linkCopied": "リンクをクリップボードにコピーしました",
+    "linkCopyError": "リンクをコピーできませんでした",
+    "prevMonth": "前の月",
+    "nextMonth": "次の月",
+    "today": "今日",
+    "upcoming": "予定",
+    "closed": "休園",
+    "legendCalm": "空いている",
+    "legendPacked": "混雑",
+    "levels": {
+      "calm": "空いている",
+      "moderate": "やや混雑",
+      "busy": "混雑",
+      "high": "かなり混雑",
+      "packed": "大混雑"
+    },
+    "back": "戻る",
+    "share": "共有",
+    "noStatsForDay": "この日のデータはありません",
+    "crowdLevel": "混雑度",
+    "crowdUnavailable": "利用不可",
+    "openingHours": "営業時間",
+    "hoursUnavailable": "営業時間は利用できません",
+    "dayProfile": "1日の推移",
+    "avgWait": "平均待ち時間",
+    "minutesShort": "分",
+    "waitLow": "20分以下",
+    "waitMid": "21〜40分",
+    "waitHigh": "40分超",
+    "busiestAttractions": "アトラクション",
+    "avgOfDay": "1日の平均",
+    "rideStatus": {
+      "closed": "休止中",
+      "down": "運休",
+      "maintenance": "メンテナンス"
+    },
+    "crowdExplain": "{pct}% — この公園の記録された日の {pct}% より混雑しています。"
   }
 }

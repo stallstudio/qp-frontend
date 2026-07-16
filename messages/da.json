@@ -134,5 +134,48 @@
       "detailsRequired": "Angiv venligst mindst 10 tegn",
       "emailRequired": "Indtast venligst en gyldig e-mailadresse"
     }
+  },
+  "affluence": {
+    "trigger": "Historik & besøgstal",
+    "title": "Historik & besøgstal",
+    "subtitle": "Dag-for-dag-historik",
+    "loading": "Indlæser…",
+    "linkCopied": "Link kopieret til udklipsholder",
+    "linkCopyError": "Kunne ikke kopiere linket",
+    "prevMonth": "Forrige måned",
+    "nextMonth": "Næste måned",
+    "today": "I dag",
+    "upcoming": "Kommende",
+    "closed": "Lukket",
+    "legendCalm": "Roligt",
+    "legendPacked": "Stuvende fuldt",
+    "levels": {
+      "calm": "Roligt",
+      "moderate": "Moderat",
+      "busy": "Travlt",
+      "high": "Meget besøgt",
+      "packed": "Stuvende fuldt"
+    },
+    "back": "Tilbage",
+    "share": "Del",
+    "noStatsForDay": "Ingen data for denne dag",
+    "crowdLevel": "Besøgstal",
+    "crowdUnavailable": "Ikke tilgængelig",
+    "openingHours": "Åbningstider",
+    "hoursUnavailable": "Åbningstider ikke tilgængelige",
+    "dayProfile": "Dagsforløb",
+    "avgWait": "gennemsnitlig ventetid",
+    "minutesShort": "min",
+    "waitLow": "≤ 20 min",
+    "waitMid": "21–40 min",
+    "waitHigh": "> 40 min",
+    "busiestAttractions": "Attraktioner",
+    "avgOfDay": "dagsgennemsnit",
+    "rideStatus": {
+      "closed": "Lukket",
+      "down": "Ude af drift",
+      "maintenance": "Vedligeholdelse"
+    },
+    "crowdExplain": "{pct} % — mere besøgt end {pct} % af parkens registrerede dage."
   }
 }

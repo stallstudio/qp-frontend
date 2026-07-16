@@ -134,5 +134,48 @@
       "detailsRequired": "Veuillez fournir au moins 10 caractères",
       "emailRequired": "Veuillez entrer une adresse e-mail valide"
     }
+  },
+  "affluence": {
+    "trigger": "Historique & affluence",
+    "title": "Historique & affluence",
+    "subtitle": "Historique jour par jour",
+    "loading": "Chargement…",
+    "linkCopied": "Lien copié dans le presse-papiers",
+    "linkCopyError": "Impossible de copier le lien",
+    "prevMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "today": "Aujourd'hui",
+    "upcoming": "À venir",
+    "closed": "Fermé",
+    "legendCalm": "Calme",
+    "legendPacked": "Bondé",
+    "levels": {
+      "calm": "Calme",
+      "moderate": "Modéré",
+      "busy": "Fréquenté",
+      "high": "Chargé",
+      "packed": "Bondé"
+    },
+    "back": "Retour",
+    "share": "Partager",
+    "noStatsForDay": "Aucune donnée pour cette journée",
+    "crowdLevel": "Fréquentation",
+    "crowdUnavailable": "Non disponible",
+    "openingHours": "Horaires",
+    "hoursUnavailable": "Horaires non disponibles",
+    "dayProfile": "Profil de la journée",
+    "avgWait": "attente moyenne",
+    "minutesShort": "min",
+    "waitLow": "≤ 20 min",
+    "waitMid": "21–40 min",
+    "waitHigh": "> 40 min",
+    "busiestAttractions": "Attractions",
+    "avgOfDay": "moyenne du jour",
+    "rideStatus": {
+      "closed": "Fermé",
+      "down": "En panne",
+      "maintenance": "Maintenance"
+    },
+    "crowdExplain": "{pct} % — plus chargé que {pct} % des journées enregistrées de ce parc."
   }
 }

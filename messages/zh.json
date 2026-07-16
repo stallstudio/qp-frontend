@@ -134,5 +134,48 @@
       "detailsRequired": "请提供至少10个字符",
       "emailRequired": "请输入有效的电子邮件地址"
     }
+  },
+  "affluence": {
+    "trigger": "历史与客流",
+    "title": "历史与客流",
+    "subtitle": "逐日历史",
+    "loading": "加载中…",
+    "linkCopied": "链接已复制到剪贴板",
+    "linkCopyError": "无法复制链接",
+    "prevMonth": "上个月",
+    "nextMonth": "下个月",
+    "today": "今天",
+    "upcoming": "即将到来",
+    "closed": "闭园",
+    "legendCalm": "空闲",
+    "legendPacked": "拥挤",
+    "levels": {
+      "calm": "空闲",
+      "moderate": "适中",
+      "busy": "繁忙",
+      "high": "拥挤",
+      "packed": "非常拥挤"
+    },
+    "back": "返回",
+    "share": "分享",
+    "noStatsForDay": "当天暂无数据",
+    "crowdLevel": "客流",
+    "crowdUnavailable": "不可用",
+    "openingHours": "开放时间",
+    "hoursUnavailable": "开放时间不可用",
+    "dayProfile": "当日走势",
+    "avgWait": "平均等待",
+    "minutesShort": "分钟",
+    "waitLow": "≤ 20 分钟",
+    "waitMid": "21–40 分钟",
+    "waitHigh": "> 40 分钟",
+    "busiestAttractions": "游乐设施",
+    "avgOfDay": "当日平均",
+    "rideStatus": {
+      "closed": "关闭",
+      "down": "故障",
+      "maintenance": "维护"
+    },
+    "crowdExplain": "{pct}% — 比该乐园已记录天数的 {pct}% 更繁忙。"
   }
 }

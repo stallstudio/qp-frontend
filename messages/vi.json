@@ -134,5 +134,48 @@
       "detailsRequired": "Vui lòng cung cấp ít nhất 10 ký tự",
       "emailRequired": "Vui lòng nhập địa chỉ email hợp lệ"
     }
+  },
+  "affluence": {
+    "trigger": "Lịch sử & lượng khách",
+    "title": "Lịch sử & lượng khách",
+    "subtitle": "Lịch sử theo từng ngày",
+    "loading": "Đang tải…",
+    "linkCopied": "Đã sao chép liên kết vào bộ nhớ tạm",
+    "linkCopyError": "Không thể sao chép liên kết",
+    "prevMonth": "Tháng trước",
+    "nextMonth": "Tháng sau",
+    "today": "Hôm nay",
+    "upcoming": "Sắp tới",
+    "closed": "Đóng cửa",
+    "legendCalm": "Vắng",
+    "legendPacked": "Đông nghịt",
+    "levels": {
+      "calm": "Vắng",
+      "moderate": "Vừa phải",
+      "busy": "Đông",
+      "high": "Rất đông",
+      "packed": "Đông nghịt"
+    },
+    "back": "Quay lại",
+    "share": "Chia sẻ",
+    "noStatsForDay": "Không có dữ liệu cho ngày này",
+    "crowdLevel": "Lượng khách",
+    "crowdUnavailable": "Không có sẵn",
+    "openingHours": "Giờ mở cửa",
+    "hoursUnavailable": "Không có giờ mở cửa",
+    "dayProfile": "Diễn biến trong ngày",
+    "avgWait": "thời gian chờ trung bình",
+    "minutesShort": "phút",
+    "waitLow": "≤ 20 phút",
+    "waitMid": "21–40 phút",
+    "waitHigh": "> 40 phút",
+    "busiestAttractions": "Trò chơi",
+    "avgOfDay": "trung bình trong ngày",
+    "rideStatus": {
+      "closed": "Đóng cửa",
+      "down": "Tạm ngừng",
+      "maintenance": "Bảo trì"
+    },
+    "crowdExplain": "{pct}% — đông hơn {pct}% số ngày đã ghi nhận của công viên này."
   }
 }

@@ -134,5 +134,48 @@
       "detailsRequired": "Geef minimaal 10 tekens op",
       "emailRequired": "Voer een geldig e-mailadres in"
     }
+  },
+  "affluence": {
+    "trigger": "Geschiedenis & drukte",
+    "title": "Geschiedenis & drukte",
+    "subtitle": "Dag-voor-dag geschiedenis",
+    "loading": "Laden…",
+    "linkCopied": "Link gekopieerd naar klembord",
+    "linkCopyError": "Kon de link niet kopiëren",
+    "prevMonth": "Vorige maand",
+    "nextMonth": "Volgende maand",
+    "today": "Vandaag",
+    "upcoming": "Binnenkort",
+    "closed": "Gesloten",
+    "legendCalm": "Rustig",
+    "legendPacked": "Stampvol",
+    "levels": {
+      "calm": "Rustig",
+      "moderate": "Gematigd",
+      "busy": "Druk",
+      "high": "Erg druk",
+      "packed": "Stampvol"
+    },
+    "back": "Terug",
+    "share": "Delen",
+    "noStatsForDay": "Geen gegevens voor deze dag",
+    "crowdLevel": "Drukte",
+    "crowdUnavailable": "Niet beschikbaar",
+    "openingHours": "Openingstijden",
+    "hoursUnavailable": "Openingstijden niet beschikbaar",
+    "dayProfile": "Dagverloop",
+    "avgWait": "gemiddelde wachttijd",
+    "minutesShort": "min",
+    "waitLow": "≤ 20 min",
+    "waitMid": "21–40 min",
+    "waitHigh": "> 40 min",
+    "busiestAttractions": "Attracties",
+    "avgOfDay": "daggemiddelde",
+    "rideStatus": {
+      "closed": "Gesloten",
+      "down": "Buiten dienst",
+      "maintenance": "Onderhoud"
+    },
+    "crowdExplain": "{pct}% — drukker dan {pct}% van de geregistreerde dagen van dit park."
   }
 }

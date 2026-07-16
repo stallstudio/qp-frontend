@@ -134,5 +134,48 @@
       "detailsRequired": "최소 10자 이상 입력해주세요",
       "emailRequired": "유효한 이메일 주소를 입력해주세요"
     }
+  },
+  "affluence": {
+    "trigger": "이력 및 혼잡도",
+    "title": "이력 및 혼잡도",
+    "subtitle": "일별 이력",
+    "loading": "불러오는 중…",
+    "linkCopied": "링크가 클립보드에 복사되었습니다",
+    "linkCopyError": "링크를 복사할 수 없습니다",
+    "prevMonth": "이전 달",
+    "nextMonth": "다음 달",
+    "today": "오늘",
+    "upcoming": "예정",
+    "closed": "휴장",
+    "legendCalm": "한산함",
+    "legendPacked": "매우 혼잡",
+    "levels": {
+      "calm": "한산함",
+      "moderate": "보통",
+      "busy": "붐빔",
+      "high": "혼잡",
+      "packed": "매우 혼잡"
+    },
+    "back": "뒤로",
+    "share": "공유",
+    "noStatsForDay": "이 날짜에 대한 데이터가 없습니다",
+    "crowdLevel": "혼잡도",
+    "crowdUnavailable": "이용 불가",
+    "openingHours": "운영 시간",
+    "hoursUnavailable": "운영 시간 정보 없음",
+    "dayProfile": "하루 추이",
+    "avgWait": "평균 대기 시간",
+    "minutesShort": "분",
+    "waitLow": "20분 이하",
+    "waitMid": "21~40분",
+    "waitHigh": "40분 초과",
+    "busiestAttractions": "어트랙션",
+    "avgOfDay": "하루 평균",
+    "rideStatus": {
+      "closed": "휴장",
+      "down": "운행 중지",
+      "maintenance": "점검"
+    },
+    "crowdExplain": "{pct}% — 이 공원의 기록된 날 중 {pct}%보다 혼잡합니다."
   }
 }
