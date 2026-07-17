@@ -39,7 +39,8 @@
     "closed": "Closed",
     "down": "Down",
     "maintenance": "Maintenance",
-    "unavailable": "Unavailable"
+    "unavailable": "Unavailable",
+    "unavailableShort": "Unavail"
   },
   "tabs": {
     "waitTimes": "Wait Times",
@@ -49,7 +50,10 @@
     "show": "Show",
     "schedules": "Schedules",
     "updateInfo": "Shows are updated every hour",
-    "noMoreToday": "No more shows today"
+    "noMoreToday": "No more shows today",
+    "legendPast": "Finished",
+    "legendOngoing": "Ongoing",
+    "legendUpcoming": "Upcoming"
   },
   "favorites": {
     "myFavorites": "My favorites",
@@ -83,6 +87,88 @@
     "parkNotFound": "The park you are looking for does not exist",
     "networkErrorRefresh": "A network error occurred while refreshing data",
     "networkError": "A network error occurred. Please check your connection and try again."
+  },
+  "about": {
+    "metaTitle": "About",
+    "metaDescription": "Discover Queue Park: where wait times come from, how favorites work, trend arrows, popular parks and all the features.",
+    "backHome": "Back to home",
+    "heroTitle": "About Queue Park",
+    "heroSubtitle": "Your favorite parks' wait times, live and free for everyone.",
+    "tabs": {
+      "about": "About",
+      "guide": "The guide"
+    },
+    "sectionAboutTitle": "Our project",
+    "sectionGuideTitle": "How it works",
+    "demoLabel": "Example",
+    "cards": {
+      "intro": {
+        "title": "What is Queue Park?",
+        "body": "Queue Park brings together, in one place, the live wait times of over 100 theme parks around the world. Our goal: help you spot at a glance which attractions to ride right now and plan your day better, without keeping your nose buried in a map."
+      },
+      "data": {
+        "title": "Where does the data come from?",
+        "body": "Wait times come straight from the parks' official systems. We fetch, clean and standardize them so that Walibi, Disney, Europa-Park or Six Flags all look the same, with the same colors and the same level of detail."
+      },
+      "worker": {
+        "title": "Behind the scenes",
+        "body": "An automated service runs continuously and polls the parks almost in real time. It checks each value, links every queue to the right attraction, records the day's history and also fetches opening hours and shows. If a data source behaves abnormally, the team is alerted automatically."
+      },
+      "free": {
+        "title": "Free and no account",
+        "body": "Queue Park is completely free and requires no sign-up. Your favorites and preferences (language, theme, time format) are stored in your browser, on your device — we don't need your personal data to work."
+      },
+      "independent": {
+        "title": "An independent project",
+        "body": "Queue Park v2 is built by two theme-park enthusiasts, Lilian and Gaspard. It is neither an official app nor a service affiliated with any park. A comment, an idea, a park to add? Write to us at contact@queue-park.com."
+      },
+      "report": {
+        "title": "Something looks off?",
+        "body": "The data depends on the parks and can sometimes be incomplete or delayed. On every park page, the \"Spotted a problem? Report it\" button lets you flag an anomaly: it's the fastest way to help us improve reliability."
+      },
+      "live": {
+        "title": "Live wait times",
+        "body": "Every attraction shows its current wait time, refreshed automatically about once a minute — no need to reload the page, Queue Park does it for you every 60 seconds. The color sets the tone instantly: green for quick, orange for medium, red for long."
+      },
+      "trend": {
+        "title": "Trends",
+        "body": "Next to a wait time, a small arrow shows the queue's recent direction: it points up (red) when the wait is growing, down (green) when it's shrinking, and stays flat (grey) when it's stable. Handy to decide whether to go now… or wait a bit.",
+        "up": "Rising",
+        "stable": "Stable",
+        "down": "Falling"
+      },
+      "queues": {
+        "title": "Queue types",
+        "body": "A single attraction may offer several queues: the classic line (Standby), plus options like Fastlane (skip-the-line), Single Rider (lone seat) or Virtual Queue. Tap an attraction that offers several to unfold all of its times."
+      },
+      "favorites": {
+        "title": "Favorites",
+        "body": "Tap the star to add a park or an attraction to your favorites. Favorites are pinned to the top of the lists so you find them instantly, and they're kept in your browser. No account required, and they sync across your open tabs.",
+        "parksLabel": "Favorite parks",
+        "ridesLabel": "Favorite attractions",
+        "hint": "Tap a star: the favorite jumps to the top."
+      },
+      "popular": {
+        "title": "Popular parks",
+        "body": "The \"Popular parks\" section highlights the parks most viewed on Queue Park over the last few hours. It's a good reflection of where attention — and crowds — are gathering right now."
+      },
+      "search": {
+        "title": "Search & random park",
+        "body": "Find any park by typing its name, its group (Disney, Walibi…) or its country. Feeling adventurous? The dice button takes you to a randomly picked park. You can also filter the list by country or group, and hide closed parks."
+      },
+      "shows": {
+        "title": "Shows",
+        "body": "For the relevant parks, a \"Shows\" tab displays the day's showtimes as a timeline. These schedules are updated every hour."
+      },
+      "status": {
+        "title": "Statuses at a glance",
+        "body": "Each park shows whether it's open or closed, and every attraction displays its state: open, closed, down or under maintenance. Colored dots let you grasp the situation without reading a single line."
+      },
+      "preferences": {
+        "title": "Your way",
+        "body": "Queue Park adapts to you: light or dark mode, 12-hour or 24-hour time format, and an interface available in 14 languages. Your choices are remembered for your next visits."
+      }
+    }
   },
   "metadata": {
     "title": "Queue Park - Live Theme Park Wait Times",

@@ -39,7 +39,8 @@
     "closed": "Fermé",
     "down": "En panne",
     "maintenance": "Maintenance",
-    "unavailable": "Indisponible"
+    "unavailable": "Indisponible",
+    "unavailableShort": "Indispo"
   },
   "tabs": {
     "waitTimes": "Temps d'attente",
@@ -49,7 +50,10 @@
     "show": "Spectacle",
     "schedules": "Horaires",
     "updateInfo": "Les spectacles sont mis à jour toutes les heures",
-    "noMoreToday": "Plus de spectacle aujourd'hui"
+    "noMoreToday": "Plus de spectacle aujourd'hui",
+    "legendPast": "Terminé",
+    "legendOngoing": "En cours",
+    "legendUpcoming": "À venir"
   },
   "favorites": {
     "myFavorites": "Mes favoris",
@@ -71,7 +75,7 @@
   },
   "footer": {
     "copyright": "© {year} Queue Park. Tous droits réservés.",
-    "contactText": "Contactez-moi à"
+    "contactText": "Contactez-nous à"
   },
   "noData": {
     "title": "Oups, désolé !",
@@ -83,6 +87,88 @@
     "parkNotFound": "Le parc que vous recherchez n'existe pas",
     "networkErrorRefresh": "Un problème réseau est survenu lors de l'actualisation des données",
     "networkError": "Une erreur réseau est survenue. Vérifiez votre connexion et réessayez."
+  },
+  "about": {
+    "metaTitle": "À propos",
+    "metaDescription": "Découvrez Queue Park : d'où viennent les temps d'attente, comment fonctionnent les favoris, les flèches de tendance, les parcs populaires et toutes les fonctionnalités.",
+    "backHome": "Retour à l'accueil",
+    "heroTitle": "À propos de Queue Park",
+    "heroSubtitle": "Les temps d'attente de vos parcs préférés, en direct et pour tous.",
+    "tabs": {
+      "about": "À propos",
+      "guide": "Le guide"
+    },
+    "sectionAboutTitle": "Le projet",
+    "sectionGuideTitle": "Comment ça marche",
+    "demoLabel": "Exemple",
+    "cards": {
+      "intro": {
+        "title": "Qu'est-ce que Queue Park ?",
+        "body": "Queue Park rassemble en un seul endroit les temps d'attente en direct de plus de 100 parcs d'attractions à travers le monde. Notre but : vous aider à repérer d'un coup d'œil les attractions à faire tout de suite et à mieux organiser votre journée, sans passer votre temps le nez sur un plan."
+      },
+      "data": {
+        "title": "D'où viennent les données ?",
+        "body": "Les temps d'attente proviennent directement des applications/sites officiels des parcs. Nous les récupérons, les nettoyons et les uniformisons pour que tous les parcs s'affichent de la même manière, avec les mêmes couleurs et le même niveau de détail."
+      },
+      "worker": {
+        "title": "Dans les coulisses",
+        "body": "Un service automatique tourne en continu et interroge les parcs quasiment en temps réel. Il vérifie chaque valeur, associe chaque file à la bonne attraction, enregistre l'historique de la journée et récupère aussi les horaires d'ouverture et les spectacles. Si une source de données se comporte anormalement, l'équipe est alertée automatiquement."
+      },
+      "free": {
+        "title": "Gratuit et sans compte",
+        "body": "Queue Park est entièrement gratuit et ne demande aucune inscription. Vos favoris et vos préférences (langue, thème, format d'heure) restent enregistrés dans votre navigateur, sur votre appareil — nous n'avons pas besoin de vos données personnelles pour fonctionner."
+      },
+      "independent": {
+        "title": "Un projet indépendant",
+        "body": "La v2 de Queue Park est développée par deux passionnés de parcs d'attractions, Lilian et Gaspard. Ce n'est ni une application officielle, ni un service affilié à un parc. Une remarque, une idée, un parc à ajouter ? Écrivez-nous à contact@queue-park.com."
+      },
+      "report": {
+        "title": "Une donnée qui cloche ?",
+        "body": "Les données dépendent des parcs et peuvent parfois être incomplètes ou en retard. Sur chaque page de parc, le bouton « Un problème ? Rapportez-le-nous » vous permet de nous signaler une anomalie : c'est la façon la plus rapide de nous aider à améliorer la fiabilité."
+      },
+      "live": {
+        "title": "Temps d'attente en direct",
+        "body": "Chaque attraction affiche son temps d'attente actuel, mis à jour automatiquement environ toutes les minutes — pas besoin de rafraîchir la page, Queue Park le fait automatiquement pour vous toutes les 60 secondes. La couleur donne le ton en un instant : vert pour rapide, orange pour moyen, rouge pour long."
+      },
+      "trend": {
+        "title": "Les tendances",
+        "body": "À côté d'un temps d'attente, une petite flèche indique la direction récente de la file : elle monte (rouge) si l'attente s'allonge, elle descend (verte) si elle se réduit, et reste horizontale (grise) quand c'est stable. Pratique pour décider d'y aller maintenant… ou d'attendre un peu.",
+        "up": "En hausse",
+        "stable": "Stable",
+        "down": "En baisse"
+      },
+      "queues": {
+        "title": "Les types de files",
+        "body": "Une même attraction peut proposer plusieurs files : la file classique (Standby), ainsi que des options comme Fastlane (coupe-file), Single Rider (personne seule) ou Virtual Queue (file virtuelle). Touchez une attraction qui en propose plusieurs pour déplier tous ses temps."
+      },
+      "favorites": {
+        "title": "Les favoris",
+        "body": "Touchez l'étoile pour ajouter un parc ou une attraction à vos favoris. Vos favoris sont épinglés en haut des listes pour les retrouver immédiatement, et ils sont conservés dans votre navigateur. Aucun compte requis, et ça se synchronise entre vos onglets ouverts.",
+        "parksLabel": "Parcs favoris",
+        "ridesLabel": "Attractions favorites",
+        "hint": "Touchez une étoile : le favori remonte en tête."
+      },
+      "popular": {
+        "title": "Les parcs populaires",
+        "body": "La section « Parcs populaires » met en avant les parcs les plus consultés sur Queue Park au cours des dernières heures. C'est un bon reflet de là où l'affluence — et l'intérêt — se concentrent en ce moment."
+      },
+      "search": {
+        "title": "Recherche & parc au hasard",
+        "body": "Trouvez n'importe quel parc en tapant son nom, son groupe (Disney, Walibi…) ou son pays. Envie de découvrir ? Le bouton dé vous emmène vers un parc choisi au hasard. Vous pouvez aussi filtrer la liste par pays ou par groupe, et masquer les parcs fermés."
+      },
+      "shows": {
+        "title": "Les spectacles",
+        "body": "Pour les parcs concernés, un onglet « Spectacles » affiche les horaires des représentations de la journée sous forme de timeline. Ces horaires sont mis à jour toutes les heures."
+      },
+      "status": {
+        "title": "Statuts en un coup d'œil",
+        "body": "Chaque parc indique s'il est ouvert ou fermé, et chaque attraction affiche son état : ouverte, fermée, en panne ou en maintenance. Les pastilles colorées permettent de comprendre la situation sans lire une seule ligne."
+      },
+      "preferences": {
+        "title": "À votre main",
+        "body": "Queue Park s'adapte à vous : mode clair ou sombre, format d'heure 12h ou 24h, et une interface disponible en 14 langues. Vos choix sont mémorisés pour vos prochaines visites."
+      }
+    }
   },
   "metadata": {
     "title": "Queue Park - Temps d'attente des parcs en direct",
