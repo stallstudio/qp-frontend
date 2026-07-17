@@ -74,7 +74,7 @@ export default function MainCard({
   }, []);
   return (
     <Card
-      className={`w-full rounded-4xl p-3 sm:p-4 gap-0 pb-0 card-shine ${justUpdated ? "card-shine-active" : ""}`}
+      className={`w-full rounded-4xl p-4 gap-0 pb-0 card-shine ${justUpdated ? "card-shine-active" : ""}`}
     >
       {showTabs ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
