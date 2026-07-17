@@ -11,7 +11,7 @@ export default function HomeSkeleton() {
   const tPopular = useTranslations("popularParks");
   const tParks = useTranslations("parksList");
   return (
-    <div className="flex min-h-screen w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-4">
+    <div className="flex min-h-screen w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-3 sm:px-4 gap-8">
       {/* Skeleton Content */}
       <main className="flex-1 flex flex-col gap-8">
         {/* Fixed Header */}
