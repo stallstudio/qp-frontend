@@ -185,7 +185,7 @@ export default function ParkShowTimeTable({
     <div className="w-full overflow-hidden">
       <div className="flex">
         {/* Show names column */}
-        <div className="w-1/2 sm:w-2/5 shrink-0 sticky left-0 bg-card border-e z-10 min-w-0">
+        <div className="w-9/20 sm:w-2/5 shrink-0 sticky left-0 bg-card border-e z-10 min-w-0">
           <div className="h-10 border-b flex items-center px-3 font-semibold text-sm"></div>
           {displayShows.map((item, index) => {
             const rowHeight = rowHeights[index] || MIN_ROW_HEIGHT;
@@ -198,7 +198,7 @@ export default function ParkShowTimeTable({
                 ref={(el) => {
                   nameRefs.current[index] = el;
                 }}
-                className="group border-b flex items-center gap-2 pe-3 text-sm font-medium"
+                className="group border-b flex items-center gap-1.5 pe-3 text-sm font-medium"
                 style={{ height: `${rowHeight}px` }}
               >
                 <FavoriteStar
