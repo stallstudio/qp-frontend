@@ -68,6 +68,28 @@ export async function GET(
       history[rideId].push(row.waitTime);
     }
 
+    // Certaines attractions n'ont aucune ligne "aujourd'hui" : le worker ne crée
+    // une nouvelle entrée qu'au changement d'état, donc une attraction stable
+    // depuis plusieurs jours (même waitTime/status) n'apparaît pas ci-dessus.
+    // Sans point, le composant de tendance n'affiche pas de flèche. On récupère
+    // donc l'état courant (endTime = null) de ces attractions pour amorcer un
+    // historique à un seul point -> WaitTrend calcule delta = 0 -> flèche grise
+    // "stable".
+    const activeRows = await prisma.waitTime.findMany({
+      where: {
+        parkId: park.id,
+        type: "standby",
+        rideId: { not: null },
+        endTime: null,
+      },
+      select: { rideId: true, waitTime: true },
+    });
+
+    for (const row of activeRows) {
+      const rideId = row.rideId!;
+      if (!history[rideId]) history[rideId] = [row.waitTime];
+    }
+
     // On borne le nombre de points par attraction (on conserve les plus récents).
     for (const rideId of Object.keys(history)) {
       const arr = history[Number(rideId)];
