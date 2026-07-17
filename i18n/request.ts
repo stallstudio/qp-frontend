@@ -8,8 +8,19 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale = routing.defaultLocale;
   }
 
+  const localeMessages = (await import(`../messages/${locale}.json`)).default;
+
+  // Fallback anglais au niveau des namespaces : toute rubrique absente de la
+  // langue courante (ex. "about", pas encore traduit partout) est reprise
+  // depuis l'anglais plutôt que d'afficher une clé manquante. Merge peu profond
+  // suffisant car chaque namespace est une clé de premier niveau complète.
+  const fallbackMessages =
+    locale === "en"
+      ? localeMessages
+      : (await import(`../messages/en.json`)).default;
+
   return {
     locale: locale as string,
-    messages: (await import(`../messages/${locale}.json`)).default,
+    messages: { ...fallbackMessages, ...localeMessages },
   };
 });
