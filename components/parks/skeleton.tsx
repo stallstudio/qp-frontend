@@ -68,7 +68,7 @@ export default function ParkSkeleton() {
         <div className="w-full rounded-4xl px-4 pt-2 gap-0 pb-0 border shadow-sm">
           {/* Table Header */}
           <div className="border-b pb-2 mb-2">
-            <div className="grid grid-cols-3 gap-4 px-2 py-2">
+            <div className="grid items-center grid-cols-[minmax(0,1fr)_5.5rem_5.5rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 px-2 py-2">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-4 w-20" />
               <Skeleton className="h-4 w-16" />
@@ -76,11 +76,11 @@ export default function ParkSkeleton() {
           </div>
 
           {/* Table Rows Skeleton */}
-          <div className="space-y-2">
+          <div className="space-y-0">
             {[...Array(12)].map((_, index) => (
               <div
                 key={index}
-                className="grid grid-cols-3 gap-4 px-2 py-3 border-b last:border-b-0"
+                className="grid items-center grid-cols-[minmax(0,1fr)_5.5rem_5.5rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 px-2 py-3 border-b last:border-b-0"
               >
                 <Skeleton className="h-4 w-full max-w-xs" />
                 <Skeleton className="h-4 w-12 rounded-full" />
