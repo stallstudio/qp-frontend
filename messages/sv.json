@@ -51,6 +51,13 @@
     "updateInfo": "Shower uppdateras varje timme",
     "noMoreToday": "Inga fler shower idag"
   },
+  "favorites": {
+    "myFavorites": "Mina favoriter",
+    "add": "Lägg till i favoriter",
+    "remove": "Ta bort från favoriter",
+    "addPark": "Lägg till den här parken i favoriter",
+    "removePark": "Ta bort den här parken från favoriter"
+  },
   "waitTimeTable": {
     "attraction": "Attraktion",
     "waitTime": "Väntetid",

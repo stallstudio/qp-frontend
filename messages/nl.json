@@ -51,6 +51,13 @@
     "updateInfo": "Shows worden elk uur bijgewerkt",
     "noMoreToday": "Geen shows meer vandaag"
   },
+  "favorites": {
+    "myFavorites": "Mijn favorieten",
+    "add": "Toevoegen aan favorieten",
+    "remove": "Verwijderen uit favorieten",
+    "addPark": "Dit park aan favorieten toevoegen",
+    "removePark": "Dit park uit favorieten verwijderen"
+  },
   "waitTimeTable": {
     "attraction": "Attractie",
     "waitTime": "Wachttijd",

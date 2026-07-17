@@ -51,6 +51,13 @@
     "updateInfo": "ショーは1時間ごとに更新されます",
     "noMoreToday": "本日はこれ以上ショーはありません"
   },
+  "favorites": {
+    "myFavorites": "お気に入り",
+    "add": "お気に入りに追加",
+    "remove": "お気に入りから削除",
+    "addPark": "この公園をお気に入りに追加",
+    "removePark": "この公園をお気に入りから削除"
+  },
   "waitTimeTable": {
     "attraction": "アトラクション",
     "waitTime": "待ち時間",

@@ -51,6 +51,13 @@
     "updateInfo": "Chương trình được cập nhật mỗi giờ",
     "noMoreToday": "Không còn chương trình nào hôm nay"
   },
+  "favorites": {
+    "myFavorites": "Mục yêu thích của tôi",
+    "add": "Thêm vào yêu thích",
+    "remove": "Xóa khỏi yêu thích",
+    "addPark": "Thêm công viên này vào yêu thích",
+    "removePark": "Xóa công viên này khỏi yêu thích"
+  },
   "waitTimeTable": {
     "attraction": "Trò chơi",
     "waitTime": "Thời gian chờ",

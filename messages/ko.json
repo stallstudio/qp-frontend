@@ -51,6 +51,13 @@
     "updateInfo": "쇼는 매시간 업데이트됩니다",
     "noMoreToday": "오늘은 더 이상 쇼가 없습니다"
   },
+  "favorites": {
+    "myFavorites": "내 즐겨찾기",
+    "add": "즐겨찾기에 추가",
+    "remove": "즐겨찾기에서 제거",
+    "addPark": "이 공원을 즐겨찾기에 추가",
+    "removePark": "이 공원을 즐겨찾기에서 제거"
+  },
   "waitTimeTable": {
     "attraction": "어트랙션",
     "waitTime": "대기 시간",

@@ -51,6 +51,13 @@
     "updateInfo": "Shows opdateres hver time",
     "noMoreToday": "Ikke flere shows i dag"
   },
+  "favorites": {
+    "myFavorites": "Mine favoritter",
+    "add": "Føj til favoritter",
+    "remove": "Fjern fra favoritter",
+    "addPark": "Føj denne park til favoritter",
+    "removePark": "Fjern denne park fra favoritter"
+  },
   "waitTimeTable": {
     "attraction": "Forlystelse",
     "waitTime": "Ventetid",

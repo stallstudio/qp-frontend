@@ -51,6 +51,13 @@
     "updateInfo": "Pokazy są aktualizowane co godzinę",
     "noMoreToday": "Brak więcej pokazów dzisiaj"
   },
+  "favorites": {
+    "myFavorites": "Moje ulubione",
+    "add": "Dodaj do ulubionych",
+    "remove": "Usuń z ulubionych",
+    "addPark": "Dodaj ten park do ulubionych",
+    "removePark": "Usuń ten park z ulubionych"
+  },
   "waitTimeTable": {
     "attraction": "Atrakcja",
     "waitTime": "Czas oczekiwania",

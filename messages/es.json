@@ -51,6 +51,13 @@
     "updateInfo": "Los espectáculos se actualizan cada hora",
     "noMoreToday": "No hay más espectáculos hoy"
   },
+  "favorites": {
+    "myFavorites": "Mis favoritos",
+    "add": "Añadir a favoritos",
+    "remove": "Quitar de favoritos",
+    "addPark": "Añadir este parque a favoritos",
+    "removePark": "Quitar este parque de favoritos"
+  },
   "waitTimeTable": {
     "attraction": "Atracción",
     "waitTime": "Espera",

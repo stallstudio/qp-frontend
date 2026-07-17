@@ -51,6 +51,13 @@
     "updateInfo": "Shows are updated every hour",
     "noMoreToday": "No more shows today"
   },
+  "favorites": {
+    "myFavorites": "My favorites",
+    "add": "Add to favorites",
+    "remove": "Remove from favorites",
+    "addPark": "Add this park to favorites",
+    "removePark": "Remove this park from favorites"
+  },
   "waitTimeTable": {
     "attraction": "Attraction",
     "waitTime": "Wait Time",
