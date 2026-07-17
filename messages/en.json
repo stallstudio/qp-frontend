@@ -57,6 +57,7 @@
   },
   "favorites": {
     "myFavorites": "My favorites",
+    "yours": "Your favorites",
     "add": "Add to favorites",
     "remove": "Remove from favorites",
     "addPark": "Add this park to favorites",
@@ -293,5 +294,31 @@
     "create": "Create",
     "created": "Notification created for {ride}",
     "createError": "Could not create the notification."
+  },
+  "attractionDetail": {
+    "openFor": "View details for {ride}",
+    "thrillsLink": "View the attraction on Thrills",
+    "notificationsTitle": "Notifications",
+    "chartTitle": "Wait time today",
+    "chartToday": "Today",
+    "chartForecast": "Forecast",
+    "chartNow": "Now",
+    "chartEmpty": "No data yet for today.",
+    "chartForecastNote": "Rough estimate for the rest of the day.",
+    "installTitle": "Install Queue Park",
+    "installIntro": "Notifications require the app installed on your device.",
+    "installButton": "Install the app",
+    "installAndroidSteps": "Open your browser's ⋮ menu, then \"Add to Home screen\".",
+    "installIosSteps": "Tap Share, then \"Add to Home Screen\".",
+    "installDesktopSteps": "Use the install icon in your browser's address bar.",
+    "installAccountNote": "An account will also be required to create notifications.",
+    "signInTitle": "Sign in",
+    "signInIntro": "Sign in to be notified when the wait drops.",
+    "notifActive": "Alert active",
+    "save": "Save",
+    "update": "Update",
+    "delete": "Delete",
+    "saved": "Notification saved",
+    "deleted": "Notification deleted"
   }
 }

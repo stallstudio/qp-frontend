@@ -22,6 +22,8 @@ Frontend **Queue Park** (https://queue-park.com) : site public affichant les
 - **radix-ui** + composants maison type shadcn dans `components/ui/`.
 - `lucide-react` (icônes), `luxon` (dates/timezones), `axios`, `sonner` (toasts),
   `next-themes` (dark mode), `motion`, `react-hook-form` + `zod`-like resolvers.
+- `recharts` (+ wrapper shadcn `components/ui/chart.tsx`) : uniquement pour le
+  graphique du popup « détail attraction » (`wait-time-chart.tsx`).
 
 ## Arborescence clé
 
@@ -126,7 +128,35 @@ baisse (verte ↘), stable (gris →). Rien si indispo ou historique vide.
 
 `localStorage`, **sans compte**. Namespaces isolés (`"parks"`, `"rides"`).
 SSR-safe (hydratation après montage), synchronisé entre onglets (`storage`) et
-instances (`qp-fav-change`). Les favoris sont épinglés en tête des listes.
+instances (`qp-fav-change`). Les favoris sont épinglés en tête des listes. Dans
+`wait-time-table.tsx`, le groupe des favoris est encadré de deux séparateurs
+ondulés ambrés (`components/ui/wavy-divider.tsx`), celui du haut portant le
+libellé `favorites.yours` (« Vos favoris »).
+
+### Popup « détail attraction » (`components/parks/attraction-detail/`)
+
+Chaque ligne d'attraction a une icône **œil** à droite (à côté du chevron
+d'expand) qui ouvre `attraction-detail-dialog.tsx` (plus d'étoile/cloche dans la
+liste). Le popup empile des sections : image (placeholder `CameraOff`), favoris
+(`favorite-section.tsx`), notifications (`notification-section.tsx`), graphique
+du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
+(`thrills-section.tsx`, lien placeholder vers thrills.world).
+
+- **Notifications = PWA + connecté uniquement.** `notification-section.tsx`
+  applique la matrice PWA × auth via `hooks/usePwaInstall.ts` (+ `lib/pwa.ts`,
+  singleton qui capte `beforeinstallprompt`/`appinstalled` et détecte
+  standalone/plateforme). Navigateur → écran d'installation (bouton si
+  `beforeinstallprompt`, sinon instructions iOS/Android/desktop) ; PWA non
+  connecté → CTA connexion (`AuthDialog`) ; PWA + connecté → stepper
+  (`components/ui/number-stepper.tsx`, défaut 20, pas 5, 5–120) + voir/modifier/
+  supprimer (routes `/api/user/notifications` inchangées). i18n : namespace
+  `attractionDetail` (fr+en).
+- **Graphique/prévision** : endpoint dédié `GET /api/park/[parkId]/ride/[rideId]/history`
+  (fetché à la demande, **indépendant** de l'historique global suspendu).
+  `lib/wait-times-history.ts` reconstruit les séries horodatées depuis le modèle
+  temporel `wait_times` (today + N jours) ; `lib/wait-times-forecast.ts` (module
+  **pur**, interface `ForecastStrategy` extensible, v1 `profile-trend-v1` =
+  profil médian des jours précédents × échelle du jour + raccord tendance).
 
 ## Conventions
 
@@ -180,9 +210,9 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
   `notifications` (+`/[id]`, `/history`).
 - **UI** : bloc accueil `components/home/user-block.tsx` (au-dessus des favoris),
   popup `components/auth/auth-dialog.tsx`, page `app/[locale]/profile/` +
-  `components/profile/*`. **Création de notification uniquement** via la cloche
-  d'une attraction (`components/notifications/create-notification-dialog.tsx`
-  branchée dans `wait-time-table.tsx`), jamais depuis le profil.
+  `components/profile/*`. **Création/gestion de notification uniquement** via le
+  popup « détail attraction » (voir plus haut), jamais depuis le profil (qui ne
+  fait que lister / (dé)activer / supprimer).
 - i18n : namespaces `userBlock`, `auth`, `profile`, `notifications` (fr+en).
 - Le **moteur** de vérification des temps (déclenchement + écriture de
   `notification_history`) reste à écrire : structure prête.

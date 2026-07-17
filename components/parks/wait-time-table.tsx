@@ -3,17 +3,14 @@
 import { WaitTime, QueueTime } from "@/types/waitTime";
 import { motion } from "motion/react";
 import { getStatusBadge, getTimeSlotBadge, getWaitTimeBadge } from "@/lib/badge";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useWaitTimeChanges } from "@/hooks/useWaitTimeChanges";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useUser } from "@/components/providers/user-provider";
-import FavoriteStar from "@/components/ui/favorite-star";
 import WaitTrend from "@/components/parks/wait-trend";
-import CreateNotificationDialog, {
-  type NotificationTarget,
-} from "@/components/notifications/create-notification-dialog";
+import WavyDivider from "@/components/ui/wavy-divider";
+import AttractionDetailDialog from "@/components/parks/attraction-detail/attraction-detail-dialog";
 import { cn } from "@/lib/utils";
 import {
   ChevronRight,
@@ -21,7 +18,7 @@ import {
   ChevronDown,
   User,
   Clock,
-  Bell,
+  Eye,
   FastForward,
   CornerDownRight,
 } from "lucide-react";
@@ -75,20 +72,17 @@ const STATUS_ORDER = { open: 0, down: 1, closed: 2, maintenance: 3 } as const;
 // code de rendu ci-dessous ; repasser ce drapeau à `true` pour réactiver.
 const TRENDS_ENABLED = false;
 
-// Grille partagée par l'en-tête et chaque ligne pour aligner les 3 colonnes.
-// Chaque ligne est une grille indépendante : impossible de laisser les pistes
-// s'auto-dimensionner au contenu (elles ne seraient plus alignées d'une ligne à
-// l'autre). Comme l'ancienne table, on privilégie les colonnes Temps/État
-// (badge + flèche de tendance, « En panne » sur une ligne) et le nom prend le
-// reste (donc plus étroit) :
-// - mobile : Temps en largeur fixe (4rem, resserré : la flèche de tendance étant
-//   suspendue, le badge seul n'a plus besoin de place) et État (6rem, assez pour
-//   « Maintenance »). Tracks volontairement étroites pour laisser le MAXIMUM de
-//   largeur au nom de l'attraction (moins de retours à la ligne). Le badge Temps
-//   reste aligné à GAUCHE (défaut) ;
-// - ≥ sm : mêmes proportions que l'ancienne table (4/6 · 1/6 · 1/6).
+// Grille partagée par l'en-tête et chaque ligne pour aligner les colonnes. Une
+// 4e piste de LARGEUR FIXE (3.5rem) accueille le cluster d'action à DROITE
+// (chevron d'expand + œil d'ouverture du popup). Largeur fixe et non `auto` :
+// chaque ligne étant une grille indépendante, `auto` donnerait des largeurs
+// différentes selon la présence du chevron et désalignerait les colonnes. Avec
+// une largeur fixe + `justify-end`, l'œil reste toujours aligné.
+// - mobile : Temps (4rem) et État (6rem, « Maintenance ») resserrés pour laisser
+//   le MAXIMUM de largeur au nom ;
+// - ≥ sm : proportions 4/1/1 comme l'ancienne table.
 const GRID_COLS =
-  "grid items-center grid-cols-[minmax(0,1fr)_4rem_6rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)]";
+  "grid items-center grid-cols-[minmax(0,1fr)_4rem_6rem_3.5rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)_3.5rem]";
 
 function getPrimaryQueue(wt: WaitTime): QueueTime | undefined {
   return wt.queues.find((q) => q.type === "standby") || wt.queues[0];
@@ -105,17 +99,16 @@ export default function ParkWaitTimeTable({
   const t = useTranslations("waitTimeTable");
   const tStatus = useTranslations("attractionStatus");
   const tFav = useTranslations("favorites");
-  const tNotif = useTranslations("notifications");
+  const tDetail = useTranslations("attractionDetail");
   const { is12Hour } = useTimeFormat();
-  const { isAuthenticated } = useUser();
-  const [notifTarget, setNotifTarget] = useState<NotificationTarget | null>(
-    null,
-  );
+  const [detailTarget, setDetailTarget] = useState<WaitTime | null>(null);
   const [expandedRides, setExpandedRides] = useState<Set<number>>(new Set());
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  const { isFavorite, toggle } = useFavorites("rides");
+  // Les favoris ne sont plus (dé)marqués depuis la liste (ça passe par le popup)
+  // mais restent épinglés en tête, d'où l'usage de `isFavorite` pour le tri.
+  const { isFavorite } = useFavorites("rides");
   const favKey = (rideId: number) => `${parkIdentifier}:${rideId}`;
 
   const statusLabels: Record<string, string> = {
@@ -219,8 +212,8 @@ export default function ParkWaitTimeTable({
   const orderKey = sortedWaitTimes.map((w) => w.rideId).join(",");
 
   // Frontière entre les favoris (épinglés en tête) et les attractions
-  // classiques : on marque la 1re attraction non-favorite d'un séparateur plus
-  // franc pour que les deux groupes se mélangent visuellement moins.
+  // classiques : on encadre le groupe des favoris de deux séparateurs ondulés
+  // ambrés (celui du haut porte le libellé « Vos favoris »).
   const favCount = sortedWaitTimes.filter((w) =>
     isFavorite(favKey(w.rideId)),
   ).length;
@@ -235,19 +228,14 @@ export default function ParkWaitTimeTable({
           "h-10 border-b font-medium text-muted-foreground",
         )}
       >
-        <div className="flex items-center gap-1.5">
-          {/* Espace de la largeur de l'étoile (w-5) + même gap que les lignes,
-              pour aligner "Attraction" avec les noms des attractions. */}
-          <span className="w-5 shrink-0" aria-hidden />
-          <button
-            type="button"
-            onClick={() => handleSort("name")}
-            className={sortButtonClass}
-          >
-            {t("attraction")}
-            {sortIndicator("name")}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => handleSort("name")}
+          className={cn(sortButtonClass, "justify-self-start")}
+        >
+          {t("attraction")}
+          {sortIndicator("name")}
+        </button>
         <button
           type="button"
           onClick={() => handleSort("wait")}
@@ -267,7 +255,12 @@ export default function ParkWaitTimeTable({
           {t("status")}
           {sortIndicator("status")}
         </button>
+        {/* Colonne d'action (œil) : cellule vide dans l'en-tête. */}
+        <span aria-hidden />
       </div>
+
+      {/* Séparateur haut des favoris (avec libellé), hors zone animée. */}
+      {favCount > 0 && <WavyDivider label={tFav("yours")} />}
 
       {/* Corps : une ligne standby par attraction (+ files dépliées). Chaque
           attraction est un bloc `motion` animé en `layout` pour que le reclassement
@@ -285,174 +278,157 @@ export default function ParkWaitTimeTable({
           const otherQueues = sortedQueues.filter((q) => q.type !== "standby");
           const isExpanded = expandedRides.has(waitTime.rideId);
           const hasMultipleQueues = sortedQueues.length > 1;
-          const fav = isFavorite(favKey(waitTime.rideId));
           const rideHistory = history[waitTime.rideId];
+          // Frontière favoris / reste : séparateur ondulé (sans libellé) inséré
+          // avant la 1re attraction classique.
+          const isBoundary = hasFavBoundary && index === favCount;
 
           return (
-            <motion.div
-              layout="position"
-              layoutDependency={orderKey}
-              key={waitTime.rideId}
-              transition={{ type: "spring", stiffness: 320, damping: 36 }}
-              // Séparateur entre attractions uniquement (pas de trait final en bas).
-              // La 1re attraction classique après les favoris reçoit un trait plus
-              // épais + un petit espace pour distinguer nettement les deux groupes.
-              className={cn(
-                index > 0 && "border-t",
-                hasFavBoundary &&
-                  index === favCount &&
-                  "mt-2 border-t-2 border-border",
-              )}
-            >
-              {/* Ligne standby (toujours affichée) */}
-              {standbyQueue && (
-                <div
-                  className={cn(
-                    GRID_COLS,
-                    "group transition-colors duration-500",
-                    changedRides.has(`${waitTime.rideId}-standby`) &&
-                      "bg-accent",
-                    hasMultipleQueues && "cursor-pointer hover:bg-accent/50",
-                  )}
-                  onClick={() =>
-                    hasMultipleQueues && toggleExpand(waitTime.rideId)
-                  }
-                >
-                  <div className="flex min-w-0 items-center gap-1.5 py-2 pe-2 font-medium wrap-break-word">
-                    <FavoriteStar
-                      active={fav}
-                      onToggle={() => toggle(favKey(waitTime.rideId))}
-                      label={fav ? tFav("remove") : tFav("add")}
-                      className={cn(
-                        "transition-opacity",
-                        fav
-                          ? "opacity-100"
-                          : "opacity-40 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100",
+            <Fragment key={waitTime.rideId}>
+              {isBoundary && <WavyDivider />}
+              <motion.div
+                layout="position"
+                layoutDependency={orderKey}
+                transition={{ type: "spring", stiffness: 320, damping: 36 }}
+                // Séparateur entre attractions (pas de trait au niveau de la
+                // frontière favoris, remplacé par le séparateur ondulé).
+                className={cn(index > 0 && !isBoundary && "border-t")}
+              >
+                {/* Ligne standby (toujours affichée) */}
+                {standbyQueue && (
+                  <div
+                    className={cn(
+                      GRID_COLS,
+                      "group transition-colors duration-500",
+                      changedRides.has(`${waitTime.rideId}-standby`) &&
+                        "bg-accent",
+                      hasMultipleQueues && "cursor-pointer hover:bg-accent/50",
+                    )}
+                    onClick={() =>
+                      hasMultipleQueues && toggleExpand(waitTime.rideId)
+                    }
+                  >
+                    <div className="min-w-0 py-2 pe-2 font-medium wrap-break-word">
+                      {waitTime.rideName}
+                    </div>
+                    <div className="py-2">
+                      {(() => {
+                        const showTrend =
+                          TRENDS_ENABLED &&
+                          !parkClosed &&
+                          !standbyQueue.timeSlot &&
+                          standbyQueue.status === "open" &&
+                          standbyQueue.waitTime >= 0;
+                        if (standbyQueue.timeSlot) {
+                          return getTimeSlotBadge(
+                            standbyQueue.timeSlot,
+                            is12Hour,
+                          );
+                        }
+                        if (!showTrend) {
+                          // Indispo / fermé : badge à sa largeur naturelle, pas de flèche.
+                          return getWaitTimeBadge(
+                            standbyQueue.waitTime,
+                            unavailableLabel,
+                          );
+                        }
+                        // Badge dans une boîte à largeur minimale (min-w-14) pour
+                        // que les flèches d'une ligne à l'autre repartent du même x
+                        // (colonne alignée). C'est un *minimum* : les badges 1–2
+                        // chiffres collent la flèche, « +90 min » élargit juste sa
+                        // boîte au lieu de déborder.
+                        return (
+                          <div className="flex items-center gap-1">
+                            <span className="inline-flex min-w-14">
+                              {getWaitTimeBadge(
+                                standbyQueue.waitTime,
+                                unavailableLabel,
+                              )}
+                            </span>
+                            <WaitTrend
+                              history={rideHistory ?? []}
+                              current={standbyQueue.waitTime}
+                            />
+                          </div>
+                        );
+                      })()}
+                    </div>
+                    <div className="flex justify-end py-2 pe-0 sm:block">
+                      {getStatusBadge(standbyQueue.status, statusLabels)}
+                    </div>
+                    {/* Cluster d'action à droite : chevron d'expand (si files
+                        multiples) + œil d'ouverture du popup. */}
+                    <div className="flex items-center justify-end gap-0.5 py-2 ps-1">
+                      {hasMultipleQueues && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExpand(waitTime.rideId);
+                          }}
+                          aria-label={t("attraction")}
+                          className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          <ChevronRight
+                            className={cn(
+                              "size-4 transition-transform duration-200",
+                              isExpanded && "rotate-90",
+                            )}
+                          />
+                        </button>
                       )}
-                    />
-                    {/* Création d'une notification : uniquement connecté, et
-                        depuis ici (popup attraction) — jamais depuis le profil. */}
-                    {isAuthenticated && (
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setNotifTarget({
-                            rideId: waitTime.rideId,
-                            rideName: waitTime.rideName,
-                          });
+                          setDetailTarget(waitTime);
                         }}
-                        aria-label={tNotif("createFor", {
+                        aria-label={tDetail("openFor", {
                           ride: waitTime.rideName,
                         })}
-                        className="shrink-0 text-muted-foreground opacity-40 transition-opacity hover:text-primary sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                        className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:text-primary"
                       >
-                        <Bell className="size-4" />
+                        <Eye className="size-4" />
                       </button>
-                    )}
-                    <span className="min-w-0">
-                      {hasMultipleQueues ? (
-                        (() => {
-                          const words = waitTime.rideName.trim().split(" ");
-                          const lastWord = words.pop();
-                          const beginning = words.join(" ");
-                          return (
-                            <>
-                              {beginning}{" "}
-                              <span className="inline-flex items-center gap-1 whitespace-nowrap">
-                                {lastWord}
-                                <ChevronRight
-                                  className={cn(
-                                    "size-3.5 transition-transform duration-200",
-                                    isExpanded && "rotate-90",
-                                  )}
-                                />
-                              </span>
-                            </>
-                          );
-                        })()
-                      ) : (
-                        waitTime.rideName
-                      )}
-                    </span>
+                    </div>
                   </div>
-                  <div className="py-2">
-                    {(() => {
-                      const showTrend =
-                        TRENDS_ENABLED &&
-                        !parkClosed &&
-                        !standbyQueue.timeSlot &&
-                        standbyQueue.status === "open" &&
-                        standbyQueue.waitTime >= 0;
-                      if (standbyQueue.timeSlot) {
-                        return getTimeSlotBadge(standbyQueue.timeSlot, is12Hour);
-                      }
-                      if (!showTrend) {
-                        // Indispo / fermé : badge à sa largeur naturelle, pas de flèche.
-                        return getWaitTimeBadge(
-                          standbyQueue.waitTime,
-                          unavailableLabel,
-                        );
-                      }
-                      // Badge dans une boîte à largeur minimale (min-w-14) pour
-                      // que les flèches d'une ligne à l'autre repartent du même x
-                      // (colonne alignée). C'est un *minimum* : les badges 1–2
-                      // chiffres collent la flèche, « +90 min » élargit juste sa
-                      // boîte au lieu de déborder.
-                      return (
-                        <div className="flex items-center gap-1">
-                          <span className="inline-flex min-w-14">
-                            {getWaitTimeBadge(
-                              standbyQueue.waitTime,
-                              unavailableLabel,
-                            )}
-                          </span>
-                          <WaitTrend
-                            history={rideHistory ?? []}
-                            current={standbyQueue.waitTime}
-                          />
-                        </div>
-                      );
-                    })()}
-                  </div>
-                  <div className="flex justify-end py-2 pe-0 sm:block">
-                    {getStatusBadge(standbyQueue.status, statusLabels)}
-                  </div>
-                </div>
-              )}
+                )}
 
-              {/* Files secondaires (visibles seulement si dépliées) */}
-              {isExpanded &&
-                otherQueues.map((queue) => (
-                  <div
-                    key={`${waitTime.rideId}-${queue.type}`}
-                    className={cn(
-                      GRID_COLS,
-                      "border-t transition-colors duration-500",
-                      changedRides.has(`${waitTime.rideId}-${queue.type}`) &&
-                        "bg-accent",
-                    )}
-                  >
-                    <div className="flex items-center gap-1 py-2 pe-2 ps-6 font-medium text-muted-foreground">
-                      <CornerDownRight className="size-3.5" />
-                      <span>{getQueueLabel(queue.type)}</span>
-                      {QUEUE_TYPE_MAP[queue.type] &&
-                        (() => {
-                          const Icon = QUEUE_TYPE_MAP[queue.type].icon;
-                          return <Icon className="size-3.5" />;
-                        })()}
+                {/* Files secondaires (visibles seulement si dépliées) */}
+                {isExpanded &&
+                  otherQueues.map((queue) => (
+                    <div
+                      key={`${waitTime.rideId}-${queue.type}`}
+                      className={cn(
+                        GRID_COLS,
+                        "border-t transition-colors duration-500",
+                        changedRides.has(`${waitTime.rideId}-${queue.type}`) &&
+                          "bg-accent",
+                      )}
+                    >
+                      <div className="flex items-center gap-1 py-2 pe-2 ps-6 font-medium text-muted-foreground">
+                        <CornerDownRight className="size-3.5" />
+                        <span>{getQueueLabel(queue.type)}</span>
+                        {QUEUE_TYPE_MAP[queue.type] &&
+                          (() => {
+                            const Icon = QUEUE_TYPE_MAP[queue.type].icon;
+                            return <Icon className="size-3.5" />;
+                          })()}
+                      </div>
+                      <div className="py-2">
+                        {queue.timeSlot
+                          ? getTimeSlotBadge(queue.timeSlot, is12Hour)
+                          : getWaitTimeBadge(queue.waitTime, unavailableLabel)}
+                      </div>
+                      <div className="flex justify-end py-2 pe-0 sm:block">
+                        {getStatusBadge(queue.status, statusLabels)}
+                      </div>
+                      {/* Cellule d'action vide pour aligner la grille. */}
+                      <span aria-hidden />
                     </div>
-                    <div className="py-2">
-                      {queue.timeSlot
-                        ? getTimeSlotBadge(queue.timeSlot, is12Hour)
-                        : getWaitTimeBadge(queue.waitTime, unavailableLabel)}
-                    </div>
-                    <div className="flex justify-end py-2 pe-0 sm:block">
-                      {getStatusBadge(queue.status, statusLabels)}
-                    </div>
-                  </div>
-                ))}
-            </motion.div>
+                  ))}
+              </motion.div>
+            </Fragment>
           );
         })
       ) : (
@@ -461,13 +437,13 @@ export default function ParkWaitTimeTable({
         </div>
       )}
 
-      {/* Un seul dialog de création, piloté par la cloche de chaque ligne. */}
-      <CreateNotificationDialog
-        target={notifTarget}
+      {/* Popup « détail attraction », piloté par l'œil de chaque ligne. */}
+      <AttractionDetailDialog
+        target={detailTarget}
         parkIdentifier={parkIdentifier}
         parkName={parkName}
         onOpenChange={(open) => {
-          if (!open) setNotifTarget(null);
+          if (!open) setDetailTarget(null);
         }}
       />
     </div>

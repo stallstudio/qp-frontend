@@ -57,6 +57,7 @@
   },
   "favorites": {
     "myFavorites": "Mes favoris",
+    "yours": "Vos favoris",
     "add": "Ajouter aux favoris",
     "remove": "Retirer des favoris",
     "addPark": "Ajouter ce parc aux favoris",
@@ -293,5 +294,31 @@
     "create": "Créer",
     "created": "Notification créée pour {ride}",
     "createError": "La création de la notification a échoué."
+  },
+  "attractionDetail": {
+    "openFor": "Voir le détail de {ride}",
+    "thrillsLink": "Voir l'attraction sur Thrills",
+    "notificationsTitle": "Notifications",
+    "chartTitle": "Temps d'attente aujourd'hui",
+    "chartToday": "Aujourd'hui",
+    "chartForecast": "Prévision",
+    "chartNow": "Maintenant",
+    "chartEmpty": "Pas encore de données pour aujourd'hui.",
+    "chartForecastNote": "Estimation indicative de la fin de journée.",
+    "installTitle": "Installez Queue Park",
+    "installIntro": "Les notifications nécessitent l'application installée sur votre appareil.",
+    "installButton": "Installer l'application",
+    "installAndroidSteps": "Ouvrez le menu ⋮ de votre navigateur, puis « Ajouter à l'écran d'accueil ».",
+    "installIosSteps": "Appuyez sur Partager, puis « Sur l'écran d'accueil ».",
+    "installDesktopSteps": "Utilisez l'icône d'installation dans la barre d'adresse de votre navigateur.",
+    "installAccountNote": "Un compte sera également nécessaire pour créer des notifications.",
+    "signInTitle": "Connectez-vous",
+    "signInIntro": "Connectez-vous pour être prévenu quand l'attente baisse.",
+    "notifActive": "Alerte active",
+    "save": "Enregistrer",
+    "update": "Mettre à jour",
+    "delete": "Supprimer",
+    "saved": "Notification enregistrée",
+    "deleted": "Notification supprimée"
   }
 }
