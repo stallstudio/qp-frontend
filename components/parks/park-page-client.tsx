@@ -12,6 +12,11 @@ import MainCard from "@/components/parks/main-card";
 import { ParkLiveData } from "@/types/api";
 import ReportProblemDialog from "@/components/parks/report-problem-dialog";
 
+// SUSPENDU : la récupération de l'historique du jour (sparklines / tendances)
+// est mise en pause. Le code est conservé et se réactive en repassant ce
+// drapeau à `true`. Voir aussi TRENDS_ENABLED dans wait-time-table.tsx.
+const HISTORY_ENABLED = false;
+
 export default function ParkPageClient({
   parkIdentifier,
 }: {
@@ -25,6 +30,11 @@ export default function ParkPageClient({
   const hasLoadedData = useRef(false);
 
   const fetchHistory = useCallback(async () => {
+    // Historique suspendu : on ne déclenche plus AUCUNE requête vers
+    // /api/park/:id/history pour le moment. Ancien code conservé ci-dessous,
+    // réactivable via HISTORY_ENABLED.
+    if (!HISTORY_ENABLED) return;
+
     try {
       const response = await axios.get<{ data: Record<number, number[]> }>(
         `/api/park/${parkIdentifier}/history`,

@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { AlertCircle, Clock, Drama, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { getParkStatus } from "@/lib/utils";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { usePageVisibility } from "@/hooks/usePageVisibility";
 import ParkWaitTimeTable from "./wait-time-table";
@@ -62,6 +63,13 @@ export default function MainCard({
   const showTabs = hasWaitTimes && hasShows;
   const parkDate = park.openingHours?.[0]?.date ?? null;
 
+  // Parc « fermé » = on a des horaires pour le jour mais l'heure courante est
+  // hors de ces plages. Dans ce cas les flèches de tendance n'ont plus de sens
+  // (temps figés) et on les masque. En revanche, si aucun horaire n'est connu
+  // (statut « unknown » — souvent une simple erreur de récupération), on garde
+  // tout pour ne pas dégrader l'expérience.
+  const parkClosed = getParkStatus(park.openingHours) === "closed";
+
   useEffect(() => {
     if (showTabs) {
       if (hasShows && !hasWaitTimes) {
@@ -113,6 +121,7 @@ export default function MainCard({
               queueTypeLabels={park.queueTypeLabels}
               parkIdentifier={park.identifier}
               history={history}
+              parkClosed={parkClosed}
             />
           </TabsContent>
           <TabsContent value="show-times">
@@ -130,6 +139,7 @@ export default function MainCard({
           queueTypeLabels={park.queueTypeLabels}
           parkIdentifier={park.identifier}
           history={history}
+          parkClosed={parkClosed}
         />
       ) : hasShows ? (
         <ParkShowTimeTable

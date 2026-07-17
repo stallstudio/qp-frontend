@@ -1,7 +1,7 @@
 "use client";
 
 import { DateTime } from "luxon";
-import { getLuxonFormat } from "@/lib/utils";
+import { cn, getLuxonFormat } from "@/lib/utils";
 import { ClickableTooltip } from "./clickable-tooltip";
 import {
   ScheduleWithPosition,
@@ -20,6 +20,8 @@ type TimelineRowProps = {
   now: DateTime;
   currentHourPosition: number;
   is12Hour: boolean;
+  // Trait plus franc en haut : marque la 1re ligne classique après les favoris.
+  dividerTop?: boolean;
   rowRef: (el: HTMLDivElement | null) => void;
 };
 
@@ -32,6 +34,7 @@ export function TimelineRow({
   now,
   currentHourPosition,
   is12Hour,
+  dividerTop = false,
   rowRef,
 }: TimelineRowProps) {
   const contentHeight = totalLanes * LANE_HEIGHT;
@@ -40,7 +43,10 @@ export function TimelineRow({
   return (
     <div
       ref={rowRef}
-      className="border-b relative"
+      className={cn(
+        "border-b relative",
+        dividerTop && "border-t-2 border-border",
+      )}
       style={{ height: `${rowHeight}px` }}
     >
       {parkHours.map((hour, index) => (

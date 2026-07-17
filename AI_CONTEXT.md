@@ -108,6 +108,20 @@ Compare le temps courant à la 1re valeur d'une fenêtre des 5 derniers points
 d'historique connus (ignore les `-1`). Seuil `±5 min` : hausse (rouge ↗),
 baisse (verte ↘), stable (gris →). Rien si indispo ou historique vide.
 
+> **⏸️ SUSPENDU (temporaire).** L'historique et les tendances sont désactivés
+> pour l'instant, **code conservé** (rien de supprimé), réactivables via des
+> drapeaux :
+> - `HISTORY_ENABLED` dans `park-page-client.tsx` : à `false`, `fetchHistory`
+>   sort immédiatement → **aucune requête** vers `/api/park/:id/history`.
+> - `TRENDS_ENABLED` dans `wait-time-table.tsx` : à `false`, les flèches ne sont
+>   jamais rendues (le composant `WaitTrend` et son branchement restent en
+>   place). Le prop `parkClosed` (masquage quand parc fermé) reste, en aval.
+> - La carte « tendance » du **guide À propos** (`about-page-client.tsx`) est
+>   **commentée** (imports `TrendingUp` / `TrendDemo` commentés aussi).
+>
+> Pour réactiver : repasser les deux drapeaux à `true` et décommenter la
+> vignette + ses imports.
+
 ### Favoris (`hooks/useFavorites.ts`)
 
 `localStorage`, **sans compte**. Namespaces isolés (`"parks"`, `"rides"`).
@@ -133,6 +147,9 @@ lancer build/tsc ici ; se fier à la revue manuelle (le repo compile côté user
 ## Page À propos (ajout 2026-07)
 
 - Route `app/[locale]/about/page.tsx` (metadata via namespace `about`).
+- `components/about/about-header.tsx` : **en-tête fixe scroll-shrink** identique à
+  l'accueil / une page parc (spacer + carte `fixed` qui rétrécit, lien de retour
+  qui se fond). Réutilisé par la page À propos pour un comportement cohérent.
 - `components/about/about-page-client.tsx` : hero + `Card` à **2 onglets**
   (`about` = le projet, `guide` = les fonctionnalités), grilles de `Vignette`.
 - `components/about/vignette.tsx` : petite carte (icône + titre + texte + démo).

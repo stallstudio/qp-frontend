@@ -8,7 +8,7 @@ import SearchResult from "./search-result";
 import { useRouter } from "@/i18n/routing";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { getParkLink } from "@/lib/utils";
+import { getParkLink, getParkStatus } from "@/lib/utils";
 
 interface SearchBarProps {
   parks: ParkList[];
@@ -78,11 +78,20 @@ export default function SearchBar({ parks }: SearchBarProps) {
   };
 
   const getRandomPark = () => {
-    const randomIndex = Math.floor(Math.random() * parks.length);
-    toast.success(`${t("randomParkToast")} ${parks[randomIndex].name} !`, {
+    // On ne tire qu'entre les parcs actuellement ouverts : atterrir sur un parc
+    // fermé (aucun temps d'attente) est frustrant. Repli sur l'ensemble des
+    // parcs si, exceptionnellement, aucun n'est ouvert.
+    const openParks = parks.filter(
+      (park) => getParkStatus(park.openingHours) === "open",
+    );
+    const pool = openParks.length > 0 ? openParks : parks;
+    if (pool.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    toast.success(`${t("randomParkToast")} ${pool[randomIndex].name} !`, {
       icon: <Dices className="size-4" />,
     });
-    const link = getParkLink(parks[randomIndex]);
+    const link = getParkLink(pool[randomIndex]);
     router.push(link);
   };
   return (

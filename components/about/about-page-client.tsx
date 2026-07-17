@@ -1,11 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
 import {
-  Undo2,
   Info,
   Radio,
   Server,
@@ -13,7 +10,7 @@ import {
   Heart,
   Flag,
   Clock,
-  TrendingUp,
+  // TrendingUp, // SUSPENDU : carte « tendance » du guide masquée (historique désactivé).
   ListTree,
   Star,
   Flame,
@@ -25,10 +22,11 @@ import {
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Footer from "@/components/ui/footer";
+import AboutHeader from "./about-header";
 import Vignette from "./vignette";
 import {
   LiveDemo,
-  TrendDemo,
+  // TrendDemo, // SUSPENDU : voir carte « tendance » masquée plus bas.
   QueuesDemo,
   FavoriteDemo,
   StatusDemo,
@@ -43,39 +41,18 @@ export default function AboutPageClient() {
   const demoLabel = t("demoLabel");
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-3 sm:px-4 lg:max-w-6xl">
-      <main className="mt-4 flex flex-1 flex-col gap-6">
-        {/* En-tête : bannière avec la couverture par défaut + lien de retour. */}
-        <div className="relative w-full overflow-hidden rounded-4xl border border-white/10 shadow-sm">
-          <Image
-            src="/default_cover.webp"
-            alt="Queue Park"
-            width={1920}
-            height={1080}
-            className="absolute inset-0 h-full w-full object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-black/20" />
-          <div className="relative z-10 flex h-72 flex-col justify-end p-5 sm:p-8">
-            <Link
-              href="/"
-              className="absolute left-5 top-5 flex items-center gap-2 text-sm text-white/90 transition-colors hover:text-white sm:left-8 sm:top-8"
-            >
-              <Undo2 className="size-4" />
-              {t("backHome")}
-            </Link>
-            <h1 className="text-3xl font-bold text-white sm:text-4xl">
-              {t("heroTitle")}
-            </h1>
-            <p className="mt-2 max-w-xl text-sm text-white/90 sm:text-base">
-              {t("heroSubtitle")}
-            </p>
-          </div>
-        </div>
+    <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-8 px-3 sm:px-4 lg:max-w-6xl">
+      {/* Mêmes marges que la page parc : `mt-4` + `gap-1` pour que la carte à
+          onglets colle au header exactement comme sur un parc. */}
+      <main className="mt-4 flex flex-1 flex-col gap-1">
+        {/* En-tête fixe qui rétrécit au scroll, comme l'accueil / une page parc. */}
+        <AboutHeader />
 
         {/* Container « temps d'attente » : la même carte à onglets que sur les
-            pages de parc, mais on écrit dedans. */}
-        <Card className="w-full gap-0 rounded-4xl p-2.5 pb-0 sm:p-4">
+            pages de parc, mais on écrit dedans. Pas de `pb-0` ici (contrairement
+            au container parc qui a un pied interne) : l'espacement du bas reste
+            ainsi identique à celui des côtés. */}
+        <Card className="w-full gap-0 rounded-4xl p-2.5 sm:p-4">
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
@@ -166,13 +143,16 @@ export default function AboutPageClient() {
                   demoLabel={demoLabel}
                   demo={<LiveDemo />}
                 />
+                {/* SUSPENDU : carte « tendance » masquée tant que l'historique
+                    est désactivé (voir HISTORY_ENABLED / TRENDS_ENABLED). À
+                    réafficher en même temps que la réactivation des tendances.
                 <Vignette
                   icon={TrendingUp}
                   title={tCards("trend.title")}
                   body={tCards("trend.body")}
                   demoLabel={demoLabel}
                   demo={<TrendDemo />}
-                />
+                /> */}
                 <Vignette
                   icon={ListTree}
                   title={tCards("queues.title")}
@@ -214,7 +194,6 @@ export default function AboutPageClient() {
                   demo={<StatusDemo />}
                 />
                 <Vignette
-                  wide
                   icon={SlidersHorizontal}
                   title={tCards("preferences.title")}
                   body={tCards("preferences.body")}

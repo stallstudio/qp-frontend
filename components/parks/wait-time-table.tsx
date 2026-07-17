@@ -56,9 +56,18 @@ type WaitTimeTableProps = {
   queueTypeLabels?: Record<string, string> | null;
   parkIdentifier: string;
   history?: Record<number, number[]>;
+  // Vrai quand le parc a des horaires connus et qu'il est actuellement fermé.
+  // Dans ce cas on masque les flèches de tendance (les temps sont figés / la
+  // tendance n'a plus de sens). Voir usage plus bas.
+  parkClosed?: boolean;
 };
 
 const STATUS_ORDER = { open: 0, down: 1, closed: 2, maintenance: 3 } as const;
+
+// SUSPENDU : les flèches de tendance dépendent de l'historique, désactivé pour
+// le moment (voir HISTORY_ENABLED dans park-page-client.tsx). On garde tout le
+// code de rendu ci-dessous ; repasser ce drapeau à `true` pour réactiver.
+const TRENDS_ENABLED = false;
 
 // Grille partagée par l'en-tête et chaque ligne pour aligner les 3 colonnes.
 // Chaque ligne est une grille indépendante : impossible de laisser les pistes
@@ -66,11 +75,14 @@ const STATUS_ORDER = { open: 0, down: 1, closed: 2, maintenance: 3 } as const;
 // l'autre). Comme l'ancienne table, on privilégie les colonnes Temps/État
 // (badge + flèche de tendance, « En panne » sur une ligne) et le nom prend le
 // reste (donc plus étroit) :
-// - mobile : Temps et État en largeur fixe (5.5rem) assez large pour le badge +
-//   la flèche ; nom = tout le reste ;
+// - mobile : Temps en largeur fixe (4rem, resserré : la flèche de tendance étant
+//   suspendue, le badge seul n'a plus besoin de place) et État (6rem, assez pour
+//   « Maintenance »). Tracks volontairement étroites pour laisser le MAXIMUM de
+//   largeur au nom de l'attraction (moins de retours à la ligne). Le badge Temps
+//   reste aligné à GAUCHE (défaut) ;
 // - ≥ sm : mêmes proportions que l'ancienne table (4/6 · 1/6 · 1/6).
 const GRID_COLS =
-  "grid items-center grid-cols-[minmax(0,1fr)_5.5rem_5.5rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)]";
+  "grid items-center grid-cols-[minmax(0,1fr)_4rem_6rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)]";
 
 function getPrimaryQueue(wt: WaitTime): QueueTime | undefined {
   return wt.queues.find((q) => q.type === "standby") || wt.queues[0];
@@ -81,6 +93,7 @@ export default function ParkWaitTimeTable({
   queueTypeLabels,
   parkIdentifier,
   history = {},
+  parkClosed = false,
 }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const tStatus = useTranslations("attractionStatus");
@@ -193,6 +206,14 @@ export default function ParkWaitTimeTable({
   // aucune animation de position (plus d'effet d'étirement à l'ouverture).
   const orderKey = sortedWaitTimes.map((w) => w.rideId).join(",");
 
+  // Frontière entre les favoris (épinglés en tête) et les attractions
+  // classiques : on marque la 1re attraction non-favorite d'un séparateur plus
+  // franc pour que les deux groupes se mélangent visuellement moins.
+  const favCount = sortedWaitTimes.filter((w) =>
+    isFavorite(favKey(w.rideId)),
+  ).length;
+  const hasFavBoundary = favCount > 0 && favCount < sortedWaitTimes.length;
+
   return (
     <div className="w-full text-sm">
       {/* En-tête (colonnes triables) — hors zone animée. */}
@@ -262,7 +283,14 @@ export default function ParkWaitTimeTable({
               key={waitTime.rideId}
               transition={{ type: "spring", stiffness: 320, damping: 36 }}
               // Séparateur entre attractions uniquement (pas de trait final en bas).
-              className={cn(index > 0 && "border-t")}
+              // La 1re attraction classique après les favoris reçoit un trait plus
+              // épais + un petit espace pour distinguer nettement les deux groupes.
+              className={cn(
+                index > 0 && "border-t",
+                hasFavBoundary &&
+                  index === favCount &&
+                  "mt-2 border-t-2 border-border",
+              )}
             >
               {/* Ligne standby (toujours affichée) */}
               {standbyQueue && (
@@ -316,9 +344,11 @@ export default function ParkWaitTimeTable({
                       )}
                     </span>
                   </div>
-                  <div className="overflow-hidden py-2">
+                  <div className="py-2">
                     {(() => {
                       const showTrend =
+                        TRENDS_ENABLED &&
+                        !parkClosed &&
                         !standbyQueue.timeSlot &&
                         standbyQueue.status === "open" &&
                         standbyQueue.waitTime >= 0;
@@ -353,7 +383,7 @@ export default function ParkWaitTimeTable({
                       );
                     })()}
                   </div>
-                  <div className="flex justify-end overflow-hidden py-2 pe-0 sm:block">
+                  <div className="flex justify-end py-2 pe-0 sm:block">
                     {getStatusBadge(standbyQueue.status, statusLabels)}
                   </div>
                 </div>
@@ -380,12 +410,12 @@ export default function ParkWaitTimeTable({
                           return <Icon className="size-3.5" />;
                         })()}
                     </div>
-                    <div className="overflow-hidden py-2">
+                    <div className="py-2">
                       {queue.timeSlot
                         ? getTimeSlotBadge(queue.timeSlot, is12Hour)
                         : getWaitTimeBadge(queue.waitTime, unavailableLabel)}
                     </div>
-                    <div className="flex justify-end overflow-hidden py-2 pe-0 sm:block">
+                    <div className="flex justify-end py-2 pe-0 sm:block">
                       {getStatusBadge(queue.status, statusLabels)}
                     </div>
                   </div>

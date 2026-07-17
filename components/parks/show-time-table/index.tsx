@@ -3,7 +3,8 @@
 import { useTranslations } from "next-intl";
 import { DateTime } from "luxon";
 import { useMemo, useRef, useEffect, useState, useCallback } from "react";
-import { getLuxonFormat } from "@/lib/utils";
+import { motion } from "motion/react";
+import { cn, getLuxonFormat } from "@/lib/utils";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useFavorites } from "@/hooks/useFavorites";
 import FavoriteStar from "@/components/ui/favorite-star";
@@ -90,6 +91,16 @@ export default function ParkShowTimeTable({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortedShowsWithLanes, isFavorite]);
+
+  // Signature de l'ordre courant : ne (ré)anime le `layout` que lors d'un vrai
+  // reclassement (mise en favori d'un spectacle -> remontée en tête).
+  const orderKey = displayShows.map((s) => s.show.showName).join(",");
+  // Frontière favoris / spectacles classiques (favoris épinglés en tête) : la
+  // 1re ligne classique reçoit un trait plus franc pour distinguer les groupes.
+  const favCount = displayShows.filter((s) =>
+    isFavorite(favKey(s.show.showName)),
+  ).length;
+  const hasFavBoundary = favCount > 0 && favCount < displayShows.length;
 
   useEffect(() => {
     if (scrollContainerRef.current && currentTimeRef.current) {
@@ -194,12 +205,20 @@ export default function ParkShowTimeTable({
             const fav = isFavorite(favKey(item.show.showName));
 
             return (
-              <div
-                key={index}
+              <motion.div
+                layout="position"
+                layoutDependency={orderKey}
+                key={item.show.showName}
+                transition={{ type: "spring", stiffness: 320, damping: 36 }}
                 ref={(el) => {
                   nameRefs.current[index] = el;
                 }}
-                className="group border-b flex items-center gap-1.5 pe-3 text-sm font-medium"
+                className={cn(
+                  "group border-b flex items-center gap-1.5 pe-3 text-sm font-medium",
+                  hasFavBoundary &&
+                    index === favCount &&
+                    "border-t-2 border-border",
+                )}
                 style={{ height: `${rowHeight}px` }}
               >
                 <FavoriteStar
@@ -220,7 +239,7 @@ export default function ParkShowTimeTable({
                     </span>
                   )}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -276,20 +295,30 @@ export default function ParkShowTimeTable({
             {/* Timeline rows */}
             <TooltipProvider delayDuration={0}>
               {displayShows.map((item, showIndex) => (
-                <TimelineRow
-                  key={showIndex}
-                  schedules={item.schedules}
-                  totalLanes={item.totalLanes}
-                  rowHeight={rowHeights[showIndex] || MIN_ROW_HEIGHT}
-                  parkHours={parkHours}
-                  timezone={timezone}
-                  now={now}
-                  currentHourPosition={currentHourPosition}
-                  is12Hour={is12Hour}
-                  rowRef={(el) => {
-                    timelineRefs.current[showIndex] = el;
-                  }}
-                />
+                // Enveloppe animée : le reclassement (mise en favori) glisse au
+                // lieu de sauter, en phase avec la colonne des noms (même clé
+                // stable, même ressort).
+                <motion.div
+                  key={item.show.showName}
+                  layout="position"
+                  layoutDependency={orderKey}
+                  transition={{ type: "spring", stiffness: 320, damping: 36 }}
+                >
+                  <TimelineRow
+                    schedules={item.schedules}
+                    totalLanes={item.totalLanes}
+                    rowHeight={rowHeights[showIndex] || MIN_ROW_HEIGHT}
+                    parkHours={parkHours}
+                    timezone={timezone}
+                    now={now}
+                    currentHourPosition={currentHourPosition}
+                    is12Hour={is12Hour}
+                    dividerTop={hasFavBoundary && showIndex === favCount}
+                    rowRef={(el) => {
+                      timelineRefs.current[showIndex] = el;
+                    }}
+                  />
+                </motion.div>
               ))}
             </TooltipProvider>
           </div>
