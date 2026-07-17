@@ -170,58 +170,6 @@
   }
 }
 
-@keyframes card-shine {
-  0% {
-    transform: translateX(-150%) skewX(-20deg);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(150%) skewX(-20deg);
-    opacity: 0;
-  }
-}
-
-.card-shine-active::after {
-  animation: card-shine 2s ease;
-}
-.card-shine {
-  position: relative;
-  overflow: hidden;
-}
-
-.card-shine::after {
-  content: "";
-  z-index: 40000;
-  position: absolute;
-
-  /* rendre BEAUCOUP plus grand que la card */
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-
-  pointer-events: none;
-
-  background: linear-gradient(
-    110deg,
-    transparent 40%,
-    rgba(255, 255, 255, 0.08) 48%,
-    rgba(255, 255, 255, 0.18) 50%,
-    rgba(255, 255, 255, 0.08) 52%,
-    transparent 60%
-  );
-
-  transform: translateX(-150%) skewX(-20deg);
-
-  opacity: 0;
-}
-
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

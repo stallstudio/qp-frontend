@@ -30,7 +30,6 @@ export default function MainCard({
 
   const {
     timeSinceLastUpdate,
-    justUpdated,
     handleRefresh,
     startIntervals,
     clearIntervals,
@@ -73,9 +72,7 @@ export default function MainCard({
     }
   }, []);
   return (
-    <Card
-      className={`w-full rounded-4xl p-2.5 sm:p-4 gap-0 pb-0 card-shine ${justUpdated ? "card-shine-active" : ""}`}
-    >
+    <Card className="w-full rounded-4xl p-2.5 sm:p-4 gap-0 pb-0">
       {showTabs ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="relative w-full rounded-3xl overflow-hidden">
