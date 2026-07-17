@@ -2,9 +2,11 @@ import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./language-switcher";
 import { AnimatedThemeToggler } from "./animated-theme-toggler";
 import { buttonVariants } from "./button";
+import { Link } from "@/i18n/routing";
 
 export default function Footer() {
   const t = useTranslations("footer");
+  const tAbout = useTranslations("about");
   const currentYear = new Date().getFullYear();
   return (
     <footer
@@ -28,6 +30,13 @@ export default function Footer() {
         </p>
       </div>
       <div className="flex items-center justify-center sm:justify-end gap-2 order-1 sm:order-2">
+        <Link
+          href="/about"
+          className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
+        >
+          {tAbout("metaTitle")}
+        </Link>
+        <span>|</span>
         <LanguageSwitcher />
         <span>|</span>
         <AnimatedThemeToggler

@@ -32,6 +32,7 @@ export default function ParkShowTimeTable({
   parkIdentifier,
 }: ShowTimeTableProps) {
   const t = useTranslations("waitTimeTable");
+  const tShows = useTranslations("shows");
   const tFav = useTranslations("favorites");
   const { is12Hour } = useTimeFormat();
 
@@ -293,6 +294,22 @@ export default function ParkShowTimeTable({
             </TooltipProvider>
           </div>
         </div>
+      </div>
+
+      {/* Légende : signification visuelle des créneaux (terminé / en cours / à venir). */}
+      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 px-3 pt-3 text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-3 w-5 rounded-sm border border-border bg-muted/50" />
+          {tShows("legendPast")}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-3 w-5 rounded-sm border border-dashed border-primary/30 bg-primary/10" />
+          {tShows("legendOngoing")}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-3 w-5 rounded-sm border border-primary/30 bg-primary/20" />
+          {tShows("legendUpcoming")}
+        </span>
       </div>
     </div>
   );
