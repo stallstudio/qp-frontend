@@ -4,6 +4,7 @@ export type ShowTimeTableProps = {
   shows: ShowTime[];
   timezone: string;
   parkDate?: string | null;
+  parkIdentifier: string;
 };
 
 export type ScheduleWithPosition = {

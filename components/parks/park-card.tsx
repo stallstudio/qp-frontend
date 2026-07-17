@@ -5,6 +5,9 @@ import { getCountryName, getParkLink, getParkStatus } from "@/lib/utils";
 import TitleWithStatus from "./title-with-status";
 import { ParkList } from "@/types/api";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useFavorites } from "@/hooks/useFavorites";
+import FavoriteStar from "@/components/ui/favorite-star";
 
 interface ParkCardProps {
   park: ParkList;
@@ -32,6 +35,9 @@ export default function ParkCard({
 }: ParkCardProps) {
   const status = getParkStatus(park.openingHours);
   const searchParams = useSearchParams();
+  const tFav = useTranslations("favorites");
+  const { isFavorite, toggle } = useFavorites("parks");
+  const isFav = isFavorite(park.identifier);
 
   const parkHref = (() => {
     const base = getParkLink(park);
@@ -45,9 +51,19 @@ export default function ParkCard({
       href={parkHref}
       className="block group h-full"
     >
-      <div className="flex items-center gap-4 justify-between hover:bg-accent transition-colors duration-300 px-2 py-1.5 rounded-lg h-full">
+      <div className="group flex items-center gap-4 justify-between hover:bg-accent transition-colors duration-300 px-2 py-1.5 rounded-lg h-full">
         <TitleWithStatus parkName={park.name} status={status} />
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
+          <FavoriteStar
+            active={isFav}
+            onToggle={() => toggle(park.identifier)}
+            label={isFav ? tFav("removePark") : tFav("addPark")}
+            className={`transition-opacity ${
+              isFav
+                ? "opacity-100"
+                : "opacity-40 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+            }`}
+          />
           {park.badge && showBadge && (
             <div
               className={`text-xs font-bold h-4.5 flex items-center border px-1.5 rounded-sm bg-linear-to-r ${getBadgeColor(park.badge)} text-transparent bg-clip-text`}

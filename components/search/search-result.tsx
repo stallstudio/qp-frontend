@@ -1,8 +1,13 @@
+"use client";
+
 import { getParkLink, getParkStatus } from "@/lib/utils";
 import { ParkList, CoverImage } from "@/types/api";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import Flag from "react-flagkit";
+import { useTranslations } from "next-intl";
+import { useFavorites } from "@/hooks/useFavorites";
+import FavoriteStar from "@/components/ui/favorite-star";
 import TitleWithStatus from "../parks/title-with-status";
 
 interface SearchResultProps {
@@ -11,6 +16,9 @@ interface SearchResultProps {
 
 export default function SearchResult({ park }: SearchResultProps) {
   const status = getParkStatus(park.openingHours);
+  const tFav = useTranslations("favorites");
+  const { isFavorite, toggle } = useFavorites("parks");
+  const isFav = isFavorite(park.identifier);
 
   const getParkCover = (covers: CoverImage[]) => {
     if (covers && covers.length > 0 && covers[0].url !== "") {
@@ -39,11 +47,23 @@ export default function SearchResult({ park }: SearchResultProps) {
           />
           <p className="text-xs text-muted-foreground ">{park.group.name}</p>
         </div>
-        <div className="w-6 h-4.5 border rounded-sm">
-          <Flag
-            country={park.country || ""}
-            className="w-full h-full object-cover rounded-sm"
+        <div className="flex items-center gap-2 shrink-0">
+          <FavoriteStar
+            active={isFav}
+            onToggle={() => toggle(park.identifier)}
+            label={isFav ? tFav("removePark") : tFav("addPark")}
+            className={`transition-opacity ${
+              isFav
+                ? "opacity-100"
+                : "opacity-40 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+            }`}
           />
+          <div className="w-6 h-4.5 border rounded-sm">
+            <Flag
+              country={park.country || ""}
+              className="w-full h-full object-cover rounded-sm"
+            />
+          </div>
         </div>
       </div>
     </Link>
