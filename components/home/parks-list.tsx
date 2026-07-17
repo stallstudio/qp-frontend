@@ -125,16 +125,41 @@ export default function ParksList({ parks }: ParksListProps) {
               id="only-open-parks"
               onCheckedChange={(checked) => updateParam("open", checked ? "true" : null)}
               checked={onlyOpenParks}
-              className="cursor-pointer"
+              className="cursor-pointer [&_[data-slot=switch-thumb]]:duration-[400ms] [&_[data-slot=switch-thumb]]:ease-[cubic-bezier(0.32,0.72,0,1)]"
             />
             <Label htmlFor="only-open-parks" className="cursor-pointer">
               {t("hideClosedParks")}
             </Label>
           </div>
           <Tabs value={sortBy} onValueChange={handleSortByChange}>
-            <TabsList>
-              <TabsTrigger value="group">{t("sortByGroup")}</TabsTrigger>
-              <TabsTrigger value="country">{t("sortByCountry")}</TabsTrigger>
+            {/* Deux cellules égales (grid-cols-2) pour que la pastille à 50%
+                tombe juste malgré des libellés de longueurs différentes. */}
+            <TabsList className="relative grid grid-cols-2 overflow-hidden">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] rounded-md bg-background shadow-sm dark:bg-input/30 dark:border dark:border-input"
+                style={{
+                  transform:
+                    sortBy === "country"
+                      ? "translateX(100%)"
+                      : "translateX(0%)",
+                  transitionProperty: "transform",
+                  transitionDuration: "500ms",
+                  transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
+                }}
+              />
+              <TabsTrigger
+                value="group"
+                className="relative z-10 w-full data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent dark:data-[state=active]:border-transparent"
+              >
+                {t("sortByGroup")}
+              </TabsTrigger>
+              <TabsTrigger
+                value="country"
+                className="relative z-10 w-full data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent dark:data-[state=active]:border-transparent"
+              >
+                {t("sortByCountry")}
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>

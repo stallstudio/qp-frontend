@@ -44,12 +44,12 @@ export default function HomeHeader() {
   const spacerHeight =
     FIXED_TOP + cardHeight + Math.min(scrollY, SHRINK_DISTANCE);
 
-  const detailsOpacity = clamp01(1 - shrinkProgress * 1.45);
-  const compactOpacity = clamp01((shrinkProgress - 0.34) / 0.46);
   const subtitleOpacity = clamp01(1 - shrinkProgress * 1.9);
 
-  const detailsTranslateY = shrinkProgress * 16;
-  const compactTranslateY = (1 - compactOpacity) * 12;
+  // Titre unique : descend (état détaillé) puis se recentre (état compact),
+  // sans crossfade entre deux copies -> plus de dédoublement.
+  const titleTranslateY = (1 - shrinkProgress) * 58;
+  const titleScale = 1 + (1 - shrinkProgress) * 0.14;
   const imageScale = 1 + (1 - shrinkProgress) * 0.06;
 
   return (
@@ -62,7 +62,7 @@ export default function HomeHeader() {
         className="fixed left-0 right-0 z-50"
         style={{ top: `${FIXED_TOP}px` }}
       >
-        <div className="max-w-4xl lg:max-w-6xl mx-auto px-4">
+        <div className="max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-4">
           <div
             className="relative w-full overflow-hidden rounded-4xl border border-white/10 shadow-sm"
             style={{ height: `${cardHeight}px` }}
@@ -80,35 +80,26 @@ export default function HomeHeader() {
             <div className="absolute inset-0 z-0 bg-linear-to-r from-black/30 via-transparent to-black/10" />
 
             <div
-              className="absolute inset-0 z-10 flex flex-col items-center justify-end p-8"
-              style={{
-                opacity: detailsOpacity,
-                transform: `translateY(${detailsTranslateY}px)`,
-                pointerEvents: detailsOpacity > 0.05 ? "auto" : "none",
-              }}
-            >
-              <h2 className="line-clamp-2 text-center text-3xl font-bold text-white sm:text-4xl">
-                {t("title")}
-              </h2>
-              <p
-                className="mt-1 text-center text-white/90"
-                style={{ opacity: subtitleOpacity }}
-              >
-                {t("subtitle")}
-              </p>
-            </div>
-
-            <div
               className="absolute inset-0 z-10 flex items-center justify-center px-6"
-              style={{
-                opacity: compactOpacity,
-                transform: `translateY(${compactTranslateY}px)`,
-                pointerEvents: compactOpacity > 0.1 ? "auto" : "none",
-              }}
+              style={{ transform: `translateY(${titleTranslateY}px)` }}
             >
-              <h2 className="line-clamp-1 text-center text-3xl font-bold text-white">
-                {t("title")}
-              </h2>
+              <div className="relative flex flex-col items-center">
+                <h2
+                  className="line-clamp-2 text-center text-3xl font-bold text-white"
+                  style={{ transform: `scale(${titleScale})` }}
+                >
+                  {t("title")}
+                </h2>
+                <p
+                  className="absolute top-full left-1/2 mt-2 w-max max-w-[80vw] -translate-x-1/2 text-center text-white/90"
+                  style={{
+                    opacity: subtitleOpacity,
+                    pointerEvents: subtitleOpacity > 0.05 ? "auto" : "none",
+                  }}
+                >
+                  {t("subtitle")}
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -5,12 +5,14 @@ import ParkOpeningHours from "./opening-hours";
 import ParkLocalTime from "./local-time";
 import Link from "next/link";
 import { Undo2 } from "lucide-react";
-import ParkNameStatus from "./name-status";
-import { useEffect, useState } from "react";
+import { ParkStatusBadge } from "./name-status";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { ParkLiveData } from "@/types/api";
+import { useFavorites } from "@/hooks/useFavorites";
+import FavoriteStar from "@/components/ui/favorite-star";
 
 const EXPANDED_HEIGHT = 288;
 const COLLAPSED_HEIGHT = 96;
@@ -25,10 +27,33 @@ type ParkHeaderProps = {
 
 export default function ParkHeader({ park }: ParkHeaderProps) {
   const t = useTranslations("parkPage");
+  const tFav = useTranslations("favorites");
   const [scrollY, setScrollY] = useState(0);
   const searchParams = useSearchParams();
   const backParam = searchParams.get("back");
   const homeHref = backParam ? `/?${decodeURIComponent(backParam)}` : "/";
+  const { isFavorite, toggle } = useFavorites("parks");
+  const isFav = isFavorite(park.identifier);
+
+  // Distance (px) entre le centre du nom et le bas de la carte, en flux normal
+  // (donc indépendante de la hauteur de la carte et du transform appliqué).
+  // Mesurée via offsetTop/offsetHeight qui ignorent les transforms.
+  const nameRef = useRef<HTMLHeadingElement>(null);
+  const detailsBlockRef = useRef<HTMLDivElement>(null);
+  const [nameOffsetFromBottom, setNameOffsetFromBottom] = useState(82);
+
+  useEffect(() => {
+    const measure = () => {
+      const nameEl = nameRef.current;
+      const blockEl = detailsBlockRef.current;
+      if (!nameEl || !blockEl) return;
+      const naturalCenter = nameEl.offsetTop + nameEl.offsetHeight / 2;
+      setNameOffsetFromBottom(blockEl.offsetHeight - naturalCenter);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [park.name, park.openingHours]);
 
   useEffect(() => {
     let rafId = 0;
@@ -59,12 +84,15 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
   const spacerHeight =
     FIXED_TOP + cardHeight + Math.min(scrollY, SHRINK_DISTANCE);
 
-  const detailsOpacity = clamp01(1 - shrinkProgress * 1.45);
-  const compactOpacity = clamp01((shrinkProgress - 0.34) / 0.46);
+  const detailsOpacity = clamp01(1 - shrinkProgress * 1.6);
   const backOpacity = clamp01(1 - shrinkProgress * 2);
 
-  const detailsTranslateY = shrinkProgress * 16;
-  const compactTranslateY = (1 - compactOpacity) * 14;
+  // Le nom est un élément UNIQUE (pas de crossfade -> pas de doublon). Il part
+  // de sa position naturelle dans le bloc détaillé (ancré en bas) et glisse
+  // jusqu'au centre de la carte en état compact. Le translate cible : centre de
+  // carte (cardHeight/2 depuis le bas) - position naturelle du nom (offset).
+  const nameTranslateY =
+    shrinkProgress * (nameOffsetFromBottom - cardHeight / 2);
   const backTranslateY = shrinkProgress * -8;
   const imageScale = 1 + (1 - shrinkProgress) * 0.08;
 
@@ -78,7 +106,7 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
         className="fixed left-0 right-0 z-50"
         style={{ top: `${FIXED_TOP}px` }}
       >
-        <div className="max-w-4xl lg:max-w-6xl mx-auto px-4">
+        <div className="max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-4">
           <div
             className="relative w-full overflow-hidden rounded-4xl border border-white/10 shadow-sm"
             style={{ height: `${cardHeight}px` }}
@@ -92,40 +120,45 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
             <div className="absolute inset-0 z-0 bg-linear-to-r from-black/80 via-black/45 to-black/20" />
             <div className="absolute inset-0 z-0 bg-linear-to-t from-black/40 via-transparent to-black/20" />
 
-            <div
-              className="absolute left-0 bottom-0 p-4 z-10"
-              style={{
-                opacity: detailsOpacity,
-                transform: `translateY(${detailsTranslateY}px)`,
-                pointerEvents: detailsOpacity > 0.05 ? "auto" : "none",
-              }}
-            >
-              <ParkNameStatus
-                name={park.name}
-                status={getParkStatus(park.openingHours)}
-                displayStatus
-              />
-              <ParkOpeningHours
-                timezone={park.timezone}
-                openingHours={park.openingHours}
-              />
-              <ParkLocalTime timezone={park.timezone} />
-            </div>
+            {/* Bloc détaillé ancré en bas (mise en page d'origine : pleine
+                largeur naturelle -> pas de coupe ni de retour à la ligne
+                parasite). Le badge et les horaires / heure locale se fondent en
+                scrollant ; le NOM, lui, reste opaque et glisse jusqu'au centre.
+                Un seul nom rendu -> pas de dédoublement. */}
+            <div ref={detailsBlockRef} className="absolute left-0 bottom-0 p-4 z-10">
+              <div
+                className="w-fit mb-2"
+                style={{
+                  opacity: detailsOpacity,
+                  pointerEvents: detailsOpacity > 0.05 ? "auto" : "none",
+                }}
+              >
+                <ParkStatusBadge status={getParkStatus(park.openingHours)} />
+              </div>
 
-            {/* Shrunk state - only show name */}
-            <div
-              className="absolute inset-y-0 left-0 z-10 flex items-center px-4"
-              style={{
-                opacity: compactOpacity,
-                transform: `translateY(${compactTranslateY}px)`,
-                pointerEvents: compactOpacity > 0.1 ? "auto" : "none",
-              }}
-            >
-              <ParkNameStatus
-                name={park.name}
-                status={getParkStatus(park.openingHours)}
-                displayStatus={false}
-              />
+              <h2
+                ref={nameRef}
+                className="text-2xl [@media(min-width:380px)]:text-3xl font-bold text-white line-clamp-2 mb-2"
+                style={{
+                  transform: `translateY(${nameTranslateY}px)`,
+                  willChange: "transform",
+                }}
+              >
+                {park.name}
+              </h2>
+
+              <div
+                style={{
+                  opacity: detailsOpacity,
+                  pointerEvents: detailsOpacity > 0.05 ? "auto" : "none",
+                }}
+              >
+                <ParkOpeningHours
+                  timezone={park.timezone}
+                  openingHours={park.openingHours}
+                />
+                <ParkLocalTime timezone={park.timezone} />
+              </div>
             </div>
 
             <div
@@ -143,6 +176,24 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
                 <Undo2 className="size-4" />
                 {t("backHome")}
               </Link>
+            </div>
+
+            <div
+              className="absolute right-0 bottom-0 p-4 z-10"
+              style={{
+                opacity: detailsOpacity,
+                pointerEvents: detailsOpacity > 0.05 ? "auto" : "none",
+              }}
+            >
+              <FavoriteStar
+                active={isFav}
+                onToggle={() => toggle(park.identifier)}
+                label={isFav ? tFav("removePark") : tFav("addPark")}
+                size="md"
+                className={`p-1.5 bg-black/25 backdrop-blur-sm hover:bg-black/35 ${
+                  isFav ? "text-amber-400" : "text-white/90 hover:text-white"
+                }`}
+              />
             </div>
           </div>
         </div>
