@@ -14,7 +14,10 @@ RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Générer les DEUX clients Prisma : base principale (schéma par défaut) et base
+# utilisateurs (config dédiée). Le build échoue sinon (import du client user).
 RUN npx prisma generate
+RUN npm run user:generate
 RUN npm run build
 
 # ---- Runner ----

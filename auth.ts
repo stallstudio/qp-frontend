@@ -1,0 +1,90 @@
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import ResendProvider from "next-auth/providers/resend";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { cookies } from "next/headers";
+import { render } from "@react-email/components";
+import { getUserPrisma } from "@/lib/user-prisma";
+import { getResend, LOGIN_FROM_EMAIL } from "@/lib/resend";
+import MagicLinkEmail, { getMagicLinkSubject } from "@/emails/magic-link";
+import { routing } from "@/i18n/routing";
+
+// Authentification Queue Park (Auth.js v5), sans mot de passe :
+//  - Google OAuth
+//  - Magic link envoyé par email (provider Resend, template maison réutilisant
+//    l'architecture d'emails de l'administration)
+// Sessions stockées en base UTILISATEURS via le PrismaAdapter (table sessions).
+
+// Détecte la langue de l'email depuis le cookie next-intl posé côté site, pour
+// envoyer le magic link dans la langue de navigation (fallback: locale par défaut).
+async function detectEmailLocale(): Promise<string> {
+  try {
+    const store = await cookies();
+    const cookieLocale = store.get("NEXT_LOCALE")?.value;
+    if (
+      cookieLocale &&
+      routing.locales.includes(cookieLocale as (typeof routing.locales)[number])
+    ) {
+      return cookieLocale;
+    }
+  } catch {
+    // cookies() indisponible hors requête : on retombe sur la locale par défaut.
+  }
+  return routing.defaultLocale;
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Le client de la base utilisateurs est généré sur un chemin custom : on le
+  // passe tel quel à l'adapter (structurellement compatible), cast pour éviter
+  // une divergence nominale de types avec le PrismaClient de @prisma/client.
+  adapter: PrismaAdapter(
+    getUserPrisma() as unknown as Parameters<typeof PrismaAdapter>[0],
+  ),
+  // Nécessaire derrière un reverse-proxy (déploiement Docker/Dokploy).
+  trustHost: true,
+  session: { strategy: "database" },
+  providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    }),
+    ResendProvider({
+      apiKey: process.env.RESEND_API_KEY,
+      from: LOGIN_FROM_EMAIL,
+      // Lien de connexion valable 30 minutes.
+      maxAge: 60 * 30,
+      async sendVerificationRequest({ identifier: email, url }) {
+        const locale = await detectEmailLocale();
+        // On rend l'email en HTML nous-mêmes (import statique de `render`) plutôt
+        // que de passer `react:` à Resend, dont le rendu interne repose sur un
+        // require dynamique que le bundler Next n'inclut pas.
+        const element = MagicLinkEmail({ url, locale });
+        const [html, text] = await Promise.all([
+          render(element),
+          render(element, { plainText: true }),
+        ]);
+        const { error } = await getResend().emails.send({
+          from: LOGIN_FROM_EMAIL,
+          to: email,
+          subject: getMagicLinkSubject(locale),
+          html,
+          text,
+        });
+        if (error) {
+          throw new Error(`Resend error: ${error.message}`);
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    // Sessions "database" : on expose l'id utilisateur côté session pour les
+    // routes API (autorisation des données du compte).
+    session({ session, user }) {
+      if (session.user && user) {
+        session.user.id = user.id;
+      }
+      return session;
+    },
+  },
+});

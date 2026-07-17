@@ -8,8 +8,12 @@ import { useTranslations } from "next-intl";
 import { useWaitTimeChanges } from "@/hooks/useWaitTimeChanges";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useUser } from "@/components/providers/user-provider";
 import FavoriteStar from "@/components/ui/favorite-star";
 import WaitTrend from "@/components/parks/wait-trend";
+import CreateNotificationDialog, {
+  type NotificationTarget,
+} from "@/components/notifications/create-notification-dialog";
 import { cn } from "@/lib/utils";
 import {
   ChevronRight,
@@ -17,6 +21,7 @@ import {
   ChevronDown,
   User,
   Clock,
+  Bell,
   FastForward,
   CornerDownRight,
 } from "lucide-react";
@@ -55,6 +60,7 @@ type WaitTimeTableProps = {
   waitTimes: WaitTime[];
   queueTypeLabels?: Record<string, string> | null;
   parkIdentifier: string;
+  parkName: string;
   history?: Record<number, number[]>;
   // Vrai quand le parc a des horaires connus et qu'il est actuellement fermé.
   // Dans ce cas on masque les flèches de tendance (les temps sont figés / la
@@ -92,13 +98,19 @@ export default function ParkWaitTimeTable({
   waitTimes,
   queueTypeLabels,
   parkIdentifier,
+  parkName,
   history = {},
   parkClosed = false,
 }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const tStatus = useTranslations("attractionStatus");
   const tFav = useTranslations("favorites");
+  const tNotif = useTranslations("notifications");
   const { is12Hour } = useTimeFormat();
+  const { isAuthenticated } = useUser();
+  const [notifTarget, setNotifTarget] = useState<NotificationTarget | null>(
+    null,
+  );
   const [expandedRides, setExpandedRides] = useState<Set<number>>(new Set());
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -318,6 +330,26 @@ export default function ParkWaitTimeTable({
                           : "opacity-40 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100",
                       )}
                     />
+                    {/* Création d'une notification : uniquement connecté, et
+                        depuis ici (popup attraction) — jamais depuis le profil. */}
+                    {isAuthenticated && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setNotifTarget({
+                            rideId: waitTime.rideId,
+                            rideName: waitTime.rideName,
+                          });
+                        }}
+                        aria-label={tNotif("createFor", {
+                          ride: waitTime.rideName,
+                        })}
+                        className="shrink-0 text-muted-foreground opacity-40 transition-opacity hover:text-primary sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                      >
+                        <Bell className="size-4" />
+                      </button>
+                    )}
                     <span className="min-w-0">
                       {hasMultipleQueues ? (
                         (() => {
@@ -428,6 +460,16 @@ export default function ParkWaitTimeTable({
           {t("noWaitTimes")}
         </div>
       )}
+
+      {/* Un seul dialog de création, piloté par la cloche de chaque ligne. */}
+      <CreateNotificationDialog
+        target={notifTarget}
+        parkIdentifier={parkIdentifier}
+        parkName={parkName}
+        onOpenChange={(open) => {
+          if (!open) setNotifTarget(null);
+        }}
+      />
     </div>
   );
 }

@@ -12,23 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./button";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
-
-const languages = [
-  { code: "en", name: "English", flag: "🇬🇧" },
-  { code: "fr", name: "Français", flag: "🇫🇷" },
-  { code: "de", name: "Deutsch", flag: "🇩🇪" },
-  { code: "es", name: "Español", flag: "🇪🇸" },
-  { code: "it", name: "Italiano", flag: "🇮🇹" },
-  { code: "pt", name: "Português", flag: "🇵🇹" },
-  { code: "nl", name: "Nederlands", flag: "🇳🇱" },
-  { code: "sv", name: "Svenska", flag: "🇸🇪" },
-  { code: "da", name: "Dansk", flag: "🇩🇰" },
-  { code: "pl", name: "Polski", flag: "🇵🇱" },
-  { code: "ja", name: "日本語", flag: "🇯🇵" },
-  { code: "ko", name: "한국어", flag: "🇰🇷" },
-  { code: "zh", name: "中文", flag: "🇨🇳" },
-  { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
-];
+import { LANGUAGES as languages } from "@/lib/locales";
 
 interface LanguageSwitcherProps {
   showText?: boolean;

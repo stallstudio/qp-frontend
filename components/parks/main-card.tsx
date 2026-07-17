@@ -120,6 +120,7 @@ export default function MainCard({
               waitTimes={park.waitTimes}
               queueTypeLabels={park.queueTypeLabels}
               parkIdentifier={park.identifier}
+              parkName={park.name}
               history={history}
               parkClosed={parkClosed}
             />
@@ -138,6 +139,7 @@ export default function MainCard({
           waitTimes={park.waitTimes}
           queueTypeLabels={park.queueTypeLabels}
           parkIdentifier={park.identifier}
+          parkName={park.name}
           history={history}
           parkClosed={parkClosed}
         />

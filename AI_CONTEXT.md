@@ -158,4 +158,32 @@ lancer build/tsc ici ; se fier à la revue manuelle (le repo compile côté user
 - Contenu i18n sous le namespace `about` dans `fr.json` + `en.json` (fallback EN
   pour les autres langues).
 - Lien « À propos » ajouté dans `components/ui/footer.tsx` (label = `about.metaTitle`).
+
+## Comptes utilisateurs (ajout 2026-07) — **optionnel**
+
+Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
+
+- **2ᵉ base de données** dédiée aux comptes (`USER_DATABASE_URL`), séparée de la
+  base principale. Client Prisma isolé : schéma `prisma/user/schema.prisma` →
+  généré dans `lib/generated/user-client`, accédé via `lib/user-prisma.ts`
+  (`getUserPrisma()`). Références aux attractions **par id**, pas de FK inter-bases.
+- **Auth.js v5** (`auth.ts`, route `app/api/auth/[...nextauth]`) : Google +
+  magic link (provider Resend, email `emails/magic-link.tsx` calqué sur l'admin).
+  Sessions en base. Helpers d'API : `lib/auth-helpers.ts` (`requireUserId`).
+- **Providers** (dans `app/[locale]/layout.tsx`, sous `TimeFormatProvider`) :
+  `session-provider.tsx` (Auth.js) + `user-provider.tsx`. Le `UserProvider`
+  synchronise **favoris** (localStorage reste la source ; fusion à la connexion,
+  push à chaque changement — `useFavorites` inchangé) et **préférences**
+  (compte prime ; toute modif locale de thème/langue/format est reflétée au
+  compte sans coupler les composants concernés).
+- **Routes** `app/api/user/*` : `me`, `preferences`, `favorites` (+`/merge`),
+  `notifications` (+`/[id]`, `/history`).
+- **UI** : bloc accueil `components/home/user-block.tsx` (au-dessus des favoris),
+  popup `components/auth/auth-dialog.tsx`, page `app/[locale]/profile/` +
+  `components/profile/*`. **Création de notification uniquement** via la cloche
+  d'une attraction (`components/notifications/create-notification-dialog.tsx`
+  branchée dans `wait-time-table.tsx`), jamais depuis le profil.
+- i18n : namespaces `userBlock`, `auth`, `profile`, `notifications` (fr+en).
+- Le **moteur** de vérification des temps (déclenchement + écriture de
+  `notification_history`) reste à écrire : structure prête.
 ```
