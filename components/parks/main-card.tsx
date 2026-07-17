@@ -13,10 +13,15 @@ import ParkShowTimeTable from "./show-time-table";
 
 type MainCardProps = {
   park: ParkLiveData;
+  history?: Record<number, number[]>;
   onRefresh?: () => Promise<void>;
 };
 
-export default function MainCard({ park, onRefresh }: MainCardProps) {
+export default function MainCard({
+  park,
+  history = {},
+  onRefresh,
+}: MainCardProps) {
   const [activeTab, setActiveTab] = useState<string>("");
   const t = useTranslations("waitTimeTable");
   const tTabs = useTranslations("tabs");
@@ -69,16 +74,38 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
   }, []);
   return (
     <Card
-      className={`w-full rounded-4xl p-4 gap-0 pb-0 card-shine ${justUpdated ? "card-shine-active" : ""}`}
+      className={`w-full rounded-4xl p-3 sm:p-4 gap-0 pb-0 card-shine ${justUpdated ? "card-shine-active" : ""}`}
     >
       {showTabs ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full rounded-3xl">
-            <TabsTrigger value="wait-times" className="rounded-3xl">
+          <TabsList className="relative w-full rounded-3xl overflow-hidden">
+            {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
+                Deux onglets de largeur égale -> largeur 50% (moins le padding),
+                translation 0% / 100%. Courbe d'accélération type iOS. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] rounded-3xl bg-background shadow-sm dark:bg-input/30 dark:border dark:border-input"
+              style={{
+                transform:
+                  activeTab === "show-times"
+                    ? "translateX(100%)"
+                    : "translateX(0%)",
+                transitionProperty: "transform",
+                transitionDuration: "1000ms",
+                transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
+              }}
+            />
+            <TabsTrigger
+              value="wait-times"
+              className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent dark:data-[state=active]:border-transparent"
+            >
               <Clock />
               {tTabs("waitTimes")}
             </TabsTrigger>
-            <TabsTrigger value="show-times" className="rounded-3xl">
+            <TabsTrigger
+              value="show-times"
+              className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent dark:data-[state=active]:border-transparent"
+            >
               <Drama />
               {tTabs("shows")}
             </TabsTrigger>
@@ -87,6 +114,8 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
             <ParkWaitTimeTable
               waitTimes={park.waitTimes}
               queueTypeLabels={park.queueTypeLabels}
+              parkIdentifier={park.identifier}
+              history={history}
             />
           </TabsContent>
           <TabsContent value="show-times">
@@ -94,6 +123,7 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
               shows={park.shows}
               timezone={park.timezone}
               parkDate={parkDate}
+              parkIdentifier={park.identifier}
             />
           </TabsContent>
         </Tabs>
@@ -101,12 +131,15 @@ export default function MainCard({ park, onRefresh }: MainCardProps) {
         <ParkWaitTimeTable
           waitTimes={park.waitTimes}
           queueTypeLabels={park.queueTypeLabels}
+          parkIdentifier={park.identifier}
+          history={history}
         />
       ) : hasShows ? (
         <ParkShowTimeTable
           shows={park.shows}
           timezone={park.timezone}
           parkDate={parkDate}
+          parkIdentifier={park.identifier}
         />
       ) : null}
       {park.shows.length === 0 && park.waitTimes.length === 0 && (

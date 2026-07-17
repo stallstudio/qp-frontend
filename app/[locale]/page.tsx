@@ -6,6 +6,7 @@ import HomeHeader from "@/components/home/header";
 import Footer from "@/components/ui/footer";
 import SearchBar from "@/components/search/search-bar";
 import PopularParks from "@/components/home/popular-parks";
+import FavoriteParks from "@/components/home/favorite-parks";
 import ParksList from "@/components/home/parks-list";
 import HomeSkeleton from "@/components/home/home-skeleton";
 import { useTranslations } from "next-intl";
@@ -48,11 +49,13 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-4 gap-8">
+    <div className="flex min-h-screen w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-3 sm:px-4 gap-8">
       <main className="flex-1 flex flex-col gap-8">
         <HomeHeader />
 
         <SearchBar parks={parks} />
+
+        <FavoriteParks parks={parks} />
 
         <PopularParks popularParks={popularParks} />
 

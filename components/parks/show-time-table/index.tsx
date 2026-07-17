@@ -5,6 +5,8 @@ import { DateTime } from "luxon";
 import { useMemo, useRef, useEffect, useState, useCallback } from "react";
 import { getLuxonFormat } from "@/lib/utils";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
+import { useFavorites } from "@/hooks/useFavorites";
+import FavoriteStar from "@/components/ui/favorite-star";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { TimelineRow } from "./components/timeline-row";
@@ -27,9 +29,14 @@ export default function ParkShowTimeTable({
   shows,
   timezone,
   parkDate,
+  parkIdentifier,
 }: ShowTimeTableProps) {
   const t = useTranslations("waitTimeTable");
+  const tFav = useTranslations("favorites");
   const { is12Hour } = useTimeFormat();
+
+  const { isFavorite, toggle } = useFavorites("shows");
+  const favKey = (showName: string) => `${parkIdentifier}:${showName}`;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const currentTimeRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -71,6 +78,17 @@ export default function ParkShowTimeTable({
       };
     });
   }, [shows, parkHours, timezone, parkDate]);
+
+  // Favoris épinglés en tête, sans recalculer les lanes (tri d'affichage léger).
+  const displayShows: ShowWithLanes[] = useMemo(() => {
+    return [...sortedShowsWithLanes].sort((a, b) => {
+      const aFav = isFavorite(favKey(a.show.showName));
+      const bFav = isFavorite(favKey(b.show.showName));
+      if (aFav !== bFav) return aFav ? -1 : 1;
+      return 0;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortedShowsWithLanes, isFavorite]);
 
   useEffect(() => {
     if (scrollContainerRef.current && currentTimeRef.current) {
@@ -126,7 +144,7 @@ export default function ParkShowTimeTable({
     const calculateHeights = () => {
       const newHeights: number[] = [];
 
-      sortedShowsWithLanes.forEach((item, index) => {
+      displayShows.forEach((item, index) => {
         const nameEl = nameRefs.current[index];
         const minTimelineHeight = getMinTimelineHeight(item.totalLanes);
 
@@ -153,9 +171,9 @@ export default function ParkShowTimeTable({
 
     window.addEventListener("resize", calculateHeights);
     return () => window.removeEventListener("resize", calculateHeights);
-  }, [sortedShowsWithLanes, getMinTimelineHeight]);
+  }, [displayShows, getMinTimelineHeight]);
 
-  if (sortedShowsWithLanes.length === 0) {
+  if (displayShows.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-8">
         {t("noWaitTimes")}
@@ -167,11 +185,12 @@ export default function ParkShowTimeTable({
     <div className="w-full overflow-hidden">
       <div className="flex">
         {/* Show names column */}
-        <div className="w-2/5 shrink-0 sticky left-0 bg-card border-e z-10 min-w-0">
+        <div className="w-1/2 sm:w-2/5 shrink-0 sticky left-0 bg-card border-e z-10 min-w-0">
           <div className="h-10 border-b flex items-center px-3 font-semibold text-sm"></div>
-          {sortedShowsWithLanes.map((item, index) => {
+          {displayShows.map((item, index) => {
             const rowHeight = rowHeights[index] || MIN_ROW_HEIGHT;
             const displayDuration = getShowDisplayDuration(item.show, timezone);
+            const fav = isFavorite(favKey(item.show.showName));
 
             return (
               <div
@@ -179,10 +198,20 @@ export default function ParkShowTimeTable({
                 ref={(el) => {
                   nameRefs.current[index] = el;
                 }}
-                className="border-b flex items-center pe-3 text-sm font-medium"
+                className="group border-b flex items-center gap-2 pe-3 text-sm font-medium"
                 style={{ height: `${rowHeight}px` }}
               >
-                <div className="flex flex-wrap items-center gap-x-1">
+                <FavoriteStar
+                  active={fav}
+                  onToggle={() => toggle(favKey(item.show.showName))}
+                  label={fav ? tFav("remove") : tFav("add")}
+                  className={`transition-opacity ${
+                    fav
+                      ? "opacity-100"
+                      : "opacity-40 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                  }`}
+                />
+                <div className="flex flex-wrap items-center gap-x-1 min-w-0">
                   <span>{item.show.showName}</span>
                   {displayDuration !== null && (
                     <span className="text-muted-foreground whitespace-nowrap">
@@ -245,7 +274,7 @@ export default function ParkShowTimeTable({
 
             {/* Timeline rows */}
             <TooltipProvider delayDuration={0}>
-              {sortedShowsWithLanes.map((item, showIndex) => (
+              {displayShows.map((item, showIndex) => (
                 <TimelineRow
                   key={showIndex}
                   schedules={item.schedules}

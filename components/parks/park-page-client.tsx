@@ -20,8 +20,20 @@ export default function ParkPageClient({
   const t = useTranslations("errors");
   const router = useRouter();
   const [parkData, setParkData] = useState<ParkLiveData | null>(null);
+  const [history, setHistory] = useState<Record<number, number[]>>({});
   const [loading, setLoading] = useState(true);
   const hasLoadedData = useRef(false);
+
+  const fetchHistory = useCallback(async () => {
+    try {
+      const response = await axios.get<{ data: Record<number, number[]> }>(
+        `/api/park/${parkIdentifier}/history`,
+      );
+      setHistory(response.data.data ?? {});
+    } catch {
+      // L'historique est un bonus : en cas d'échec on masque simplement les sparklines.
+    }
+  }, [parkIdentifier]);
 
   const fetchParkData = useCallback(
     async (showLoading: boolean) => {
@@ -53,7 +65,8 @@ export default function ParkPageClient({
 
   useEffect(() => {
     fetchParkData(true);
-  }, [parkIdentifier, router, fetchParkData]);
+    fetchHistory();
+  }, [parkIdentifier, router, fetchParkData, fetchHistory]);
 
   if (loading) {
     return <ParkSkeleton />;
@@ -64,10 +77,16 @@ export default function ParkPageClient({
   }
 
   return (
-    <div className="flex min-h-[123vh] w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-4 gap-8">
+    <div className="flex min-h-[123vh] w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-3 sm:px-4 gap-8">
       <main className="flex-1 flex flex-col gap-1 mt-4">
         <ParkHeader park={parkData} />
-        <MainCard park={parkData} onRefresh={() => fetchParkData(false)} />
+        <MainCard
+          park={parkData}
+          history={history}
+          onRefresh={async () => {
+            await Promise.all([fetchParkData(false), fetchHistory()]);
+          }}
+        />
         <div className="flex justify-center mt-4">
           <ReportProblemDialog parkIdentifier={parkIdentifier} />
         </div>
