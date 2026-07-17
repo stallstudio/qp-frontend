@@ -1,6 +1,7 @@
 import { TimeSlot, WaitTimeStatus } from "@/types/waitTime";
 import { DateTime } from "luxon";
 import { getLuxonFormat } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 function getWaitTimeColorClass(waitTime: number): string {
   if (waitTime < 0) {
@@ -15,12 +16,15 @@ function getWaitTimeColorClass(waitTime: number): string {
   return "bg-red-100 text-red-700";
 }
 
-function getWaitTimeBadge(waitTime: number, unavailableLabel: string = "Unavailable") {
+function getWaitTimeBadge(
+  waitTime: number,
+  unavailableLabel: ReactNode = "Unavailable",
+) {
   const colorClass = getWaitTimeColorClass(waitTime);
 
   return (
     <span
-      className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
+      className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${colorClass}`}
     >
       {waitTime === -1
         ? unavailableLabel
@@ -103,7 +107,7 @@ function getStatusBadge(status: WaitTimeStatus, labels?: Record<string, string>)
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${colorClass}`}
     >
       <div className={`w-2 h-2 ${dotColorClass} rounded-full`}></div>
       {getStatusLabel(status, labels)}
