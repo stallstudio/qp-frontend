@@ -317,7 +317,12 @@ export default function ParkWaitTimeTable({
                         d'expand (si files multiples) puis œil d'ouverture du
                         popup. Le nom peut passer à la ligne (min-w-0 + wrap), les
                         icônes restent sur la dernière ligne. */}
-                    <div className="flex min-w-0 items-center gap-0.5 py-2 pe-2 font-medium">
+                    {/* pe resserré (surtout mobile) + cluster d'icônes collé au
+                        nom : padding horizontal des boutons réduit (px-0.5) et
+                        plus aucune marge/gap entre le nom et les icônes, pour que
+                        le nom garde le MAXIMUM de largeur et passe moins vite à la
+                        ligne. La hauteur de touche reste correcte (py-1). */}
+                    <div className="flex min-w-0 items-center py-2 pe-1 font-medium sm:pe-2">
                       {/* Étoile jaune devant les favoris pour les repérer d'un
                           coup d'œil (les favoris sont épinglés en tête). */}
                       {isFavorite(favKey(waitTime.rideId)) && (
@@ -334,7 +339,7 @@ export default function ParkWaitTimeTable({
                             toggleExpand(waitTime.rideId);
                           }}
                           aria-label={t("attraction")}
-                          className="ml-0.5 shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+                          className="ml-0.5 shrink-0 rounded-md px-0.5 py-1 text-muted-foreground transition-colors hover:text-foreground"
                         >
                           <ChevronRight
                             className={cn(
@@ -353,10 +358,7 @@ export default function ParkWaitTimeTable({
                         aria-label={tDetail("openFor", {
                           ride: waitTime.rideName,
                         })}
-                        className={cn(
-                          "shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:text-primary",
-                          !hasMultipleQueues && "ml-0.5",
-                        )}
+                        className="ml-0.5 shrink-0 rounded-md px-0.5 py-1 text-muted-foreground transition-colors hover:text-primary"
                       >
                         <Eye className="size-4" />
                       </button>
