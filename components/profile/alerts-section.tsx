@@ -8,16 +8,13 @@ import { Check, Trash2, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import NumberStepper from "@/components/ui/number-stepper";
+import { ALERT_THRESHOLDS } from "@/lib/alert-thresholds";
 import { useUser } from "@/components/providers/user-provider";
 import type { AlertDTO } from "@/types/user";
 
 // Section « Alertes actives » du profil : consulter, MODIFIER le seuil,
 // (dé)activer, supprimer. La CRÉATION ne se fait jamais ici — uniquement depuis
 // le popup d'une attraction. Rendu SANS carte (surface = carte à onglets du profil).
-
-const MIN_THRESHOLD = 5;
-const MAX_THRESHOLD = 120;
-const THRESHOLD_STEP = 5;
 
 export default function AlertsSection() {
   const t = useTranslations("profile");
@@ -147,9 +144,7 @@ export default function AlertsSection() {
                 <NumberStepper
                   value={a.threshold}
                   onChange={(v) => changeThreshold(a, v)}
-                  min={MIN_THRESHOLD}
-                  max={MAX_THRESHOLD}
-                  step={THRESHOLD_STEP}
+                  values={ALERT_THRESHOLDS}
                   disabled={saving}
                   format={(v) => tAlert("thresholdOption", { minutes: v })}
                   aria-label={tAlert("thresholdLabel")}

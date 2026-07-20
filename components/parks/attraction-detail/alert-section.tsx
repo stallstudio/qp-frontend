@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NumberStepper from "@/components/ui/number-stepper";
+import { ALERT_THRESHOLDS, DEFAULT_ALERT_THRESHOLD } from "@/lib/alert-thresholds";
 import { useUser } from "@/components/providers/user-provider";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
@@ -29,10 +30,7 @@ type AlertSectionProps = {
   parkName: string;
 };
 
-const DEFAULT_THRESHOLD = 20;
-const MIN_THRESHOLD = 5;
-const MAX_THRESHOLD = 120;
-const THRESHOLD_STEP = 5;
+const DEFAULT_THRESHOLD = DEFAULT_ALERT_THRESHOLD;
 
 // Alertes de temps d'attente de l'attraction. Disponibles uniquement connecté ;
 // sinon on guide l'utilisateur vers l'action à effectuer (installer / se connecter).
@@ -274,9 +272,7 @@ function AlertForm({
       <NumberStepper
         value={threshold}
         onChange={setThreshold}
-        min={MIN_THRESHOLD}
-        max={MAX_THRESHOLD}
-        step={THRESHOLD_STEP}
+        values={ALERT_THRESHOLDS}
         format={(v) => tAlert("thresholdOption", { minutes: v })}
         aria-label={tAlert("thresholdLabel")}
       />
