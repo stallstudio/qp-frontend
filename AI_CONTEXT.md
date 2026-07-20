@@ -2,7 +2,7 @@
 
 > Fiche de contexte pour l'assistant IA. But : comprendre le projet sans relire
 > tout le code. À maintenir à jour quand l'architecture change.
-> Dernière mise à jour : 2026-07-17.
+> Dernière mise à jour : 2026-07-20.
 
 ## En un mot
 
@@ -126,12 +126,27 @@ baisse (verte ↘), stable (gris →). Rien si indispo ou historique vide.
 
 ### Favoris (`hooks/useFavorites.ts`)
 
-`localStorage`, **sans compte**. Namespaces isolés (`"parks"`, `"rides"`).
-SSR-safe (hydratation après montage), synchronisé entre onglets (`storage`) et
-instances (`qp-fav-change`). Les favoris sont épinglés en tête des listes. Dans
-`wait-time-table.tsx`, le groupe des favoris est encadré de deux séparateurs
-ondulés ambrés (`components/ui/wavy-divider.tsx`), celui du haut portant le
-libellé `favorites.yours` (« Vos favoris »).
+`localStorage` = source de travail (même connecté ; le `UserProvider` miroite avec
+le compte). Namespaces isolés (`"parks"`, `"rides"`). SSR-safe (hydratation après
+montage), synchronisé entre onglets (`storage`) et instances (`qp-fav-change`).
+Les favoris sont épinglés en tête des listes. Dans `wait-time-table.tsx`, le
+groupe des favoris est encadré de deux séparateurs ondulés ambrés
+(`components/ui/wavy-divider.tsx`), celui du haut portant le libellé
+`favorites.yours` (« Vos favoris »).
+
+- **Plafond parcs = 20** (`PARK_FAVORITES_LIMIT`/`FAV_LIMITS` dans
+  `lib/favorites-storage.ts`). `useFavorites().toggle` renvoie un **booléen**
+  (`false` si l'ajout dépasse le plafond ; le retrait n'est jamais bloqué) — les
+  boutons étoile parc (`park-card.tsx`, `parks/header.tsx`) affichent un toast si
+  refusé. La synchro descendante depuis le compte n'est **pas** tronquée.
+- **Accueil** (`components/home/favorite-parks.tsx`) : au-delà de 9 parcs (= 3×3),
+  8 cartes + tuile « Voir les N autres » ; le reste se **déroule vers le bas**
+  (hauteur 0→auto via `motion`) et se replie vers le haut.
+- **Popup profil** (`components/profile/favorites-popup.tsx`, `scope` parcs|rides) :
+  ouvert depuis les vignettes du profil. Les clés (identifiants) sont résolues en
+  noms via `POST /api/user/favorites/resolve` (base principale) — rond de
+  chargement pendant la résolution. Attractions **groupées par parc** (en-têtes de
+  section), retrait au clic sur l'étoile (ligne qui « part », animation fluide).
 
 ### Popup « détail attraction » (`components/parks/attraction-detail/`)
 
@@ -157,9 +172,13 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   (iOS/Android) → écran d'installation** (bouton si `beforeinstallprompt`, sinon
   instructions iOS/Android) ; non connecté → CTA connexion (`AuthDialog`) ;
   connecté (desktop, ou PWA mobile) → stepper (édition du seuil aussi possible
-  depuis le profil)
-  (`components/ui/number-stepper.tsx`, défaut 20, pas 5, 5–120) + voir/modifier/
-  supprimer (routes `/api/user/alerts`). i18n : namespaces `attractionDetail` +
+  depuis le profil) + voir/modifier/supprimer (routes `/api/user/alerts`). Les
+  seuils sont une **séquence non uniforme** `0, 1, 5, 10, 15 … 120`
+  (`lib/alert-thresholds.ts`) : `number-stepper.tsx` accepte un prop `values`
+  (navigation par index) en plus du mode `min/max/step`. Défaut d'une NOUVELLE
+  alerte = **le cran juste sous le temps actuel** de l'attraction
+  (`defaultThresholdForWait`, ex. 35→30, 5→1, 1→0 ; repli 20 si fermé/indispo).
+  i18n : namespaces `attractionDetail` +
   `alerts` (fr+en). **Livraison = Web Push réel** (voir bloc dédié
   plus bas) : au clic « Enregistrer », `hooks/usePushNotifications.ts` demande la
   permission + abonne l'appareil (`lib/push-client.ts`) et persiste l'abonnement
@@ -204,7 +223,11 @@ lancer build/tsc ici ; se fier à la revue manuelle (le repo compile côté user
   composants (`WaitTrend`, `FavoriteStar`, badges) — pas d'images statiques.
 - Contenu i18n sous le namespace `about` dans `fr.json` + `en.json` (fallback EN
   pour les autres langues).
-- Lien « À propos » ajouté dans `components/ui/footer.tsx` (label = `about.metaTitle`).
+- **Footer** (`components/ui/footer.tsx`) : rangée de boutons dans l'ordre
+  **compte, À propos, langue, thème**. Le compte = `components/ui/footer-auth.tsx`
+  (client) : connecté → lien `/profile` (avatar + « Profil ») ; sinon → bouton
+  d'auth ouvrant `AuthDialog`. Le « | » ne sépare plus que les **catégories**
+  (compte/nav vs préférences).
 
 ## Comptes utilisateurs (ajout 2026-07) — **optionnel**
 
@@ -217,6 +240,10 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
 - **Auth.js v5** (`auth.ts`, route `app/api/auth/[...nextauth]`) : Google +
   magic link (provider Resend, email `emails/magic-link.tsx` calqué sur l'admin).
   Sessions en base. Helpers d'API : `lib/auth-helpers.ts` (`requireUserId`).
+  **Fusion des comptes par email** (`allowDangerousEmailAccountLinking: true` sur
+  Google) : un compte créé par magic link puis reconnecté via Google reste le
+  MÊME compte. Un callback `signIn` **complète** alors `name`/`image` manquants
+  depuis le profil Google (Auth.js ne les renseigne qu'à la création).
 - **Providers** (dans `app/[locale]/layout.tsx`, sous `TimeFormatProvider`) :
   `session-provider.tsx` (Auth.js) + `user-provider.tsx`. Le `UserProvider`
   synchronise **favoris** (localStorage reste la source ; fusion à la connexion,
@@ -229,10 +256,39 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
   popup `components/auth/auth-dialog.tsx`, page `app/[locale]/profile/` +
   `components/profile/*`. La **page profil est calquée sur la page À propos**
   (header `ScrollShrinkHeader` partagé + carte à onglets `rounded-4xl` : onglets
-  Alertes / Préférences). La **création** d'alerte reste réservée au popup
-  « détail attraction » ; le profil permet de **modifier le seuil**, (dé)activer
-  et supprimer.
+  Alertes / Préférences). En tête : **3 vignettes** cliquables (parcs favoris
+  `x/20`, attractions favorites, alertes actives) → popups favoris. Les blocs
+  « Alertes actives » et « Historique » sont dans des **containers** (icône + titre,
+  style vignette À propos). Squelette : `components/profile/profile-skeleton.tsx`
+  (affiché tant que la session charge). La **création** d'alerte reste réservée au
+  popup « détail attraction » ; le profil permet de **modifier le seuil**,
+  (dé)activer et supprimer.
+- **`AuthDialog` fusionné** : connexion et inscription = un seul flux passwordless,
+  donc plus de prop `mode` — libellé neutre unique (`auth.title`/`auth.subtitle`).
+- **Historique des alertes** (`components/profile/alert-history-section.tsx`) :
+  **sondage** tant que la page est ouverte (nouvelle alerte animée en direct),
+  nom du parc affiché, format `≤ {seuil} min`, **rétention 30 jours** (filtré côté
+  serveur dans `/api/user/alerts/history`, avec texte d'info sous la liste).
 - i18n : namespaces `userBlock`, `auth`, `profile`, `alerts` (fr+en).
+## Divers (2026-07-20)
+
+- **Manifest PWA localisé par langue** : route dynamique
+  `app/[locale]/manifest.webmanifest/route.ts` (`force-static` + `generateStaticParams`
+  sur les locales) servant un manifeste traduit (namespace i18n `manifest`,
+  `name`/`description`/raccourcis, `lang`/`start_url` cohérents). Le
+  `<link rel="manifest">` est posé par `generateMetadata` du layout
+  (`manifest: /${locale}/manifest.webmanifest`). Seuls fr+en traduits (repli EN).
+- **Préférences — concurrence** : `PATCH /api/user/preferences` fait un **seul
+  `upsert`** avec **retry** sur l'erreur MariaDB « Record has changed since last
+  read » (déclenchée par des changements de langue rapprochés qui enchaînent les
+  requêtes). Le dernier écrit gagne.
+- **Graphique — barres d'indispo** : `wait-time-chart.tsx` colore les plages sans
+  temps réel (rouge fermé/maintenance, orange en panne, **gris = indisponible**) ;
+  au survol, tooltip du statut (le gris affiche `attractionStatus.unavailable`).
+- **Client Prisma user** : les modèles `Alert`/`AlertHistory`/`PushSubscription`
+  doivent être **générés** (`npm run user:generate`) — un client périmé rend
+  `prisma.alert` `undefined` et casse `/api/user/me`, le profil et le moteur.
+
 ## Alertes Web Push (moteur — ajout 2026-07)
 
 Le système d'alertes est branché de bout en bout : créer une alerte écrit une
@@ -255,6 +311,9 @@ livraison navigateur = **push/notification**.)
   ouverte**. Anti-spam par **déclenchement sur front** : drapeau `Alert.armed`
   (désarmé après envoi, réarmé quand le temps repasse au-dessus de
   `seuil + REARM_MARGIN=5`). Écrit `alert_history`, purge les endpoints morts (410/404).
+  **Regroupement par utilisateur** : si plusieurs attractions passent sous leur
+  seuil dans le même passage, une seule notif « digest » listée est envoyée (pas
+  une par attraction) — l'historique/désarmement restent par alerte.
 - **Expiration quotidienne** : une alerte ne vaut QUE pour le jour de sa
   (ré)activation. `Alert.activeDate` est (re)calé sur « maintenant » à la création
   / réactivation / changement de seuil ; le moteur **désactive** (`active=false`)
@@ -265,8 +324,10 @@ livraison navigateur = **push/notification**.)
   supprimer. La création reste réservée au popup d'attraction.
 - **Web Push (serveur)** `lib/web-push.ts` (VAPID via `web-push`), messages
   localisés par `lib/alert-messages.ts` (fr/en, repli EN — pas de next-intl dans
-  un job de fond). Clés : `NEXT_PUBLIC_VAPID_PUBLIC_KEY` (client),
-  `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
+  un job de fond). Titre **aléatoire + emoji** (convivial, non redondant), corps
+  factuel **sans nom de parc** (la personne est déjà dans le parc, et l'OS ajoute
+  déjà « Queue Park » au titre) ; forme **digest** listée si plusieurs attractions.
+  Clés : `NEXT_PUBLIC_VAPID_PUBLIC_KEY` (client), `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
 
 > **Mise en service** (une fois) : `npm install` (ajoute `web-push`), générer les
 > clés `npm run vapid:generate` → remplir le `.env`, appliquer le schéma à la base
