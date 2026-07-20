@@ -198,7 +198,16 @@ export default function ParkShowTimeTable({
       <div className="flex">
         {/* Show names column */}
         <div className="w-9/20 sm:w-2/5 shrink-0 sticky left-0 bg-card border-e z-10 min-w-0">
-          <div className="h-10 border-b flex items-center px-3 font-semibold text-sm"></div>
+          {/* En-tête de la colonne des noms : porte le libellé « MES FAVORIS »
+              (au-dessus de la ligne d'en-tête) quand des spectacles sont en
+              favoris — évite une ligne dédiée vide dans la timeline. */}
+          <div className="h-10 border-b flex items-center px-3">
+            {favCount > 0 && (
+              <span className="text-xs font-semibold tracking-wide text-foreground uppercase">
+                {tFav("myFavorites")}
+              </span>
+            )}
+          </div>
           {displayShows.map((item, index) => {
             const rowHeight = rowHeights[index] || MIN_ROW_HEIGHT;
             const displayDuration = getShowDisplayDuration(item.show, timezone);
