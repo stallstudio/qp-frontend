@@ -27,6 +27,10 @@ type WaitTimeChartProps = {
   timezone: string;
   nowLabel: string;
   todayLabel: string;
+  // Libellé du temps observé DANS LE TOOLTIP (« Temps d'attente ») : distinct de
+  // `todayLabel` (« Aujourd'hui ») qui, lui, ne sert qu'à la légende sous le
+  // graphique pour opposer la courbe pleine du jour à la prévision en pointillé.
+  actualLabel: string;
   forecastLabel: string;
 };
 
@@ -75,6 +79,7 @@ export default function WaitTimeChart({
   timezone,
   nowLabel,
   todayLabel,
+  actualLabel,
   forecastLabel,
 }: WaitTimeChartProps) {
   const { is12Hour } = useTimeFormat();
@@ -199,9 +204,17 @@ export default function WaitTimeChart({
   }) {
     if (!active || !payload?.length) return null;
     // On exclut l'ancre invisible (downMarker) des lignes numériques affichées.
-    const rows = payload.filter(
+    let rows = payload.filter(
       (p) => p.value != null && p.dataKey !== "downMarker",
     );
+    // Au point de raccord (« Maintenant »), le dernier temps observé amorce aussi
+    // la prévision : les deux séries portent la MÊME valeur au même instant. On
+    // n'affiche alors que le temps observé (pas de doublon « Aujourd'hui +
+    // Prévision »), pour ne montrer que le temps actuel. Ailleurs, un point n'a
+    // de toute façon qu'une seule des deux séries.
+    if (rows.some((p) => p.dataKey === "actual")) {
+      rows = rows.filter((p) => p.dataKey === "actual");
+    }
 
     // Aucune valeur numérique => on survole une plage d'indispo : on affiche le
     // statut (fermé / en panne / maintenance) avec sa pastille de couleur, au
@@ -248,7 +261,7 @@ export default function WaitTimeChart({
                 style={{ background: r.color }}
               />
               <span className="text-muted-foreground">
-                {r.dataKey === "actual" ? todayLabel : forecastLabel}
+                {r.dataKey === "actual" ? actualLabel : forecastLabel}
               </span>
               <span className="ml-auto font-mono font-medium tabular-nums">
                 {r.value} min

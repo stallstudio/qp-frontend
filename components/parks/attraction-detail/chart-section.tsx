@@ -87,6 +87,7 @@ export default function ChartSection({
         timezone={data.timezone}
         nowLabel={t("chartNow")}
         todayLabel={t("chartToday")}
+        actualLabel={t("chartActual")}
         forecastLabel={t("chartForecast")}
       />
       <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
