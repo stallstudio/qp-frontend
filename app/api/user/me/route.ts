@@ -16,7 +16,7 @@ export async function GET() {
 
   const prisma = getUserPrisma();
 
-  const [user, prefs, favorites, activeNotifications] = await Promise.all(
+  const [user, prefs, favorites, activeAlerts] = await Promise.all(
     [
       prisma.user.findUnique({
         where: { id: userId },
@@ -27,7 +27,7 @@ export async function GET() {
         where: { userId },
         select: { type: true, key: true },
       }),
-      prisma.notification.count({ where: { userId, active: true } }),
+      prisma.alert.count({ where: { userId, active: true } }),
     ],
   );
 
@@ -47,7 +47,7 @@ export async function GET() {
     favorites: grouped,
     counts: {
       favorites: favorites.length,
-      activeNotifications,
+      activeAlerts,
     },
   };
 

@@ -32,12 +32,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts            Account[]
-  sessions            Session[]
-  preferences         UserPreferences?
-  favorites           Favorite[]
-  notifications       Notification[]
-  notificationHistory NotificationHistory[]
+  accounts          Account[]
+  sessions          Session[]
+  preferences       UserPreferences?
+  favorites         Favorite[]
+  alerts            Alert[]
+  alertHistory      AlertHistory[]
+  pushSubscriptions PushSubscription[]
 
   @@map("users")
 }
@@ -148,15 +149,15 @@ model Favorite {
 }
 
 //
-// NOTIFICATIONS
+// ALERTES (temps d'attente)
 //
 // Référence l'attraction par `rideId` (base principale). Les champs *Name /
 // parkIdentifier sont des instantanés d'affichage : le profil et l'historique
 // restent lisibles sans jointure inter-bases, même si l'attraction disparaît.
-// Le moteur de vérification des temps d'attente sera branché plus tard : il lira
-// les notifications `active = true` par rideId et écrira dans l'historique.
+// Le moteur de vérification des temps d'attente (/api/cron/alerts) lit les
+// alertes `active = true` par rideId et écrit dans l'historique.
 
-model Notification {
+model Alert {
   id             String   @id @default(cuid())
   userId         String
   rideId         Int
@@ -165,22 +166,36 @@ model Notification {
   parkName       String   @db.VarChar(255)
   threshold      Int
   active         Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  // État anti-spam du moteur (déclenchement sur FRONT, pas sur niveau) : `armed`
+  // = true tant que le temps est resté au-dessus du seuil, donc prêt à alerter
+  // quand il redescendra à ≤ seuil. Passe à false juste après l'envoi, et se
+  // réarme quand le temps repasse nettement au-dessus (seuil + hystérésis) ou que
+  // l'attraction n'est plus ouverte. Sans ça, on ré-alerterait à chaque passage
+  // du cron tant que la file reste courte.
+  armed          Boolean   @default(true)
+  lastAlertedAt  DateTime?
+  // Jour de validité de l'alerte. Une alerte ne vaut QUE pour la journée où elle
+  // a été (ré)activée : on considère qu'on quitte le parc le soir. Le moteur
+  // désactive (`active=false`) toute alerte dont ce jour — évalué dans le FUSEAU
+  // DU PARC — est antérieur à aujourd'hui. Rempli à la création et à chaque
+  // réactivation. Null (anciennes lignes) = pas d'expiration.
+  activeDate     DateTime? @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  user    User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  history NotificationHistory[]
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  history AlertHistory[]
 
   @@unique([userId, rideId])
   @@index([userId])
   @@index([rideId, active])
-  @@map("notifications")
+  @@map("alerts")
 }
 
-model NotificationHistory {
+model AlertHistory {
   id             String   @id @default(cuid())
   userId         String
-  notificationId String?
+  alertId        String?
   rideId         Int
   rideName       String   @db.VarChar(255)
   parkIdentifier String   @db.VarChar(100)
@@ -188,10 +203,37 @@ model NotificationHistory {
   actualWaitTime Int
   sentAt         DateTime @default(now())
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notification Notification? @relation(fields: [notificationId], references: [id], onDelete: SetNull)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alert Alert? @relation(fields: [alertId], references: [id], onDelete: SetNull)
 
   @@index([userId, sentAt])
-  @@index([notificationId])
-  @@map("notification_history")
+  @@index([alertId])
+  @@map("alert_history")
+}
+
+//
+// ABONNEMENTS PUSH (Web Push)
+//
+// Un abonnement par APPAREIL/navigateur (un utilisateur peut en avoir plusieurs :
+// téléphone, desktop…). Produit par PushManager.subscribe() côté client, envoyé
+// à /api/user/push. Le moteur (/api/cron/notifications) envoie un message Web Push
+// signé VAPID à chaque abonnement de l'utilisateur. Un endpoint mort (410/404 au
+// moment de l'envoi) est supprimé automatiquement.
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  // `endpoint` identifie de façon unique l'abonnement (URL du service push du
+  // navigateur). Unique pour permettre l'upsert (ré-abonnement du même appareil).
+  endpoint  String   @unique @db.VarChar(500)
+  p256dh    String   @db.VarChar(255)
+  auth      String   @db.VarChar(255)
+  // Purement informatif (debug / futur affichage « vos appareils »).
+  userAgent String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }

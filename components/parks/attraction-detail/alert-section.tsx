@@ -17,11 +17,12 @@ import { Button } from "@/components/ui/button";
 import NumberStepper from "@/components/ui/number-stepper";
 import { useUser } from "@/components/providers/user-provider";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import type { PwaPlatform, PromptInstall } from "@/lib/pwa";
 import AuthDialog from "@/components/auth/auth-dialog";
-import type { NotificationDTO } from "@/types/user";
+import type { AlertDTO } from "@/types/user";
 
-type NotificationSectionProps = {
+type AlertSectionProps = {
   rideId: number;
   rideName: string;
   parkIdentifier: string;
@@ -33,10 +34,16 @@ const MIN_THRESHOLD = 5;
 const MAX_THRESHOLD = 120;
 const THRESHOLD_STEP = 5;
 
-// Notifications de l'attraction. Disponibles uniquement en PWA installée ET
-// connecté ; sinon on guide l'utilisateur vers l'action à effectuer (installer /
-// se connecter). Couvre les 4 cas de la matrice PWA × authentification.
-export default function NotificationSection(props: NotificationSectionProps) {
+// Alertes de temps d'attente de l'attraction. Disponibles uniquement connecté ;
+// sinon on guide l'utilisateur vers l'action à effectuer (installer / se connecter).
+//
+// Le Web Push marche DANS L'ONGLET sur desktop (Chrome/Edge/Firefox/Safari) et
+// sur Android Chrome — aucune installation requise. Le SEUL cas qui l'impose est
+// iOS/iPadOS : Safari ne délivre le push que si l'app est ajoutée à l'écran
+// d'accueil. On garde donc l'écran d'installation UNIQUEMENT sur mobile non
+// installé (iOS par nécessité, Android par choix produit — meilleure UX depuis
+// l'app installée) ; sur desktop on va directement au formulaire.
+export default function AlertSection(props: AlertSectionProps) {
   const { isStandalone, platform, canPrompt, promptInstall, hydrated } =
     usePwaInstall();
   const { isAuthenticated } = useUser();
@@ -51,7 +58,8 @@ export default function NotificationSection(props: NotificationSectionProps) {
     );
   }
 
-  if (!isStandalone) {
+  // Mobile non installé → écran d'installation. Desktop → on continue.
+  if (!isStandalone && platform !== "desktop") {
     return (
       <InstallPrompt
         platform={platform}
@@ -66,7 +74,7 @@ export default function NotificationSection(props: NotificationSectionProps) {
     return <SignInPrompt />;
   }
 
-  return <NotificationForm {...props} />;
+  return <AlertForm {...props} />;
 }
 
 // —————————————————————— Navigateur : installer la PWA ——————————————————————
@@ -157,26 +165,27 @@ function SignInPrompt() {
 
 // —————————————————————— PWA + connecté : formulaire complet ——————————————————————
 
-function NotificationForm({
+function AlertForm({
   rideId,
   rideName,
   parkIdentifier,
   parkName,
-}: NotificationSectionProps) {
+}: AlertSectionProps) {
   const t = useTranslations("attractionDetail");
-  const tNotif = useTranslations("notifications");
+  const tAlert = useTranslations("alerts");
   const { refresh } = useUser();
+  const push = usePushNotifications();
   const [threshold, setThreshold] = useState(DEFAULT_THRESHOLD);
-  const [existing, setExisting] = useState<NotificationDTO | null>(null);
+  const [existing, setExisting] = useState<AlertDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Charge la notification existante de cette attraction (pré-remplit le seuil).
+  // Charge l'alerte existante de cette attraction (pré-remplit le seuil).
   useEffect(() => {
     let cancelled = false;
     axios
-      .get<NotificationDTO[]>("/api/user/notifications")
+      .get<AlertDTO[]>("/api/user/alerts")
       .then((res) => {
         if (cancelled) return;
         const found = res.data.find((n) => n.rideId === rideId) ?? null;
@@ -195,15 +204,34 @@ function NotificationForm({
   const save = async () => {
     setSaving(true);
     try {
-      const { data } = await axios.post<NotificationDTO>(
-        "/api/user/notifications",
-        { rideId, rideName, parkIdentifier, parkName, threshold },
-      );
+      // Avant d'enregistrer, on s'assure que CET appareil est abonné au push
+      // (permission + PushManager). Le clic « Enregistrer » est le geste
+      // utilisateur qui autorise la demande de permission du navigateur.
+      let pushOk = push.subscribed;
+      if (push.supported && !push.subscribed) {
+        pushOk = await push.subscribe();
+      }
+
+      const { data } = await axios.post<AlertDTO>("/api/user/alerts", {
+        rideId,
+        rideName,
+        parkIdentifier,
+        parkName,
+        threshold,
+      });
       setExisting(data);
-      toast.success(t("saved"));
       refresh();
+
+      // L'alerte est enregistrée quoi qu'il arrive ; on prévient juste si ce
+      // navigateur ne pourra pas recevoir les push (permission refusée / non
+      // supportée) — d'autres appareils de l'utilisateur le peuvent.
+      if (push.supported && !pushOk) {
+        toast.warning(t("pushBlocked"));
+      } else {
+        toast.success(t("saved"));
+      }
     } catch {
-      toast.error(tNotif("createError"));
+      toast.error(tAlert("createError"));
     } finally {
       setSaving(false);
     }
@@ -213,13 +241,13 @@ function NotificationForm({
     if (!existing) return;
     setDeleting(true);
     try {
-      await axios.delete(`/api/user/notifications/${existing.id}`);
+      await axios.delete(`/api/user/alerts/${existing.id}`);
       setExisting(null);
       setThreshold(DEFAULT_THRESHOLD);
       toast.success(t("deleted"));
       refresh();
     } catch {
-      toast.error(tNotif("createError"));
+      toast.error(tAlert("createError"));
     } finally {
       setDeleting(false);
     }
@@ -233,15 +261,15 @@ function NotificationForm({
     );
   }
 
-  // « dirty » autorise l'enregistrement : nouvelle notif, seuil modifié, ou
-  // notif existante désactivée (le POST la réactive).
+  // « dirty » autorise l'enregistrement : nouvelle alerte, seuil modifié, ou
+  // alerte existante désactivée (le POST la réactive).
   const dirty =
     !existing || !existing.active || existing.threshold !== threshold;
 
   return (
     <div className="flex flex-col items-center gap-3">
       <span className="text-center text-sm font-medium">
-        {tNotif("thresholdLabel")}
+        {tAlert("thresholdLabel")}
       </span>
       <NumberStepper
         value={threshold}
@@ -249,8 +277,8 @@ function NotificationForm({
         min={MIN_THRESHOLD}
         max={MAX_THRESHOLD}
         step={THRESHOLD_STEP}
-        format={(v) => tNotif("thresholdOption", { minutes: v })}
-        aria-label={tNotif("thresholdLabel")}
+        format={(v) => tAlert("thresholdOption", { minutes: v })}
+        aria-label={tAlert("thresholdLabel")}
       />
 
       {existing?.active && (
@@ -258,6 +286,23 @@ function NotificationForm({
           <BellRing className="size-3.5" />
           {t("notifActive")}
         </span>
+      )}
+
+      {/* Permission navigateur refusée : l'alerte est enregistrée mais ce
+          navigateur ne recevra rien tant que l'utilisateur ne réautorise pas les
+          notifications dans les réglages du site. */}
+      {push.supported && push.permission === "denied" && (
+        <p className="text-center text-xs text-destructive">
+          {t("pushDenied")}
+        </p>
+      )}
+
+      {/* Navigateur sans Web Push (rare, ex. très ancien) : on le dit clairement
+          plutôt que de laisser croire que l'alerte sera reçue ici. */}
+      {push.ready && !push.supported && (
+        <p className="text-center text-xs text-muted-foreground">
+          {t("pushUnsupported")}
+        </p>
       )}
 
       <div className="flex w-full gap-2 pt-1">

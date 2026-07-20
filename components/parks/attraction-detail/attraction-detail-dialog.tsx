@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import type { WaitTime } from "@/types/waitTime";
 import ImageSection from "./image-section";
-import NotificationSection from "./notification-section";
+import AlertSection from "./alert-section";
 import ChartSection from "./chart-section";
 
 type AttractionDetailDialogProps = {
@@ -42,7 +42,7 @@ function Section({
 }
 
 // Popup « détail attraction » : centralise image (nom + lien Thrills en overlay),
-// favoris, notifications et graphique. Ouvert quand `target` est non nul.
+// favoris, alertes et graphique. Ouvert quand `target` est non nul.
 export default function AttractionDetailDialog({
   target,
   parkIdentifier,
@@ -59,7 +59,7 @@ export default function AttractionDetailDialog({
           Layout en colonne flex : en-tête ÉPINGLÉE (image + favori, `shrink-0`)
           + corps DÉFILANT (`flex-1 min-h-0 overflow-y-auto`). Ainsi le bouton
           favori reste TOUJOURS visible, quoi qu'il arrive au montage des sections
-          asynchrones (notifications, graphique) : il ne peut plus être poussé
+          asynchrones (alertes, graphique) : il ne peut plus être poussé
           hors champ par leur croissance ni par un focus qui ferait défiler. */}
       <DialogContent
         className="flex max-h-[88vh] flex-col gap-0 overflow-hidden rounded-4xl p-0 sm:max-w-md"
@@ -84,15 +84,15 @@ export default function AttractionDetailDialog({
               />
             </div>
 
-            {/* Corps défilant : notifications + graphique. `scrollbar-hide` masque
+            {/* Corps défilant : alertes + graphique. `scrollbar-hide` masque
                 la barre de défilement (le petit dépassement résiduel reste
                 scrollable, mais sans barre visible). */}
             <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
               <Section
-                title={t("notificationsTitle")}
+                title={t("alertsTitle")}
                 icon={<Bell className="size-4" />}
               >
-                <NotificationSection
+                <AlertSection
                   rideId={target.rideId}
                   rideName={target.rideName}
                   parkIdentifier={parkIdentifier}

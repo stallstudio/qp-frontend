@@ -10,7 +10,8 @@
     "user:generate": "prisma generate --config prisma.user.config.ts",
     "user:migrate": "prisma migrate dev --config prisma.user.config.ts",
     "user:deploy": "prisma migrate deploy --config prisma.user.config.ts",
-    "user:push": "prisma db push --config prisma.user.config.ts"
+    "user:push": "prisma db push --config prisma.user.config.ts",
+    "vapid:generate": "web-push generate-vapid-keys"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -49,6 +50,7 @@
     "slugify": "^1.6.6",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
+    "web-push": "^3.6.7",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },
@@ -58,6 +60,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "eslint": "^9",
     "eslint-config-next": "^15.5.12",
     "tailwindcss": "^4",

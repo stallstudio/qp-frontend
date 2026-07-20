@@ -4,8 +4,8 @@ import {
   timeFormatFromDb,
   type UserPreferences,
 } from "@/lib/user-preferences";
-import type { NotificationDTO, NotificationHistoryDTO } from "@/types/user";
-import type { Notification, NotificationHistory } from "@/lib/generated/user-client";
+import type { AlertDTO, AlertHistoryDTO } from "@/types/user";
+import type { Alert, AlertHistory } from "@/lib/generated/user-client";
 
 // Accès aux données de compte, partagé par les routes /api/user/*.
 
@@ -36,22 +36,20 @@ export async function getPreferences(
   };
 }
 
-export function toNotificationDTO(n: Notification): NotificationDTO {
+export function toAlertDTO(a: Alert): AlertDTO {
   return {
-    id: n.id,
-    rideId: n.rideId,
-    parkIdentifier: n.parkIdentifier,
-    rideName: n.rideName,
-    parkName: n.parkName,
-    threshold: n.threshold,
-    active: n.active,
-    createdAt: n.createdAt.toISOString(),
+    id: a.id,
+    rideId: a.rideId,
+    parkIdentifier: a.parkIdentifier,
+    rideName: a.rideName,
+    parkName: a.parkName,
+    threshold: a.threshold,
+    active: a.active,
+    createdAt: a.createdAt.toISOString(),
   };
 }
 
-export function toNotificationHistoryDTO(
-  h: NotificationHistory,
-): NotificationHistoryDTO {
+export function toAlertHistoryDTO(h: AlertHistory): AlertHistoryDTO {
   return {
     id: h.id,
     rideId: h.rideId,

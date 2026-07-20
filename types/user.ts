@@ -3,7 +3,7 @@ import type { UserPreferences } from "@/lib/user-preferences";
 // Types du domaine utilisateur exposés par les routes /api/user/* et consommés
 // par le UserProvider et la page Profil.
 
-export interface NotificationDTO {
+export interface AlertDTO {
   id: string;
   rideId: number;
   parkIdentifier: string;
@@ -14,7 +14,7 @@ export interface NotificationDTO {
   createdAt: string;
 }
 
-export interface NotificationHistoryDTO {
+export interface AlertHistoryDTO {
   id: string;
   rideId: number;
   parkIdentifier: string;
@@ -42,6 +42,6 @@ export interface UserProfile {
   favorites: FavoritesPayload;
   counts: {
     favorites: number;
-    activeNotifications: number;
+    activeAlerts: number;
   };
 }
