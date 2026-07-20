@@ -155,9 +155,31 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Réserve EN PERMANENCE la gouttière de la scrollbar. Sans ça, à l'ouverture
+     d'un Dialog (radix) la scrollbar de la page est retirée : la largeur utile
+     du viewport change, ce qui décale l'en-tête `fixed` (et l'étoile favori
+     ancrée à son bord droit). Gouttière stable => la largeur utile ne bouge
+     plus au verrouillage du scroll. */
+  html {
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* HORS @layer À DESSEIN. Radix verrouille le scroll via react-remove-scroll :
+   il ajoute `margin-right` (= largeur scrollbar) sur `body[data-scroll-locked]`
+   pour compenser la scrollbar retirée. Avec `scrollbar-gutter: stable` la
+   gouttière est DÉJÀ réservée : cette compensation devient superflue et décale
+   le contenu du body (la table des temps d'attente « glisse »). On la neutralise.
+   Sa règle est `!important` ET NON LAYÉRÉE : une déclaration `!important` non
+   layérée l'emporte sur une layérée, donc ce override DOIT lui aussi être hors
+   `@layer` (sinon il perd), avec une spécificité supérieure. Le `overflow:
+   hidden` du verrou, lui, reste actif. */
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
 }
 
 @layer utilities {

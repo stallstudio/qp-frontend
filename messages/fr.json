@@ -306,7 +306,7 @@
     "chartEmpty": "Pas encore de données pour aujourd'hui.",
     "chartForecastNote": "Estimation indicative de la fin de journée.",
     "installTitle": "Installez Queue Park",
-    "installIntro": "Les notifications nécessitent l'application installée sur votre appareil.",
+    "installIntro": "Les notifications nécessitent que l'application soit installée sur votre appareil.",
     "installButton": "Installer l'application",
     "installAndroidSteps": "Ouvrez le menu ⋮ de votre navigateur, puis « Ajouter à l'écran d'accueil ».",
     "installIosSteps": "Appuyez sur Partager, puis « Sur l'écran d'accueil ».",

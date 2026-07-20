@@ -22,25 +22,47 @@ export default function ChartSection({
   const [data, setData] = useState<RideHistoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Rafraîchissement périodique tant que le popup est ouvert : la prévision (et
+  // la courbe du jour) évoluent en direct. Le 1er appel gère le spinner ; les
+  // suivants sont SILENCIEUX (on ne repasse pas `loading` à true) pour ne pas
+  // faire clignoter le graphique — la nouvelle donnée est passée telle quelle,
+  // le graphique anime la transition (voir wait-time-chart.tsx).
   useEffect(() => {
     const controller = new AbortController();
+    let cancelled = false;
+
+    const fetchHistory = () =>
+      axios
+        .get<{ data: RideHistoryResponse }>(
+          `/api/park/${parkIdentifier}/ride/${rideId}/history`,
+          { signal: controller.signal },
+        )
+        .then((res) => {
+          if (!cancelled) setData(res.data.data);
+        })
+        .catch(() => {
+          // Le graphique est un bonus : en cas d'échec on garde l'état courant.
+        });
+
     setLoading(true);
-    axios
-      .get<{ data: RideHistoryResponse }>(
-        `/api/park/${parkIdentifier}/ride/${rideId}/history`,
-        { signal: controller.signal },
-      )
-      .then((res) => setData(res.data.data))
-      .catch(() => {
-        // Le graphique est un bonus : en cas d'échec on montre l'état vide.
-      })
-      .finally(() => setLoading(false));
-    return () => controller.abort();
+    fetchHistory().finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+
+    const interval = setInterval(fetchHistory, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      controller.abort();
+    };
   }, [parkIdentifier, rideId]);
 
+  // Hauteur réservée (≈ graphique 180px + légende + note) : identique pour les
+  // états chargement / vide / rendu afin que la taille du popup ne change PAS
+  // entre l'ouverture (spinner) et l'affichage du graphique (pas de « saut »).
   if (loading) {
     return (
-      <div className="flex h-[168px] items-center justify-center">
+      <div className="flex h-[226px] items-center justify-center">
         <Loader2 className="size-5 animate-spin text-muted-foreground" />
       </div>
     );
@@ -49,14 +71,14 @@ export default function ChartSection({
   const hasData = data && data.today.some((p) => p.waitTime != null);
   if (!hasData) {
     return (
-      <p className="py-6 text-center text-sm text-muted-foreground">
+      <div className="flex h-[226px] items-center justify-center text-center text-sm text-muted-foreground">
         {t("chartEmpty")}
-      </p>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex min-h-[226px] flex-col gap-2">
       <WaitTimeChart
         today={data.today}
         forecast={data.forecast}
