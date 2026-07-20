@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 // les plus récentes d'abord. Rempli par le futur moteur de vérification des temps.
 export async function GET() {
   const { userId, response } = await requireUserId();
-  if (!userId) return response;
+  if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const rows = await getUserPrisma().notificationHistory.findMany({
     where: { userId },

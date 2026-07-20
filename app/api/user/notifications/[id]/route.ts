@@ -17,7 +17,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { userId, response } = await requireUserId();
-  if (!userId) return response;
+  if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const body = (await request.json().catch(() => null)) as Record<
@@ -68,7 +68,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { userId, response } = await requireUserId();
-  if (!userId) return response;
+  if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const result = await getUserPrisma().notification.deleteMany({

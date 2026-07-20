@@ -13,7 +13,7 @@ const MAX_THRESHOLD = 600;
 // les plus récentes d'abord.
 export async function GET() {
   const { userId, response } = await requireUserId();
-  if (!userId) return response;
+  if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const rows = await getUserPrisma().notification.findMany({
     where: { userId },
@@ -28,7 +28,7 @@ export async function GET() {
 // re-soumettre réactive et met à jour le seuil.
 export async function POST(request: NextRequest) {
   const { userId, response } = await requireUserId();
-  if (!userId) return response;
+  if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = (await request.json().catch(() => null)) as Record<
     string,

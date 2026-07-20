@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 // Renvoie l'état complet des préférences après mise à jour.
 export async function PATCH(request: NextRequest) {
   const { userId, response } = await requireUserId();
-  if (!userId) return response;
+  if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const patch = parsePreferencesPatch(await request.json().catch(() => null));
   if (Object.keys(patch).length === 0) {

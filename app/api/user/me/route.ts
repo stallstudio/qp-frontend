@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 // Point d'entrée unique du UserProvider au chargement / à la connexion.
 export async function GET() {
   const { userId, response } = await requireUserId();
-  if (!userId) return response;
+  if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const prisma = getUserPrisma();
 
