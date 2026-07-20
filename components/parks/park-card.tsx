@@ -6,7 +6,9 @@ import TitleWithStatus from "./title-with-status";
 import { ParkList } from "@/types/api";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { useFavorites } from "@/hooks/useFavorites";
+import { PARK_FAVORITES_LIMIT } from "@/lib/favorites-storage";
 import FavoriteStar from "@/components/ui/favorite-star";
 
 interface ParkCardProps {
@@ -39,6 +41,12 @@ export default function ParkCard({
   const { isFavorite, toggle } = useFavorites("parks");
   const isFav = isFavorite(park.identifier);
 
+  const handleToggle = () => {
+    if (!toggle(park.identifier)) {
+      toast.error(tFav("parkLimit", { max: PARK_FAVORITES_LIMIT }));
+    }
+  };
+
   const parkHref = (() => {
     const base = getParkLink(park);
     const back = searchParams.toString();
@@ -56,7 +64,7 @@ export default function ParkCard({
         <div className="flex items-center gap-1.5">
           <FavoriteStar
             active={isFav}
-            onToggle={() => toggle(park.identifier)}
+            onToggle={handleToggle}
             label={isFav ? tFav("removePark") : tFav("addPark")}
             className={`transition-opacity ${
               isFav

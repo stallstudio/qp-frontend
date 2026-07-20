@@ -10,8 +10,10 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { ParkLiveData } from "@/types/api";
 import { useFavorites } from "@/hooks/useFavorites";
+import { PARK_FAVORITES_LIMIT } from "@/lib/favorites-storage";
 import FavoriteStar from "@/components/ui/favorite-star";
 
 const EXPANDED_HEIGHT = 288;
@@ -34,6 +36,12 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
   const homeHref = backParam ? `/?${decodeURIComponent(backParam)}` : "/";
   const { isFavorite, toggle } = useFavorites("parks");
   const isFav = isFavorite(park.identifier);
+
+  const handleToggle = () => {
+    if (!toggle(park.identifier)) {
+      toast.error(tFav("parkLimit", { max: PARK_FAVORITES_LIMIT }));
+    }
+  };
 
   // Distance (px) entre le centre du nom et le bas de la carte, en flux normal
   // (donc indépendante de la hauteur de la carte et du transform appliqué).
@@ -187,7 +195,7 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
             >
               <FavoriteStar
                 active={isFav}
-                onToggle={() => toggle(park.identifier)}
+                onToggle={handleToggle}
                 label={isFav ? tFav("removePark") : tFav("addPark")}
                 size="md"
                 className={`p-1.5 bg-black/25 backdrop-blur-sm hover:bg-black/35 ${

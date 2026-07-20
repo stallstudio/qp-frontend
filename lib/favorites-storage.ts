@@ -9,6 +9,14 @@ export const FAV_SYNC_EVENT = "qp-fav-change";
 export const FAV_NAMESPACES = ["parks", "rides"] as const;
 export type FavNamespace = (typeof FAV_NAMESPACES)[number];
 
+// Plafond de parcs favoris : au-delà, la page d'accueil devient vite trop chargée.
+// Appliqué à l'AJOUT interactif (voir useFavorites.toggle) ; la synchro descendante
+// depuis le compte (fusion) n'est pas tronquée pour ne rien perdre silencieusement.
+export const PARK_FAVORITES_LIMIT = 20;
+export const FAV_LIMITS: Partial<Record<string, number>> = {
+  parks: PARK_FAVORITES_LIMIT,
+};
+
 export function readFavorites(namespace: string): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {

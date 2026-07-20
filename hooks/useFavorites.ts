@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  FAV_LIMITS,
   FAV_STORAGE_PREFIX,
   FAV_SYNC_EVENT,
   readFavorites,
@@ -55,17 +56,23 @@ export function useFavorites(namespace: string) {
     [namespace],
   );
 
+  // Renvoie true si le changement a été appliqué, false s'il a été refusé (ajout
+  // au-delà du plafond du namespace) : l'appelant peut alors prévenir l'utilisateur.
+  // Le RETRAIT n'est jamais bloqué.
   const toggle = useCallback(
-    (id: string) => {
+    (id: string): boolean => {
       const next = new Set(favorites);
       if (next.has(id)) {
         next.delete(id);
       } else {
+        const limit = FAV_LIMITS[namespace];
+        if (limit !== undefined && next.size >= limit) return false;
         next.add(id);
       }
       persist(next);
+      return true;
     },
-    [favorites, persist],
+    [favorites, persist, namespace],
   );
 
   const isFavorite = useCallback((id: string) => favorites.has(id), [favorites]);

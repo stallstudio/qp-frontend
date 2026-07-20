@@ -61,7 +61,10 @@
     "add": "Add to favorites",
     "remove": "Remove from favorites",
     "addPark": "Add this park to favorites",
-    "removePark": "Remove this park from favorites"
+    "removePark": "Remove this park from favorites",
+    "parkLimit": "You can have up to {max} favorite parks.",
+    "seeMore": "See {count} more",
+    "seeLess": "Show less"
   },
   "manifest": {
     "name": "Queue Park",

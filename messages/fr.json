@@ -61,7 +61,10 @@
     "add": "Ajouter aux favoris",
     "remove": "Retirer des favoris",
     "addPark": "Ajouter ce parc aux favoris",
-    "removePark": "Retirer ce parc des favoris"
+    "removePark": "Retirer ce parc des favoris",
+    "parkLimit": "Vous pouvez avoir {max} parcs favoris au maximum.",
+    "seeMore": "Voir les {count} autres",
+    "seeLess": "Voir moins"
   },
   "manifest": {
     "name": "Queue Park",
