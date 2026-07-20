@@ -25,18 +25,15 @@ import {
 } from "@/components/ui/form";
 import { GoogleIcon } from "./google-icon";
 
-export type AuthMode = "signin" | "signup";
-
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: AuthMode;
 }
 
 // Popup d'authentification sans mot de passe : Google OU magic link par email.
-// Le mode (connexion / inscription) ne change que le texte : le flux passwordless
-// est identique (le lien crée le compte s'il n'existe pas).
-export default function AuthDialog({ open, onOpenChange, mode }: AuthDialogProps) {
+// Connexion et inscription sont un SEUL et même flux (le lien crée le compte s'il
+// n'existe pas) : on n'affiche donc qu'une entrée unique, au libellé neutre.
+export default function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const t = useTranslations("auth");
   const [googleLoading, setGoogleLoading] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -105,12 +102,8 @@ export default function AuthDialog({ open, onOpenChange, mode }: AuthDialogProps
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>
-                {mode === "signup" ? t("signupTitle") : t("signinTitle")}
-              </DialogTitle>
-              <DialogDescription>
-                {mode === "signup" ? t("signupSubtitle") : t("signinSubtitle")}
-              </DialogDescription>
+              <DialogTitle>{t("title")}</DialogTitle>
+              <DialogDescription>{t("subtitle")}</DialogDescription>
             </DialogHeader>
 
             <div className="flex flex-col gap-4">

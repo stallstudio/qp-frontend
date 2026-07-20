@@ -5,11 +5,11 @@ import Image from "next/image";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { LogIn, LogOut, User as UserIcon, UserPlus, Settings } from "lucide-react";
+import { LogIn, LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useUser } from "@/components/providers/user-provider";
-import AuthDialog, { type AuthMode } from "@/components/auth/auth-dialog";
+import AuthDialog from "@/components/auth/auth-dialog";
 
 // Bloc utilisateur affiché en tête de l'accueil (au-dessus des parcs favoris).
 // Design discret : une carte pleine largeur, contenu adapté à l'état de connexion.
@@ -17,12 +17,6 @@ export default function UserBlock() {
   const t = useTranslations("userBlock");
   const { status, isAuthenticated, profile } = useUser();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [mode, setMode] = useState<AuthMode>("signin");
-
-  const openAuth = (nextMode: AuthMode) => {
-    setMode(nextMode);
-    setDialogOpen(true);
-  };
 
   // Pendant le chargement de la session : rien, pour éviter tout flash.
   if (status === "loading") return null;
@@ -43,21 +37,13 @@ export default function UserBlock() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openAuth("signin")}
-            >
+            <Button size="sm" onClick={() => setDialogOpen(true)}>
               <LogIn className="size-4" />
               <span className="hidden sm:inline">{t("signIn")}</span>
             </Button>
-            <Button size="sm" onClick={() => openAuth("signup")}>
-              <UserPlus className="size-4" />
-              <span className="hidden sm:inline">{t("signUp")}</span>
-            </Button>
           </div>
         </Card>
-        <AuthDialog open={dialogOpen} onOpenChange={setDialogOpen} mode={mode} />
+        <AuthDialog open={dialogOpen} onOpenChange={setDialogOpen} />
       </>
     );
   }
@@ -90,15 +76,19 @@ export default function UserBlock() {
       <div className="flex shrink-0 items-center gap-2">
         <Button variant="outline" size="sm" asChild>
           <Link href="/profile">
-            <Settings className="size-4" />
+            {/* Même iconographie « compte » que le footer. */}
+            <UserIcon className="size-4" />
             <span className="hidden sm:inline">{t("profile")}</span>
           </Link>
         </Button>
         <Button
-          variant="ghost"
           size="sm"
           onClick={() => signOut({ callbackUrl: "/" })}
           aria-label={t("signOut")}
+          // Vrai bouton « déconnexion », rouge, avec légère bordure (comme les
+          // boutons outline). Theme-aware : rouge lisible et net en clair, rouge
+          // très foncé peu opaque en sombre.
+          className="border border-red-500/30 bg-red-500/10 text-red-600 hover:bg-red-500/20 hover:text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60 dark:hover:text-red-200"
         >
           <LogOut className="size-4" />
           <span className="hidden sm:inline">{t("signOut")}</span>

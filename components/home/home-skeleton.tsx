@@ -24,6 +24,18 @@ export default function HomeSkeleton() {
           <div className="h-0 bg-input/30 border rounded-b-4xl -mt-6 mb-6 w-full" />
         </div>
 
+        {/* Bloc utilisateur (connexion / profil) : carte pleine largeur. */}
+        <div className="flex items-center justify-between gap-4 rounded-xl border px-5 py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <Skeleton className="size-10 shrink-0 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-48 max-w-full" />
+            </div>
+          </div>
+          <Skeleton className="h-8 w-24 shrink-0 rounded-md" />
+        </div>
+
         {/* Popular Parks Section Skeleton */}
         <div className="space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-1">

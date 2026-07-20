@@ -1,5 +1,7 @@
 import { useTranslations } from "next-intl";
+import { Info } from "lucide-react";
 import LanguageSwitcher from "./language-switcher";
+import FooterAuth from "./footer-auth";
 import { AnimatedThemeToggler } from "./animated-theme-toggler";
 import { buttonVariants } from "./button";
 import { Link } from "@/i18n/routing";
@@ -29,16 +31,19 @@ export default function Footer() {
           .
         </p>
       </div>
-      <div className="flex items-center justify-center sm:justify-end gap-2 order-1 sm:order-2">
+      {/* Ordre : compte, À propos | langue, thème. Le « | » ne sert plus qu'à
+          séparer les catégories (compte/navigation vs préférences). */}
+      <div className="flex flex-wrap items-center justify-center gap-2 order-1 sm:order-2 sm:justify-end">
+        <FooterAuth />
         <Link
           href="/about"
-          className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
+          className={buttonVariants({ variant: "secondary" })}
         >
+          <Info className="size-4" />
           {tAbout("metaTitle")}
         </Link>
-        <span>|</span>
+        <span className="text-muted-foreground">|</span>
         <LanguageSwitcher />
-        <span>|</span>
         <AnimatedThemeToggler
           className={buttonVariants({ variant: "secondary" })}
         />

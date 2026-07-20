@@ -249,10 +249,8 @@
     "signOut": "Déconnexion"
   },
   "auth": {
-    "signinTitle": "Connexion",
-    "signinSubtitle": "Connectez-vous à votre compte Queue Park",
-    "signupTitle": "Créer un compte",
-    "signupSubtitle": "Rejoignez Queue Park pour synchroniser vos préférences entre vos appareils",
+    "title": "Connexion",
+    "subtitle": "Connectez-vous ou créez votre compte, sans mot de passe.",
     "continueWithGoogle": "Continuer avec Google",
     "or": "ou",
     "emailPlaceholder": "vous@exemple.com",

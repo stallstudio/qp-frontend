@@ -249,10 +249,8 @@
     "signOut": "Sign out"
   },
   "auth": {
-    "signinTitle": "Sign in",
-    "signinSubtitle": "Sign in to your Queue Park account",
-    "signupTitle": "Create an account",
-    "signupSubtitle": "Join Queue Park to sync your preferences across devices",
+    "title": "Sign in",
+    "subtitle": "Sign in or create your account — no password.",
     "continueWithGoogle": "Continue with Google",
     "or": "or",
     "emailPlaceholder": "you@example.com",
