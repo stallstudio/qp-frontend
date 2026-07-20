@@ -15,7 +15,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NumberStepper from "@/components/ui/number-stepper";
-import { ALERT_THRESHOLDS, DEFAULT_ALERT_THRESHOLD } from "@/lib/alert-thresholds";
+import {
+  ALERT_THRESHOLDS,
+  defaultThresholdForWait,
+} from "@/lib/alert-thresholds";
 import { useUser } from "@/components/providers/user-provider";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
@@ -28,9 +31,10 @@ type AlertSectionProps = {
   rideName: string;
   parkIdentifier: string;
   parkName: string;
+  // Temps d'attente standby actuel (si disponible/ouvert) : sert à proposer un
+  // seuil par défaut « un cran en dessous » pour une nouvelle alerte.
+  currentWaitTime?: number;
 };
-
-const DEFAULT_THRESHOLD = DEFAULT_ALERT_THRESHOLD;
 
 // Alertes de temps d'attente de l'attraction. Disponibles uniquement connecté ;
 // sinon on guide l'utilisateur vers l'action à effectuer (installer / se connecter).
@@ -156,7 +160,7 @@ function SignInPrompt() {
         <LogIn className="size-4" />
         {tUser("signIn")}
       </Button>
-      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode="signin" />
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </div>
   );
 }
@@ -168,12 +172,15 @@ function AlertForm({
   rideName,
   parkIdentifier,
   parkName,
+  currentWaitTime,
 }: AlertSectionProps) {
   const t = useTranslations("attractionDetail");
   const tAlert = useTranslations("alerts");
   const { refresh } = useUser();
   const push = usePushNotifications();
-  const [threshold, setThreshold] = useState(DEFAULT_THRESHOLD);
+  // Défaut d'une nouvelle alerte : un cran sous le temps actuel de l'attraction.
+  const defaultThreshold = defaultThresholdForWait(currentWaitTime);
+  const [threshold, setThreshold] = useState(defaultThreshold);
   const [existing, setExisting] = useState<AlertDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -241,7 +248,7 @@ function AlertForm({
     try {
       await axios.delete(`/api/user/alerts/${existing.id}`);
       setExisting(null);
-      setThreshold(DEFAULT_THRESHOLD);
+      setThreshold(defaultThreshold);
       toast.success(t("deleted"));
       refresh();
     } catch {

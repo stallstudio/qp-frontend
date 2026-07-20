@@ -9,3 +9,20 @@ export const ALERT_THRESHOLDS: number[] = [
 ];
 
 export const DEFAULT_ALERT_THRESHOLD = 20;
+
+// Seuil par défaut proposé pour une NOUVELLE alerte : le « cran juste en dessous »
+// du temps d'attente actuel de l'attraction, dans la séquence ci-dessus
+// (ex. 35 → 30, 12 → 10, 5 → 1, 1 → 0). Gère naturellement le 1/0 (on ne propose
+// 1 que si l'attraction est au moins à 5, et 0 que si elle est à 1). Sans temps
+// courant exploitable (fermée, indispo, pas de donnée), on retombe sur le défaut.
+export function defaultThresholdForWait(currentWait?: number | null): number {
+  if (currentWait == null || !Number.isFinite(currentWait) || currentWait <= 0) {
+    return DEFAULT_ALERT_THRESHOLD;
+  }
+  let best = ALERT_THRESHOLDS[0];
+  for (const v of ALERT_THRESHOLDS) {
+    if (v < currentWait) best = v;
+    else break; // séquence triée croissante : inutile d'aller plus loin
+  }
+  return best;
+}

@@ -97,6 +97,18 @@ export default function AttractionDetailDialog({
                   rideName={target.rideName}
                   parkIdentifier={parkIdentifier}
                   parkName={parkName}
+                  currentWaitTime={(() => {
+                    // Temps standby actuel (seulement si ouvert et exploitable) :
+                    // sert au seuil par défaut « un cran en dessous ».
+                    const standby = target.queues.find(
+                      (q) => q.type === "standby",
+                    );
+                    return standby &&
+                      standby.status === "open" &&
+                      standby.waitTime >= 0
+                      ? standby.waitTime
+                      : undefined;
+                  })()}
                 />
               </Section>
 
