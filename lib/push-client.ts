@@ -15,12 +15,17 @@ export function isPushSupported(): boolean {
   );
 }
 
-// La clé VAPID publique est en base64url ; PushManager veut un Uint8Array.
-function urlBase64ToUint8Array(base64: string): Uint8Array {
+// La clé VAPID publique est en base64url ; PushManager veut un BufferSource.
+// On construit sur un ArrayBuffer EXPLICITE (et on type le retour en
+// `Uint8Array<ArrayBuffer>`) : avec les TS récents `Uint8Array` est générique et
+// `Uint8Array<ArrayBufferLike>` n'est pas assignable à `BufferSource` (le buffer
+// pourrait être un SharedArrayBuffer).
+function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
   const normalized = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(normalized);
-  const out = new Uint8Array(raw.length);
+  const buffer = new ArrayBuffer(raw.length);
+  const out = new Uint8Array(buffer);
   for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
   return out;
 }
