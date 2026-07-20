@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // GET : favoris du compte, au format { parks, rides }.
 export async function GET() {
   const { userId, response } = await requireUserId();
-  if (!userId) return response;
+  if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const rows = await getUserPrisma().favorite.findMany({
     where: { userId },
@@ -23,7 +23,7 @@ export async function GET() {
 // le compte quand l'utilisateur (dé)favorise quelque chose en étant connecté.
 export async function PUT(request: NextRequest) {
   const { userId, response } = await requireUserId();
-  if (!userId) return response;
+  if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const favorites = flattenFavorites(await request.json().catch(() => null));
   const prisma = getUserPrisma();
