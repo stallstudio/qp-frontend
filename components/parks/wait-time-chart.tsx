@@ -350,7 +350,7 @@ export default function WaitTimeChart({
           type="monotone"
           stroke="var(--color-actual)"
           strokeWidth={2}
-          dot={{ r: 2 }}
+          dot={false}
           activeDot={{ r: 4 }}
           connectNulls={false}
           isAnimationActive
@@ -365,7 +365,7 @@ export default function WaitTimeChart({
           strokeOpacity={0.6}
           strokeWidth={2}
           strokeDasharray="4 4"
-          dot={{ r: 2 }}
+          dot={false}
           activeDot={{ r: 4 }}
           connectNulls={false}
           isAnimationActive
