@@ -48,23 +48,30 @@ export async function POST(request: NextRequest) {
   const rideIds = [...new Set(rideParsed.map((r) => r.parsed.rideId))];
 
   const prisma = getPrisma();
+  // Types explicites des branches vides : sans ça, `Promise.resolve([])` élargit
+  // le résultat à `never[]`/`any[]` et `.map(...)` ne produit plus des tuples
+  // `[clé, valeur]` mais `any[]`, ce que `new Map()` refuse.
+  type ParkRow = { identifier: string; name: string };
+  type RideRow = { id: number; name: string; park: { name: string } | null };
   const [parkRows, rideRows] = await Promise.all([
     parkKeys.length
       ? prisma.park.findMany({
           where: { identifier: { in: parkKeys } },
           select: { identifier: true, name: true },
         })
-      : Promise.resolve([]),
+      : Promise.resolve([] as ParkRow[]),
     rideIds.length
       ? prisma.ride.findMany({
           where: { id: { in: rideIds } },
           select: { id: true, name: true, park: { select: { name: true } } },
         })
-      : Promise.resolve([]),
+      : Promise.resolve([] as RideRow[]),
   ]);
 
-  const parkNameByIdentifier = new Map(parkRows.map((p) => [p.identifier, p.name]));
-  const rideById = new Map(rideRows.map((r) => [r.id, r]));
+  const parkNameByIdentifier = new Map(
+    parkRows.map((p) => [p.identifier, p.name] as const),
+  );
+  const rideById = new Map(rideRows.map((r) => [r.id, r] as const));
 
   // On préserve l'ordre d'entrée et on omet ce qui ne résout pas.
   const parks: ResolvedPark[] = parkKeys.flatMap((key) => {
