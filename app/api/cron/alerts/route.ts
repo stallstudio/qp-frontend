@@ -161,24 +161,41 @@ export async function GET(request: NextRequest) {
 
   // 6. Envoi + historique + désarmement. Best-effort : un envoi échoué ne bloque
   //    pas les autres ; un endpoint mort (410/404) est purgé.
+  //
+  // Regroupement PAR UTILISATEUR : si plusieurs attractions surveillées
+  // descendent sous leur seuil dans le même passage, on envoie UNE notif « digest »
+  // listée plutôt qu'une par attraction (pas de spam, même pour >10 alertes).
+  // L'historique et le désarmement restent, eux, par alerte.
   const deadEndpoints: string[] = [];
   let sent = 0;
 
+  const fireByUser = new Map<string, typeof toFire>();
   for (const a of toFire) {
-    const entry = waitByRide.get(a.rideId)!;
-    const userSubs = subsByUser.get(a.userId) ?? [];
-    const locale = localeByUser.get(a.userId) ?? DEFAULT_LOCALE;
-    const msg = buildAlertMessage(locale, {
-      ride: a.rideName,
-      wait: entry.waitTime,
-      threshold: a.threshold,
-      park: a.parkName,
-    });
+    const list = fireByUser.get(a.userId) ?? [];
+    list.push(a);
+    fireByUser.set(a.userId, list);
+  }
+
+  for (const [userId, userAlerts] of fireByUser) {
+    const userSubs = subsByUser.get(userId) ?? [];
+    const locale = localeByUser.get(userId) ?? DEFAULT_LOCALE;
+
+    const msg = buildAlertMessage(
+      locale,
+      userAlerts.map((a) => ({
+        ride: a.rideName,
+        wait: waitByRide.get(a.rideId)!.waitTime,
+        threshold: a.threshold,
+      })),
+    );
+    // Une seule attraction -> lien direct vers son parc et tag par attraction
+    // (une nouvelle notif remplace la précédente). Plusieurs -> tag digest commun.
+    const single = userAlerts.length === 1 ? userAlerts[0] : null;
     const payload: PushPayload = {
       title: msg.title,
       body: msg.body,
-      url: `/${locale}/park/${a.parkIdentifier}`,
-      tag: `ride-${a.rideId}`,
+      url: `/${locale}/park/${(single ?? userAlerts[0]).parkIdentifier}`,
+      tag: single ? `ride-${single.rideId}` : "qp-alerts-digest",
     };
 
     let delivered = false;
@@ -191,23 +208,26 @@ export async function GET(request: NextRequest) {
       else if (res.gone) deadEndpoints.push(s.endpoint);
     }
 
-    // On enregistre l'historique et on désarme même si l'utilisateur n'a AUCUN
+    // Historique + désarmement PAR alerte, même si l'utilisateur n'a AUCUN
     // abonnement valide (il verra l'historique ; on n'insiste pas en boucle).
-    await userPrisma.alertHistory.create({
-      data: {
-        userId: a.userId,
-        alertId: a.id,
-        rideId: a.rideId,
-        rideName: a.rideName,
-        parkIdentifier: a.parkIdentifier,
-        threshold: a.threshold,
-        actualWaitTime: entry.waitTime,
-      },
-    });
-    await userPrisma.alert.update({
-      where: { id: a.id },
-      data: { armed: false, lastAlertedAt: new Date() },
-    });
+    for (const a of userAlerts) {
+      const entry = waitByRide.get(a.rideId)!;
+      await userPrisma.alertHistory.create({
+        data: {
+          userId: a.userId,
+          alertId: a.id,
+          rideId: a.rideId,
+          rideName: a.rideName,
+          parkIdentifier: a.parkIdentifier,
+          threshold: a.threshold,
+          actualWaitTime: entry.waitTime,
+        },
+      });
+      await userPrisma.alert.update({
+        where: { id: a.id },
+        data: { armed: false, lastAlertedAt: new Date() },
+      });
+    }
     if (delivered) sent++;
   }
 
