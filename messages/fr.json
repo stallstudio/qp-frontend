@@ -63,6 +63,13 @@
     "addPark": "Ajouter ce parc aux favoris",
     "removePark": "Retirer ce parc des favoris"
   },
+  "manifest": {
+    "name": "Queue Park",
+    "shortName": "QueuePark",
+    "description": "Temps d'attente en direct et spectacles de vos parcs d'attractions préférés.",
+    "shortcutAllParks": "Tous les parcs",
+    "shortcutParksShort": "Parcs"
+  },
   "waitTimeTable": {
     "attraction": "Attraction",
     "waitTime": "Temps",

@@ -88,7 +88,7 @@ export default function AuthDialog({ open, onOpenChange, mode }: AuthDialogProps
             <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
               <MailCheck className="size-6 text-primary" />
             </div>
-            <DialogHeader className="items-center">
+            <DialogHeader className="items-center sm:text-center">
               <DialogTitle>{t("emailSentTitle")}</DialogTitle>
               <DialogDescription>
                 {t("emailSentDescription", { email: sentTo })}
