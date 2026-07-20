@@ -9,7 +9,6 @@ import { useWaitTimeChanges } from "@/hooks/useWaitTimeChanges";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useFavorites } from "@/hooks/useFavorites";
 import WaitTrend from "@/components/parks/wait-trend";
-import WavyDivider from "@/components/ui/wavy-divider";
 import AttractionDetailDialog from "@/components/parks/attraction-detail/attraction-detail-dialog";
 import { cn } from "@/lib/utils";
 import {
@@ -21,6 +20,7 @@ import {
   Eye,
   FastForward,
   CornerDownRight,
+  Star,
 } from "lucide-react";
 
 type QueueTypeInfo = {
@@ -72,17 +72,14 @@ const STATUS_ORDER = { open: 0, down: 1, closed: 2, maintenance: 3 } as const;
 // code de rendu ci-dessous ; repasser ce drapeau à `true` pour réactiver.
 const TRENDS_ENABLED = false;
 
-// Grille partagée par l'en-tête et chaque ligne pour aligner les colonnes. Une
-// 4e piste de LARGEUR FIXE (3.5rem) accueille le cluster d'action à DROITE
-// (chevron d'expand + œil d'ouverture du popup). Largeur fixe et non `auto` :
-// chaque ligne étant une grille indépendante, `auto` donnerait des largeurs
-// différentes selon la présence du chevron et désalignerait les colonnes. Avec
-// une largeur fixe + `justify-end`, l'œil reste toujours aligné.
+// Grille partagée par l'en-tête et chaque ligne pour aligner les colonnes.
+// Le cluster d'action (chevron d'expand + œil) est désormais collé À LA FIN DU
+// NOM (dans la 1re colonne), donc plus de piste d'action dédiée : 3 colonnes.
 // - mobile : Temps (4rem) et État (6rem, « Maintenance ») resserrés pour laisser
 //   le MAXIMUM de largeur au nom ;
 // - ≥ sm : proportions 4/1/1 comme l'ancienne table.
 const GRID_COLS =
-  "grid items-center grid-cols-[minmax(0,1fr)_4rem_6rem_3.5rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)_3.5rem]";
+  "grid items-center grid-cols-[minmax(0,1fr)_4rem_6rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)]";
 
 function getPrimaryQueue(wt: WaitTime): QueueTime | undefined {
   return wt.queues.find((q) => q.type === "standby") || wt.queues[0];
@@ -255,12 +252,18 @@ export default function ParkWaitTimeTable({
           {t("status")}
           {sortIndicator("status")}
         </button>
-        {/* Colonne d'action (œil) : cellule vide dans l'en-tête. */}
-        <span aria-hidden />
       </div>
 
-      {/* Séparateur haut des favoris (avec libellé), hors zone animée. */}
-      {favCount > 0 && <WavyDivider label={tFav("yours")} />}
+      {/* En-tête des favoris : libellé simple aligné à gauche, en blanc
+          (text-foreground). Plus de ligne au-dessus ni de couleur ambrée : seule
+          la frontière BASSE du groupe (trait épais, plus bas) matérialise la fin
+          des favoris. Marges généreuses pour qu'il ne « colle » pas à la 1re
+          ligne d'attraction. */}
+      {favCount > 0 && (
+        <div className="px-1 pt-4 pb-2 text-xs font-semibold tracking-wide text-foreground uppercase">
+          {tFav("myFavorites")}
+        </div>
+      )}
 
       {/* Corps : une ligne standby par attraction (+ files dépliées). Chaque
           attraction est un bloc `motion` animé en `layout` pour que le reclassement
@@ -285,7 +288,9 @@ export default function ParkWaitTimeTable({
 
           return (
             <Fragment key={waitTime.rideId}>
-              {isBoundary && <WavyDivider />}
+              {/* Frontière basse des favoris : trait plein nettement plus épais
+                  (3px) pour bien séparer les favoris des autres attractions. */}
+              {isBoundary && <div className="border-t-[3px] border-border" />}
               <motion.div
                 layout="position"
                 layoutDependency={orderKey}
@@ -308,8 +313,53 @@ export default function ParkWaitTimeTable({
                       hasMultipleQueues && toggleExpand(waitTime.rideId)
                     }
                   >
-                    <div className="min-w-0 py-2 pe-2 font-medium wrap-break-word">
-                      {waitTime.rideName}
+                    {/* Nom + cluster d'action accolé À LA FIN DU NOM : chevron
+                        d'expand (si files multiples) puis œil d'ouverture du
+                        popup. Le nom peut passer à la ligne (min-w-0 + wrap), les
+                        icônes restent sur la dernière ligne. */}
+                    <div className="flex min-w-0 items-center gap-0.5 py-2 pe-2 font-medium">
+                      {/* Étoile jaune devant les favoris pour les repérer d'un
+                          coup d'œil (les favoris sont épinglés en tête). */}
+                      {isFavorite(favKey(waitTime.rideId)) && (
+                        <Star className="mr-1 size-3.5 shrink-0 fill-amber-400 text-amber-400" />
+                      )}
+                      <span className="min-w-0 wrap-break-word">
+                        {waitTime.rideName}
+                      </span>
+                      {hasMultipleQueues && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExpand(waitTime.rideId);
+                          }}
+                          aria-label={t("attraction")}
+                          className="ml-0.5 shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          <ChevronRight
+                            className={cn(
+                              "size-4 transition-transform duration-200",
+                              isExpanded && "rotate-90",
+                            )}
+                          />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDetailTarget(waitTime);
+                        }}
+                        aria-label={tDetail("openFor", {
+                          ride: waitTime.rideName,
+                        })}
+                        className={cn(
+                          "shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:text-primary",
+                          !hasMultipleQueues && "ml-0.5",
+                        )}
+                      >
+                        <Eye className="size-4" />
+                      </button>
                     </div>
                     <div className="py-2">
                       {(() => {
@@ -356,41 +406,6 @@ export default function ParkWaitTimeTable({
                     <div className="flex justify-end py-2 pe-0 sm:block">
                       {getStatusBadge(standbyQueue.status, statusLabels)}
                     </div>
-                    {/* Cluster d'action à droite : chevron d'expand (si files
-                        multiples) + œil d'ouverture du popup. */}
-                    <div className="flex items-center justify-end gap-0.5 py-2 ps-1">
-                      {hasMultipleQueues && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleExpand(waitTime.rideId);
-                          }}
-                          aria-label={t("attraction")}
-                          className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                          <ChevronRight
-                            className={cn(
-                              "size-4 transition-transform duration-200",
-                              isExpanded && "rotate-90",
-                            )}
-                          />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDetailTarget(waitTime);
-                        }}
-                        aria-label={tDetail("openFor", {
-                          ride: waitTime.rideName,
-                        })}
-                        className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:text-primary"
-                      >
-                        <Eye className="size-4" />
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -423,8 +438,6 @@ export default function ParkWaitTimeTable({
                       <div className="flex justify-end py-2 pe-0 sm:block">
                         {getStatusBadge(queue.status, statusLabels)}
                       </div>
-                      {/* Cellule d'action vide pour aligner la grille. */}
-                      <span aria-hidden />
                     </div>
                   ))}
               </motion.div>
