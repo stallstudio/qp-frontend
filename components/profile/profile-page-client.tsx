@@ -127,7 +127,7 @@ export default function ProfilePageClient() {
               </p>
               <AlertsSection />
 
-              <h3 className="mt-8 mb-3 text-lg font-semibold">
+              <h3 className="mt-8 mb-3 text-2xl font-bold tracking-tight">
                 {t("historyTitle")}
               </h3>
               <AlertHistorySection />

@@ -10,6 +10,10 @@ type NumberStepperProps = {
   min?: number;
   max?: number;
   step?: number;
+  // Liste EXPLICITE des valeurs sélectionnables. Si fournie, le +/- navigue de
+  // proche en proche dans cette liste (pas nécessairement à pas constant) et
+  // `min`/`max`/`step` sont ignorés — ex. seuils d'alerte [0, 1, 5, 10, …].
+  values?: number[];
   disabled?: boolean;
   // Rendu de la valeur (ex. « 20 min »). Par défaut le nombre brut.
   format?: (value: number) => string;
@@ -25,14 +29,40 @@ export default function NumberStepper({
   min = 0,
   max = 100,
   step = 1,
+  values,
   disabled = false,
   format,
   className,
   "aria-label": ariaLabel,
 }: NumberStepperProps) {
+  // Index courant quand on travaille sur une liste explicite : la valeur exacte
+  // si elle y figure, sinon la borne la plus proche (garde le stepper cohérent).
+  const currentIndex = values
+    ? (() => {
+        const exact = values.indexOf(value);
+        if (exact !== -1) return exact;
+        let best = 0;
+        for (let i = 1; i < values.length; i++) {
+          if (Math.abs(values[i] - value) < Math.abs(values[best] - value)) {
+            best = i;
+          }
+        }
+        return best;
+      })()
+    : -1;
+
+  const atMin = values ? currentIndex <= 0 : value <= min;
+  const atMax = values ? currentIndex >= values.length - 1 : value >= max;
+
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
-  const decrement = () => onChange(clamp(value - step));
-  const increment = () => onChange(clamp(value + step));
+  const decrement = () =>
+    onChange(values ? values[Math.max(0, currentIndex - 1)] : clamp(value - step));
+  const increment = () =>
+    onChange(
+      values
+        ? values[Math.min(values.length - 1, currentIndex + 1)]
+        : clamp(value + step),
+    );
 
   return (
     <div
@@ -48,7 +78,7 @@ export default function NumberStepper({
         variant="ghost"
         size="icon-sm"
         onClick={decrement}
-        disabled={disabled || value <= min}
+        disabled={disabled || atMin}
         aria-label="−"
       >
         <Minus className="size-4" />
@@ -64,7 +94,7 @@ export default function NumberStepper({
         variant="ghost"
         size="icon-sm"
         onClick={increment}
-        disabled={disabled || value >= max}
+        disabled={disabled || atMax}
         aria-label="+"
       >
         <Plus className="size-4" />

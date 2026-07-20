@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { DateTime } from "luxon";
+import { AnimatePresence, motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import type { AlertHistoryDTO } from "@/types/user";
+
+// Rafraîchissement de l'historique tant que la page est ouverte : une alerte
+// peut arriver pendant qu'on regarde la page (le moteur tourne toutes les
+// 1-2 min). On sonde régulièrement et les nouvelles lignes apparaissent en
+// direct, avec la même animation « fluide » que le reclassement des attractions.
+const POLL_INTERVAL_MS = 20000;
 
 // Section « Historique des alertes » : lecture seule. Ce qui a été envoyé est
 // conservé (attraction, seuil configuré, attente réelle, date/heure d'envoi).
@@ -17,13 +24,51 @@ export default function AlertHistorySection() {
   const { is12Hour } = useTimeFormat();
   const [history, setHistory] = useState<AlertHistoryDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  // Ids déjà présents au dernier rendu : sert à n'animer QUE les vraies
+  // nouveautés (une ligne déjà affichée ne doit pas rejouer son entrée).
+  const knownIdsRef = useRef<Set<string>>(new Set());
+  const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
+
+  const load = useCallback(async () => {
+    try {
+      const { data } = await axios.get<AlertHistoryDTO[]>(
+        "/api/user/alerts/history",
+      );
+      const incomingNew = data
+        .filter((h) => !knownIdsRef.current.has(h.id))
+        .map((h) => h.id);
+      knownIdsRef.current = new Set(data.map((h) => h.id));
+      setHistory(data);
+      // Au tout premier chargement, on ne « fait pas entrer » l'historique
+      // existant (freshIds vide) ; ensuite seules les nouvelles lignes animent.
+      if (incomingNew.length > 0 && !loading) {
+        setFreshIds(new Set(incomingNew));
+      }
+    } catch {
+      // silencieux : on garde l'historique déjà affiché.
+    } finally {
+      setLoading(false);
+    }
+  }, [loading]);
 
   useEffect(() => {
-    axios
-      .get<AlertHistoryDTO[]>("/api/user/alerts/history")
-      .then((res) => setHistory(res.data))
-      .catch(() => setHistory([]))
-      .finally(() => setLoading(false));
+    load();
+    // Sondage périodique, en pause quand l'onglet est masqué (économie réseau).
+    const tick = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    const id = setInterval(tick, POLL_INTERVAL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+    // `load` est stable hormis le flip initial de `loading` ; ce dernier ne doit
+    // pas relancer d'intervalle. On ne (re)monte l'effet qu'une fois.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatDate = (iso: string) =>
@@ -50,22 +95,37 @@ export default function AlertHistorySection() {
 
   return (
     <ul className="divide-y">
-      {history.map((h) => (
-        <li key={h.id} className="py-3 first:pt-0 last:pb-0">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="truncate font-medium">{h.rideName}</p>
-            <span className="shrink-0 text-xs text-muted-foreground">
-              {formatDate(h.sentAt)}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {t("historyLine", {
-              actual: h.actualWaitTime,
-              threshold: h.threshold,
-            })}
-          </p>
-        </li>
-      ))}
+      <AnimatePresence initial={false}>
+        {history.map((h) => (
+          <motion.li
+            key={h.id}
+            layout="position"
+            // Nouvelle ligne arrivée en direct : elle glisse depuis le haut ;
+            // les anciennes sont montées sans animation (animate = état repos).
+            initial={
+              freshIds.has(h.id)
+                ? { opacity: 0, height: 0, y: -8 }
+                : false
+            }
+            animate={{ opacity: 1, height: "auto", y: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 36 }}
+            className="overflow-hidden py-3 first:pt-0 last:pb-0"
+          >
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="truncate font-medium">{h.rideName}</p>
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {formatDate(h.sentAt)}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {t("historyLine", {
+                actual: h.actualWaitTime,
+                threshold: h.threshold,
+              })}
+            </p>
+          </motion.li>
+        ))}
+      </AnimatePresence>
     </ul>
   );
 }
