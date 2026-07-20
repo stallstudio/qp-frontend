@@ -294,7 +294,8 @@
     "deleted": "Alerte supprimée",
     "historyTitle": "Historique des alertes",
     "historyEmpty": "Aucune alerte envoyée pour l'instant.",
-    "historyLine": "Attente réelle {actual} min · seuil {threshold} min",
+    "historyRetentionNote": "Les alertes de plus de 30 jours ne sont pas affichées.",
+    "historyLine": "Descendu à {actual} min (≤ {threshold} min)",
     "loadError": "Impossible de charger les alertes.",
     "updateError": "La mise à jour a échoué.",
     "deleteError": "La suppression a échoué."

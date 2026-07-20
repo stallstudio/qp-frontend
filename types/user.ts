@@ -19,6 +19,9 @@ export interface AlertHistoryDTO {
   rideId: number;
   parkIdentifier: string;
   rideName: string;
+  // Nom lisible du parc, résolu depuis la base principale au moment de la lecture
+  // (l'historique ne stocke que l'identifiant). Repli sur l'identifiant si absent.
+  parkName: string;
   threshold: number;
   actualWaitTime: number;
   sentAt: string;

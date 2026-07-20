@@ -294,7 +294,8 @@
     "deleted": "Alert deleted",
     "historyTitle": "Alert history",
     "historyEmpty": "No alerts sent yet.",
-    "historyLine": "Actual wait {actual} min · threshold {threshold} min",
+    "historyRetentionNote": "Alerts older than 30 days aren't shown.",
+    "historyLine": "Dropped to {actual} min (≤ {threshold} min)",
     "loadError": "Could not load alerts.",
     "updateError": "Update failed.",
     "deleteError": "Delete failed."

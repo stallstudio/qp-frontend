@@ -94,7 +94,8 @@ export default function AlertHistorySection() {
   }
 
   return (
-    <ul className="divide-y">
+    <>
+      <ul className="divide-y">
       <AnimatePresence initial={false}>
         {history.map((h) => (
           <motion.li
@@ -117,6 +118,9 @@ export default function AlertHistorySection() {
                 {formatDate(h.sentAt)}
               </span>
             </div>
+            <p className="truncate text-sm text-muted-foreground">
+              {h.parkName}
+            </p>
             <p className="text-sm text-muted-foreground">
               {t("historyLine", {
                 actual: h.actualWaitTime,
@@ -126,6 +130,11 @@ export default function AlertHistorySection() {
           </motion.li>
         ))}
       </AnimatePresence>
-    </ul>
+      </ul>
+      {/* Rappel de la rétention : au-delà de 30 jours, l'historique est masqué. */}
+      <p className="mt-3 text-center text-xs text-muted-foreground">
+        {t("historyRetentionNote")}
+      </p>
+    </>
   );
 }

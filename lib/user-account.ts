@@ -49,12 +49,16 @@ export function toAlertDTO(a: Alert): AlertDTO {
   };
 }
 
-export function toAlertHistoryDTO(h: AlertHistory): AlertHistoryDTO {
+export function toAlertHistoryDTO(
+  h: AlertHistory,
+  parkName?: string,
+): AlertHistoryDTO {
   return {
     id: h.id,
     rideId: h.rideId,
     parkIdentifier: h.parkIdentifier,
     rideName: h.rideName,
+    parkName: parkName ?? h.parkIdentifier,
     threshold: h.threshold,
     actualWaitTime: h.actualWaitTime,
     sentAt: h.sentAt.toISOString(),
