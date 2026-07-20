@@ -2,8 +2,8 @@
 
 Système de comptes **optionnel** : sans connexion, l'app fonctionne exactement
 comme avant (favoris/thème/format en localStorage). Connecté, ces données sont
-synchronisées entre appareils, et l'utilisateur peut créer des notifications de
-temps d'attente.
+synchronisées entre appareils, et l'utilisateur peut créer des alertes de temps
+d'attente.
 
 ## Architecture
 
@@ -12,14 +12,14 @@ temps d'attente.
 - **Base principale** (`DATABASE_URL`) — inchangée : parcs, attractions, temps
   d'attente, historiques, calendriers… Lue via `@/lib/prisma` (`getPrisma()`).
 - **Base utilisateurs** (`USER_DATABASE_URL`) — nouvelle, isolée : comptes,
-  préférences, favoris, notifications, historique, sessions, auth. Client Prisma
-  dédié généré dans `lib/generated/user-client`, accédé via `@/lib/user-prisma`
-  (`getUserPrisma()`).
+  préférences, favoris, alertes, historique, abonnements push, sessions, auth.
+  Client Prisma dédié généré dans `lib/generated/user-client`, accédé via
+  `@/lib/user-prisma` (`getUserPrisma()`).
 
-Aucune clé étrangère entre les deux bases : favoris et notifications référencent
-les attractions **par identifiant** (`rideId`, `parkIdentifier`). Les
-notifications/l'historique stockent en plus un instantané du nom (affichage sans
-jointure inter-bases).
+Aucune clé étrangère entre les deux bases : favoris et alertes référencent les
+attractions **par identifiant** (`rideId`, `parkIdentifier`). Les alertes /
+l'historique stockent en plus un instantané du nom (affichage sans jointure
+inter-bases).
 
 Schéma : [`prisma/user/schema.prisma`](prisma/user/schema.prisma).
 
@@ -49,29 +49,38 @@ Schéma : [`prisma/user/schema.prisma`](prisma/user/schema.prisma).
 | `preferences` | PATCH | Langue / thème / format horaire |
 | `favorites` | GET, PUT | Lecture / remplacement complet |
 | `favorites/merge` | POST | Union locale + compte (connexion) |
-| `notifications` | GET, POST | Liste / création (**depuis une attraction**) |
-| `notifications/[id]` | PATCH, DELETE | Activer/désactiver, supprimer |
-| `notifications/history` | GET | Historique (lecture seule) |
+| `alerts` | GET, POST | Liste / création (**depuis une attraction**) |
+| `alerts/[id]` | PATCH, DELETE | Activer/désactiver, modifier le seuil, supprimer |
+| `alerts/history` | GET | Historique (lecture seule) |
+| `push` | POST, DELETE | Abonnement Web Push de l'appareil |
 
 ### UI
 
 - Bloc accueil : `components/home/user-block.tsx` (au-dessus des parcs favoris).
 - Popup connexion/inscription : `components/auth/auth-dialog.tsx`.
-- Page profil : `app/[locale]/profile/` + `components/profile/*`.
-- **Création de notification uniquement** depuis la cloche d'une attraction
-  (`components/notifications/create-notification-dialog.tsx`, branchée dans
-  `wait-time-table.tsx`) — jamais depuis le profil.
+- Page profil : `app/[locale]/profile/` + `components/profile/*` (onglets
+  Alertes / Préférences ; le seuil est modifiable ici).
+- **Création d'alerte uniquement** depuis l'œil d'une attraction
+  (`components/parks/attraction-detail/alert-section.tsx`) — jamais depuis le profil.
 
-Le **moteur** qui vérifie les temps et déclenche les notifications reste à écrire :
-il lira `notifications` où `active=true` par `rideId` et écrira dans
-`notification_history`. Toute la structure est prête.
+Le **moteur** qui vérifie les temps et déclenche les alertes est **branché**
+(voir la section « Alertes Web Push » d'`AI_CONTEXT.md`) :
+`GET /api/cron/alerts` (protégé par `ALERTS_CRON_SECRET`, appelé par une Dokploy
+Schedule) lit `alerts` `active=true` par `rideId`, compare au temps standby
+courant de la base principale, envoie un Web Push (VAPID) aux `push_subscriptions`
+de l'utilisateur quand `waitTime ≤ threshold`, et écrit dans `alert_history`
+(anti-spam via `Alert.armed`, expiration quotidienne via `Alert.activeDate`).
 
 ## Mise en place
 
 1. **Dépendances** : `npm install` (ajoute `next-auth`, `@auth/prisma-adapter`,
-   `resend`, `@react-email/components`).
+   `resend`, `@react-email/components`, `web-push`).
 2. **Variables d'env** (voir `.env`) : `USER_DATABASE_URL`, `AUTH_SECRET`
    (`npx auth secret`), `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`, `RESEND_API_KEY`.
+   **Alertes push** : `npm run vapid:generate` puis renseigner
+   `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, et
+   `ALERTS_CRON_SECRET` ; enfin créer la Dokploy Schedule qui appelle
+   `GET /api/cron/alerts?key=$ALERTS_CRON_SECRET` (~1-2 min).
 3. **Base utilisateurs** : créer la base (`CREATE DATABASE twts_users;`).
 4. **Client Prisma** : `npm run user:generate` (utilise `prisma.user.config.ts`,
    config dédiée — Prisma 7 exige l'URL de connexion hors du schéma).

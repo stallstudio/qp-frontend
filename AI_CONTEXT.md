@@ -138,19 +138,33 @@ libellé `favorites.yours` (« Vos favoris »).
 Chaque ligne d'attraction a une icône **œil** à droite (à côté du chevron
 d'expand) qui ouvre `attraction-detail-dialog.tsx` (plus d'étoile/cloche dans la
 liste). Le popup empile des sections : image (placeholder `CameraOff`), favoris
-(`favorite-section.tsx`), notifications (`notification-section.tsx`), graphique
+(`favorite-section.tsx`), alertes (`alert-section.tsx`), graphique
 du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
 (`thrills-section.tsx`, lien placeholder vers thrills.world).
 
-- **Notifications = PWA + connecté uniquement.** `notification-section.tsx`
-  applique la matrice PWA × auth via `hooks/usePwaInstall.ts` (+ `lib/pwa.ts`,
-  singleton qui capte `beforeinstallprompt`/`appinstalled` et détecte
-  standalone/plateforme). Navigateur → écran d'installation (bouton si
-  `beforeinstallprompt`, sinon instructions iOS/Android/desktop) ; PWA non
-  connecté → CTA connexion (`AuthDialog`) ; PWA + connecté → stepper
+> **Terminologie** : côté produit/UI on parle d'**alertes** (« créer une
+> alerte », namespace i18n `alerts`, modèles `Alert`/`AlertHistory`, routes
+> `/api/user/alerts`, `/api/cron/alerts`). On garde **push/notification** UNIQUEMENT
+> pour la couche navigateur (permission « notifications », `PushSubscription`,
+> `/api/user/push`, `hooks/usePushNotifications`, service worker, VAPID).
+
+- **Alertes : desktop dans l'onglet, mobile après installation.**
+  `alert-section.tsx` applique la matrice via `hooks/usePwaInstall.ts`
+  (+ `lib/pwa.ts`, singleton qui capte `beforeinstallprompt`/`appinstalled` et
+  détecte standalone/plateforme). Le Web Push marche dans l'onglet sur **desktop**
+  (Chrome/Edge/Firefox/Safari) et Android Chrome ; seul **iOS** l'impose en PWA.
+  Choix produit retenu : **desktop → formulaire direct** ; **mobile non installé
+  (iOS/Android) → écran d'installation** (bouton si `beforeinstallprompt`, sinon
+  instructions iOS/Android) ; non connecté → CTA connexion (`AuthDialog`) ;
+  connecté (desktop, ou PWA mobile) → stepper (édition du seuil aussi possible
+  depuis le profil)
   (`components/ui/number-stepper.tsx`, défaut 20, pas 5, 5–120) + voir/modifier/
-  supprimer (routes `/api/user/notifications` inchangées). i18n : namespace
-  `attractionDetail` (fr+en).
+  supprimer (routes `/api/user/alerts`). i18n : namespaces `attractionDetail` +
+  `alerts` (fr+en). **Livraison = Web Push réel** (voir bloc dédié
+  plus bas) : au clic « Enregistrer », `hooks/usePushNotifications.ts` demande la
+  permission + abonne l'appareil (`lib/push-client.ts`) et persiste l'abonnement
+  via `POST /api/user/push` ; permission refusée → la notif est quand même
+  enregistrée (autres appareils), avec un avertissement (`pushBlocked`/`pushDenied`).
 - **Graphique/prévision** : endpoint dédié `GET /api/park/[parkId]/ride/[rideId]/history`
   (fetché à la demande, **indépendant** de l'historique global suspendu).
   `lib/wait-times-history.ts` reconstruit les séries horodatées depuis le modèle
@@ -177,9 +191,12 @@ lancer build/tsc ici ; se fier à la revue manuelle (le repo compile côté user
 ## Page À propos (ajout 2026-07)
 
 - Route `app/[locale]/about/page.tsx` (metadata via namespace `about`).
-- `components/about/about-header.tsx` : **en-tête fixe scroll-shrink** identique à
-  l'accueil / une page parc (spacer + carte `fixed` qui rétrécit, lien de retour
-  qui se fond). Réutilisé par la page À propos pour un comportement cohérent.
+- `components/ui/scroll-shrink-header.tsx` : **en-tête fixe scroll-shrink**
+  générique et RÉUTILISABLE (spacer + carte `fixed` qui rétrécit, titre qui glisse
+  au centre, lien de retour qui se fond). Libellés en props (`title`, `subtitle`,
+  `backLabel`, `backHref`). `components/about/about-header.tsx` n'est plus qu'un
+  mince wrapper qui lui passe les strings du namespace `about` ; la **page profil**
+  l'utilise aussi (mêmes strings depuis `profile`).
 - `components/about/about-page-client.tsx` : hero + `Card` à **2 onglets**
   (`about` = le projet, `guide` = les fonctionnalités), grilles de `Vignette`.
 - `components/about/vignette.tsx` : petite carte (icône + titre + texte + démo).
@@ -207,13 +224,52 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
   (compte prime ; toute modif locale de thème/langue/format est reflétée au
   compte sans coupler les composants concernés).
 - **Routes** `app/api/user/*` : `me`, `preferences`, `favorites` (+`/merge`),
-  `notifications` (+`/[id]`, `/history`).
+  `alerts` (+`/[id]`, `/history`), `push`.
 - **UI** : bloc accueil `components/home/user-block.tsx` (au-dessus des favoris),
   popup `components/auth/auth-dialog.tsx`, page `app/[locale]/profile/` +
-  `components/profile/*`. **Création/gestion de notification uniquement** via le
-  popup « détail attraction » (voir plus haut), jamais depuis le profil (qui ne
-  fait que lister / (dé)activer / supprimer).
-- i18n : namespaces `userBlock`, `auth`, `profile`, `notifications` (fr+en).
-- Le **moteur** de vérification des temps (déclenchement + écriture de
-  `notification_history`) reste à écrire : structure prête.
+  `components/profile/*`. La **page profil est calquée sur la page À propos**
+  (header `ScrollShrinkHeader` partagé + carte à onglets `rounded-4xl` : onglets
+  Alertes / Préférences). La **création** d'alerte reste réservée au popup
+  « détail attraction » ; le profil permet de **modifier le seuil**, (dé)activer
+  et supprimer.
+- i18n : namespaces `userBlock`, `auth`, `profile`, `alerts` (fr+en).
+## Alertes Web Push (moteur — ajout 2026-07)
+
+Le système d'alertes est branché de bout en bout : créer une alerte écrit une
+ligne QUE le moteur lit et transforme en push réel. (Domaine = **alerte** ; couche
+livraison navigateur = **push/notification**.)
+
+- **Abonnement (client)** : `lib/push-client.ts` (register `public/sw.js`,
+  `PushManager.subscribe`, conversion clé VAPID) + `hooks/usePushNotifications.ts`
+  (support/permission/abonné + `subscribe`/`unsubscribe`). Abonnement persistant
+  par appareil dans le modèle **`PushSubscription`** (base user), via
+  `POST /api/user/push` (upsert par `endpoint`) et `DELETE /api/user/push`.
+- **Service worker** `public/sw.js` : UNIQUEMENT le push (`push` →
+  `showNotification`, `notificationclick` → focus/ouverture de l'URL du parc).
+  Pas de cache offline volontairement. Enregistré à la demande (au 1er abonnement).
+- **Moteur** `app/api/cron/alerts/route.ts` (`GET`, protégé par
+  `ALERTS_CRON_SECRET`) : déclenché ~toutes les 1-2 min par une **Dokploy
+  Schedule** (comme le fetch des temps du worker). Il lit les alertes `active`
+  (base user), lit les temps standby courants par `rideId` (base principale,
+  `endTime: null`), et **alerte quand `waitTime ≤ threshold` sur une attraction
+  ouverte**. Anti-spam par **déclenchement sur front** : drapeau `Alert.armed`
+  (désarmé après envoi, réarmé quand le temps repasse au-dessus de
+  `seuil + REARM_MARGIN=5`). Écrit `alert_history`, purge les endpoints morts (410/404).
+- **Expiration quotidienne** : une alerte ne vaut QUE pour le jour de sa
+  (ré)activation. `Alert.activeDate` est (re)calé sur « maintenant » à la création
+  / réactivation / changement de seuil ; le moteur **désactive** (`active=false`)
+  toute alerte dont ce jour — évalué dans le **fuseau du parc** (jointure
+  `ride → park.timezone`) — est antérieur à aujourd'hui.
+- **Édition depuis le profil** : `components/profile/alerts-section.tsx` permet de
+  **modifier le seuil** (stepper, `PATCH` debouncé) en plus de (dé)activer /
+  supprimer. La création reste réservée au popup d'attraction.
+- **Web Push (serveur)** `lib/web-push.ts` (VAPID via `web-push`), messages
+  localisés par `lib/alert-messages.ts` (fr/en, repli EN — pas de next-intl dans
+  un job de fond). Clés : `NEXT_PUBLIC_VAPID_PUBLIC_KEY` (client),
+  `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
+
+> **Mise en service** (une fois) : `npm install` (ajoute `web-push`), générer les
+> clés `npm run vapid:generate` → remplir le `.env`, appliquer le schéma à la base
+> user (`npm run user:push` — pas de shadow DB requise, puis `user:generate`), et
+> créer la Dokploy Schedule qui `GET /api/cron/alerts?key=$ALERTS_CRON_SECRET`.
 ```
