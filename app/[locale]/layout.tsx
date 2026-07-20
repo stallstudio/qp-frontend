@@ -29,6 +29,8 @@ export async function generateMetadata({
     authors: [{ name: "Lilian G." }, { name: "Gaspard D." }],
     creator: "Queue Park",
     publisher: "Queue Park",
+    applicationName: "Queue Park",
+    category: "Travel",
     formatDetection: {
       email: false,
       address: false,
@@ -72,8 +74,11 @@ export async function generateMetadata({
       },
     },
     icons: {
-      icon: "/favicon.ico",
-      shortcut: "/favicon-16x16.png",
+      icon: [
+        { url: "/favicon.ico" },
+        { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+        { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      ],
       apple: "/apple-touch-icon.png",
     },
     manifest: `/${locale}/manifest.webmanifest`,

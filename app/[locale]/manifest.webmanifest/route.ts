@@ -25,7 +25,7 @@ export async function GET(
   const manifest = {
     id: `/${locale}`,
     name: t("name"),
-    short_name: t("shortName"),
+    short_name: t("name"),
     description: t("description"),
     lang: locale,
     dir: "ltr",
