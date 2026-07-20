@@ -172,9 +172,11 @@ export default function WaitTimeChart({
       if (isDown && runStart === -1) runStart = i;
     }
 
-    // Ancre invisible du tooltip : 0 sur chaque point d'indispo observé.
+    // Ancre invisible du tooltip : 0 sur chaque point d'indispo observé (tout
+    // point sans temps réel avant « maintenant »), y compris ceux sans statut
+    // précis — le survol d'une barre grise affiche alors « Indisponible ».
     for (const d of data) {
-      d.downMarker = d.t <= nowMs && d.actual == null && d.status ? 0 : null;
+      d.downMarker = d.t <= nowMs && d.actual == null ? 0 : null;
     }
 
     return { data, xMin, xMax, yMax, yTicks, xTicks, nowMs, downBands };
@@ -217,13 +219,11 @@ export default function WaitTimeChart({
     }
 
     // Aucune valeur numérique => on survole une plage d'indispo : on affiche le
-    // statut (fermé / en panne / maintenance) avec sa pastille de couleur, au
-    // lieu de rien. (Statut « open »/-1 = indisponible sans raison : pas de tip.)
+    // statut (fermé / en panne / maintenance) avec sa pastille de couleur. Tout
+    // autre cas (statut « open »/-1/inconnu, barre grise) = « Indisponible ».
     if (!rows.length) {
       const rowData = payload[0]?.payload;
       const status = rowData?.status;
-      // Clés littérales (next-intl est typé sur des clés connues) ; les autres
-      // statuts (open/-1/inconnu) ne déclenchent pas de tooltip.
       const label =
         status === "closed"
           ? tStatus("closed")
@@ -231,8 +231,7 @@ export default function WaitTimeChart({
             ? tStatus("down")
             : status === "maintenance"
               ? tStatus("maintenance")
-              : null;
-      if (!label) return null;
+              : tStatus("unavailable");
       return (
         <div className="rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
           {rowData?.t != null && (
