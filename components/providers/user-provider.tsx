@@ -29,7 +29,7 @@ interface UserContextValue {
   isAuthenticated: boolean;
   profile: UserProfile | null;
   // Re-charge le profil (préférences + favoris + compteurs). À appeler après une
-  // mutation de notifications pour rafraîchir les compteurs.
+  // mutation d'alertes pour rafraîchir les compteurs.
   refresh: () => Promise<void>;
   // Met à jour des préférences : applique immédiatement à l'UI (thème/format/
   // langue) puis persiste dans le compte.

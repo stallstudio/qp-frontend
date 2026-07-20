@@ -9,14 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LANGUAGES } from "@/lib/locales";
 import { useUser } from "@/components/providers/user-provider";
 import type { ThemePreference } from "@/lib/user-preferences";
 import type { TimeFormatType } from "@/components/providers/time-format-provider";
 
 // Réglages du compte : langue, thème, format horaire. Chaque changement est
-// appliqué immédiatement à l'UI et persisté (updatePreferences).
+// appliqué immédiatement à l'UI et persisté (updatePreferences). Rendu SANS carte
+// (le conteneur — la carte à onglets du profil — fournit la surface).
 export default function PreferencesCard() {
   const t = useTranslations("profile");
   const { profile, updatePreferences } = useUser();
@@ -24,12 +24,8 @@ export default function PreferencesCard() {
   const prefs = profile?.preferences;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("preferencesTitle")}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        {/* Langue */}
+    <div className="flex flex-col gap-5">
+      {/* Langue */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <span className="flex items-center gap-2 text-sm font-medium">
             <Globe className="size-4 text-muted-foreground" />
@@ -99,7 +95,6 @@ export default function PreferencesCard() {
             </SelectContent>
           </Select>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

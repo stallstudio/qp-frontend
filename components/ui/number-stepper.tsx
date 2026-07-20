@@ -18,7 +18,7 @@ type NumberStepperProps = {
 };
 
 // Sélecteur numérique générique `[-] <valeur> [+]` avec bornes et pas
-// configurables. Réutilisable (ici : seuil de notification, pas de 5 min).
+// configurables. Réutilisable (ici : seuil d'alerte, pas de 5 min).
 export default function NumberStepper({
   value,
   onChange,
