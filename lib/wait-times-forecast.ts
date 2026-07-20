@@ -10,7 +10,13 @@
 
 // Un point horodaté d'une courbe. `waitTime = null` = attraction indisponible
 // (fermée / en panne / valeur -1) à cet instant : le front trace une coupure.
-export type TimedPoint = { t: string; waitTime: number | null };
+// `status` (renseigné seulement quand indispo) porte la RAISON (closed / down /
+// maintenance / open-mais--1) pour colorer la barre basse et le tooltip.
+export type TimedPoint = {
+  t: string;
+  waitTime: number | null;
+  status?: string | null;
+};
 
 // Intervalle temporel issu du modèle `wait_times` : la valeur `waitTime` reste
 // constante de `start` à `end` (end = null => intervalle courant, actif jusqu'à
@@ -19,6 +25,9 @@ export type WaitInterval = {
   start: Date;
   end: Date | null;
   waitTime: number;
+  // Statut brut (`open` | `closed` | `down` | `maintenance`) conservé pour
+  // colorer l'indispo côté front.
+  status: string;
   // status === "open" && waitTime >= 0. Sinon la valeur ne doit pas être tracée
   // ni entrer dans les calculs (moyennes, ratios).
   available: boolean;
@@ -59,18 +68,25 @@ export interface ForecastStrategy {
 
 const MS_PER_MIN = 60_000;
 
-// Valeur de la step-function à l'instant `t` : temps de l'intervalle qui couvre
-// `t`, ou `null` si indisponible / aucun intervalle. `end = null` couvre
+// Intervalle couvrant l'instant `t`, ou `null` si aucun. `end = null` couvre
 // jusqu'à l'infini (intervalle courant).
-export function sampleAt(intervals: WaitInterval[], t: Date): number | null {
+export function sampleIntervalAt(
+  intervals: WaitInterval[],
+  t: Date,
+): WaitInterval | null {
   const ts = t.getTime();
   for (const iv of intervals) {
     const end = iv.end ? iv.end.getTime() : Infinity;
-    if (iv.start.getTime() <= ts && ts < end) {
-      return iv.available ? iv.waitTime : null;
-    }
+    if (iv.start.getTime() <= ts && ts < end) return iv;
   }
   return null;
+}
+
+// Valeur de la step-function à l'instant `t` : temps de l'intervalle qui couvre
+// `t`, ou `null` si indisponible / aucun intervalle.
+export function sampleAt(intervals: WaitInterval[], t: Date): number | null {
+  const iv = sampleIntervalAt(intervals, t);
+  return iv && iv.available ? iv.waitTime : null;
 }
 
 // Restreint des intervalles bruts à une fenêtre [open, close] (bornes incluses),
@@ -143,24 +159,28 @@ export function reconstructTimedSeries(
   return points;
 }
 
-// Échantillonne un jour à intervalle régulier (au milieu de chaque bucket) de
-// l'ouverture jusqu'à `upTo` (borné à la fermeture). Donne des points
-// équidistants — alignés sur la même grille que la prévision — plutôt que sur
-// les seuls changements d'état.
+// Échantillonne un jour à intervalle régulier de l'ouverture jusqu'à `upTo`
+// (borné à la fermeture). Les points sont posés sur les BORNES de bucket
+// (= horaires « fixes » : ouverture, ouverture+step, …) et non au milieu, pour
+// que les horodatages affichés tombent sur des heures rondes. Même grille que
+// la prévision, donc raccord propre à « maintenant ».
 export function sampleDaySeries(
   day: DayIntervals,
   upTo: Date,
   stepMinutes: number,
 ): TimedPoint[] {
-  const stepMs = stepMinutes * MS_PER_MIN;
   const limit = Math.min(day.close.getTime(), upTo.getTime());
   const points: TimedPoint[] = [];
   for (const bucket of bucketInstants(day.open, day.close, stepMinutes)) {
-    const mid = new Date(bucket.getTime() + stepMs / 2);
-    if (mid.getTime() > limit) break;
+    if (bucket.getTime() > limit) break;
+    const iv = sampleIntervalAt(day.intervals, bucket);
+    const available = iv?.available ?? false;
     points.push({
-      t: mid.toISOString(),
-      waitTime: sampleAt(day.intervals, mid),
+      t: bucket.toISOString(),
+      waitTime: available ? iv!.waitTime : null,
+      // Statut porté uniquement quand indispo (sinon inutile) : sert à colorer
+      // la barre basse et le tooltip (closed/maintenance = rouge, down = orange).
+      status: available ? undefined : iv?.status,
     });
   }
   return points;
@@ -235,7 +255,6 @@ class ProfileTrendStrategyV1 implements ForecastStrategy {
 
     const buckets = bucketInstants(open, close, step);
     const stepMs = step * MS_PER_MIN;
-    const midOf = (b: Date) => new Date(b.getTime() + stepMs / 2);
 
     // 1. Profil médian : pour chaque bucket i (= i·step après l'ouverture), on
     //    échantillonne les jours précédents au MÊME décalage depuis LEUR
@@ -243,7 +262,7 @@ class ProfileTrendStrategyV1 implements ForecastStrategy {
     //    heure d'horloge) rend la comparaison robuste aux variations d'horaires
     //    et évite tout piège de fuseau/minuit.
     const profile: (number | null)[] = buckets.map((_, i) => {
-      const offsetMs = i * stepMs + stepMs / 2;
+      const offsetMs = i * stepMs;
       const samples: number[] = [];
       for (const day of history) {
         const inst = new Date(day.open.getTime() + offsetMs);
@@ -255,12 +274,11 @@ class ProfileTrendStrategyV1 implements ForecastStrategy {
     });
     fillGaps(profile);
 
-    // 2. Valeurs observées aujourd'hui, au milieu de chaque bucket déjà écoulé.
+    // 2. Valeurs observées aujourd'hui, à la borne de chaque bucket déjà écoulé.
     const nowMs = now.getTime();
-    const todayObs: (number | null)[] = buckets.map((b) => {
-      const m = midOf(b);
-      return m.getTime() <= nowMs ? sampleAt(today.intervals, m) : null;
-    });
+    const todayObs: (number | null)[] = buckets.map((b) =>
+      b.getTime() <= nowMs ? sampleAt(today.intervals, b) : null,
+    );
 
     // 3. Échelle du jour = médiane des ratios observé/profil sur les buckets
     //    écoulés (à quel point aujourd'hui est plus/moins chargé qu'à l'habitude).
@@ -278,9 +296,22 @@ class ProfileTrendStrategyV1 implements ForecastStrategy {
     const slope = this.shortTermSlope(today.intervals, now);
     const carryLast = lastObs ?? 0;
 
+    // Granularité d'arrondi de la prévision, DÉDUITE des données du jour. Un parc
+    // « à la minute » a la plupart de ses temps NON multiples de 5 (statistiquement
+    // ~80 % : seuls 0/5/10… le sont). Un parc au pas de 5 n'en a ~aucun. On exige
+    // donc qu'une PART SIGNIFICATIVE (≥ 50 %) des temps observés soit non-multiple
+    // de 5 avant de prédire à la minute : ainsi une valeur isolée non-multiple de 5
+    // (glitch sur un parc au pas de 5 comme Europa-Park) ne fait PLUS basculer
+    // toute la prévision au 1-min (fini les prévisions à 2/3/4 min). Sinon on
+    // arrondit à 5 (0, 5, 10, 15… — jamais 1/2/3).
+    const nonMultiplesOf5 = observed.filter((v) => v % 5 !== 0).length;
+    const fineGrained =
+      observed.length > 0 && nonMultiplesOf5 / observed.length >= 0.5;
+    const roundStep = fineGrained ? 1 : 5;
+
     const forecast: TimedPoint[] = [];
     for (let i = 0; i < buckets.length; i++) {
-      const m = midOf(buckets[i]);
+      const m = buckets[i];
       if (m.getTime() <= nowMs) continue;
       const horizon = (m.getTime() - nowMs) / MS_PER_MIN; // minutes à venir
       const base = profile[i] != null ? profile[i]! : carryLast;
@@ -289,14 +320,15 @@ class ProfileTrendStrategyV1 implements ForecastStrategy {
       // Pondération : 1 au raccord (h→0) → suit la tendance/continuité ; 0
       // au-delà de BLEND_MINUTES → suit la forme historique mise à l'échelle.
       const w = clamp(1 - horizon / BLEND_MINUTES, 0, 1);
-      const value = Math.max(0, Math.round(w * trend + (1 - w) * model));
+      const raw = Math.max(0, w * trend + (1 - w) * model);
+      const value = Math.round(raw / roundStep) * roundStep;
       forecast.push({ t: m.toISOString(), waitTime: value });
     }
 
     // Confiance : croît avec le nombre de jours d'historique et la part de
     // buckets écoulés effectivement observés aujourd'hui.
     const elapsedBuckets = buckets.filter(
-      (b) => midOf(b).getTime() <= nowMs,
+      (b) => b.getTime() <= nowMs,
     ).length;
     const overlap = elapsedBuckets ? observed.length / elapsedBuckets : 0;
     const confidence = clamp(

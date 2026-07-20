@@ -82,6 +82,7 @@ export async function getRideStandbyIntervals(
     start: r.startTime,
     end: r.endTime,
     waitTime: r.waitTime,
+    status: r.status,
     available: r.status === "open" && r.waitTime >= 0,
   }));
 }
