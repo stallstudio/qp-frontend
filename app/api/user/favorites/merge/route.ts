@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 // ajouté hors-ligne. Renvoie l'union, qui redevient la source côté client.
 export async function POST(request: NextRequest) {
   const { userId, response } = await requireUserId();
-  if (!userId) return response;
+  if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const incoming = flattenFavorites(await request.json().catch(() => null));
   const prisma = getUserPrisma();
