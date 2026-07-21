@@ -13,14 +13,14 @@ interface FavoriteParksProps {
   parks: ParkList[];
 }
 
-// Grille en 3 colonnes : 9 cartes = 3 lignes pleines. Au-delà, on n'affiche que
-// 8 parcs + une tuile « Voir les N autres » (la 9e case) pour ne pas surcharger
-// l'accueil. Le reste vit dans LA MÊME grille (alignement continu, pas de trou) :
-// chaque carte révélée apparaît en fondu + léger glissé depuis le haut, avec un
-// petit décalage en cascade → l'ensemble « se déroule » vers le bas, et se replie
-// vers le haut en sortie.
-const FULL_ROWS = 9;
-const COLLAPSED_VISIBLE = 8;
+// Grille en 3 colonnes, limitée à 2 LIGNES MAX au repos (6 cases). Jusqu'à 6 parcs
+// favoris : tout s'affiche. Au-delà (7+), la 6e case devient la tuile « Voir les N
+// autres » (donc 5 parcs + le bouton) et le reste se déplie dans LA MÊME grille
+// (alignement continu, pas de trou) : chaque carte révélée apparaît en fondu +
+// léger glissé depuis le haut, avec un petit décalage en cascade → l'ensemble
+// « se déroule » vers le bas, et se replie vers le haut en sortie.
+const FULL_ROWS = 6;
+const COLLAPSED_VISIBLE = 5;
 
 function ParkCell({ park }: { park: ParkList }) {
   return (
