@@ -4,8 +4,16 @@ import {
   timeFormatFromDb,
   type UserPreferences,
 } from "@/lib/user-preferences";
-import type { AlertDTO, AlertHistoryDTO } from "@/types/user";
-import type { Alert, AlertHistory } from "@/lib/generated/user-client";
+import type {
+  AlertDTO,
+  AlertHistoryDTO,
+  ShowReminderDTO,
+} from "@/types/user";
+import type {
+  Alert,
+  AlertHistory,
+  ShowReminder,
+} from "@/lib/generated/user-client";
 
 // Accès aux données de compte, partagé par les routes /api/user/*.
 
@@ -46,6 +54,18 @@ export function toAlertDTO(a: Alert): AlertDTO {
     threshold: a.threshold,
     active: a.active,
     createdAt: a.createdAt.toISOString(),
+  };
+}
+
+export function toShowReminderDTO(r: ShowReminder): ShowReminderDTO {
+  return {
+    id: r.id,
+    parkIdentifier: r.parkIdentifier,
+    parkName: r.parkName,
+    showName: r.showName,
+    startTime: r.startTime.toISOString(),
+    leadMinutes: r.leadMinutes,
+    sent: r.sent,
   };
 }
 

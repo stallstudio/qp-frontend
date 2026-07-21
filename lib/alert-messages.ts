@@ -2,7 +2,7 @@
 // (/api/cron/alerts). Un petit dictionnaire autonome (pas de next-intl ici : un
 // job de fond n'a pas de contexte de requête/locale) couvrant fr + en, avec repli
 // sur l'anglais — même philosophie que le reste de l'app. Ajouter une langue = une
-// entrée de plus.
+// entrée de plus. 
 //
 // Ton : la personne alertée est DÉJÀ dans le parc. On ne répète donc pas le nom
 // du parc, et le nom de l'app (« Queue Park ») est déjà ajouté par l'OS à la fin
@@ -29,33 +29,35 @@ type AlertStrings = {
 const DICT: Record<string, AlertStrings> = {
   fr: {
     singleTitles: [
-      "🎢 File courte, fonce !",
-      "⚡ Ça se dégage !",
-      "🏃 C'est le moment d'y aller",
-      "🎉 L'attente vient de chuter",
-      "👀 Une place se libère",
-      "🔥 Temps d'attente au plancher",
-      "✨ Vite, avant que ça remonte !",
+      "Alerte bon plan 🚨",
+      "Bonne nouvelle ! 🎉",
+      "L'attente baisse 📉",
+      "Le seuil est atteint ✅",
+      "C'est le moment 🎢",
+      "Une ouverture ! 👀",
+      "L'occasion parfaite ✨",
+      "Ne rate pas ça ! ⚡",
     ],
     digestTitle: (count) => `🎢 ${count} attractions se libèrent !`,
     singleBody: ({ ride, wait, threshold }) =>
-      `${ride} n'est plus qu'à ${wait} min (seuil ${threshold} min).`,
+      `${ride} n'est plus qu'à ${wait} min (🎯 ≤${threshold} min).`,
     digestLine: ({ ride, wait }) => `• ${ride} — ${wait} min`,
     more: (n) => `+ ${n} autre${n > 1 ? "s" : ""}`,
   },
   en: {
     singleTitles: [
-      "🎢 Short queue, go for it!",
-      "⚡ The line just dropped!",
-      "🏃 Now's your chance",
-      "🎉 The wait just plunged",
-      "👀 A spot's opening up",
-      "🔥 Queue's at rock bottom",
-      "✨ Quick, before it climbs back!",
+      "Great opportunity 🚨",
+      "Good news! 🎉",
+      "The wait is shorter 📉",
+      "Your alert is triggered ✅",
+      "It's time to go 🎢",
+      "A spot opened up! 👀",
+      "Perfect timing! ✨",
+      "Don't miss out! ⚡",
     ],
     digestTitle: (count) => `🎢 ${count} rides are clearing up!`,
     singleBody: ({ ride, wait, threshold }) =>
-      `${ride} is down to ${wait} min (threshold ${threshold} min).`,
+      `${ride} is down to ${wait} min (🎯 ≤${threshold} min).`,
     digestLine: ({ ride, wait }) => `• ${ride} — ${wait} min`,
     more: (n) => `+ ${n} more`,
   },

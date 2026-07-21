@@ -30,6 +30,19 @@ export interface AlertHistoryDTO {
 export interface FavoritesPayload {
   parks: string[];
   rides: string[];
+  shows: string[];
+}
+
+// Rappel de spectacle : notification programmée `leadMinutes` avant une
+// représentation. `startTime` / `fireAt` sont des instants ISO (UTC).
+export interface ShowReminderDTO {
+  id: string;
+  parkIdentifier: string;
+  parkName: string;
+  showName: string;
+  startTime: string;
+  leadMinutes: number;
+  sent: boolean;
 }
 
 // Profil complet renvoyé par GET /api/user/me.

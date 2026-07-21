@@ -39,6 +39,7 @@ model User {
   alerts            Alert[]
   alertHistory      AlertHistory[]
   pushSubscriptions PushSubscription[]
+  showReminders     ShowReminder[]
 
   @@map("users")
 }
@@ -132,6 +133,7 @@ model UserPreferences {
 enum FavoriteType {
   park
   ride
+  show
 }
 
 model Favorite {
@@ -209,6 +211,45 @@ model AlertHistory {
   @@index([userId, sentAt])
   @@index([alertId])
   @@map("alert_history")
+}
+
+//
+// RAPPELS DE SPECTACLES (notifications programmées)
+//
+// Contrairement aux alertes (déclenchées par un SEUIL de temps d'attente), un
+// rappel de spectacle est TEMPOREL : envoyé `leadMinutes` avant le début d'une
+// représentation. Le spectacle est référencé par (parkIdentifier, showName,
+// startTime) — pas de clé étrangère inter-bases, comme pour les alertes. Les
+// *Name / parkIdentifier sont des instantanés d'affichage (push lisible sans
+// jointure). `fireAt` = startTime - leadMinutes est PRÉCALCULÉ pour que le moteur
+// (/api/cron/alerts) ne fasse qu'un simple `fireAt <= now && !sent`.
+
+model ShowReminder {
+  id             String    @id @default(cuid())
+  userId         String
+  parkIdentifier String    @db.VarChar(100)
+  parkName       String    @db.VarChar(255)
+  showName       String    @db.VarChar(255)
+  // Instant absolu de la représentation (le fuseau est déjà encodé dans le
+  // DateTime). `leadMinutes` ∈ {10,20,30,40,50,60}.
+  startTime      DateTime
+  leadMinutes    Int
+  // Précalculé à la création/mise à jour : startTime - leadMinutes.
+  fireAt         DateTime
+  // Passe à true après envoi : évite de renvoyer au passage suivant du cron.
+  sent           Boolean   @default(false)
+  sentAt         DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Un seul rappel par (utilisateur, représentation) : re-soumettre met à jour le
+  // délai et réarme (sent=false).
+  @@unique([userId, parkIdentifier, showName, startTime])
+  @@index([userId])
+  @@index([sent, fireAt])
+  @@map("show_reminders")
 }
 
 //

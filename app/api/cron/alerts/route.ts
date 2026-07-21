@@ -4,6 +4,10 @@ import { getPrisma } from "@/lib/prisma";
 import { getUserPrisma } from "@/lib/user-prisma";
 import { isPushConfigured, sendPush, type PushPayload } from "@/lib/web-push";
 import { buildAlertMessage } from "@/lib/alert-messages";
+import {
+  buildShowReminderMessage,
+  type ReminderShow,
+} from "@/lib/show-reminder-messages";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +41,134 @@ function isAuthorized(request: NextRequest): boolean {
 
 const DEFAULT_LOCALE = "fr";
 
+type UserPrismaClient = ReturnType<typeof getUserPrisma>;
+type PrismaClient = ReturnType<typeof getPrisma>;
+
+type ShowReminderSummary = {
+  remindersFired: number;
+  remindersSent: number;
+  remindersPurged: number;
+};
+
+// —————————————————————— Rappels de spectacles (temporels) ——————————————————————
+// Passe indépendante du moteur d'alertes (seuils) : on envoie un push aux rappels
+// dont `fireAt` est atteint et qui n'ont pas encore été envoyés. Contrairement aux
+// alertes, le déclenchement est TEMPOREL (pas de seuil / réarmement).
+async function processShowReminders(
+  userPrisma: UserPrismaClient,
+  prisma: PrismaClient,
+): Promise<ShowReminderSummary> {
+  const now = new Date();
+
+  // Rappels arrivés à échéance et pas encore envoyés.
+  const due = await userPrisma.showReminder.findMany({
+    where: { sent: false, fireAt: { lte: now } },
+  });
+  // On n'envoie QUE si la représentation n'a pas encore commencé (sinon rappel
+  // manqué : le cron a pris du retard). Les manqués sont nettoyés plus bas.
+  const toSend = due.filter((r) => r.startTime.getTime() > now.getTime());
+
+  const summary: ShowReminderSummary = {
+    remindersFired: toSend.length,
+    remindersSent: 0,
+    remindersPurged: 0,
+  };
+
+  if (toSend.length > 0) {
+    // Fuseau + format horaire pour un libellé « à 16:00 » lisible.
+    const parkIds = [...new Set(toSend.map((r) => r.parkIdentifier))];
+    const userIds = [...new Set(toSend.map((r) => r.userId))];
+    const [parks, subs, prefs] = await Promise.all([
+      prisma.park.findMany({
+        where: { identifier: { in: parkIds } },
+        select: { identifier: true, timezone: true },
+      }),
+      userPrisma.pushSubscription.findMany({
+        where: { userId: { in: userIds } },
+      }),
+      userPrisma.userPreferences.findMany({
+        where: { userId: { in: userIds } },
+        select: { userId: true, locale: true, timeFormat: true },
+      }),
+    ]);
+    const tzByPark = new Map(parks.map((p) => [p.identifier, p.timezone]));
+    const subsByUser = new Map<string, typeof subs>();
+    for (const s of subs) {
+      const list = subsByUser.get(s.userId) ?? [];
+      list.push(s);
+      subsByUser.set(s.userId, list);
+    }
+    const prefsByUser = new Map(prefs.map((p) => [p.userId, p]));
+
+    // Regroupement par utilisateur (un seul push « digest » si plusieurs
+    // représentations arrivent en même temps).
+    const byUser = new Map<string, typeof toSend>();
+    for (const r of toSend) {
+      const list = byUser.get(r.userId) ?? [];
+      list.push(r);
+      byUser.set(r.userId, list);
+    }
+
+    const deadEndpoints: string[] = [];
+    for (const [userId, reminders] of byUser) {
+      const pref = prefsByUser.get(userId);
+      const locale = pref?.locale ?? DEFAULT_LOCALE;
+      const is12Hour = pref?.timeFormat === "h12";
+
+      const items: ReminderShow[] = reminders.map((r) => {
+        const tz = tzByPark.get(r.parkIdentifier) ?? "Europe/Paris";
+        const timeLabel = DateTime.fromJSDate(r.startTime)
+          .setZone(tz)
+          .toFormat(is12Hour ? "h:mm a" : "HH:mm");
+        return { show: r.showName, timeLabel, lead: r.leadMinutes };
+      });
+
+      const msg = buildShowReminderMessage(locale, items);
+      const single = reminders.length === 1 ? reminders[0] : null;
+      const payload: PushPayload = {
+        title: msg.title,
+        body: msg.body,
+        url: `/${locale}/park/${reminders[0].parkIdentifier}`,
+        tag: single ? `show-${single.id}` : "qp-show-reminders-digest",
+      };
+
+      const userSubs = subsByUser.get(userId) ?? [];
+      let delivered = false;
+      for (const s of userSubs) {
+        const res = await sendPush(
+          { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
+          payload,
+        );
+        if (res.ok) delivered = true;
+        else if (res.gone) deadEndpoints.push(s.endpoint);
+      }
+
+      // Marqués envoyés quoi qu'il arrive (même sans abonnement valide) pour ne
+      // pas retenter en boucle à chaque passage.
+      await userPrisma.showReminder.updateMany({
+        where: { id: { in: reminders.map((r) => r.id) } },
+        data: { sent: true, sentAt: now },
+      });
+      if (delivered) summary.remindersSent++;
+    }
+
+    if (deadEndpoints.length > 0) {
+      await userPrisma.pushSubscription.deleteMany({
+        where: { endpoint: { in: deadEndpoints } },
+      });
+    }
+  }
+
+  // Nettoyage : toute représentation déjà commencée (rappel envoyé ou manqué) est
+  // supprimée — plus rien à faire.
+  const purged = await userPrisma.showReminder.deleteMany({
+    where: { startTime: { lt: now } },
+  });
+  summary.remindersPurged = purged.count;
+
+  return summary;
+}
+
 export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -51,12 +183,17 @@ export async function GET(request: NextRequest) {
   const userPrisma = getUserPrisma();
   const prisma = getPrisma();
 
+  // Passe « rappels de spectacles » (temporelle), indépendante des alertes de
+  // seuil ci-dessous. Traitée en premier pour être exécutée même si l'app n'a
+  // aucune alerte active.
+  const reminderSummary = await processShowReminders(userPrisma, prisma);
+
   // 1. Toutes les alertes actives (tous utilisateurs confondus).
   const alerts = await userPrisma.alert.findMany({
     where: { active: true },
   });
   if (alerts.length === 0) {
-    return NextResponse.json({ checked: 0, sent: 0 });
+    return NextResponse.json({ checked: 0, sent: 0, ...reminderSummary });
   }
 
   // 2. Temps d'attente RÉELS courants pour les attractions surveillées (file
@@ -139,6 +276,7 @@ export async function GET(request: NextRequest) {
       sent: 0,
       rearmed: toRearm.length,
       expired: toExpire.length,
+      ...reminderSummary,
     });
   }
 
@@ -245,5 +383,6 @@ export async function GET(request: NextRequest) {
     rearmed: toRearm.length,
     expired: toExpire.length,
     prunedSubscriptions: deadEndpoints.length,
+    ...reminderSummary,
   });
 }
