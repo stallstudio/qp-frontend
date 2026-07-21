@@ -79,27 +79,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     // Un compte créé par magic link n'a ni nom ni photo (le provider email n'en
-    // fournit pas). Quand ce même compte se connecte ensuite via Google (fusion
-    // par email grâce à `allowDangerousEmailAccountLinking`), on récupère le nom
-    // et la photo depuis le profil Google pour COMPLÉTER ce qui manque. On ne
-    // touche pas à un nom/photo déjà présents.
+    // fournit pas), et l'UI retombe alors sur l'e-mail. Quand ce même compte se
+    // connecte ensuite via Google (fusion par email grâce à
+    // `allowDangerousEmailAccountLinking`), Auth.js NE met PAS à jour le nom/photo
+    // de l'utilisateur existant. On le fait donc ici, en relisant l'enregistrement
+    // EN BASE par e-mail (source de vérité fiable, contrairement à l'objet `user`
+    // reçu qui, au moment de la liaison, peut déjà porter le nom Google en mémoire
+    // sans qu'il soit persisté). On ne remplit que ce qui manque réellement.
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google" && user?.id) {
+      if (account?.provider === "google") {
         // Selon la normalisation d'Auth.js, la photo Google arrive sous `picture`
         // (profil OIDC brut) ou `image` (profil normalisé) : on lit les deux.
         const google = profile as
-          | { name?: string; picture?: string; image?: string }
+          | { name?: string; email?: string; picture?: string; image?: string }
           | undefined;
+        const googleName = google?.name;
         const googleImage = google?.picture ?? google?.image;
-        const data: { name?: string; image?: string } = {};
-        if (google?.name && !user.name) data.name = google.name;
-        if (googleImage && !user.image) data.image = googleImage;
-        if (Object.keys(data).length > 0) {
+        const email = user?.email ?? google?.email;
+        if (email && (googleName || googleImage)) {
           try {
-            await getUserPrisma().user.update({
-              where: { id: user.id },
-              data,
-            });
+            const db = getUserPrisma();
+            const existing = await db.user.findUnique({ where: { email } });
+            if (existing) {
+              const data: { name?: string; image?: string } = {};
+              if (googleName && !existing.name) data.name = googleName;
+              if (googleImage && !existing.image) data.image = googleImage;
+              if (Object.keys(data).length > 0) {
+                await db.user.update({ where: { id: existing.id }, data });
+              }
+            }
           } catch {
             // Non bloquant : la connexion réussit même si la maj du profil échoue.
           }
