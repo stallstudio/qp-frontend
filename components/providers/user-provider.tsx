@@ -41,7 +41,17 @@ const UserContext = createContext<UserContextValue | undefined>(undefined);
 const currentFavorites = () => ({
   parks: [...readFavorites("parks")],
   rides: [...readFavorites("rides")],
+  shows: [...readFavorites("shows")],
 });
+
+// Vide les favoris locaux (tous namespaces) : appelé à la déconnexion pour ne pas
+// laisser fuiter des favoris d'une session précédente vers un autre compte à la
+// prochaine fusion (les favoris nécessitent désormais un compte).
+const clearLocalFavorites = () => {
+  writeFavorites("parks", new Set());
+  writeFavorites("rides", new Set());
+  writeFavorites("shows", new Set());
+};
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
@@ -92,6 +102,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       if (status === "unauthenticated") {
         syncedUserRef.current = null;
         setProfile(null);
+        // Favoris = compte : on ne garde aucun favori local hors session.
+        clearLocalFavorites();
       }
       return;
     }
@@ -105,10 +117,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const { data: merged } = await axios.post<{
           parks: string[];
           rides: string[];
+          shows: string[];
         }>("/api/user/favorites/merge", local);
         mirroringUntilRef.current = Date.now() + 1500;
         writeFavorites("parks", new Set(merged.parks));
         writeFavorites("rides", new Set(merged.rides));
+        writeFavorites("shows", new Set(merged.shows ?? []));
       } catch {
         // on continue même si la fusion échoue : le compte reste utilisable.
       }

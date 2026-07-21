@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FAV_LIMITS,
   FAV_STORAGE_PREFIX,
@@ -6,6 +6,10 @@ import {
   readFavorites,
   writeFavorites,
 } from "@/lib/favorites-storage";
+import { useUser } from "@/components/providers/user-provider";
+import { useAuthGate } from "@/components/providers/auth-gate-provider";
+
+const EMPTY_FAVORITES: Set<string> = new Set();
 
 /**
  * Favoris persistés dans localStorage. Reste la source de travail côté client,
@@ -25,6 +29,12 @@ import {
  * (React 19) et d'annuler le toggle.
  */
 export function useFavorites(namespace: string) {
+  // Les favoris nécessitent un compte : sans session, on n'expose AUCUN favori
+  // (pas d'étoile pleine ni d'épinglage) et toute tentative d'ajout ouvre le
+  // modal de connexion via le garde d'authentification.
+  const { isAuthenticated } = useUser();
+  const { requireAuth } = useAuthGate();
+
   const [favorites, setFavoritesState] = useState<Set<string>>(new Set());
   const [isReady, setIsReady] = useState(false);
 
@@ -56,11 +66,19 @@ export function useFavorites(namespace: string) {
     [namespace],
   );
 
-  // Renvoie true si le changement a été appliqué, false s'il a été refusé (ajout
-  // au-delà du plafond du namespace) : l'appelant peut alors prévenir l'utilisateur.
-  // Le RETRAIT n'est jamais bloqué.
+  // Favoris exposés : vides tant que l'utilisateur n'est pas connecté (aucun
+  // favori sans compte). En interne, `favorites` reste hydraté depuis localStorage
+  // (source de travail une fois connecté, miroir du compte).
+  const exposedFavorites = isAuthenticated ? favorites : EMPTY_FAVORITES;
+
+  // Renvoie true si le changement a été appliqué, false s'il a été refusé (non
+  // connecté → modal de connexion, OU ajout au-delà du plafond du namespace) :
+  // l'appelant peut alors prévenir l'utilisateur. Le RETRAIT n'est jamais bloqué.
   const toggle = useCallback(
     (id: string): boolean => {
+      // Sans compte : on n'écrit rien, on invite à se connecter.
+      if (!requireAuth()) return false;
+
       const next = new Set(favorites);
       if (next.has(id)) {
         next.delete(id);
@@ -72,10 +90,24 @@ export function useFavorites(namespace: string) {
       persist(next);
       return true;
     },
-    [favorites, persist, namespace],
+    [favorites, persist, namespace, requireAuth],
   );
 
-  const isFavorite = useCallback((id: string) => favorites.has(id), [favorites]);
+  const isFavorite = useCallback(
+    (id: string) => exposedFavorites.has(id),
+    [exposedFavorites],
+  );
 
-  return { favorites, isFavorite, toggle, isReady, setFavorites: persist };
+  const value = useMemo(
+    () => ({
+      favorites: exposedFavorites,
+      isFavorite,
+      toggle,
+      isReady,
+      setFavorites: persist,
+    }),
+    [exposedFavorites, isFavorite, toggle, isReady, persist],
+  );
+
+  return value;
 }

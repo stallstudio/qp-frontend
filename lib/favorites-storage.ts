@@ -2,11 +2,12 @@
 // useFavorites (source de travail côté client) et le UserProvider (synchro avec
 // le compte). Centralisées ici pour que les deux ne divergent jamais.
 //
-// Namespaces : "parks" (key = park.identifier) et "rides" (key = "{parkIdentifier}:{rideId}").
+// Namespaces : "parks" (key = park.identifier), "rides" (key = "{parkIdentifier}:{rideId}")
+// et "shows" (key = "{parkIdentifier}:{showName}").
 
 export const FAV_STORAGE_PREFIX = "qp:fav:";
 export const FAV_SYNC_EVENT = "qp-fav-change";
-export const FAV_NAMESPACES = ["parks", "rides"] as const;
+export const FAV_NAMESPACES = ["parks", "rides", "shows"] as const;
 export type FavNamespace = (typeof FAV_NAMESPACES)[number];
 
 // Plafond de parcs favoris : au-delà, la page d'accueil devient vite trop chargée.

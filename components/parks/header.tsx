@@ -13,6 +13,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ParkLiveData } from "@/types/api";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useUser } from "@/components/providers/user-provider";
 import { PARK_FAVORITES_LIMIT } from "@/lib/favorites-storage";
 import FavoriteStar from "@/components/ui/favorite-star";
 
@@ -35,10 +36,13 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
   const backParam = searchParams.get("back");
   const homeHref = backParam ? `/?${decodeURIComponent(backParam)}` : "/";
   const { isFavorite, toggle } = useFavorites("parks");
+  const { isAuthenticated } = useUser();
   const isFav = isFavorite(park.identifier);
 
   const handleToggle = () => {
-    if (!toggle(park.identifier)) {
+    // false = non connecté (modal déjà ouvert par le garde) ou plafond atteint :
+    // on ne montre le toast « plafond » que si connecté.
+    if (!toggle(park.identifier) && isAuthenticated) {
       toast.error(tFav("parkLimit", { max: PARK_FAVORITES_LIMIT }));
     }
   };

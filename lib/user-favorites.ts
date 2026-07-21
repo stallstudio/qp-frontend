@@ -8,11 +8,13 @@ export function groupFavorites(
 ): FavoritesPayload {
   const parks: string[] = [];
   const rides: string[] = [];
+  const shows: string[] = [];
   for (const row of rows) {
     if (row.type === "park") parks.push(row.key);
+    else if (row.type === "show") shows.push(row.key);
     else rides.push(row.key);
   }
-  return { parks, rides };
+  return { parks, rides, shows };
 }
 
 // Normalise un payload réseau en liste de favoris typés, en dédoublonnant.
@@ -36,5 +38,6 @@ export function flattenFavorites(
 
   collect("park", data.parks);
   collect("ride", data.rides);
+  collect("show", data.shows);
   return out;
 }
