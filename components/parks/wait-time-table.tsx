@@ -95,7 +95,6 @@ export default function ParkWaitTimeTable({
 }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const tStatus = useTranslations("attractionStatus");
-  const tFav = useTranslations("favorites");
   const tDetail = useTranslations("attractionDetail");
   const { is12Hour } = useTimeFormat();
   const [detailTarget, setDetailTarget] = useState<WaitTime | null>(null);
@@ -254,17 +253,6 @@ export default function ParkWaitTimeTable({
         </button>
       </div>
 
-      {/* En-tête des favoris : libellé simple aligné à gauche, en blanc
-          (text-foreground). Plus de ligne au-dessus ni de couleur ambrée : seule
-          la frontière BASSE du groupe (trait épais, plus bas) matérialise la fin
-          des favoris. Marges généreuses pour qu'il ne « colle » pas à la 1re
-          ligne d'attraction. */}
-      {favCount > 0 && (
-        <div className="px-1 pt-4 pb-2 text-xs font-semibold tracking-wide text-foreground uppercase">
-          {tFav("myFavorites")}
-        </div>
-      )}
-
       {/* Corps : une ligne standby par attraction (+ files dépliées). Chaque
           attraction est un bloc `motion` animé en `layout` pour que le reclassement
           (tri, favoris épinglés, changements de temps) glisse au lieu de sauter. */}
@@ -328,7 +316,7 @@ export default function ParkWaitTimeTable({
                       {isFavorite(favKey(waitTime.rideId)) && (
                         <Star className="mr-1 size-3.5 shrink-0 fill-amber-400 text-amber-400" />
                       )}
-                      <span className="min-w-0 wrap-break-word">
+                      <span className="me-1.5 min-w-0 wrap-break-word">
                         {waitTime.rideName}
                       </span>
                       {hasMultipleQueues && (
@@ -339,7 +327,7 @@ export default function ParkWaitTimeTable({
                             toggleExpand(waitTime.rideId);
                           }}
                           aria-label={t("attraction")}
-                          className="ml-0.5 shrink-0 rounded-md px-0.5 py-1 text-muted-foreground transition-colors hover:text-foreground"
+                          className="shrink-0 rounded-md px-0 py-1 text-muted-foreground transition-colors hover:text-foreground"
                         >
                           <ChevronRight
                             className={cn(
@@ -358,9 +346,9 @@ export default function ParkWaitTimeTable({
                         aria-label={tDetail("openFor", {
                           ride: waitTime.rideName,
                         })}
-                        className="ml-0.5 shrink-0 rounded-md px-0.5 py-1 text-muted-foreground transition-colors hover:text-primary"
+                        className="ml-0.5 shrink-0 rounded-md px-0 py-1 text-muted-foreground transition-colors hover:text-primary"
                       >
-                        <Eye className="size-4" />
+                        <Eye className="size-3.5" />
                       </button>
                     </div>
                     <div className="py-2">
