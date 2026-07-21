@@ -4,11 +4,13 @@ import LanguageSwitcher from "./language-switcher";
 import FooterAuth from "./footer-auth";
 import { AnimatedThemeToggler } from "./animated-theme-toggler";
 import { buttonVariants } from "./button";
+import CookieSettingsButton from "./cookie-settings-button";
 import { Link } from "@/i18n/routing";
 
 export default function Footer() {
   const t = useTranslations("footer");
   const tAbout = useTranslations("about");
+  const tCookies = useTranslations("cookies");
   const currentYear = new Date().getFullYear();
   return (
     <footer
@@ -30,6 +32,32 @@ export default function Footer() {
           </a>
           .
         </p>
+
+        {/* Liens légaux discrets (RGPD/CNIL). */}
+        <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground sm:justify-start">
+          <Link
+            href="/mentions-legales"
+            className="transition-colors hover:text-foreground"
+          >
+            {tCookies("legalNotice")}
+          </Link>
+          <span aria-hidden>·</span>
+          <Link
+            href="/confidentialite"
+            className="transition-colors hover:text-foreground"
+          >
+            {tCookies("privacyPolicy")}
+          </Link>
+          <span aria-hidden>·</span>
+          <Link
+            href="/cookies"
+            className="transition-colors hover:text-foreground"
+          >
+            {tCookies("cookiePolicy")}
+          </Link>
+          <span aria-hidden>·</span>
+          <CookieSettingsButton />
+        </div>
       </div>
       {/* Ordre : compte, À propos | langue, thème. Le « | » ne sert plus qu'à
           séparer les catégories (compte/navigation vs préférences). */}

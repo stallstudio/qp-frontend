@@ -6,6 +6,8 @@ import type { Metadata } from "next";
 import { TimeFormatProvider } from "@/components/providers/time-format-provider";
 import AuthSessionProvider from "@/components/providers/session-provider";
 import { UserProvider } from "@/components/providers/user-provider";
+import { AuthGateProvider } from "@/components/providers/auth-gate-provider";
+import CookieConsent from "@/components/cookie-consent";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -104,7 +106,12 @@ export default async function LocaleLayout({
     <NextIntlClientProvider messages={messages}>
       <TimeFormatProvider>
         <AuthSessionProvider>
-          <UserProvider>{children}</UserProvider>
+          <UserProvider>
+            <AuthGateProvider>
+              {children}
+              <CookieConsent />
+            </AuthGateProvider>
+          </UserProvider>
         </AuthSessionProvider>
       </TimeFormatProvider>
     </NextIntlClientProvider>
