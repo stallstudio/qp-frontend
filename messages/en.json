@@ -55,6 +55,25 @@
     "legendOngoing": "Ongoing",
     "legendUpcoming": "Upcoming"
   },
+  "showDetail": {
+    "openFor": "View details for {show}",
+    "notifTitle": "Alerts",
+    "thrillsLink": "View the show on Thrills",
+    "duration": "Duration: {duration}",
+    "signInIntro": "Sign in to be reminded before a show starts.",
+    "reminderIntro": "Pick a time, then how long before it you want to be reminded.",
+    "leadLabel": "Remind me before",
+    "leadOption": "{minutes} min",
+    "reminderActive": "Reminder {minutes} min before",
+    "save": "Set reminder",
+    "update": "Update",
+    "remove": "Remove",
+    "reminderSaved": "Reminder saved",
+    "reminderRemoved": "Reminder removed",
+    "reminderError": "Something went wrong. Try again.",
+    "pushBlocked": "Reminder saved, but this device won't receive anything (notifications not allowed).",
+    "noUpcoming": "No more shows left today."
+  },
   "favorites": {
     "myFavorites": "My favorites",
     "yours": "Your favorites",
@@ -64,7 +83,18 @@
     "removePark": "Remove this park from favorites",
     "parkLimit": "You can have up to {max} favorite parks.",
     "seeMore": "See {count} more",
-    "seeLess": "Show less"
+    "seeLess": "Show less",
+    "needAccount": "Sign in to add favorites."
+  },
+  "cookies": {
+    "message": "We use analytics cookies to improve the site. You can accept or decline them.",
+    "learnMore": "Learn more",
+    "accept": "Accept",
+    "refuse": "Decline",
+    "manage": "Manage cookies",
+    "legalNotice": "Legal notice",
+    "privacyPolicy": "Privacy",
+    "cookiePolicy": "Cookies"
   },
   "manifest": {
     "name": "Queue Park",
@@ -274,13 +304,15 @@
     },
     "alertsDailyNote": "Alerts only apply for the current day: they turn off automatically the next day.",
     "favoritesCount": "Favorites",
-    "favoritesParksCount": "Favorite parks",
-    "favoritesRidesCount": "Favorite attractions",
+    "favoritesParksCount": "{count, plural, one {Favorite park} other {Favorite parks}}",
+    "favoritesRidesCount": "{count, plural, one {Favorite attraction} other {Favorite attractions}}",
+    "favoritesShowsCount": "{count, plural, one {Favorite show} other {Favorite shows}}",
     "favoritesParksTitle": "Favorite parks",
     "favoritesRidesTitle": "Favorite attractions",
+    "favoritesShowsTitle": "Favorite shows",
     "favoritesListEmpty": "No favorites yet.",
     "favoritesRemove": "Remove {name} from favorites",
-    "activeAlertsCount": "Active alerts",
+    "activeAlertsCount": "{count, plural, one {Active alert} other {Active alerts}}",
     "preferencesTitle": "Preferences",
     "language": "Language",
     "theme": "Theme",
@@ -305,7 +337,27 @@
     "historyLine": "Dropped to {actual} min (≤ {threshold} min)",
     "loadError": "Could not load alerts.",
     "updateError": "Update failed.",
-    "deleteError": "Delete failed."
+    "deleteError": "Delete failed.",
+    "privacyTitle": "Privacy"
+  },
+  "privacy": {
+    "emailLabel": "Email address",
+    "emailSave": "Change",
+    "emailNote": "After changing it, you'll be signed out and will need to sign back in with the new address.",
+    "emailChangedSignOut": "Email changed. Signing out…",
+    "emailTaken": "This email address is already in use.",
+    "emailInvalid": "Invalid email address.",
+    "exportLabel": "My data",
+    "exportButton": "Download",
+    "deleteLabel": "Delete my account",
+    "deleteNote": "This is permanent: preferences, favorites, alerts and reminders will be erased.",
+    "deleteButton": "Delete",
+    "deleteConfirmTitle": "Permanently delete account?",
+    "deleteConfirmDescription": "Type your email address ({email}) to confirm. This cannot be undone.",
+    "deleteConfirmButton": "Delete permanently",
+    "cancel": "Cancel",
+    "accountDeleted": "Account deleted. Signing out…",
+    "genericError": "Something went wrong. Try again."
   },
   "alerts": {
     "createTitle": "Create an alert",

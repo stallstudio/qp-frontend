@@ -55,6 +55,25 @@
     "legendOngoing": "En cours",
     "legendUpcoming": "À venir"
   },
+  "showDetail": {
+    "openFor": "Voir le détail de {show}",
+    "notifTitle": "Alertes",
+    "thrillsLink": "Voir le spectacle sur Thrills",
+    "duration": "Durée : {duration}",
+    "signInIntro": "Connectez-vous pour être prévenu avant le début d'un spectacle.",
+    "reminderIntro": "Choisissez un horaire, puis le délai avant lequel être prévenu.",
+    "leadLabel": "Me prévenir avant de",
+    "leadOption": "{minutes} min",
+    "reminderActive": "Rappel {minutes} min avant",
+    "save": "Activer le rappel",
+    "update": "Mettre à jour",
+    "remove": "Supprimer",
+    "reminderSaved": "Rappel enregistré",
+    "reminderRemoved": "Rappel supprimé",
+    "reminderError": "Une erreur est survenue. Réessayez.",
+    "pushBlocked": "Rappel enregistré, mais cet appareil ne recevra rien (notifications non autorisées).",
+    "noUpcoming": "Plus de représentation à venir aujourd'hui."
+  },
   "favorites": {
     "myFavorites": "Mes favoris",
     "yours": "Vos favoris",
@@ -64,7 +83,18 @@
     "removePark": "Retirer ce parc des favoris",
     "parkLimit": "Vous pouvez avoir {max} parcs favoris au maximum.",
     "seeMore": "Voir les {count} autres",
-    "seeLess": "Voir moins"
+    "seeLess": "Voir moins",
+    "needAccount": "Connectez-vous pour ajouter des favoris."
+  },
+  "cookies": {
+    "message": "Nous utilisons des cookies de mesure d'audience pour améliorer le site. Vous pouvez les accepter ou les refuser.",
+    "learnMore": "En savoir plus",
+    "accept": "Accepter",
+    "refuse": "Refuser",
+    "manage": "Gérer les cookies",
+    "legalNotice": "Mentions légales",
+    "privacyPolicy": "Confidentialité",
+    "cookiePolicy": "Cookies"
   },
   "manifest": {
     "name": "Queue Park",
@@ -274,13 +304,15 @@
     },
     "alertsDailyNote": "Les alertes ne valent que pour la journée en cours : elles se désactivent automatiquement le lendemain.",
     "favoritesCount": "Favoris",
-    "favoritesParksCount": "Parcs favoris",
-    "favoritesRidesCount": "Attractions favorites",
+    "favoritesParksCount": "{count, plural, one {Parc favori} other {Parcs favoris}}",
+    "favoritesRidesCount": "{count, plural, one {Attraction favorite} other {Attractions favorites}}",
+    "favoritesShowsCount": "{count, plural, one {Spectacle favori} other {Spectacles favoris}}",
     "favoritesParksTitle": "Parcs favoris",
     "favoritesRidesTitle": "Attractions favorites",
+    "favoritesShowsTitle": "Spectacles favoris",
     "favoritesListEmpty": "Aucun favori pour le moment.",
     "favoritesRemove": "Retirer {name} des favoris",
-    "activeAlertsCount": "Alertes actives",
+    "activeAlertsCount": "{count, plural, one {Alerte active} other {Alertes actives}}",
     "preferencesTitle": "Préférences",
     "language": "Langue",
     "theme": "Thème",
@@ -305,7 +337,27 @@
     "historyLine": "Descendu à {actual} min (≤ {threshold} min)",
     "loadError": "Impossible de charger les alertes.",
     "updateError": "La mise à jour a échoué.",
-    "deleteError": "La suppression a échoué."
+    "deleteError": "La suppression a échoué.",
+    "privacyTitle": "Confidentialité"
+  },
+  "privacy": {
+    "emailLabel": "Adresse e-mail",
+    "emailSave": "Modifier",
+    "emailNote": "Après modification, vous serez déconnecté et devrez vous reconnecter avec la nouvelle adresse.",
+    "emailChangedSignOut": "Adresse modifiée. Déconnexion…",
+    "emailTaken": "Cette adresse e-mail est déjà utilisée.",
+    "emailInvalid": "Adresse e-mail invalide.",
+    "exportLabel": "Mes données",
+    "exportButton": "Télécharger",
+    "deleteLabel": "Supprimer mon compte",
+    "deleteNote": "Cette action est définitive : préférences, favoris, alertes et rappels seront effacés.",
+    "deleteButton": "Supprimer",
+    "deleteConfirmTitle": "Supprimer définitivement le compte ?",
+    "deleteConfirmDescription": "Saisissez votre adresse e-mail ({email}) pour confirmer. Cette action est irréversible.",
+    "deleteConfirmButton": "Supprimer définitivement",
+    "cancel": "Annuler",
+    "accountDeleted": "Compte supprimé. Déconnexion…",
+    "genericError": "Une erreur est survenue. Réessayez."
   },
   "alerts": {
     "createTitle": "Créer une alerte",
