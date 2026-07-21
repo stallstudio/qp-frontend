@@ -4,11 +4,13 @@ import { useTranslations } from "next-intl";
 import { DateTime } from "luxon";
 import { useMemo, useRef, useEffect, useState, useCallback } from "react";
 import { motion } from "motion/react";
+import { Eye, Star } from "lucide-react";
 import { cn, getLuxonFormat } from "@/lib/utils";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useFavorites } from "@/hooks/useFavorites";
-import FavoriteStar from "@/components/ui/favorite-star";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import ShowDetailDialog from "@/components/parks/show-detail/show-detail-dialog";
+import type { ShowTime } from "@/types/show";
 
 import { TimelineRow } from "./components/timeline-row";
 import {
@@ -19,26 +21,25 @@ import {
   MIN_ROW_HEIGHT,
   ROW_PADDING,
 } from "./types";
-import {
-  getShowDisplayDuration,
-  calculateParkHours,
-  calculateScheduleLanes,
-  formatDuration,
-} from "./utils";
+import { calculateParkHours, calculateScheduleLanes } from "./utils";
 
 export default function ParkShowTimeTable({
   shows,
   timezone,
   parkDate,
   parkIdentifier,
+  parkName,
 }: ShowTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const tShows = useTranslations("shows");
-  const tFav = useTranslations("favorites");
+  const tShowDetail = useTranslations("showDetail");
   const { is12Hour } = useTimeFormat();
 
-  const { isFavorite, toggle } = useFavorites("shows");
+  // isFavorite sert à épingler les favoris en tête ; le (dé)favori se fait
+  // désormais depuis le popup (œil), comme pour les attractions.
+  const { isFavorite } = useFavorites("shows");
   const favKey = (showName: string) => `${parkIdentifier}:${showName}`;
+  const [detailTarget, setDetailTarget] = useState<ShowTime | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const currentTimeRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -66,7 +67,7 @@ export default function ParkShowTimeTable({
       a.showName.localeCompare(b.showName),
     );
 
-    return sorted.map((show) => {
+    return sorted.map((show, index) => {
       const laneInfo = calculateScheduleLanes(
         show.schedules,
         show.duration,
@@ -76,6 +77,9 @@ export default function ParkShowTimeTable({
       );
       return {
         show,
+        // Index de tri suffixé au nom : garantit une clé unique même si deux
+        // spectacles partagent le même nom (sinon React duplique/omet les lignes).
+        uid: `${index}::${show.showName}`,
         ...laneInfo,
       };
     });
@@ -94,7 +98,7 @@ export default function ParkShowTimeTable({
 
   // Signature de l'ordre courant : ne (ré)anime le `layout` que lors d'un vrai
   // reclassement (mise en favori d'un spectacle -> remontée en tête).
-  const orderKey = displayShows.map((s) => s.show.showName).join(",");
+  const orderKey = displayShows.map((s) => s.uid).join(",");
   // Frontière favoris / spectacles classiques (favoris épinglés en tête) : la
   // 1re ligne classique reçoit un trait plus franc pour distinguer les groupes.
   const favCount = displayShows.filter((s) =>
@@ -198,56 +202,52 @@ export default function ParkShowTimeTable({
       <div className="flex">
         {/* Show names column */}
         <div className="w-9/20 sm:w-2/5 shrink-0 sticky left-0 bg-card border-e z-10 min-w-0">
-          {/* En-tête de la colonne des noms : porte le libellé « MES FAVORIS »
-              (au-dessus de la ligne d'en-tête) quand des spectacles sont en
-              favoris — évite une ligne dédiée vide dans la timeline. */}
-          <div className="h-10 border-b flex items-center px-3">
-            {favCount > 0 && (
-              <span className="text-xs font-semibold tracking-wide text-foreground uppercase">
-                {tFav("myFavorites")}
-              </span>
-            )}
-          </div>
+          {/* En-tête de la colonne des noms : simple espaceur aligné sur la ligne
+              des heures (plus de libellé « MES FAVORIS »). */}
+          <div className="h-10 border-b" />
           {displayShows.map((item, index) => {
             const rowHeight = rowHeights[index] || MIN_ROW_HEIGHT;
-            const displayDuration = getShowDisplayDuration(item.show, timezone);
             const fav = isFavorite(favKey(item.show.showName));
 
             return (
               <motion.div
                 layout="position"
                 layoutDependency={orderKey}
-                key={item.show.showName}
+                key={item.uid}
                 transition={{ type: "spring", stiffness: 320, damping: 36 }}
                 ref={(el) => {
                   nameRefs.current[index] = el;
                 }}
                 className={cn(
-                  "group border-b flex items-center gap-1.5 pe-3 text-sm font-medium",
+                  // Alignement identique aux attractions : pas de retrait à gauche
+                  // (le nom démarre au bord, jusqu'au séparateur à droite), œil
+                  // accolé À LA FIN DU NOM.
+                  "group border-b flex items-center pe-2 text-sm font-medium",
                   hasFavBoundary &&
                     index === favCount &&
                     "border-t-2 border-border",
                 )}
                 style={{ height: `${rowHeight}px` }}
               >
-                <FavoriteStar
-                  active={fav}
-                  onToggle={() => toggle(favKey(item.show.showName))}
-                  label={fav ? tFav("remove") : tFav("add")}
-                  className={`transition-opacity ${
-                    fav
-                      ? "opacity-100"
-                      : "opacity-40 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
-                  }`}
-                />
-                <div className="flex flex-wrap items-center gap-x-1 min-w-0">
-                  <span>{item.show.showName}</span>
-                  {displayDuration !== null && (
-                    <span className="text-muted-foreground whitespace-nowrap">
-                      ({formatDuration(displayDuration)})
-                    </span>
-                  )}
-                </div>
+                {/* Étoile jaune-repère devant les spectacles favoris (épinglés en
+                    tête), comme pour les attractions. */}
+                {fav && (
+                  <Star className="mr-1 size-3.5 shrink-0 fill-amber-400 text-amber-400" />
+                )}
+                <span className="me-1.5 min-w-0 wrap-break-word">
+                  {item.show.showName}
+                </span>
+                {/* Œil : ouvre le popup détail (durée + favori + alertes). */}
+                <button
+                  type="button"
+                  onClick={() => setDetailTarget(item.show)}
+                  aria-label={tShowDetail("openFor", {
+                    show: item.show.showName,
+                  })}
+                  className="shrink-0 rounded-md px-0 py-1 text-muted-foreground transition-colors hover:text-primary"
+                >
+                  <Eye className="size-3.5" />
+                </button>
               </motion.div>
             );
           })}
@@ -308,7 +308,7 @@ export default function ParkShowTimeTable({
                 // lieu de sauter, en phase avec la colonne des noms (même clé
                 // stable, même ressort).
                 <motion.div
-                  key={item.show.showName}
+                  key={item.uid}
                   layout="position"
                   layoutDependency={orderKey}
                   transition={{ type: "spring", stiffness: 320, damping: 36 }}
@@ -349,6 +349,17 @@ export default function ParkShowTimeTable({
           {tShows("legendUpcoming")}
         </span>
       </div>
+
+      {/* Popup « détail spectacle », piloté par l'œil de chaque ligne. */}
+      <ShowDetailDialog
+        target={detailTarget}
+        parkIdentifier={parkIdentifier}
+        parkName={parkName}
+        timezone={timezone}
+        onOpenChange={(open) => {
+          if (!open) setDetailTarget(null);
+        }}
+      />
     </div>
   );
 }

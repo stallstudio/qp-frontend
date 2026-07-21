@@ -79,8 +79,10 @@ export default function AttractionDetailDialog({
                 Thrills et l'étoile favori intégrés (plus de gros bouton séparé). */}
             <div className="shrink-0">
               <ImageSection
-                rideName={target.rideName}
+                title={target.rideName}
+                favNamespace="rides"
                 favKey={`${parkIdentifier}:${target.rideId}`}
+                link={{ url: "https://thrills.world", label: t("thrillsLink") }}
               />
             </div>
 
@@ -92,6 +94,10 @@ export default function AttractionDetailDialog({
                 title={t("alertsTitle")}
                 icon={<Bell className="size-4" />}
               >
+                {/* Hauteur minimale réservée, ajustée au plus près de la hauteur
+                    réelle du formulaire : le popup ne « saute » pas entre le
+                    spinner et l'affichage, SANS créer de grand vide sous le bouton. */}
+                <div className="min-h-[136px]">
                 <AlertSection
                   rideId={target.rideId}
                   rideName={target.rideName}
@@ -110,6 +116,7 @@ export default function AttractionDetailDialog({
                       : undefined;
                   })()}
                 />
+                </div>
               </Section>
 
               <Section

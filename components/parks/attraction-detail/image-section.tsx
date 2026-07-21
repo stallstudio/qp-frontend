@@ -6,32 +6,37 @@ import { useTranslations } from "next-intl";
 import { useFavorites } from "@/hooks/useFavorites";
 import FavoriteStar from "@/components/ui/favorite-star";
 
-// Lien placeholder vers Thrills (pas de deep-link par attraction pour l'instant).
-const THRILLS_URL = "https://thrills.world";
-
-// Bannière de l'attraction. Faute d'image par attraction pour l'instant, on
-// affiche la bannière par défaut de Queue Park (default_cover.webp). Par-dessus,
-// en bas : le nom + le lien Thrills (à gauche) et l'étoile favori (à droite,
-// même traitement que l'en-tête de parc). L'étoile remplace l'ancien gros bouton
-// « Ajouter aux favoris » pour compacter le popup.
+// Bannière d'en-tête RÉUTILISABLE pour les popups détail (attraction ET
+// spectacle). Faute d'image dédiée pour l'instant, on affiche la bannière par
+// défaut de Queue Park (default_cover.webp). Par-dessus, en bas : le titre (+ lien
+// externe optionnel, ex. Thrills) à gauche et l'étoile favori à droite.
+//
+// `favNamespace` isole la liste de favoris ("rides" | "shows"), `favKey` est la
+// clé (ex. "{parkIdentifier}:{rideId}" ou "{parkIdentifier}:{showName}").
 export default function ImageSection({
-  rideName,
+  title,
+  favNamespace,
   favKey,
+  link,
+  subtitle,
 }: {
-  rideName: string;
+  title: string;
+  favNamespace: "rides" | "shows";
   favKey: string;
+  link?: { url: string; label: string };
+  // Sous-titre optionnel sous le nom (ex. durée d'un spectacle).
+  subtitle?: string;
 }) {
-  const t = useTranslations("attractionDetail");
   const tFav = useTranslations("favorites");
-  const { isFavorite, toggle } = useFavorites("rides");
+  const { isFavorite, toggle } = useFavorites(favNamespace);
   const isFav = isFavorite(favKey);
 
   return (
     <div className="relative aspect-video w-full overflow-hidden bg-muted">
-      {/* Bannière par défaut (provisoire, en attendant une image par attraction). */}
+      {/* Bannière par défaut (provisoire, en attendant une image dédiée). */}
       <Image
         src="/default_cover.webp"
-        alt={rideName}
+        alt={title}
         fill
         sizes="(max-width: 448px) 100vw, 448px"
         className="object-cover"
@@ -54,23 +59,28 @@ export default function ImageSection({
         />
       </div>
 
-      {/* Aligné à gauche, même mise en forme que l'en-tête d'un parc
-          (components/parks/header.tsx) : nom en gras, à gauche. Taille plus
-          contenue que l'en-tête de parc (le popup est plus petit). `pr-16` évite
-          le chevauchement avec l'étoile. */}
+      {/* Aligné à gauche, même mise en forme que l'en-tête d'un parc. `pr-16`
+          évite le chevauchement avec l'étoile. */}
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-1 px-5 pr-16 pb-4 text-left">
         <p className="text-xl font-bold text-white line-clamp-2 drop-shadow-sm">
-          {rideName}
+          {title}
         </p>
-        <a
-          href={THRILLS_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-sm font-medium text-white/90 transition-colors hover:text-white"
-        >
-          {t("thrillsLink")}
-          <ArrowRight className="size-3.5" />
-        </a>
+        {subtitle && (
+          <p className="text-sm font-medium text-white/90 drop-shadow-sm">
+            {subtitle}
+          </p>
+        )}
+        {link && (
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-medium text-white/90 transition-colors hover:text-white"
+          >
+            {link.label}
+            <ArrowRight className="size-3.5" />
+          </a>
+        )}
       </div>
     </div>
   );

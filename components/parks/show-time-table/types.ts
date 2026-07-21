@@ -5,6 +5,7 @@ export type ShowTimeTableProps = {
   timezone: string;
   parkDate?: string | null;
   parkIdentifier: string;
+  parkName: string;
 };
 
 export type ScheduleWithPosition = {
@@ -17,6 +18,10 @@ export type ScheduleWithPosition = {
 
 export type ShowWithLanes = {
   show: ShowTime;
+  // Clé stable et UNIQUE de la ligne (React key + layoutDependency). Le nom seul
+  // ne suffit pas : deux spectacles peuvent porter le MÊME nom (ex. « Rencontre
+  // avec les personnages » sur deux scènes) — on suffixe donc l'index de tri.
+  uid: string;
   schedules: ScheduleWithPosition[];
   totalLanes: number;
 };

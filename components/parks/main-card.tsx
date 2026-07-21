@@ -131,6 +131,7 @@ export default function MainCard({
               timezone={park.timezone}
               parkDate={parkDate}
               parkIdentifier={park.identifier}
+              parkName={park.name}
             />
           </TabsContent>
         </Tabs>
@@ -149,6 +150,7 @@ export default function MainCard({
           timezone={park.timezone}
           parkDate={parkDate}
           parkIdentifier={park.identifier}
+          parkName={park.name}
         />
       ) : null}
       {park.shows.length === 0 && park.waitTimes.length === 0 && (
