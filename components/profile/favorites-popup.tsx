@@ -15,6 +15,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import type {
   ResolvedPark,
   ResolvedRide,
+  ResolvedShow,
 } from "@/app/api/user/favorites/resolve/route";
 
 const SPRING = { type: "spring", stiffness: 320, damping: 36 } as const;
@@ -37,15 +38,15 @@ function FavoriteRow({
       transition={SPRING}
       className="overflow-hidden"
     >
-      <div className="flex items-center gap-3 py-3">
-        <p className="min-w-0 flex-1 truncate font-medium">{name}</p>
+      <div className="flex items-center gap-2 py-1.5">
+        <p className="min-w-0 flex-1 truncate text-sm font-medium">{name}</p>
         <button
           type="button"
           onClick={onRemove}
           aria-label={removeLabel}
-          className="shrink-0 cursor-pointer rounded-full p-1.5 text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="shrink-0 cursor-pointer rounded-full p-1.5 text-amber-400 transition-colors hover:bg-amber-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Star className="size-5 fill-current" />
+          <Star className="size-4 fill-current" />
         </button>
       </div>
     </motion.li>
@@ -67,7 +68,7 @@ export default function FavoritesPopup({
   open,
   onOpenChange,
 }: {
-  scope: "parks" | "rides";
+  scope: "parks" | "rides" | "shows";
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -76,6 +77,7 @@ export default function FavoritesPopup({
 
   const [rideNames, setRideNames] = useState<Map<string, ResolvedRide>>(new Map());
   const [parkNames, setParkNames] = useState<Map<string, ResolvedPark>>(new Map());
+  const [showNames, setShowNames] = useState<Map<string, ResolvedShow>>(new Map());
   const [loading, setLoading] = useState(false);
 
   // Résolution des noms à l'ouverture (les clés ne stockent que des identifiants).
@@ -85,15 +87,20 @@ export default function FavoritesPopup({
     if (list.length === 0) {
       setRideNames(new Map());
       setParkNames(new Map());
+      setShowNames(new Map());
       setLoading(false);
       return;
     }
     let cancelled = false;
     setLoading(true);
     const payload =
-      scope === "rides" ? { rides: list, parks: [] } : { parks: list, rides: [] };
+      scope === "rides"
+        ? { rides: list, parks: [], shows: [] }
+        : scope === "shows"
+          ? { shows: list, parks: [], rides: [] }
+          : { parks: list, rides: [], shows: [] };
     axios
-      .post<{ parks: ResolvedPark[]; rides: ResolvedRide[] }>(
+      .post<{ parks: ResolvedPark[]; rides: ResolvedRide[]; shows: ResolvedShow[] }>(
         "/api/user/favorites/resolve",
         payload,
       )
@@ -101,6 +108,7 @@ export default function FavoritesPopup({
         if (cancelled) return;
         setRideNames(new Map(data.rides.map((r) => [r.key, r])));
         setParkNames(new Map(data.parks.map((p) => [p.key, p])));
+        setShowNames(new Map((data.shows ?? []).map((s) => [s.key, s])));
       })
       .catch(() => {
         // silencieux : on retombe sur l'affichage de la clé brute.
@@ -116,7 +124,11 @@ export default function FavoritesPopup({
   }, [open]);
 
   const title =
-    scope === "rides" ? t("favoritesRidesTitle") : t("favoritesParksTitle");
+    scope === "rides"
+      ? t("favoritesRidesTitle")
+      : scope === "shows"
+        ? t("favoritesShowsTitle")
+        : t("favoritesParksTitle");
   const removeLabel = (name: string) => t("favoritesRemove", { name });
 
   // Parcs : liste plate triée par nom.
@@ -124,20 +136,29 @@ export default function FavoritesPopup({
     .map((key) => ({ key, name: parkNames.get(key)?.name ?? key }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Attractions : regroupées par parc, parcs et attractions triés par nom.
-  const rideGroups = (() => {
+  // Attractions / spectacles : regroupés par parc, parcs et éléments triés par nom.
+  const groupedItems = (() => {
     const byPark = new Map<string, { key: string; name: string }[]>();
     for (const key of keys) {
-      const r = rideNames.get(key);
-      const park = r?.parkName ?? "";
+      let name: string;
+      let park: string;
+      if (scope === "shows") {
+        const s = showNames.get(key);
+        name = s?.showName ?? key;
+        park = s?.parkName ?? "";
+      } else {
+        const r = rideNames.get(key);
+        name = r?.rideName ?? key;
+        park = r?.parkName ?? "";
+      }
       const arr = byPark.get(park) ?? [];
-      arr.push({ key, name: r?.rideName ?? key });
+      arr.push({ key, name });
       byPark.set(park, arr);
     }
     return [...byPark.entries()]
-      .map(([park, rides]) => ({
+      .map(([park, items]) => ({
         park,
-        rides: rides.sort((a, b) => a.name.localeCompare(b.name)),
+        items: items.sort((a, b) => a.name.localeCompare(b.name)),
       }))
       .sort((a, b) => a.park.localeCompare(b.park));
   })();
@@ -175,27 +196,27 @@ export default function FavoritesPopup({
         ) : (
           <div className="max-h-[60vh] overflow-y-auto scrollbar-hide">
             <AnimatePresence initial={false}>
-              {rideGroups.map((group) => (
+              {groupedItems.map((group) => (
                 <motion.section
                   key={group.park}
                   layout
                   exit={{ opacity: 0, height: 0 }}
                   transition={SPRING}
-                  className="overflow-hidden border-t border-border pt-3 first:border-t-0 first:pt-0"
+                  className="overflow-hidden border-t border-border pt-2 first:border-t-0 first:pt-0"
                 >
-                  {/* En-tête de parc : bandeau discret + trait, pour bien séparer
-                      visuellement chaque parc (les groupes ne se mélangent plus). */}
-                  <p className="sticky top-0 z-10 mb-1 bg-background pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {/* En-tête de parc : bandeau discret collé au groupe, pour bien
+                      séparer chaque parc sans gaspiller de hauteur. */}
+                  <p className="sticky top-0 z-10 bg-background py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {group.park}
                   </p>
                   <ul className="divide-y">
                     <AnimatePresence initial={false}>
-                      {group.rides.map((ride) => (
+                      {group.items.map((item) => (
                         <FavoriteRow
-                          key={ride.key}
-                          name={ride.name}
-                          removeLabel={removeLabel(ride.name)}
-                          onRemove={() => toggle(ride.key)}
+                          key={item.key}
+                          name={item.name}
+                          removeLabel={removeLabel(item.name)}
+                          onRemove={() => toggle(item.key)}
                         />
                       ))}
                     </AnimatePresence>

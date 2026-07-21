@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Star, Bell, SlidersHorizontal, FerrisWheel, History } from "lucide-react";
+import {
+  Star,
+  Bell,
+  SlidersHorizontal,
+  FerrisWheel,
+  RollerCoaster,
+  History,
+  Lock,
+  Drama,
+} from "lucide-react";
 import { useRouter } from "@/i18n/routing";
 import { useFavorites } from "@/hooks/useFavorites";
 import { PARK_FAVORITES_LIMIT } from "@/lib/favorites-storage";
@@ -12,6 +21,7 @@ import Footer from "@/components/ui/footer";
 import ScrollShrinkHeader from "@/components/ui/scroll-shrink-header";
 import { useUser } from "@/components/providers/user-provider";
 import PreferencesCard from "./preferences-card";
+import PrivacySection from "./privacy-section";
 import AlertsSection from "./alerts-section";
 import AlertHistorySection from "./alert-history-section";
 import FavoritesPopup from "./favorites-popup";
@@ -74,27 +84,21 @@ function Stat({
   return <div className={base}>{inner}</div>;
 }
 
-// Container de section (alertes actives / historique), calqué sur les vignettes
-// de la page À propos : pastille d'icône + titre, contenu en dessous.
-function SectionCard({
+// En-tête léger de sous-section (alertes actives / historique) : plus de grosse
+// carte englobante — chaque élément (alerte / entrée d'historique) est désormais
+// sa propre petite carte (voir alerts-section / alert-history-section).
+function SectionHeading({
   icon,
   title,
-  children,
 }: {
   icon: React.ReactNode;
   title: string;
-  children: React.ReactNode;
 }) {
   return (
-    <Card className="gap-0 rounded-3xl border p-5 shadow-none sm:p-6">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          {icon}
-        </div>
-        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-      </div>
-      {children}
-    </Card>
+    <div className="mb-3 flex items-center gap-2">
+      <span className="text-primary">{icon}</span>
+      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+    </div>
   );
 }
 
@@ -108,11 +112,13 @@ export default function ProfilePageClient() {
   const [activeTab, setActiveTab] = useState("alerts");
   const [parksOpen, setParksOpen] = useState(false);
   const [ridesOpen, setRidesOpen] = useState(false);
+  const [showsOpen, setShowsOpen] = useState(false);
   // Compteurs des vignettes en direct depuis localStorage (source de travail des
   // favoris) : le nombre se met à jour immédiatement quand on retire un favori
   // depuis le popup, sans attendre un refresh du profil.
   const { favorites: parkFavorites } = useFavorites("parks");
   const { favorites: rideFavorites } = useFavorites("rides");
+  const { favorites: showFavorites } = useFavorites("shows");
 
   // Garde côté client : si l'utilisateur se déconnecte depuis cette page, retour
   // à l'accueil (la garde serveur couvre l'accès direct sans session).
@@ -143,26 +149,34 @@ export default function ProfilePageClient() {
         />
 
         <Card className="w-full gap-0 rounded-4xl p-2.5 sm:p-4">
-          {/* Statistiques en tête de carte : parcs favoris, attractions favorites
-              (cliquables -> popup avec retrait), alertes actives. */}
-          <div className="grid grid-cols-3 gap-2 p-1 pb-3 sm:gap-4">
+          {/* Statistiques en tête de carte : parcs / attractions / spectacles
+              favoris (cliquables -> popup avec retrait), alertes actives. */}
+          <div className="grid grid-cols-2 gap-2 p-1 pb-3 sm:grid-cols-4 sm:gap-4">
             <Stat
               icon={<FerrisWheel className="size-5" />}
               value={parkFavorites.size}
               max={PARK_FAVORITES_LIMIT}
-              label={t("favoritesParksCount")}
+              label={t("favoritesParksCount", { count: parkFavorites.size })}
               onClick={() => setParksOpen(true)}
             />
             <Stat
-              icon={<Star className="size-5" />}
+              icon={<RollerCoaster className="size-5" />}
               value={rideFavorites.size}
-              label={t("favoritesRidesCount")}
+              label={t("favoritesRidesCount", { count: rideFavorites.size })}
               onClick={() => setRidesOpen(true)}
+            />
+            <Stat
+              icon={<Drama className="size-5" />}
+              value={showFavorites.size}
+              label={t("favoritesShowsCount", { count: showFavorites.size })}
+              onClick={() => setShowsOpen(true)}
             />
             <Stat
               icon={<Bell className="size-5" />}
               value={profile?.counts.activeAlerts ?? 0}
-              label={t("activeAlertsCount")}
+              label={t("activeAlertsCount", {
+                count: profile?.counts.activeAlerts ?? 0,
+              })}
             />
           </div>
 
@@ -198,35 +212,54 @@ export default function ProfilePageClient() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Onglet 1 : notifications (actives + historique), chacune dans son
-                propre container (même style « pastille d'icône + titre » que la
-                page À propos). */}
+            {/* Onglet 1 : notifications (actives + historique). Plus de grosse
+                carte par section : chaque alerte / entrée est une petite carte
+                compacte, sous un en-tête léger. */}
             <TabsContent
               value="alerts"
-              className="flex flex-col gap-4 p-2 pt-5 sm:p-4"
+              className="flex flex-col gap-6 p-2 pt-5 sm:p-4"
             >
-              <SectionCard icon={<Bell className="size-5" />} title={t("alertsTitle")}>
+              <section>
+                <SectionHeading
+                  icon={<Bell className="size-4" />}
+                  title={t("alertsTitle")}
+                />
                 {/* Rappel : les alertes ne valent que pour la journée en cours. */}
-                <p className="mb-4 text-sm text-muted-foreground">
+                <p className="mb-3 text-sm text-muted-foreground">
                   {t("alertsDailyNote")}
                 </p>
                 <AlertsSection />
-              </SectionCard>
+              </section>
 
-              <SectionCard
-                icon={<History className="size-5" />}
-                title={t("historyTitle")}
-              >
+              <section>
+                <SectionHeading
+                  icon={<History className="size-4" />}
+                  title={t("historyTitle")}
+                />
                 <AlertHistorySection />
-              </SectionCard>
+              </section>
             </TabsContent>
 
-            {/* Onglet 2 : préférences. */}
-            <TabsContent value="preferences" className="p-2 pt-5 sm:p-4">
-              <h2 className="mb-4 text-2xl font-bold tracking-tight">
-                {t("preferencesTitle")}
-              </h2>
-              <PreferencesCard />
+            {/* Onglet 2 : préférences + confidentialité (RGPD/CNIL). */}
+            <TabsContent
+              value="preferences"
+              className="flex flex-col gap-6 p-2 pt-5 sm:p-4"
+            >
+              <section>
+                <SectionHeading
+                  icon={<SlidersHorizontal className="size-4" />}
+                  title={t("preferencesTitle")}
+                />
+                <PreferencesCard />
+              </section>
+
+              <section>
+                <SectionHeading
+                  icon={<Lock className="size-4" />}
+                  title={t("privacyTitle")}
+                />
+                <PrivacySection />
+              </section>
             </TabsContent>
           </Tabs>
         </Card>
@@ -236,6 +269,7 @@ export default function ProfilePageClient() {
 
       <FavoritesPopup scope="parks" open={parksOpen} onOpenChange={setParksOpen} />
       <FavoritesPopup scope="rides" open={ridesOpen} onOpenChange={setRidesOpen} />
+      <FavoritesPopup scope="shows" open={showsOpen} onOpenChange={setShowsOpen} />
     </div>
   );
 }

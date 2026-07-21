@@ -121,7 +121,7 @@ export default function AlertsSection() {
   }
 
   return (
-    <ul className="divide-y">
+    <ul className="flex flex-col gap-2">
       {alerts.map((a) => {
         // Seuil modifié mais pas encore validé → on propose le bouton ✓.
         const dirty = a.threshold !== savedThresholds[a.id];
@@ -129,15 +129,15 @@ export default function AlertsSection() {
         return (
           <li
             key={a.id}
-            className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-2 rounded-xl border px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="min-w-0">
-              <p className="truncate font-medium">{a.rideName}</p>
-              <p className="truncate text-sm text-muted-foreground">
+              <p className="truncate text-sm font-medium">{a.rideName}</p>
+              <p className="truncate text-xs text-muted-foreground">
                 {a.parkName}
               </p>
             </div>
-            <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
+            <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
               <div className="flex items-center gap-2">
                 {/* Édition du seuil : le +/− ne fait que modifier le brouillon ;
                     le bouton ✓ (visible seulement si modifié) enregistre. */}

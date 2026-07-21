@@ -95,7 +95,7 @@ export default function AlertHistorySection() {
 
   return (
     <>
-      <ul className="divide-y">
+      <ul className="flex flex-col gap-2">
       <AnimatePresence initial={false}>
         {history.map((h) => (
           <motion.li
@@ -110,18 +110,17 @@ export default function AlertHistorySection() {
             }
             animate={{ opacity: 1, height: "auto", y: 0 }}
             transition={{ type: "spring", stiffness: 320, damping: 36 }}
-            className="overflow-hidden py-3 first:pt-0 last:pb-0"
+            className="overflow-hidden rounded-xl border px-3 py-2"
           >
-            <div className="flex items-baseline justify-between gap-3">
-              <p className="truncate font-medium">{h.rideName}</p>
-              <span className="shrink-0 text-xs text-muted-foreground">
+            <div className="flex items-center justify-between gap-3">
+              <p className="truncate text-sm font-medium">{h.rideName}</p>
+              <span className="shrink-0 text-[11px] text-muted-foreground">
                 {formatDate(h.sentAt)}
               </span>
             </div>
-            <p className="truncate text-sm text-muted-foreground">
-              {h.parkName}
-            </p>
-            <p className="text-sm text-muted-foreground">
+            {/* Compact : parc + détail de l'alerte sur une seule ligne. */}
+            <p className="truncate text-xs text-muted-foreground">
+              {h.parkName} ·{" "}
               {t("historyLine", {
                 actual: h.actualWaitTime,
                 threshold: h.threshold,
