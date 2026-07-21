@@ -115,11 +115,17 @@ export default function WaitTimeChart({
 
     const data = [...rows.values()].sort((a, b) => a.t - b.t);
 
+    const nowMs = Date.parse(now);
+
+    // NB : on NE ponte PAS les trous de la courbe du jour. Une valeur manquante
+    // (indispo/fermé/panne) reste `null` — la courbe s'y rompt et une barre basse
+    // colorée est tracée à la place (voir downBands). La continuité visuelle est
+    // obtenue en faisant TOUCHER cette barre aux points connus voisins (bornes
+    // étendues plus bas), pas en inventant des valeurs.
+
     const values = data
       .flatMap((d) => [d.actual, d.forecast])
       .filter((v): v is number => v != null);
-
-    const nowMs = Date.parse(now);
     const times = data.map((d) => d.t);
     const xMin = win ? Date.parse(win.open) : Math.min(...times, nowMs);
     const xMax = win ? Date.parse(win.close) : Math.max(...times, nowMs);
@@ -143,9 +149,12 @@ export default function WaitTimeChart({
 
     // Plages d'indispo observées (actual == null avant « maintenant ») : au lieu
     // d'un trou dans la courbe, une barre basse colorée par statut. On fusionne
-    // les points consécutifs de MÊME couleur ; les bornes tombent au milieu des
-    // points voisins (comble le trou sans chevaucher une plage de couleur
-    // différente). Un i final « hors tableau » ferme la dernière plage.
+    // les points consécutifs de MÊME couleur. Les bornes de la barre s'ÉTENDENT
+    // jusqu'au point CONNU voisin (là où passe la courbe) pour que barre et trait
+    // SE TOUCHENT (plus de petit trou entre les deux, cf. retour utilisateur).
+    // Si le voisin est lui-même une indispo (autre plage de couleur), on retombe
+    // au point milieu pour ne pas chevaucher la plage adjacente. Un i final
+    // « hors tableau » ferme la dernière plage.
     const todayPts = data.filter((d) => d.t <= nowMs);
     const downBands: DownBand[] = [];
     let runStart = -1;
@@ -158,14 +167,21 @@ export default function WaitTimeChart({
       const continues = runStart !== -1 && isDown && color === runColor;
       if (runStart !== -1 && !continues) {
         const end = i - 1;
-        const x1 =
-          runStart > 0
-            ? (todayPts[runStart - 1].t + todayPts[runStart].t) / 2
-            : todayPts[runStart].t;
-        const x2 =
-          end < todayPts.length - 1
-            ? (todayPts[end].t + todayPts[end + 1].t) / 2
-            : todayPts[end].t;
+        const prev = runStart > 0 ? todayPts[runStart - 1] : null;
+        const next = end < todayPts.length - 1 ? todayPts[end + 1] : null;
+        // Bord gauche : jusqu'au point connu précédent (la courbe y aboutit),
+        // sinon milieu (voisin lui aussi indispo), sinon le point lui-même.
+        const x1 = prev
+          ? prev.actual != null
+            ? prev.t
+            : (prev.t + todayPts[runStart].t) / 2
+          : todayPts[runStart].t;
+        // Bord droit : symétrique, jusqu'au point connu suivant.
+        const x2 = next
+          ? next.actual != null
+            ? next.t
+            : (todayPts[end].t + next.t) / 2
+          : todayPts[end].t;
         if (x2 > x1) downBands.push({ x1, x2, color: runColor });
         runStart = -1;
       }
