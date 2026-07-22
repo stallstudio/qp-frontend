@@ -7,10 +7,14 @@ import Footer from "@/components/ui/footer";
 export default function LegalPage({
   title,
   updated,
+  backLabel = "Queue Park",
   children,
 }: {
   title: string;
   updated?: string;
+  // Libellé du lien de retour (par défaut la marque ; les pages passent le
+  // « Retour à l'accueil » traduit, comme le header du profil).
+  backLabel?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -23,7 +27,7 @@ export default function LegalPage({
           className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
-          Queue Park
+          {backLabel}
         </Link>
 
         <h1 className="mt-4 text-3xl font-bold tracking-tight">{title}</h1>

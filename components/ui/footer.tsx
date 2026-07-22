@@ -36,14 +36,14 @@ export default function Footer() {
         {/* Liens légaux discrets (RGPD/CNIL). */}
         <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground sm:justify-start">
           <Link
-            href="/mentions-legales"
+            href="/legal-notice"
             className="transition-colors hover:text-foreground"
           >
             {tCookies("legalNotice")}
           </Link>
           <span aria-hidden>·</span>
           <Link
-            href="/confidentialite"
+            href="/privacy"
             className="transition-colors hover:text-foreground"
           >
             {tCookies("privacyPolicy")}
