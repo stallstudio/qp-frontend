@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "motion/react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ParkCategoryCard from "../parks/park-category-card";
 import { getCountryName, getParkStatus } from "@/lib/utils";
@@ -165,50 +166,64 @@ export default function ParksList({ parks }: ParksListProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* `layout` sur la grille + AnimatePresence dans chaque colonne : filtrer
+          (masquer les fermés) ou changer de tri (groupe/pays) fait glisser,
+          apparaître et disparaître les catégories en douceur au lieu de sauter. */}
+      <motion.div
+        layout
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+      >
         {/* Desktop (lg+): 3 columns */}
         {threeColumns.map((column, columnIndex) => (
-          <div
+          <motion.div
+            layout
             key={`lg-col-${columnIndex}`}
             className="space-y-8 hidden lg:block"
           >
-            {column.map(([groupName, groupParks]) => (
-              <ParkCategoryCard
-                key={groupName}
-                groupName={groupName}
-                parks={groupParks}
-              />
-            ))}
-          </div>
+            <AnimatePresence initial={false}>
+              {column.map(([groupName, groupParks]) => (
+                <ParkCategoryCard
+                  key={groupName}
+                  groupName={groupName}
+                  parks={groupParks}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
         ))}
 
         {/* Tablet (md only): 2 columns */}
         {twoColumns.map((column, columnIndex) => (
-          <div
+          <motion.div
+            layout
             key={`md-col-${columnIndex}`}
             className="space-y-8 hidden md:block lg:hidden"
           >
-            {column.map(([groupName, groupParks]) => (
+            <AnimatePresence initial={false}>
+              {column.map(([groupName, groupParks]) => (
+                <ParkCategoryCard
+                  key={groupName}
+                  groupName={groupName}
+                  parks={groupParks}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        ))}
+
+        {/* Mobile: single column */}
+        <motion.div layout className="space-y-8 block md:hidden">
+          <AnimatePresence initial={false}>
+            {getMobileParks().map(([groupName, groupParks]) => (
               <ParkCategoryCard
                 key={groupName}
                 groupName={groupName}
                 parks={groupParks}
               />
             ))}
-          </div>
-        ))}
-
-        {/* Mobile: single column */}
-        <div className="space-y-8 block md:hidden">
-          {getMobileParks().map(([groupName, groupParks]) => (
-            <ParkCategoryCard
-              key={groupName}
-              groupName={groupName}
-              parks={groupParks}
-            />
-          ))}
-        </div>
-      </div>
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

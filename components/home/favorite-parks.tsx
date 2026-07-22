@@ -68,27 +68,28 @@ export default function FavoriteParks({ parks }: FavoriteParksProps) {
   const extraParks = canCollapse ? favoriteParks.slice(COLLAPSED_VISIBLE) : [];
   const remaining = extraParks.length;
 
-  // Cartes révélées : entrée en cascade du HAUT vers le bas (delay croissant),
-  // sortie en cascade du BAS vers le haut (delay inversé) — au repli, ça
-  // « remonte » depuis la dernière carte. `custom` = index de la carte.
+  // Cartes révélées : entrée en cascade du HAUT vers le bas (fondu + glissé +
+  // dépliage de hauteur). À la SORTIE en revanche, toutes les cartes replient
+  // leur hauteur EN MÊME TEMPS (pas de cascade) : la zone se rétracte d'un bloc
+  // de façon continue, sans laisser d'espace vide qui « saute » à la fin puis
+  // téléporte le reste de la page vers le haut. `overflow-hidden` sur chaque
+  // carte permet d'animer sa hauteur jusqu'à 0. `custom` = index de la carte.
   const EASE = [0.32, 0.72, 0, 1] as const;
   const STEP = 0.03;
   const revealVariants = {
-    hidden: { opacity: 0, y: -10 },
+    hidden: { opacity: 0, height: 0, y: -10 },
     visible: (i: number) => ({
       opacity: 1,
+      height: "auto",
       y: 0,
       transition: { duration: 0.26, ease: EASE, delay: Math.min(i, 8) * STEP },
     }),
-    exit: (i: number) => ({
+    exit: {
       opacity: 0,
+      height: 0,
       y: -10,
-      transition: {
-        duration: 0.22,
-        ease: EASE,
-        delay: Math.min(remaining - 1 - i, 8) * STEP,
-      },
-    }),
+      transition: { duration: 0.24, ease: EASE },
+    },
   };
 
   return (
@@ -118,6 +119,7 @@ export default function FavoriteParks({ parks }: FavoriteParksProps) {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
+                className="overflow-hidden"
               >
                 <ParkCell park={park} />
               </motion.div>
