@@ -38,6 +38,17 @@ interface UserContextValue {
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
 
+// Utilisateurs dont les préférences ont DÉJÀ été réconciliées durant ce
+// chargement de page. Volontairement AU NIVEAU MODULE (pas un ref) : un
+// changement de langue remonte le sous-arbre `[locale]` (donc ce provider), ce
+// qui réinitialiserait un ref et RE-jouerait la réconciliation — laquelle
+// réappliquerait la locale du COMPTE (souvent encore périmée, la persistance du
+// nouveau choix n'ayant pas fini), renvoyant l'utilisateur à sa langue
+// précédente (le fameux « je passe en EN puis ça repasse en FR »). Un ensemble
+// de module survit à ces remontages et ne se vide qu'au vrai rechargement de
+// page (ou à la déconnexion), garantissant UNE réconciliation par session.
+const reconciledUsers = new Set<string>();
+
 const currentFavorites = () => ({
   parks: [...readFavorites("parks")],
   rides: [...readFavorites("rides")],
@@ -63,8 +74,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
-  // Empêche de rejouer la réconciliation à chaque render : une fois par session.
-  const syncedUserRef = useRef<string | null>(null);
   // Fenêtre pendant laquelle les écritures de favoris viennent de la synchro
   // (miroir compte -> local) et ne doivent PAS être repoussées vers le compte.
   const mirroringUntilRef = useRef(0);
@@ -100,7 +109,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (status !== "authenticated") {
       if (status === "unauthenticated") {
-        syncedUserRef.current = null;
+        reconciledUsers.clear();
         setProfile(null);
         // Favoris = compte : on ne garde aucun favori local hors session.
         clearLocalFavorites();
@@ -138,9 +147,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       if (cancelled || !loaded) return;
       setProfile(loaded);
 
-      // Réconciliation des préférences une seule fois par session.
-      if (syncedUserRef.current !== loaded.id) {
-        syncedUserRef.current = loaded.id;
+      // Réconciliation des préférences une seule fois par session (guard de
+      // module : survit au remontage provoqué par un changement de langue).
+      if (!reconciledUsers.has(loaded.id)) {
+        reconciledUsers.add(loaded.id);
         // Laisse le temps aux prefs appliquées de se propager avant d'observer.
         prefsMirroringUntilRef.current = Date.now() + 2000;
 
@@ -232,7 +242,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // seulement après la réconciliation initiale (évite tout aller-retour au login).
   useEffect(() => {
     if (status !== "authenticated" || !profile) return;
-    if (syncedUserRef.current !== profile.id) return;
+    if (!reconciledUsers.has(profile.id)) return;
     if (Date.now() < prefsMirroringUntilRef.current) return;
 
     const current: UserPreferences = {
