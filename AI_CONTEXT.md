@@ -256,19 +256,31 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
   popup `components/auth/auth-dialog.tsx`, page `app/[locale]/profile/` +
   `components/profile/*`. La **page profil est calquée sur la page À propos**
   (header `ScrollShrinkHeader` partagé + carte à onglets `rounded-4xl` : onglets
-  Alertes / Préférences). En tête : **3 vignettes** cliquables (parcs favoris
-  `x/20`, attractions favorites, alertes actives) → popups favoris. Les blocs
-  « Alertes actives » et « Historique » sont dans des **containers** (icône + titre,
-  style vignette À propos). Squelette : `components/profile/profile-skeleton.tsx`
+  Alertes / Préférences). Onglet **Alertes** = **fil unifié** (`AlertsSection`) :
+  sous-onglets **Actives / Historique** + filtre **Tout · Attractions ·
+  Spectacles** (le type = attribut de ligne : pastille `RollerCoaster` vs
+  `Drama`), une seule liste pleine largeur ; interrupteur d'activation en
+  **Switch à icône** (`size="lg"`, cloche active/barrée). Onglet **Préférences**
+  = **contrôles tactiles** (`PreferencesCard`) : thème en **3 vignettes** (soleil
+  / lune / écran), heure en **interrupteur segmenté** 24 h/12 h, langue en menu.
+  En tête : **3 vignettes** cliquables (parcs favoris
+  `x/20`, attractions favorites, alertes actives) → popups favoris.
+  Squelette : `components/profile/profile-skeleton.tsx`
   (affiché tant que la session charge). La **création** d'alerte reste réservée au
   popup « détail attraction » ; le profil permet de **modifier le seuil**,
   (dé)activer et supprimer.
 - **`AuthDialog` fusionné** : connexion et inscription = un seul flux passwordless,
   donc plus de prop `mode` — libellé neutre unique (`auth.title`/`auth.subtitle`).
-- **Historique des alertes** (`components/profile/alert-history-section.tsx`) :
-  **sondage** tant que la page est ouverte (nouvelle alerte animée en direct),
-  nom du parc affiché, format `≤ {seuil} min`, **rétention 30 jours** (filtré côté
-  serveur dans `/api/user/alerts/history`, avec texte d'info sous la liste).
+- **Historique** (`components/profile/alert-history-section.tsx`, export
+  `AlertHistoryFeed`, prop `filter`) : fil **unifié** (attractions + spectacles
+  fusionnés, triés par date d'envoi), **sondage** tant que la page est ouverte
+  (nouvelle notif animée en direct), **voir plus/moins** au-delà de 10 entrées.
+  Sources : `AlertHistory` (attractions) et **`ShowReminderHistory`** (spectacles,
+  table dédiée append-only écrite à l'envoi par le cron — l'historique survit à
+  l'édition/suppression d'un rappel ; le `ShowReminder` consommé est supprimé).
+  **Rien n'est purgé** côté base ; les routes `/api/user/alerts/history` +
+  `/api/user/show-reminders/history` bornent juste l'**affichage** à 30 jours.
+  ⚠️ `ShowReminderHistory` : penser à `npm run user:generate` + `user:push`.
 - i18n : namespaces `userBlock`, `auth`, `profile`, `alerts` (fr+en).
 ## Divers (2026-07-20)
 
