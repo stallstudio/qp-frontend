@@ -19,12 +19,12 @@ type ReminderStrings = {
 const DICT: Record<string, ReminderStrings> = {
   fr: {
     singleTitles: [
-      "🎭 Le spectacle va commencer !",
-      "🎪 C'est bientôt l'heure",
-      "👀 Ne manquez pas la représentation",
-      "✨ Rendez-vous au spectacle",
+      "Le spectacle va commencer ! 🎭",
+      "C'est bientôt l'heure 🎪",
+      "Ne manquez pas la représentation 👀",
+      "Rendez-vous au spectacle ✨",
     ],
-    digestTitle: (count) => `🎭 ${count} spectacles bientôt !`,
+    digestTitle: (count) => `🎭 ${count} spectacles approchent !`,
     singleBody: ({ show, timeLabel, lead }) =>
       `${show} commence à ${timeLabel} (dans ${lead} min).`,
     digestLine: ({ show, timeLabel }) => `• ${show} — ${timeLabel}`,
@@ -32,10 +32,10 @@ const DICT: Record<string, ReminderStrings> = {
   },
   en: {
     singleTitles: [
-      "🎭 The show's about to start!",
-      "🎪 Showtime is near",
-      "👀 Don't miss the performance",
-      "✨ Head to the show",
+      "The show's about to start! 🎭",
+      "Showtime is near 🎪",
+      "Don't miss the performance 👀",
+      "Head to the show ✨",
     ],
     digestTitle: (count) => `🎭 ${count} shows starting soon!`,
     singleBody: ({ show, timeLabel, lead }) =>
@@ -45,7 +45,7 @@ const DICT: Record<string, ReminderStrings> = {
   },
 };
 
-const DIGEST_MAX_LINES = 5;
+const DIGEST_MAX_LINES = 3;
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];

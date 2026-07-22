@@ -24,47 +24,58 @@ type AlertStrings = {
   digestLine: (p: AlertRide) => string;
   // Pied du digest quand la liste est tronquée.
   more: (n: number) => string;
+  // Note ajoutée en bas du corps : l'alerte est désactivée (objectif atteint),
+  // réactivable depuis le profil. Pluriel pour le digest.
+  deactivatedNote: (count: number) => string;
 };
 
 const DICT: Record<string, AlertStrings> = {
   fr: {
     singleTitles: [
-      "Alerte bon plan 🚨",
+      "Tu peux foncer 🏃",
+      "À toi ! 🎯",
+      "C'est le moment ! 🎢",
+      "À toi de jouer ! 🚀",
+      "File vite ! 🏃",
+      "Go, go, go ! ⚡",
       "Bonne nouvelle ! 🎉",
       "L'attente baisse 📉",
-      "Le seuil est atteint ✅",
-      "C'est le moment 🎢",
-      "Une ouverture ! 👀",
-      "L'occasion parfaite ✨",
-      "Ne rate pas ça ! ⚡",
     ],
-    digestTitle: (count) => `🎢 ${count} attractions se libèrent !`,
+    digestTitle: (count) => `🎢 ${count} temps d'attente en baisse !`,
     singleBody: ({ ride, wait, threshold }) =>
-      `${ride} n'est plus qu'à ${wait} min (🎯 ≤${threshold} min).`,
+      `${ride} est à ${wait} min (🎯 ≤ ${threshold} min)`,
     digestLine: ({ ride, wait }) => `• ${ride} — ${wait} min`,
     more: (n) => `+ ${n} autre${n > 1 ? "s" : ""}`,
+    deactivatedNote: (count) =>
+      count > 1
+        ? "💡 Alertes en pause — réactive-les dans ton profil."
+        : "💡 Alerte en pause — réactive-la dans ton profil.",
   },
   en: {
     singleTitles: [
-      "Great opportunity 🚨",
-      "Good news! 🎉",
-      "The wait is shorter 📉",
-      "Your alert is triggered ✅",
-      "It's time to go 🎢",
-      "A spot opened up! 👀",
-      "Perfect timing! ✨",
-      "Don't miss out! ⚡",
+      "Run for it! 🏃",
+      "Your turn! 🎯",
+      "It's time! 🎢",
+      "Your move! 🚀",
+      "Hurry up! 🏃",
+      "Go, go, go! ⚡",
+      "Great news! 🎉",
+      "Wait time is down 📉",
     ],
-    digestTitle: (count) => `🎢 ${count} rides are clearing up!`,
+    digestTitle: (count) => `🎢 ${count} wait times just dropped!`,
     singleBody: ({ ride, wait, threshold }) =>
-      `${ride} is down to ${wait} min (🎯 ≤${threshold} min).`,
+      `${ride} is at ${wait} min (🎯 ≤ ${threshold} min)`,
     digestLine: ({ ride, wait }) => `• ${ride} — ${wait} min`,
     more: (n) => `+ ${n} more`,
+    deactivatedNote: (count) =>
+      count > 1
+        ? "💡 Alerts paused — re-enable them in your profile."
+        : "💡 Alert paused — re-enable it in your profile.",
   },
 };
 
 // Nombre de lignes détaillées avant de résumer le reste par « + N autres ».
-const DIGEST_MAX_LINES = 5;
+const DIGEST_MAX_LINES = 3;
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -82,7 +93,11 @@ export function buildAlertMessage(
   const d = DICT[lang];
 
   if (rides.length === 1) {
-    return { title: pick(d.singleTitles), body: d.singleBody(rides[0]) };
+    return {
+      title: pick(d.singleTitles),
+      // On rappelle en bas que l'alerte est désactivée (objectif atteint).
+      body: `${d.singleBody(rides[0])}\n\n${d.deactivatedNote(1)}`,
+    };
   }
 
   // Plusieurs : on liste les plus courtes d'abord (les plus « urgentes »).
@@ -91,6 +106,7 @@ export function buildAlertMessage(
   const lines = shown.map((r) => d.digestLine(r));
   const rest = sorted.length - shown.length;
   if (rest > 0) lines.push(d.more(rest));
+  lines.push("", d.deactivatedNote(rides.length));
 
   return { title: d.digestTitle(rides.length), body: lines.join("\n") };
 }
