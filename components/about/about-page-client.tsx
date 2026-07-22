@@ -18,6 +18,10 @@ import {
   Drama,
   Activity,
   SlidersHorizontal,
+  Bell,
+  CalendarClock,
+  Eye,
+  UserCircle,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +36,8 @@ import {
   StatusDemo,
   SearchDemo,
   ShowsDemo,
+  AlertDemo,
+  ReminderDemo,
 } from "./demos";
 
 export default function AboutPageClient() {
@@ -173,6 +179,30 @@ export default function AboutPageClient() {
                   body={tCards("shows.body")}
                   demoLabel={demoLabel}
                   demo={<ShowsDemo />}
+                />
+                <Vignette
+                  icon={Bell}
+                  title={tCards("alerts.title")}
+                  body={tCards("alerts.body")}
+                  demoLabel={demoLabel}
+                  demo={<AlertDemo />}
+                />
+                <Vignette
+                  icon={CalendarClock}
+                  title={tCards("reminders.title")}
+                  body={tCards("reminders.body")}
+                  demoLabel={demoLabel}
+                  demo={<ReminderDemo />}
+                />
+                <Vignette
+                  icon={Eye}
+                  title={tCards("detail.title")}
+                  body={tCards("detail.body")}
+                />
+                <Vignette
+                  icon={UserCircle}
+                  title={tCards("account.title")}
+                  body={tCards("account.body")}
                 />
                 <Vignette
                   icon={Search}
