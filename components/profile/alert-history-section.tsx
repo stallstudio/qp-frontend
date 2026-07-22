@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { DateTime } from "luxon";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, type TargetAndTransition } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   ChevronDown,
@@ -190,7 +190,7 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
   const base = canCollapse ? items.slice(0, PER_PAGE) : items;
   const extra = canCollapse ? items.slice(PER_PAGE) : [];
 
-  const row = (item: HistoryItem, initial: false | object) => (
+  const row = (item: HistoryItem, initial: false | TargetAndTransition) => (
     <motion.li
       key={item.id}
       layout="position"
