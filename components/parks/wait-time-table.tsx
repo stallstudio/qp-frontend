@@ -310,13 +310,18 @@ export default function ParkWaitTimeTable({
                         plus aucune marge/gap entre le nom et les icônes, pour que
                         le nom garde le MAXIMUM de largeur et passe moins vite à la
                         ligne. La hauteur de touche reste correcte (py-1). */}
-                    <div className="flex min-w-0 items-center py-2 pe-1 font-medium sm:pe-2">
+                    {/* Rendu EN FLUX INLINE (pas de flex) : le nom coule et peut
+                        passer sur plusieurs lignes ; le chevron et l'œil suivent
+                        directement le dernier mot → ils restent COLLÉS À LA FIN DU
+                        TEXTE, sur la dernière ligne, quel que soit le nombre de
+                        lignes. Les icônes sont `inline-flex align-middle`. */}
+                    <div className="min-w-0 py-2 pe-1 font-medium sm:pe-2">
                       {/* Étoile jaune devant les favoris pour les repérer d'un
                           coup d'œil (les favoris sont épinglés en tête). */}
                       {isFavorite(favKey(waitTime.rideId)) && (
-                        <Star className="mr-1 size-3.5 shrink-0 fill-amber-400 text-amber-400" />
+                        <Star className="mr-1 inline-block size-3.5 align-[-2px] fill-amber-400 text-amber-400" />
                       )}
-                      <span className="me-1.5 min-w-0 wrap-break-word">
+                      <span className="wrap-break-word">
                         {waitTime.rideName}
                       </span>
                       {hasMultipleQueues && (
@@ -327,7 +332,7 @@ export default function ParkWaitTimeTable({
                             toggleExpand(waitTime.rideId);
                           }}
                           aria-label={t("attraction")}
-                          className="shrink-0 rounded-md px-0 py-1 text-muted-foreground transition-colors hover:text-foreground"
+                          className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-foreground"
                         >
                           <ChevronRight
                             className={cn(
@@ -346,7 +351,7 @@ export default function ParkWaitTimeTable({
                         aria-label={tDetail("openFor", {
                           ride: waitTime.rideName,
                         })}
-                        className="ml-0.5 shrink-0 rounded-md px-0 py-1 text-muted-foreground transition-colors hover:text-primary"
+                        className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-primary"
                       >
                         <Eye className="size-3.5" />
                       </button>

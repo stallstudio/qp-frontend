@@ -229,25 +229,27 @@ export default function ParkShowTimeTable({
                 )}
                 style={{ height: `${rowHeight}px` }}
               >
-                {/* Étoile jaune-repère devant les spectacles favoris (épinglés en
-                    tête), comme pour les attractions. */}
-                {fav && (
-                  <Star className="mr-1 size-3.5 shrink-0 fill-amber-400 text-amber-400" />
-                )}
-                <span className="me-1.5 min-w-0 wrap-break-word">
-                  {item.show.showName}
-                </span>
-                {/* Œil : ouvre le popup détail (durée + favori + alertes). */}
-                <button
-                  type="button"
-                  onClick={() => setDetailTarget(item.show)}
-                  aria-label={tShowDetail("openFor", {
-                    show: item.show.showName,
-                  })}
-                  className="shrink-0 rounded-md px-0 py-1 text-muted-foreground transition-colors hover:text-primary"
-                >
-                  <Eye className="size-3.5" />
-                </button>
+                {/* Bloc en FLUX INLINE centré verticalement par le flex parent :
+                    le nom coule (multi-lignes possible) et l'œil suit le dernier
+                    mot, restant COLLÉ À LA FIN DU TEXTE sur la dernière ligne. */}
+                <div className="min-w-0">
+                  {/* Étoile jaune-repère devant les spectacles favoris. */}
+                  {fav && (
+                    <Star className="mr-1 inline-block size-3.5 align-[-2px] fill-amber-400 text-amber-400" />
+                  )}
+                  <span className="wrap-break-word">{item.show.showName}</span>
+                  {/* Œil : ouvre le popup détail (durée + favori + alertes). */}
+                  <button
+                    type="button"
+                    onClick={() => setDetailTarget(item.show)}
+                    aria-label={tShowDetail("openFor", {
+                      show: item.show.showName,
+                    })}
+                    className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    <Eye className="size-3.5" />
+                  </button>
+                </div>
               </motion.div>
             );
           })}
