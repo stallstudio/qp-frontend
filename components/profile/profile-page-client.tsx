@@ -3,12 +3,10 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
-  Star,
   Bell,
   SlidersHorizontal,
   FerrisWheel,
   RollerCoaster,
-  History,
   Lock,
   Drama,
 } from "lucide-react";
@@ -23,7 +21,6 @@ import { useUser } from "@/components/providers/user-provider";
 import PreferencesCard from "./preferences-card";
 import PrivacySection from "./privacy-section";
 import AlertsSection from "./alerts-section";
-import AlertHistorySection from "./alert-history-section";
 import FavoritesPopup from "./favorites-popup";
 import ProfileSkeleton from "./profile-skeleton";
 
@@ -35,6 +32,7 @@ function Stat({
   value,
   label,
   max,
+  accent = "bg-primary/10 text-primary",
   onClick,
 }: {
   icon: React.ReactNode;
@@ -42,11 +40,15 @@ function Stat({
   label: string;
   // Affiche « value/max » (le plafond en petit) : rappelle jusqu'où va la limite.
   max?: number;
+  // Teinte de la pastille d'icône (une couleur par tuile pour égayer l'en-tête).
+  accent?: string;
   onClick?: () => void;
 }) {
   const inner = (
     <>
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <div
+        className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${accent}`}
+      >
         {icon}
       </div>
       <div className="min-w-0 text-center sm:text-left">
@@ -157,18 +159,21 @@ export default function ProfilePageClient() {
               value={parkFavorites.size}
               max={PARK_FAVORITES_LIMIT}
               label={t("favoritesParksCount", { count: parkFavorites.size })}
+              accent="bg-amber-500/10 text-amber-600 dark:text-amber-400"
               onClick={() => setParksOpen(true)}
             />
             <Stat
               icon={<RollerCoaster className="size-5" />}
               value={rideFavorites.size}
               label={t("favoritesRidesCount", { count: rideFavorites.size })}
+              accent="bg-primary/10 text-primary"
               onClick={() => setRidesOpen(true)}
             />
             <Stat
               icon={<Drama className="size-5" />}
               value={showFavorites.size}
               label={t("favoritesShowsCount", { count: showFavorites.size })}
+              accent="bg-show/10 text-show"
               onClick={() => setShowsOpen(true)}
             />
             <Stat
@@ -177,6 +182,9 @@ export default function ProfilePageClient() {
               label={t("activeAlertsCount", {
                 count: profile?.counts.activeAlerts ?? 0,
               })}
+              // « Blanc » : pastille neutre (fond très léger, icône couleur du
+              // texte) — lisible en clair comme en sombre.
+              accent="bg-foreground/5 text-foreground"
             />
           </div>
 
@@ -212,31 +220,15 @@ export default function ProfilePageClient() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Onglet 1 : notifications (actives + historique). Plus de grosse
-                carte par section : chaque alerte / entrée est une petite carte
-                compacte, sous un en-tête léger. */}
+            {/* Onglet 1 : notifications, en « fil unifié » — un seul composant
+                gère les sous-onglets Actives / Historique et le filtre par type
+                (Tout · Attractions · Spectacles). */}
             <TabsContent
               value="alerts"
               className="flex flex-col gap-6 p-2 pt-5 sm:p-4"
             >
               <section>
-                <SectionHeading
-                  icon={<Bell className="size-4" />}
-                  title={t("alertsTitle")}
-                />
-                {/* Rappel : les alertes ne valent que pour la journée en cours. */}
-                <p className="mb-3 text-sm text-muted-foreground">
-                  {t("alertsDailyNote")}
-                </p>
                 <AlertsSection />
-              </section>
-
-              <section>
-                <SectionHeading
-                  icon={<History className="size-4" />}
-                  title={t("historyTitle")}
-                />
-                <AlertHistorySection />
               </section>
             </TabsContent>
 

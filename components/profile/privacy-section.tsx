@@ -101,51 +101,61 @@ export default function PrivacySection() {
 
   return (
     <div className="flex flex-col gap-2.5">
-      {/* Modification de l'e-mail : mini-carte (libellé + champ + note). */}
-      <div className="flex flex-col gap-2 rounded-xl border px-3 py-2.5">
-        <span className="flex items-center gap-2 text-sm font-medium">
-          <Mail className="size-4 text-muted-foreground" />
-          {t("emailLabel")}
-        </span>
-        <div className="flex flex-col gap-2 sm:flex-row">
+      {/* « Modifier l'adresse e-mail » et « Mes données » côte à côte (2 vignettes
+          de même hauteur) ; la suppression du compte reste en grand dessous. */}
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        {/* Modification de l'e-mail : libellé + champ + bouton + note (empilés). */}
+        <div className="flex flex-col gap-2 rounded-xl border px-3 py-2.5">
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <Mail className="size-4 text-muted-foreground" />
+            {t("emailLabel")}
+          </span>
           <Input
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="sm:flex-1"
           />
           <Button
             onClick={changeEmail}
             disabled={!emailChanged || savingEmail}
-            className="sm:w-auto"
+            className="w-full"
           >
             {savingEmail && <Loader2 className="size-4 animate-spin" />}
             {t("emailSave")}
           </Button>
+          {/* Note centrée, poussée en bas → hauteurs de vignettes égales. */}
+          <p className="mt-auto text-center text-xs text-muted-foreground">
+            {t("emailNote")}
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground">{t("emailNote")}</p>
-      </div>
 
-      {/* Export des données : même gabarit (libellé à gauche, action à droite). */}
-      <div className="flex flex-col gap-2 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-        <span className="flex items-center gap-2 text-sm font-medium">
-          <Download className="size-4 text-muted-foreground" />
-          {t("exportLabel")}
-        </span>
-        <Button
-          variant="outline"
-          onClick={exportData}
-          disabled={exporting}
-          className="w-full sm:w-56"
-        >
-          {exporting ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Download className="size-4" />
-          )}
-          {t("exportButton")}
-        </Button>
+        {/* Export des données : texte explicatif (centré) + bouton centré
+            verticalement dans l'espace restant (aligné sur le texte). */}
+        <div className="flex flex-col gap-2 rounded-xl border px-3 py-2.5">
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <Download className="size-4 text-muted-foreground" />
+            {t("exportLabel")}
+          </span>
+          <p className="text-center text-xs text-muted-foreground">
+            {t("exportNote")}
+          </p>
+          <div className="flex flex-1 items-center">
+            <Button
+              variant="outline"
+              onClick={exportData}
+              disabled={exporting}
+              className="w-full"
+            >
+              {exporting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Download className="size-4" />
+              )}
+              {t("exportButton")}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Suppression du compte : même gabarit, bordure d'accent destructive. */}
