@@ -13,9 +13,11 @@ import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import type { ShowSchedule } from "@/types/show";
 import type { ShowReminderDTO } from "@/types/user";
+import { availableLeadValues } from "@/lib/reminder-leads";
 
-// Délais proposés (minutes avant le début du créneau).
-const LEAD_VALUES = [10, 20, 30, 40, 50, 60];
+// Délai proposé par défaut (minutes avant le début du créneau). Les délais
+// PROPOSÉS dépendent du temps restant (voir `availableLeadValues`) : on
+// n'affiche jamais un délai qui se déclencherait déjà dans le passé.
 const DEFAULT_LEAD = 30;
 // Durée de repli (min) quand ni durée de spectacle ni fin de créneau ne sont
 // connues : sert uniquement à situer « terminé / en cours / à venir ».
@@ -111,12 +113,31 @@ export default function ReminderSection({
   const selectedSlot = slots.find((s) => s.ms === selected) ?? null;
   const existing = selected !== null ? reminderByMs.get(selected) : undefined;
 
+  // Délais encore valides pour le créneau sélectionné (déclenchement pas déjà
+  // passé) : jamais un délai plus long que le temps restant avant le spectacle.
+  // IMPORTANT : on évalue sur l'INSTANT ABSOLU du créneau (`ms`, déjà calculé
+  // dans le fuseau du parc), pas sur `iso` (sans fuseau) qui serait ré-interprété
+  // dans le fuseau du navigateur et fausserait le temps restant.
+  const leadOptions = selectedSlot
+    ? availableLeadValues(new Date(selectedSlot.ms))
+    : [];
+  const leadTooLate =
+    selectedSlot?.state === "upcoming" && leadOptions.length === 0;
+
   // Seuls les créneaux à venir sont programmables.
   const selectSlot = (ms: number, state: SlotState) => {
     if (state !== "upcoming") return;
     setSelected(ms);
-    const r = reminderByMs.get(ms);
-    setLead(r ? r.leadMinutes : DEFAULT_LEAD);
+    const opts = availableLeadValues(new Date(ms));
+    const desired = reminderByMs.get(ms)?.leadMinutes ?? DEFAULT_LEAD;
+    // Repli sur le plus long délai encore possible si le souhaité est exclu.
+    setLead(
+      opts.includes(desired)
+        ? desired
+        : opts.length > 0
+          ? opts[opts.length - 1]
+          : desired,
+    );
   };
 
   const save = async () => {
@@ -248,13 +269,19 @@ export default function ReminderSection({
           <span className="text-center text-sm font-medium">
             {t("leadLabel")}
           </span>
-          <NumberStepper
-            value={lead}
-            onChange={setLead}
-            values={LEAD_VALUES}
-            format={(v) => t("leadOption", { minutes: v })}
-            aria-label={t("leadLabel")}
-          />
+          {leadTooLate ? (
+            <p className="text-center text-sm text-muted-foreground">
+              {t("leadTooLate")}
+            </p>
+          ) : (
+            <NumberStepper
+              value={lead}
+              onChange={setLead}
+              values={leadOptions}
+              format={(v) => t("leadOption", { minutes: v })}
+              aria-label={t("leadLabel")}
+            />
+          )}
           {existing && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
               <BellRing className="size-3.5" />
@@ -264,11 +291,15 @@ export default function ReminderSection({
           <div className="flex w-full gap-2">
             <Button
               onClick={save}
-              disabled={saving || (!!existing && existing.leadMinutes === lead)}
+              disabled={
+                saving ||
+                leadTooLate ||
+                (!!existing && existing.leadMinutes === lead)
+              }
               className="flex-1"
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
-              {existing ? t("update") : t("save")}
+              {existing ? t("reminderModify") : t("reminderActivate")}
             </Button>
             {existing && (
               <Button

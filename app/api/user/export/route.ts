@@ -16,8 +16,16 @@ export async function GET() {
 
   const prisma = getUserPrisma();
 
-  const [user, preferences, favorites, alerts, alertHistory, showReminders, pushSubscriptions] =
-    await Promise.all([
+  const [
+    user,
+    preferences,
+    favorites,
+    alerts,
+    alertHistory,
+    showReminders,
+    showReminderHistory,
+    pushSubscriptions,
+  ] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -66,8 +74,18 @@ export async function GET() {
           parkIdentifier: true,
           startTime: true,
           leadMinutes: true,
-          sent: true,
           createdAt: true,
+        },
+      }),
+      prisma.showReminderHistory.findMany({
+        where: { userId },
+        select: {
+          showName: true,
+          parkName: true,
+          parkIdentifier: true,
+          startTime: true,
+          leadMinutes: true,
+          sentAt: true,
         },
       }),
       prisma.pushSubscription.findMany({
@@ -84,6 +102,7 @@ export async function GET() {
     alerts,
     alertHistory,
     showReminders,
+    showReminderHistory,
     // Sans les clés de chiffrement : uniquement l'appareil + la date.
     pushDevices: pushSubscriptions,
   };

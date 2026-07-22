@@ -36,10 +36,11 @@ model User {
   sessions          Session[]
   preferences       UserPreferences?
   favorites         Favorite[]
-  alerts            Alert[]
-  alertHistory      AlertHistory[]
-  pushSubscriptions PushSubscription[]
-  showReminders     ShowReminder[]
+  alerts              Alert[]
+  alertHistory        AlertHistory[]
+  pushSubscriptions   PushSubscription[]
+  showReminders       ShowReminder[]
+  showReminderHistory ShowReminderHistory[]
 
   @@map("users")
 }
@@ -236,20 +237,43 @@ model ShowReminder {
   leadMinutes    Int
   // Précalculé à la création/mise à jour : startTime - leadMinutes.
   fireAt         DateTime
-  // Passe à true après envoi : évite de renvoyer au passage suivant du cron.
-  sent           Boolean   @default(false)
-  sentAt         DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Un seul rappel par (utilisateur, représentation) : re-soumettre met à jour le
-  // délai et réarme (sent=false).
+  // délai. Un rappel n'existe que tant qu'il est EN ATTENTE : à l'envoi, le moteur
+  // écrit dans `ShowReminderHistory` puis supprime la ligne (plus de flag `sent`).
   @@unique([userId, parkIdentifier, showName, startTime])
   @@index([userId])
-  @@index([sent, fireAt])
+  @@index([fireAt])
   @@map("show_reminders")
+}
+
+//
+// HISTORIQUE DES RAPPELS DE SPECTACLES ENVOYÉS
+//
+// Journal append-only, indépendant des `ShowReminder` : quand un rappel part
+// (moteur cron), on écrit ICI un instantané permanent, puis on supprime le
+// `ShowReminder` consommé. Ainsi l'historique SURVIT à toute (ré)édition ou
+// suppression du rappel — pendant fonctionnel de `AlertHistory` pour les
+// attractions. RÉTENTION : on ne purge JAMAIS ; le front borne juste l'affichage
+// à 30 jours (`sentAt`).
+model ShowReminderHistory {
+  id             String   @id @default(cuid())
+  userId         String
+  parkIdentifier String   @db.VarChar(100)
+  parkName       String   @db.VarChar(255)
+  showName       String   @db.VarChar(255)
+  startTime      DateTime
+  leadMinutes    Int
+  sentAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sentAt])
+  @@map("show_reminder_history")
 }
 
 //

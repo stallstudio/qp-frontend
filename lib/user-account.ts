@@ -8,11 +8,13 @@ import type {
   AlertDTO,
   AlertHistoryDTO,
   ShowReminderDTO,
+  ShowReminderHistoryDTO,
 } from "@/types/user";
 import type {
   Alert,
   AlertHistory,
   ShowReminder,
+  ShowReminderHistory,
 } from "@/lib/generated/user-client";
 
 // Accès aux données de compte, partagé par les routes /api/user/*.
@@ -65,7 +67,21 @@ export function toShowReminderDTO(r: ShowReminder): ShowReminderDTO {
     showName: r.showName,
     startTime: r.startTime.toISOString(),
     leadMinutes: r.leadMinutes,
-    sent: r.sent,
+  };
+}
+
+// Entrée du journal permanent des rappels de spectacles envoyés.
+export function toShowReminderHistoryDTO(
+  h: ShowReminderHistory,
+): ShowReminderHistoryDTO {
+  return {
+    id: h.id,
+    parkIdentifier: h.parkIdentifier,
+    parkName: h.parkName,
+    showName: h.showName,
+    startTime: h.startTime.toISOString(),
+    leadMinutes: h.leadMinutes,
+    sentAt: h.sentAt.toISOString(),
   };
 }
 

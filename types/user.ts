@@ -42,7 +42,19 @@ export interface ShowReminderDTO {
   showName: string;
   startTime: string;
   leadMinutes: number;
-  sent: boolean;
+}
+
+// Rappel de spectacle DÉJÀ ENVOYÉ (historique des notifications de spectacles) :
+// équivalent de `AlertHistoryDTO` mais côté spectacles. Il n'y a pas de table
+// dédiée : un `ShowReminder` avec `sent = true` EST une entrée d'historique.
+export interface ShowReminderHistoryDTO {
+  id: string;
+  parkIdentifier: string;
+  parkName: string;
+  showName: string;
+  startTime: string;
+  leadMinutes: number;
+  sentAt: string;
 }
 
 // Profil complet renvoyé par GET /api/user/me.

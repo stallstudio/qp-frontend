@@ -60,9 +60,10 @@ async function processShowReminders(
 ): Promise<ShowReminderSummary> {
   const now = new Date();
 
-  // Rappels arrivés à échéance et pas encore envoyés.
+  // Rappels arrivés à échéance (tous ceux en base sont « en attente » : les
+  // envoyés ont déjà été déplacés en historique puis supprimés).
   const due = await userPrisma.showReminder.findMany({
-    where: { sent: false, fireAt: { lte: now } },
+    where: { fireAt: { lte: now } },
   });
   // On n'envoie QUE si la représentation n'a pas encore commencé (sinon rappel
   // manqué : le cron a pris du retard). Les manqués sont nettoyés plus bas.
@@ -143,12 +144,6 @@ async function processShowReminders(
         else if (res.gone) deadEndpoints.push(s.endpoint);
       }
 
-      // Marqués envoyés quoi qu'il arrive (même sans abonnement valide) pour ne
-      // pas retenter en boucle à chaque passage.
-      await userPrisma.showReminder.updateMany({
-        where: { id: { in: reminders.map((r) => r.id) } },
-        data: { sent: true, sentAt: now },
-      });
       if (delivered) summary.remindersSent++;
     }
 
@@ -157,10 +152,32 @@ async function processShowReminders(
         where: { endpoint: { in: deadEndpoints } },
       });
     }
+
+    // Journal PERMANENT : on écrit un instantané pour chaque rappel parti (quoi
+    // qu'il arrive, même sans abonnement valide), PUIS on supprime le
+    // `ShowReminder` consommé. L'historique survit ainsi à toute édition /
+    // suppression ultérieure d'un rappel, et n'est jamais purgé (le front borne
+    // juste l'affichage à 30 j).
+    await userPrisma.showReminderHistory.createMany({
+      data: toSend.map((r) => ({
+        userId: r.userId,
+        parkIdentifier: r.parkIdentifier,
+        parkName: r.parkName,
+        showName: r.showName,
+        startTime: r.startTime,
+        leadMinutes: r.leadMinutes,
+        sentAt: now,
+      })),
+    });
+    await userPrisma.showReminder.deleteMany({
+      where: { id: { in: toSend.map((r) => r.id) } },
+    });
   }
 
-  // Nettoyage : toute représentation déjà commencée (rappel envoyé ou manqué) est
-  // supprimée — plus rien à faire.
+  // Nettoyage : les rappels ENVOYÉS ont déjà été déplacés vers le journal
+  // permanent puis supprimés (voir ci-dessus). Il ne reste à purger que les
+  // rappels NON envoyés dont la représentation est déjà passée (manqués : le cron
+  // a pris du retard) — sinon ils s'afficheraient à tort comme « actifs ».
   const purged = await userPrisma.showReminder.deleteMany({
     where: { startTime: { lt: now } },
   });
@@ -182,6 +199,22 @@ export async function GET(request: NextRequest) {
 
   const userPrisma = getUserPrisma();
   const prisma = getPrisma();
+  const now = new Date();
+
+  // Purge des alertes expirées depuis plus d'UNE SEMAINE. Une alerte ne vaut que
+  // pour sa journée d'activation (`activeDate`) : désactivée le lendemain, elle
+  // reste réactivable/modifiable quelques jours, puis est supprimée au bout d'une
+  // semaine. `activeDate` est rafraîchi à chaque (ré)activation, donc une alerte
+  // réactivée repart pour une semaine. Les anciennes lignes sans `activeDate`
+  // (= sans expiration) sont ignorées. L'historique associé est conservé
+  // (relation Alert→AlertHistory en `onDelete: SetNull`).
+  const ALERT_RETENTION_DAYS = 7;
+  const alertPurgeCutoff = new Date(
+    now.getTime() - ALERT_RETENTION_DAYS * 24 * 60 * 60 * 1000,
+  );
+  const purgedAlerts = await userPrisma.alert.deleteMany({
+    where: { activeDate: { lt: alertPurgeCutoff } },
+  });
 
   // Passe « rappels de spectacles » (temporelle), indépendante des alertes de
   // seuil ci-dessous. Traitée en premier pour être exécutée même si l'app n'a
@@ -193,7 +226,12 @@ export async function GET(request: NextRequest) {
     where: { active: true },
   });
   if (alerts.length === 0) {
-    return NextResponse.json({ checked: 0, sent: 0, ...reminderSummary });
+    return NextResponse.json({
+      checked: 0,
+      sent: 0,
+      purgedAlerts: purgedAlerts.count,
+      ...reminderSummary,
+    });
   }
 
   // 2. Temps d'attente RÉELS courants pour les attractions surveillées (file
@@ -276,6 +314,7 @@ export async function GET(request: NextRequest) {
       sent: 0,
       rearmed: toRearm.length,
       expired: toExpire.length,
+      purgedAlerts: purgedAlerts.count,
       ...reminderSummary,
     });
   }
@@ -361,9 +400,15 @@ export async function GET(request: NextRequest) {
           actualWaitTime: entry.waitTime,
         },
       });
+      // Objectif atteint : on considère l'alerte comme « réussie » et on la
+      // DÉSACTIVE (au lieu de la désarmer). Ainsi, si le temps oscille autour du
+      // seuil (10 → 15 → 20 …), on n'envoie PAS une notif à chaque passage : une
+      // seule suffit. L'utilisateur peut la réactiver depuis son profil (la notif
+      // le lui rappelle). `armed:false` par cohérence si elle est réactivée plus
+      // tard sans repasser au-dessus du seuil.
       await userPrisma.alert.update({
         where: { id: a.id },
-        data: { armed: false, lastAlertedAt: new Date() },
+        data: { active: false, armed: false, lastAlertedAt: new Date() },
       });
     }
     if (delivered) sent++;
@@ -382,6 +427,7 @@ export async function GET(request: NextRequest) {
     sent,
     rearmed: toRearm.length,
     expired: toExpire.length,
+    purgedAlerts: purgedAlerts.count,
     prunedSubscriptions: deadEndpoints.length,
     ...reminderSummary,
   });

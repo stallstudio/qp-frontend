@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
 }
 
 // POST : crée (ou met à jour le délai d') un rappel pour une représentation
-// précise (parkIdentifier + showName + startTime). Re-soumettre réarme le rappel
-// (sent=false) et recalcule fireAt = startTime - leadMinutes.
+// précise (parkIdentifier + showName + startTime). Re-soumettre met à jour le
+// délai et recalcule fireAt = startTime - leadMinutes.
 export async function POST(request: NextRequest) {
   const { userId, response } = await requireUserId();
   if (!userId)
@@ -73,6 +73,17 @@ export async function POST(request: NextRequest) {
 
   const fireAt = new Date(startTime.getTime() - leadMinutes * 60_000);
 
+  // Garde-fou : un délai qui placerait le déclenchement dans le passé n'a pas de
+  // sens (ex. « 60 min avant » à 14h30 pour un spectacle à 15h00). On refuse —
+  // le client ne propose déjà que des délais valides, ceci couvre les requêtes
+  // directes et la course « le temps a passé pendant la sélection ».
+  if (fireAt.getTime() <= Date.now()) {
+    return NextResponse.json(
+      { error: "Lead time too long for the remaining time before the show" },
+      { status: 400 },
+    );
+  }
+
   const reminder = await getUserPrisma().showReminder.upsert({
     where: {
       userId_parkIdentifier_showName_startTime: {
@@ -82,7 +93,7 @@ export async function POST(request: NextRequest) {
         startTime,
       },
     },
-    update: { leadMinutes, fireAt, parkName, sent: false, sentAt: null },
+    update: { leadMinutes, fireAt, parkName },
     create: {
       userId,
       parkIdentifier,
