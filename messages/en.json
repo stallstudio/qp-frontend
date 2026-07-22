@@ -62,8 +62,8 @@
     "duration": "Duration: {duration}",
     "signInIntro": "Sign in to be reminded before a show starts.",
     "reminderIntro": "Pick a time, then how long before it you want to be reminded.",
-    "leadLabel": "Remind me before",
-    "leadOption": "{minutes} min",
+    "leadLabel": "How long before the show do you want to be reminded?",
+    "leadOption": "{minutes} min before",
     "reminderActive": "Reminder {minutes} min before",
     "save": "Set reminder",
     "update": "Update",
@@ -72,7 +72,10 @@
     "reminderRemoved": "Reminder removed",
     "reminderError": "Something went wrong. Try again.",
     "pushBlocked": "Reminder saved, but this device won't receive anything (notifications not allowed).",
-    "noUpcoming": "No more shows left today."
+    "noUpcoming": "No more shows left today.",
+    "leadTooLate": "This slot is too soon to set a reminder.",
+    "reminderActivate": "Enable reminder",
+    "reminderModify": "Edit reminder"
   },
   "favorites": {
     "myFavorites": "My favorites",
@@ -155,8 +158,8 @@
         "body": "An automated service runs continuously and polls the parks almost in real time. It checks each value, links every queue to the right attraction, records the day's history and also fetches opening hours and shows. If a data source behaves abnormally, the team is alerted automatically."
       },
       "free": {
-        "title": "Free and no account",
-        "body": "Queue Park is completely free and requires no sign-up. Your favorites and preferences (language, theme, time format) are stored in your browser, on your device — we don't need your personal data to work."
+        "title": "Free, no ads",
+        "body": "Queue Park is completely free and ad-free. Checking wait times needs no account. To pin favorites and get alerts, a free, passwordless account (Google or magic link) is all it takes — and everything stays synced across your devices."
       },
       "independent": {
         "title": "An independent project",
@@ -183,10 +186,10 @@
       },
       "favorites": {
         "title": "Favorites",
-        "body": "Tap the star to add a park or an attraction to your favorites. Favorites are pinned to the top of the lists so you find them instantly, and they're kept in your browser. No account required, and they sync across your open tabs.",
+        "body": "Tap the star to add a park, ride or show to your favorites. Favorite parks are pinned to the top of the home page; your favorite rides and shows are grouped by park in a window from your profile. Saved to your account and synced across all your devices.",
         "parksLabel": "Favorite parks",
-        "ridesLabel": "Favorite attractions",
-        "hint": "Tap a star: the favorite jumps to the top."
+        "ridesLabel": "Favorite attractions (profile)",
+        "hint": "Tap a star: the favorite park jumps to the top of the home page."
       },
       "popular": {
         "title": "Popular parks",
@@ -206,7 +209,23 @@
       },
       "preferences": {
         "title": "Your way",
-        "body": "Queue Park adapts to you: light or dark mode, 12-hour or 24-hour time format, and an interface available in 14 languages. Your choices are remembered for your next visits."
+        "body": "Queue Park adapts to you: light, dark or automatic theme (following your system), 12-hour or 24-hour time format, and an interface available in 14 languages. Your choices are remembered for your next visits."
+      },
+      "alerts": {
+        "title": "Wait-time alerts",
+        "body": "From a ride's page, pick a threshold: you get a notification as soon as the wait drops below it. Once sent, the alert turns off (goal reached) and can be re-enabled in one tap from your profile. Requires an account and notification permission."
+      },
+      "reminders": {
+        "title": "Show reminders",
+        "body": "From a show's page, tap an upcoming performance then choose how long before it you want a heads-up. You get the notification right before it starts. Requires an account and notification permission."
+      },
+      "detail": {
+        "title": "Detail view",
+        "body": "The eye at the end of each row opens a detail view: image, favourite, alerts, and a chart of the day's wait time with its forecast."
+      },
+      "account": {
+        "title": "Your account",
+        "body": "Sign in without a password (Google or magic link). Your favourites, alerts and preferences follow you across all your devices."
       }
     }
   },
@@ -302,7 +321,7 @@
       "preferences": "Preferences",
       "alerts": "Alerts"
     },
-    "alertsDailyNote": "Alerts only apply for the current day: they turn off automatically the next day.",
+    "alertsDailyNote": "Alerts only apply to the current day: they turn off automatically the next day and are deleted after a week.",
     "favoritesCount": "Favorites",
     "favoritesParksCount": "{count, plural, one {Favorite park} other {Favorite parks}}",
     "favoritesRidesCount": "{count, plural, one {Favorite attraction} other {Favorite attractions}}",
@@ -332,13 +351,32 @@
     "delete": "Delete",
     "deleted": "Alert deleted",
     "historyTitle": "Alert history",
-    "historyEmpty": "No alerts sent yet.",
+    "historyEmpty": "No notifications sent yet.",
     "historyRetentionNote": "Alerts older than 30 days aren't shown.",
     "historyLine": "Dropped to {actual} min (≤ {threshold} min)",
     "loadError": "Could not load alerts.",
     "updateError": "Update failed.",
     "deleteError": "Delete failed.",
-    "privacyTitle": "Privacy"
+    "privacyTitle": "Privacy",
+    "alertsHeading": "{count, plural, one {Your alert} other {Your alerts}}",
+    "historyHeading": "{count, plural, one {Notification sent} other {Notifications sent}}",
+    "historyAttractions": "Attractions",
+    "historyShows": "Shows",
+    "historyShowLine": "show at {time} · {lead} min before",
+    "alertsEmptyRides": "No alert set up. Create one from a ride.",
+    "alertsEmptyShows": "No reminder set up. Create one from a show.",
+    "historyEmptyRides": "No ride notification sent yet.",
+    "historyEmptyShows": "No show notification sent yet.",
+    "edit": "Edit threshold",
+    "subTabActive": "Active",
+    "subTabHistory": "History",
+    "filterAll": "All",
+    "activeEmptyAll": "No active alert or reminder for today.",
+    "leadBadge": "{lead} min before",
+    "leadSaved": "Lead time updated",
+    "validateLead": "Save lead time",
+    "editLead": "Edit lead time",
+    "leadTooLate": "The show is too soon to change the lead time."
   },
   "privacy": {
     "emailLabel": "Email address",
@@ -357,7 +395,8 @@
     "deleteConfirmButton": "Delete permanently",
     "cancel": "Cancel",
     "accountDeleted": "Account deleted. Signing out…",
-    "genericError": "Something went wrong. Try again."
+    "genericError": "Something went wrong. Try again.",
+    "exportNote": "Download a copy of your account: email, preferences, favourites, alerts and show reminders."
   },
   "alerts": {
     "createTitle": "Create an alert",
@@ -400,5 +439,58 @@
     "pushBlocked": "Alert saved, but this device won't receive anything (notifications aren't allowed).",
     "pushDenied": "Notifications are blocked for this site. Allow them in your browser settings to receive alerts on this device.",
     "pushUnsupported": "This browser doesn't support push notifications. The alert will still appear in your profile and history."
+  },
+  "legal": {
+    "backHome": "Back to home",
+    "updated": "Last updated: 21 July 2026",
+    "privacy": {
+      "metaTitle": "Privacy Policy",
+      "title": "Privacy Policy",
+      "intro": "This policy describes how Queue Park processes your personal data. Data controller: the site publisher (see <mentions>Legal notice</mentions>), contact: <mail>contact@queue-park.com</mail>.",
+      "dataTitle": "Data processed, purposes and legal bases",
+      "data1": "<b>Account</b> (email address, and where applicable name and profile picture via Google): creating and managing your account — <i>performance of the service / your consent</i>.",
+      "data2": "<b>Preferences</b> (language, theme, time format) and <b>favourites</b> (parks, attractions, shows): personalising your experience — <i>performance of the service</i>.",
+      "data3": "<b>Wait-time alerts</b> and <b>show reminders</b>, together with the <b>notification subscriptions</b> of your devices: sending you the notifications you requested — <i>your consent</i>.",
+      "data4": "<b>Audience measurement</b> (Google Analytics): traffic statistics — <i>your consent</i> (see the <cookies>Cookie Policy</cookies>).",
+      "recipientsTitle": "Recipients and processors",
+      "recipients1": "Your data is not sold. It is processed by providers acting on our behalf: Google (authentication and audience measurement), Resend (sending sign-in emails), IONOS (hosting, European Union).",
+      "recipients2": "Some providers (Google, Resend) are established in the United States; any transfers are governed by the mechanisms provided for by the GDPR (Data Privacy Framework and/or standard contractual clauses).",
+      "retentionTitle": "Retention periods",
+      "retention1": "Account data: until the account is deleted.",
+      "retention2": "Alerts: valid for the current day; history kept for 30 days.",
+      "retention3": "Show reminders: deleted once the performance has passed.",
+      "retention4": "Sign-in sessions: for the validity period of the session.",
+      "rightsTitle": "Your rights",
+      "rights1": "You have the right of access, rectification, erasure, portability, objection and restriction. From your <profile>profile</profile> (Preferences → Privacy tab) you can directly change your email, download your data (JSON) and delete your account. For any other request, write to <mail>contact@queue-park.com</mail>.",
+      "rights2": "You may also lodge a complaint with your data protection authority (in France, the CNIL — cnil.fr).",
+      "securityTitle": "Security and minors",
+      "security1": "Communications are encrypted (HTTPS) and authentication is passwordless. We limit the data collected to what is strictly necessary. The service is not intended for minors under 15 without the consent of a holder of parental authority."
+    },
+    "cookies": {
+      "metaTitle": "Cookie Policy",
+      "title": "Cookie Policy",
+      "intro": "A cookie is a small file placed on your device when you visit a site. Queue Park uses a minimal set of them, described below.",
+      "necessaryTitle": "Strictly necessary cookies",
+      "necessaryIntro": "Essential to the operation of the site, they do not require your consent:",
+      "necessary1": "<b>Authentication session</b>: keeps you signed in to your account.",
+      "necessary2": "<b>Language preference</b>: remembers your display language.",
+      "audienceTitle": "Audience measurement cookies",
+      "audience1": "We use Google Analytics to understand site traffic and improve it. These cookies (e.g. <c>_ga</c>, <c>_ga_*</c>) are only set <b>after your consent</b> and are kept for up to 13 months.",
+      "manageTitle": "Manage your choice",
+      "manage1": "You can accept or refuse these cookies via the banner shown on your first visit, and change your choice at any time using the <b>“Manage cookies”</b> link at the bottom of the page. You can also configure your browser to block cookies."
+    },
+    "legalNotice": {
+      "metaTitle": "Legal Notice",
+      "title": "Legal Notice",
+      "editorTitle": "Publisher",
+      "editor1": "The Queue Park website (queue-park.com) is published by Lilian G. and Gaspard D.",
+      "editor2": "Publication director: Lilian G. Contact: <mail>contact@queue-park.com</mail>.",
+      "hostingTitle": "Hosting",
+      "hosting1": "The site is hosted by IONOS SARL, 7, place de la Gare, BP 70109, 57201 SARREGUEMINES Cedex, France (ionos.fr).",
+      "ipTitle": "Intellectual property",
+      "ip1": "The structure, texts and graphic elements of the site are the property of their publisher, unless otherwise stated. Any unauthorised reproduction is prohibited. Park, attraction and show names belong to their respective owners.",
+      "liabilityTitle": "Liability",
+      "liability1": "Wait times and show schedules are provided for information only, from third-party sources, without any guarantee of accuracy or availability. The publisher cannot be held liable for any harm arising from their use."
+    }
   }
 }

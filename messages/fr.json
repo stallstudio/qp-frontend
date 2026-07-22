@@ -62,8 +62,8 @@
     "duration": "Durée : {duration}",
     "signInIntro": "Connectez-vous pour être prévenu avant le début d'un spectacle.",
     "reminderIntro": "Choisissez un horaire, puis le délai avant lequel être prévenu.",
-    "leadLabel": "Me prévenir avant de",
-    "leadOption": "{minutes} min",
+    "leadLabel": "Combien de temps avant le spectacle souhaites-tu être prévenu ?",
+    "leadOption": "{minutes} min avant",
     "reminderActive": "Rappel {minutes} min avant",
     "save": "Activer le rappel",
     "update": "Mettre à jour",
@@ -72,7 +72,10 @@
     "reminderRemoved": "Rappel supprimé",
     "reminderError": "Une erreur est survenue. Réessayez.",
     "pushBlocked": "Rappel enregistré, mais cet appareil ne recevra rien (notifications non autorisées).",
-    "noUpcoming": "Plus de représentation à venir aujourd'hui."
+    "noUpcoming": "Plus de représentation à venir aujourd'hui.",
+    "leadTooLate": "Ce créneau est trop proche pour programmer un rappel.",
+    "reminderActivate": "Activer le rappel",
+    "reminderModify": "Modifier le rappel"
   },
   "favorites": {
     "myFavorites": "Mes favoris",
@@ -155,8 +158,8 @@
         "body": "Un service automatique tourne en continu et interroge les parcs quasiment en temps réel. Il vérifie chaque valeur, associe chaque file à la bonne attraction, enregistre l'historique de la journée et récupère aussi les horaires d'ouverture et les spectacles. Si une source de données se comporte anormalement, l'équipe est alertée automatiquement."
       },
       "free": {
-        "title": "Gratuit et sans compte",
-        "body": "Queue Park est entièrement gratuit et ne demande aucune inscription. Vos favoris et vos préférences (langue, thème, format d'heure) restent enregistrés dans votre navigateur, sur votre appareil — nous n'avons pas besoin de vos données personnelles pour fonctionner."
+        "title": "Gratuit, sans pub",
+        "body": "Queue Park est entièrement gratuit et sans publicité. Consulter les temps d'attente ne demande aucun compte. Pour épingler des favoris et recevoir des alertes, un compte gratuit et sans mot de passe (Google ou lien magique) suffit — et vous retrouvez tout, synchronisé, sur tous vos appareils."
       },
       "independent": {
         "title": "Un projet indépendant",
@@ -183,10 +186,10 @@
       },
       "favorites": {
         "title": "Les favoris",
-        "body": "Touchez l'étoile pour ajouter un parc ou une attraction à vos favoris. Vos favoris sont épinglés en haut des listes pour les retrouver immédiatement, et ils sont conservés dans votre navigateur. Aucun compte requis, et ça se synchronise entre vos onglets ouverts.",
+        "body": "Touchez l'étoile pour ajouter un parc, une attraction ou un spectacle à vos favoris. Les parcs favoris sont épinglés en haut de l'accueil ; vos attractions et spectacles favoris se retrouvent, regroupés par parc, dans une fenêtre depuis votre profil. Enregistrés sur votre compte et synchronisés sur tous vos appareils.",
         "parksLabel": "Parcs favoris",
-        "ridesLabel": "Attractions favorites",
-        "hint": "Touchez une étoile : le favori remonte en tête."
+        "ridesLabel": "Attractions favorites (profil)",
+        "hint": "Touchez une étoile : le parc favori remonte en tête de l'accueil."
       },
       "popular": {
         "title": "Les parcs populaires",
@@ -206,7 +209,23 @@
       },
       "preferences": {
         "title": "À votre main",
-        "body": "Queue Park s'adapte à vous : mode clair ou sombre, format d'heure 12h ou 24h, et une interface disponible en 14 langues. Vos choix sont mémorisés pour vos prochaines visites."
+        "body": "Queue Park s'adapte à vous : thème clair, sombre ou automatique (selon votre système), format d'heure 12h ou 24h, et une interface disponible en 14 langues. Vos choix sont mémorisés pour vos prochaines visites."
+      },
+      "alerts": {
+        "title": "Alertes de temps d'attente",
+        "body": "Depuis la fiche d'une attraction, choisissez un seuil : vous êtes prévenu par notification dès que l'attente passe en dessous. Une fois envoyée, l'alerte se désactive (objectif atteint) et se réactive en un clic depuis votre profil. Nécessite un compte et l'autorisation des notifications."
+      },
+      "reminders": {
+        "title": "Rappels de spectacles",
+        "body": "Depuis la fiche d'un spectacle, touchez une représentation à venir puis choisissez combien de temps à l'avance être prévenu. Vous recevez la notification juste avant le début. Nécessite un compte et l'autorisation des notifications."
+      },
+      "detail": {
+        "title": "Fiche détaillée",
+        "body": "L'œil au bout de chaque ligne ouvre une fiche : image, favori, alertes, et un graphique du temps d'attente de la journée avec sa prévision."
+      },
+      "account": {
+        "title": "Votre compte",
+        "body": "Connectez-vous sans mot de passe (Google ou lien magique). Vos favoris, alertes et préférences vous suivent sur tous vos appareils."
       }
     }
   },
@@ -302,7 +321,7 @@
       "preferences": "Préférences",
       "alerts": "Alertes"
     },
-    "alertsDailyNote": "Les alertes ne valent que pour la journée en cours : elles se désactivent automatiquement le lendemain.",
+    "alertsDailyNote": "Les alertes ne valent que pour la journée en cours : elles se désactivent automatiquement le lendemain et se suppriment au bout d'une semaine.",
     "favoritesCount": "Favoris",
     "favoritesParksCount": "{count, plural, one {Parc favori} other {Parcs favoris}}",
     "favoritesRidesCount": "{count, plural, one {Attraction favorite} other {Attractions favorites}}",
@@ -332,13 +351,32 @@
     "delete": "Supprimer",
     "deleted": "Alerte supprimée",
     "historyTitle": "Historique des alertes",
-    "historyEmpty": "Aucune alerte envoyée pour l'instant.",
+    "historyEmpty": "Aucune notification envoyée pour l’instant.",
     "historyRetentionNote": "Les alertes de plus de 30 jours ne sont pas affichées.",
     "historyLine": "Descendu à {actual} min (≤ {threshold} min)",
     "loadError": "Impossible de charger les alertes.",
     "updateError": "La mise à jour a échoué.",
     "deleteError": "La suppression a échoué.",
-    "privacyTitle": "Confidentialité"
+    "privacyTitle": "Confidentialité",
+    "alertsHeading": "{count, plural, one {Votre alerte} other {Vos alertes}}",
+    "historyHeading": "{count, plural, one {Notification envoyée} other {Notifications envoyées}}",
+    "historyAttractions": "Attractions",
+    "historyShows": "Spectacles",
+    "historyShowLine": "représentation à {time} · {lead} min avant",
+    "alertsEmptyRides": "Aucune alerte configurée. Créez-en une depuis une attraction.",
+    "alertsEmptyShows": "Aucun rappel configuré. Créez-en un depuis un spectacle.",
+    "historyEmptyRides": "Aucune notification d'attraction envoyée.",
+    "historyEmptyShows": "Aucune notification de spectacle envoyée.",
+    "edit": "Modifier le seuil",
+    "subTabActive": "Actives",
+    "subTabHistory": "Historique",
+    "filterAll": "Tout",
+    "activeEmptyAll": "Aucune alerte ni rappel actif pour aujourd'hui.",
+    "leadBadge": "{lead} min avant",
+    "leadSaved": "Délai mis à jour",
+    "validateLead": "Valider le délai",
+    "editLead": "Modifier le délai",
+    "leadTooLate": "Le spectacle est trop proche pour modifier le délai."
   },
   "privacy": {
     "emailLabel": "Adresse e-mail",
@@ -357,7 +395,8 @@
     "deleteConfirmButton": "Supprimer définitivement",
     "cancel": "Annuler",
     "accountDeleted": "Compte supprimé. Déconnexion…",
-    "genericError": "Une erreur est survenue. Réessayez."
+    "genericError": "Une erreur est survenue. Réessayez.",
+    "exportNote": "Téléchargez une copie de votre compte : e-mail, préférences, favoris, alertes et rappels de spectacles."
   },
   "alerts": {
     "createTitle": "Créer une alerte",
@@ -400,5 +439,58 @@
     "pushBlocked": "Alerte enregistrée, mais cet appareil ne recevra rien (notifications non autorisées).",
     "pushDenied": "Notifications bloquées pour ce site. Autorisez-les dans les réglages de votre navigateur pour recevoir les alertes sur cet appareil.",
     "pushUnsupported": "Ce navigateur ne prend pas en charge les notifications push. L'alerte sera visible dans votre profil et l'historique."
+  },
+  "legal": {
+    "backHome": "Retour à l’accueil",
+    "updated": "Dernière mise à jour : 21 juillet 2026",
+    "privacy": {
+      "metaTitle": "Politique de confidentialité",
+      "title": "Politique de confidentialité",
+      "intro": "Cette politique décrit comment Queue Park traite vos données personnelles. Responsable de traitement : l’éditeur du site (voir <mentions>Mentions légales</mentions>), contact : <mail>contact@queue-park.com</mail>.",
+      "dataTitle": "Données traitées, finalités et bases légales",
+      "data1": "<b>Compte</b> (adresse e-mail, et le cas échéant nom et photo de profil via Google) : création et gestion de votre compte — <i>exécution du service / votre consentement</i>.",
+      "data2": "<b>Préférences</b> (langue, thème, format horaire) et <b>favoris</b> (parcs, attractions, spectacles) : personnalisation de votre expérience — <i>exécution du service</i>.",
+      "data3": "<b>Alertes de temps d’attente</b> et <b>rappels de spectacles</b>, avec les <b>abonnements de notification</b> de vos appareils : vous envoyer les notifications demandées — <i>votre consentement</i>.",
+      "data4": "<b>Mesure d’audience</b> (Google Analytics) : statistiques de fréquentation — <i>votre consentement</i> (voir la <cookies>Politique cookies</cookies>).",
+      "recipientsTitle": "Destinataires et sous-traitants",
+      "recipients1": "Vos données ne sont pas vendues. Elles sont traitées par des prestataires agissant pour notre compte : Google (authentification et mesure d’audience), Resend (envoi d’e-mails de connexion), IONOS (hébergement, Union européenne).",
+      "recipients2": "Certains prestataires (Google, Resend) sont établis aux États-Unis ; les transferts éventuels sont encadrés par les mécanismes prévus par le RGPD (Data Privacy Framework et/ou clauses contractuelles types).",
+      "retentionTitle": "Durées de conservation",
+      "retention1": "Données de compte : jusqu’à la suppression du compte.",
+      "retention2": "Alertes : valables pour la journée en cours ; historique conservé 30 jours.",
+      "retention3": "Rappels de spectacles : supprimés une fois la représentation passée.",
+      "retention4": "Sessions de connexion : selon la durée de validité de la session.",
+      "rightsTitle": "Vos droits",
+      "rights1": "Vous disposez d’un droit d’accès, de rectification, d’effacement, de portabilité, d’opposition et de limitation. Depuis votre <profile>profil</profile> (onglet Préférences → Confidentialité), vous pouvez directement modifier votre e-mail, télécharger vos données (JSON) et supprimer votre compte. Pour toute autre demande, écrivez à <mail>contact@queue-park.com</mail>.",
+      "rights2": "Vous pouvez également introduire une réclamation auprès de la CNIL (cnil.fr).",
+      "securityTitle": "Sécurité et mineurs",
+      "security1": "Les échanges sont chiffrés (HTTPS) et l’authentification se fait sans mot de passe. Nous limitons les données collectées au strict nécessaire. Le service n’est pas destiné aux mineurs de moins de 15 ans sans l’accord d’un titulaire de l’autorité parentale."
+    },
+    "cookies": {
+      "metaTitle": "Politique cookies",
+      "title": "Politique cookies",
+      "intro": "Un cookie est un petit fichier déposé sur votre appareil lors de la visite d’un site. Queue Park en utilise un minimum, décrits ci-dessous.",
+      "necessaryTitle": "Cookies strictement nécessaires",
+      "necessaryIntro": "Indispensables au fonctionnement du site, ils ne requièrent pas votre consentement :",
+      "necessary1": "<b>Session d’authentification</b> : vous maintient connecté à votre compte.",
+      "necessary2": "<b>Préférence de langue</b> : mémorise la langue d’affichage.",
+      "audienceTitle": "Cookies de mesure d’audience",
+      "audience1": "Nous utilisons Google Analytics pour comprendre la fréquentation du site et l’améliorer. Ces cookies (par ex. <c>_ga</c>, <c>_ga_*</c>) ne sont déposés <b>qu’après votre consentement</b> et sont conservés jusqu’à 13 mois maximum.",
+      "manageTitle": "Gérer votre choix",
+      "manage1": "Vous pouvez accepter ou refuser ces cookies via le bandeau affiché lors de votre première visite, et modifier votre choix à tout moment grâce au lien <b>« Gérer les cookies »</b> en bas de page. Vous pouvez aussi configurer votre navigateur pour bloquer les cookies."
+    },
+    "legalNotice": {
+      "metaTitle": "Mentions légales",
+      "title": "Mentions légales",
+      "editorTitle": "Éditeur",
+      "editor1": "Le site Queue Park (queue-park.com) est édité par Lilian G. et Gaspard D.",
+      "editor2": "Responsable de la publication : Lilian G. Contact : <mail>contact@queue-park.com</mail>.",
+      "hostingTitle": "Hébergement",
+      "hosting1": "Le site est hébergé par IONOS SARL, 7, place de la Gare, BP 70109, 57201 SARREGUEMINES Cedex, France (ionos.fr).",
+      "ipTitle": "Propriété intellectuelle",
+      "ip1": "La structure, les textes et les éléments graphiques du site sont la propriété de leur éditeur, sauf mention contraire. Toute reproduction non autorisée est interdite. Les noms de parcs, d’attractions et de spectacles appartiennent à leurs titulaires respectifs.",
+      "liabilityTitle": "Responsabilité",
+      "liability1": "Les temps d’attente et horaires de spectacles sont fournis à titre indicatif, à partir de sources tierces, sans garantie d’exactitude ou de disponibilité. L’éditeur ne saurait être tenu responsable d’un préjudice lié à leur utilisation."
+    }
   }
 }
