@@ -325,6 +325,33 @@ class ProfileTrendStrategyV1 implements ForecastStrategy {
       forecast.push({ t: m.toISOString(), waitTime: value });
     }
 
+    // Point final PILE À LA FERMETURE : la grille de buckets s'arrête un pas
+    // AVANT `close` (ex. 17:45 pour une fermeture à 18:00), laissant le dernier
+    // quart d'heure de la journée sans prévision. On ajoute donc un point à
+    // l'heure de fermeture exacte pour couvrir toute la journée. Sa valeur est
+    // calée sur la FIN DE JOURNÉE historique (chaque jour échantillonné à sa
+    // propre fermeture), raccordée à la tendance comme les autres points.
+    if (close.getTime() > nowMs) {
+      const lastF = forecast[forecast.length - 1];
+      if (!lastF || lastF.t !== close.toISOString()) {
+        const closeSamples: number[] = [];
+        for (const day of history) {
+          const v = sampleAt(day.intervals, new Date(day.close.getTime() - 1));
+          if (v != null) closeSamples.push(v);
+        }
+        const base = closeSamples.length
+          ? median(closeSamples)
+          : profile[profile.length - 1] ?? carryLast;
+        const horizon = (close.getTime() - nowMs) / MS_PER_MIN;
+        const model = base * scale;
+        const trend = lastObs != null ? lastObs + slope * horizon : model;
+        const w = clamp(1 - horizon / BLEND_MINUTES, 0, 1);
+        const raw = Math.max(0, w * trend + (1 - w) * model);
+        const value = Math.round(raw / roundStep) * roundStep;
+        forecast.push({ t: close.toISOString(), waitTime: value });
+      }
+    }
+
     // Confiance : croît avec le nombre de jours d'historique et la part de
     // buckets écoulés effectivement observés aujourd'hui.
     const elapsedBuckets = buckets.filter(
