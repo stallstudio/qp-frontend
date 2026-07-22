@@ -93,17 +93,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const google = profile as
           | { name?: string; email?: string; picture?: string; image?: string }
           | undefined;
-        const googleName = google?.name;
-        const googleImage = google?.picture ?? google?.image;
+        // On lit le nom/photo depuis PLUSIEURS sources : le profil OIDC brut
+        // (`name`/`picture`), le profil normalisé (`image`) et l'objet `user`
+        // normalisé par Auth.js — selon le flux, la donnée n'arrive pas toujours
+        // au même endroit.
+        const googleName = google?.name ?? user?.name ?? undefined;
+        const googleImage =
+          google?.picture ?? google?.image ?? user?.image ?? undefined;
         const email = user?.email ?? google?.email;
         if (email && (googleName || googleImage)) {
           try {
             const db = getUserPrisma();
             const existing = await db.user.findUnique({ where: { email } });
             if (existing) {
+              // Google fait AUTORITÉ pour le nom et la photo (l'app ne permet pas
+              // de les modifier). On écrase donc dès que Google fournit une valeur
+              // DIFFÉRENTE — et pas seulement « si le champ est vide ». Sans ça,
+              // un compte créé par magic link dont un correctif précédent avait
+              // rempli un nom/une photo restait bloqué sur l'ancienne valeur.
               const data: { name?: string; image?: string } = {};
-              if (googleName && !existing.name) data.name = googleName;
-              if (googleImage && !existing.image) data.image = googleImage;
+              if (googleName && existing.name !== googleName)
+                data.name = googleName;
+              if (googleImage && existing.image !== googleImage)
+                data.image = googleImage;
               if (Object.keys(data).length > 0) {
                 await db.user.update({ where: { id: existing.id }, data });
               }
