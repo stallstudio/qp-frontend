@@ -32,6 +32,9 @@ model Park {
   city                  String?   @db.VarChar(255)
   latitude              Float?
   longitude             Float?
+  currentTemp           Float? // °C, météo « live » écrasée à chaque passage horaire
+  currentWeatherCode    Int? // Code WMO courant (voir DailyWeather.weatherCode)
+  weatherUpdatedAt      DateTime? // Dernier rafraîchissement de currentTemp/currentWeatherCode
   groupId               Int?
   display               Boolean   @default(false)
   queueTypeLabels       Json?
@@ -55,6 +58,7 @@ model Park {
   poiChanges      PoiChange[]
   appVersions     AppVersion[]
   dailyWeather    DailyWeather[]
+  rideForecasts   RideForecast[]
 
   @@index([groupId])
   @@map("parks")
@@ -78,6 +82,51 @@ model DailyWeather {
   @@map("daily_weather")
 }
 
+// Vacances scolaires et jours fériés, par pays (alimenté par le worker :
+// OpenHolidays + Nager.Date). Sert la pondération de la prévision d'affluence.
+// `subdivisionCode = ""` = période nationale (couvre tout le pays).
+model Holiday {
+  id              Int      @id @default(autoincrement())
+  countryCode     String   @db.VarChar(2) // ISO-3166 alpha-2
+  subdivisionCode String   @default("") @db.VarChar(16) // "" = national
+  type            String   @db.VarChar(20) // "school" | "public"
+  name            String?  @db.VarChar(255)
+  startDate       String   @db.VarChar(10) // YYYY-MM-DD (inclus)
+  endDate         String   @db.VarChar(10) // YYYY-MM-DD (inclus)
+  source          String   @db.VarChar(20) // "openholidays" | "nager"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([countryCode, subdivisionCode, type, startDate, endDate])
+  @@index([countryCode, startDate, endDate])
+  @@map("holidays")
+}
+
+// Prévision de temps d'attente d'une attraction, précalculée par le worker et
+// lue par le front (le front ne calcule plus la prévision, il l'affiche).
+model RideForecast {
+  id              Int       @id @default(autoincrement())
+  rideId          Int       @unique
+  ride            Ride      @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  parkId          Int
+  park            Park      @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  date            String    @db.VarChar(10) // jour local visé (YYYY-MM-DD)
+  baseProfile     Json // { stepMinutes, values: (number|null)[] } aligné sur l'ouverture
+  forecast        Json // série finale { t, waitTime }[]
+  scale           Float     @default(1)
+  confidence      Float     @default(0)
+  confidenceLevel String    @default("low") @db.VarChar(10) // low | medium | high
+  method          String    @db.VarChar(40)
+  preOpening      Boolean   @default(false)
+  openTime        DateTime?
+  closeTime       DateTime?
+  computedAt      DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([parkId])
+  @@map("ride_forecast")
+}
+
 model Ride {
   id         Int        @id @default(autoincrement())
   name       String     @db.VarChar(255)
@@ -89,6 +138,7 @@ model Ride {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   waitTimes  WaitTime[]
+  forecast   RideForecast?
 
   @@unique([parkId, externalId])
   @@index([parkId])
