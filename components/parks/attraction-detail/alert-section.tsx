@@ -45,12 +45,14 @@ export default function AlertSection({
   const t = useTranslations("attractionDetail");
 
   // Indisponible en continu : aucune file à surveiller -> on ne propose pas
-  // d'alerte, on l'explique simplement.
+  // d'alerte, on l'explique simplement (centré dans l'espace réservé).
   if (unavailable) {
     return (
-      <p className="py-4 text-center text-sm text-muted-foreground">
-        {t("alertsUnavailable")}
-      </p>
+      <div className="flex min-h-[136px] items-center justify-center">
+        <p className="text-center text-sm text-muted-foreground">
+          {t("alertsUnavailable")}
+        </p>
+      </div>
     );
   }
 
