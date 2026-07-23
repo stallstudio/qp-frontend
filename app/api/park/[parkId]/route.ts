@@ -7,7 +7,7 @@ import {
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDate } from "@/lib/show-times";
 import { getWeatherByParkAndDate } from "@/lib/weather";
-import { ParkLiveData, CoverImage } from "@/types/api";
+import { ParkLiveData, CoverImage, ParkWeather } from "@/types/api";
 import { isBlacklisted } from "@/lib/ip-rules";
 
 function normalizeCover(raw: unknown): CoverImage[] | null {
@@ -70,6 +70,8 @@ export async function GET(
         cover: true,
         queueTypeLabels: true,
         lastUpdatedAt: true,
+        currentTemp: true,
+        currentWeatherCode: true,
       },
     });
 
@@ -123,7 +125,21 @@ export async function GET(
     );
     const showTimes = await getShowTimesByParkAndDate(park.id, today);
     const openingHours = await getOpeningHoursByParkAndDate(park.id, today);
-    const weather = await getWeatherByParkAndDate(park.id, today);
+    const daily = await getWeatherByParkAndDate(park.id, today);
+
+    // Fusion météo « live » (courant, ligne Park) + prévision du jour (daily).
+    // `null` seulement si on n'a NI courant NI prévision.
+    const hasWeather =
+      park.currentTemp != null || park.currentWeatherCode != null || daily != null;
+    const weather: ParkWeather | null = hasWeather
+      ? {
+          currentTemp: park.currentTemp,
+          currentWeatherCode: park.currentWeatherCode,
+          tempMin: daily?.tempMin ?? null,
+          tempMax: daily?.tempMax ?? null,
+          weatherCode: daily?.weatherCode ?? null,
+        }
+      : null;
 
     const lastUpdate =
       park.lastUpdatedAt?.toISOString() || new Date().toISOString();

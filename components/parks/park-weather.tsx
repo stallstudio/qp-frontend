@@ -14,31 +14,25 @@ type ParkWeatherProps = {
 };
 
 /**
- * Météo prévue du jour dans le header du parc : icône (condition) + plage de
- * températures « 18° – 26°C ». Se calque sur le style des horaires / heure
+ * Météo « live » dans le header du parc : icône (condition courante) +
+ * température actuelle « 22°C ». Se calque sur le style des horaires / heure
  * locale (ligne icône + texte blanc). L'icône porte le libellé de la condition
- * (title + aria-label) pour l'accessibilité.
+ * (title + aria-label) pour l'accessibilité. Les min/max quotidiens ne sont
+ * plus affichés (conservés en base pour d'éventuelles stats).
  */
 export default function ParkWeather({ weather }: ParkWeatherProps) {
   const t = useTranslations("weather");
   const { temperatureUnit } = useTemperatureUnit();
-  const { Icon, labelKey } = getWeatherVisual(weather.weatherCode);
+  const { Icon, labelKey } = getWeatherVisual(weather.currentWeatherCode);
   const label = t(labelKey);
 
   const symbol = temperatureUnitSymbol(temperatureUnit);
-  const min =
-    weather.tempMin != null
-      ? Math.round(convertFromCelsius(weather.tempMin, temperatureUnit))
-      : null;
-  const max =
-    weather.tempMax != null
-      ? Math.round(convertFromCelsius(weather.tempMax, temperatureUnit))
+  const current =
+    weather.currentTemp != null
+      ? Math.round(convertFromCelsius(weather.currentTemp, temperatureUnit))
       : null;
 
-  let tempText: string | null = null;
-  if (min != null && max != null) tempText = `${min}° - ${max}${symbol}`;
-  else if (max != null) tempText = `${max}${symbol}`;
-  else if (min != null) tempText = `${min}${symbol}`;
+  const tempText = current != null ? `${current}${symbol}` : null;
 
   return (
     <div className="flex items-center gap-2 text-white" title={label}>

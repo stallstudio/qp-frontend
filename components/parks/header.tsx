@@ -172,7 +172,7 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
                 />
                 <div className="flex items-center gap-3 flex-wrap">
                   <ParkLocalTime timezone={park.timezone} />
-                  {park.weather && (
+                  {park.weather?.currentTemp != null && (
                     <>
                       <span className="text-white/50" aria-hidden>
                         —

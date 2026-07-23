@@ -9,6 +9,10 @@ export type CoverImage = {
 };
 
 export type ParkWeather = {
+  // Météo « live » (affichée sur le front) : valeur courante + condition.
+  currentTemp: number | null;
+  currentWeatherCode: number | null; // Code WMO courant (voir lib/weather-icon.ts)
+  // Prévision quotidienne (conservée pour d'éventuelles stats, plus affichée).
   tempMin: number | null;
   tempMax: number | null;
   weatherCode: number | null; // Code WMO (voir lib/weather-icon.ts)

@@ -1,5 +1,12 @@
 import { getPrisma } from "@/lib/prisma";
-import { ParkWeather } from "@/types/api";
+
+// Prévision quotidienne seule (min/max + condition du jour). La météo « live »
+// (température courante) vit sur la ligne `Park` et est fusionnée côté route.
+export type DailyWeather = {
+  tempMin: number | null;
+  tempMax: number | null;
+  weatherCode: number | null;
+};
 
 /**
  * Météo prévue du jour pour un parc, lue depuis la table `daily_weather`
@@ -9,7 +16,7 @@ import { ParkWeather } from "@/types/api";
 export async function getWeatherByParkAndDate(
   parkId: number,
   date: string,
-): Promise<ParkWeather | null> {
+): Promise<DailyWeather | null> {
   try {
     const prisma = getPrisma();
 
