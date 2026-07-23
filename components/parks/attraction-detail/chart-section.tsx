@@ -12,6 +12,13 @@ type ChartSectionProps = {
   rideId: number;
 };
 
+// Pastille de couleur du badge de fiabilité de la prévision.
+const RELIABILITY_COLOR: Record<string, string> = {
+  low: "bg-red-500",
+  medium: "bg-amber-500",
+  high: "bg-emerald-500",
+};
+
 // Récupère l'historique du jour + prévision pour l'attraction (à la demande) et
 // rend le graphique. États chargement / vide / ok.
 export default function ChartSection({
@@ -68,7 +75,11 @@ export default function ChartSection({
     );
   }
 
-  const hasData = data && data.today.some((p) => p.waitTime != null);
+  // On affiche le graphique dès qu'il y a soit des données observées du jour,
+  // soit une prévision (cas AVANT ouverture : pas encore d'observé, mais une
+  // prévision pré-ouverture est disponible -> point 1 de A FAIRE).
+  const hasData =
+    data && (data.today.some((p) => p.waitTime != null) || data.forecast.length > 0);
   if (!hasData) {
     return (
       <div className="flex h-[226px] items-center justify-center text-center text-sm text-muted-foreground">
@@ -90,7 +101,7 @@ export default function ChartSection({
         actualLabel={t("chartActual")}
         forecastLabel={t("chartForecast")}
       />
-      <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <span className="h-0.5 w-4 rounded bg-primary" />
           {t("chartToday")}
@@ -101,10 +112,22 @@ export default function ChartSection({
             {t("chartForecast")}
           </span>
         )}
+        {data.forecast.length > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span
+              className={`size-2 rounded-full ${
+                RELIABILITY_COLOR[data.meta.confidenceLevel]
+              }`}
+            />
+            {t("reliabilityLabel")}: {t(`reliability_${data.meta.confidenceLevel}`)}
+          </span>
+        )}
       </div>
       {data.forecast.length > 0 && (
         <p className="text-center text-[11px] text-muted-foreground/80">
-          {t("chartForecastNote")}
+          {data.meta.preOpening
+            ? t("chartForecastPreOpeningNote")
+            : t("chartForecastNote")}
         </p>
       )}
     </div>

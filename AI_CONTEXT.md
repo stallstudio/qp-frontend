@@ -186,21 +186,26 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   enregistrée (autres appareils), avec un avertissement (`pushBlocked`/`pushDenied`).
 - **Graphique/prévision** : endpoint dédié `GET /api/park/[parkId]/ride/[rideId]/history`
   (fetché à la demande, **indépendant** de l'historique global suspendu).
-  `lib/wait-times-history.ts` reconstruit les séries horodatées depuis le modèle
-  temporel `wait_times` (today + N jours) ; `lib/wait-times-forecast.ts` (module
-  **pur**, interface `ForecastStrategy` extensible, v1 `profile-trend-v1` =
-  profil médian des jours précédents × échelle du jour + raccord tendance).
+  `lib/wait-times-history.ts` reconstruit la courbe **observée** du jour depuis
+  `wait_times`. La **prévision** n'est plus calculée ici : elle est
+  **précalculée par le worker** et stockée (`ride_forecast`) ; la route la LIT
+  (si `date` = jour logique courant, sinon périmée -> pas de prévision). `meta`
+  expose `confidenceLevel` (low/medium/high) + `preOpening`.
+  `components/parks/attraction-detail/chart-section.tsx` affiche un **badge de
+  fiabilité** + une note « mise à jour à l'ouverture » si `preOpening`.
+  (`lib/wait-times-forecast.ts` ne sert plus qu'aux helpers de reconstruction
+  `sampleDaySeries`/`sliceIntervalsForWindow`.)
 
 ### Météo (ajout 2026-07)
 
-- La route `GET /api/park/[parkId]` renvoie `weather: ParkWeather | null`
-  (temp min/max + `weatherCode` WMO), lu par `lib/weather.ts`
-  (`getWeatherByParkAndDate`, table `daily_weather` remplie par le worker via
-  Open-Meteo). `null` si le parc n'a pas de coordonnées / pas de données.
+- La route `GET /api/park/[parkId]` renvoie `weather: ParkWeather | null` :
+  météo **courante** (`currentTemp`/`currentWeatherCode`, lus sur la ligne
+  `Park`, remplis par le worker) + min/max du jour (`daily_weather`, conservés
+  mais **non affichés**). `null` si ni courant ni prévision.
 - Affichage : `components/parks/park-weather.tsx` dans le header du parc
   (sur la ligne de l'heure locale, séparé par un tiret) — icône `lucide` mappée
-  par `lib/weather-icon.ts` (`getWeatherVisual` : code WMO → icône + clé i18n) +
-  plage `18° - 26°C`.
+  par `lib/weather-icon.ts` (code WMO courant → icône + clé i18n) + **température
+  actuelle uniquement** `22°C`. Le header masque le bloc si `currentTemp` absent.
 - **Unité °C/°F** : préférence utilisateur calquée sur le format horaire.
   `TemperatureUnitProvider` (localStorage `temperature-unit-preference`, défaut
   **celsius**), hook `useTemperatureUnit`, conversion via `lib/temperature.ts`.

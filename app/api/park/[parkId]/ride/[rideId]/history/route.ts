@@ -2,11 +2,8 @@ import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { isBlacklisted } from "@/lib/ip-rules";
 import { buildRideHistory } from "@/lib/wait-times-history";
-import {
-  activeForecastStrategy,
-  sampleDaySeries,
-} from "@/lib/wait-times-forecast";
-import type { RideHistoryResponse } from "@/types/rideHistory";
+import { sampleDaySeries, type TimedPoint } from "@/lib/wait-times-forecast";
+import type { ConfidenceLevel, RideHistoryResponse } from "@/types/rideHistory";
 
 // Cadence d'échantillonnage (min) de la courbe du jour ET de la prévision.
 const CHART_STEP_MINUTES = 15;
@@ -38,7 +35,14 @@ export async function GET(
     now: new Date().toISOString(),
     today: [],
     forecast: [],
-    meta: { scale: 1, confidence: 0, method: "none", historyDays: 0 },
+    meta: {
+      scale: 1,
+      confidence: 0,
+      confidenceLevel: "low",
+      preOpening: false,
+      method: "none",
+      historyDays: 0,
+    },
   });
 
   try {
@@ -70,11 +74,12 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const rideHistory = await buildRideHistory(
-      park.id,
-      park.timezone,
-      rideIdNum,
-    );
+    // La prévision est PRÉCALCULÉE par le worker (table ride_forecast). Ici on
+    // ne reconstruit que la courbe OBSERVÉE du jour (live) ; l'historique n'est
+    // donc plus nécessaire (historyDays: 0).
+    const rideHistory = await buildRideHistory(park.id, park.timezone, rideIdNum, {
+      historyDays: 0,
+    });
 
     if (!rideHistory.today) {
       return NextResponse.json({ data: emptyData(park.timezone) });
@@ -85,13 +90,35 @@ export async function GET(
       rideHistory.now,
       CHART_STEP_MINUTES,
     );
-    const forecast = activeForecastStrategy.forecast({
-      timezone: rideHistory.timezone,
-      now: rideHistory.now,
-      today: rideHistory.today,
-      history: rideHistory.history,
-      bucketMinutes: CHART_STEP_MINUTES,
+
+    // Prévision stockée : on ne l'utilise que si elle vise bien le jour logique
+    // courant (sinon elle est périmée -> on n'affiche pas de prévision).
+    const forecastRow = await prisma.rideForecast.findUnique({
+      where: { rideId: rideIdNum },
+      select: {
+        date: true,
+        forecast: true,
+        scale: true,
+        confidence: true,
+        confidenceLevel: true,
+        preOpening: true,
+        method: true,
+        baseProfile: true,
+      },
     });
+
+    const fresh = forecastRow && forecastRow.date === rideHistory.date;
+    const forecast: TimedPoint[] = fresh
+      ? ((forecastRow.forecast as unknown as TimedPoint[]) ?? [])
+      : [];
+    const historyDays =
+      fresh &&
+      forecastRow.baseProfile &&
+      typeof forecastRow.baseProfile === "object"
+        ? Number(
+            (forecastRow.baseProfile as { historyDays?: number }).historyDays ?? 0,
+          )
+        : 0;
 
     const data: RideHistoryResponse = {
       timezone: rideHistory.timezone,
@@ -101,12 +128,16 @@ export async function GET(
       },
       now: rideHistory.now.toISOString(),
       today,
-      forecast: forecast.forecast,
+      forecast,
       meta: {
-        scale: forecast.scale,
-        confidence: forecast.confidence,
-        method: forecast.method,
-        historyDays: rideHistory.history.length,
+        scale: fresh ? forecastRow.scale : 1,
+        confidence: fresh ? forecastRow.confidence : 0,
+        confidenceLevel: fresh
+          ? (forecastRow.confidenceLevel as ConfidenceLevel)
+          : "low",
+        preOpening: fresh ? forecastRow.preOpening : false,
+        method: fresh ? forecastRow.method : "none",
+        historyDays,
       },
     };
 

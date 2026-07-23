@@ -16,7 +16,14 @@ export interface RideHistoryResponse {
   meta: {
     scale: number;
     confidence: number;
+    // Niveau de fiabilité catégoriel affiché à l'utilisateur (badge).
+    confidenceLevel: ConfidenceLevel;
+    // true = prévision d'avant-ouverture (pur historique) -> note « sera mise à
+    // jour à l'ouverture ».
+    preOpening: boolean;
     method: string;
     historyDays: number;
   };
 }
+
+export type ConfidenceLevel = "low" | "medium" | "high";

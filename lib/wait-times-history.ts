@@ -21,6 +21,9 @@ const EXCLUDED_HOUR_TYPES = new Set(["private_event", "sold_out"]);
 export type RideHistory = {
   timezone: string;
   now: Date;
+  // Date logique du parc (YYYY-MM-DD), null si non calculable. Sert à valider
+  // la fraîcheur de la prévision stockée.
+  date: string | null;
   // null si aucune date logique exploitable (parc sans horaires connus).
   today: DayIntervals | null;
   // Jours précédents où le parc était ouvert (les jours fermés sont exclus).
@@ -99,7 +102,7 @@ export async function buildRideHistory(
 
   const todayISO = await calculateParkDate(parkId, timezone);
   if (!todayISO) {
-    return { timezone, now, today: null, history: [] };
+    return { timezone, now, date: null, today: null, history: [] };
   }
 
   const dayStart = DateTime.fromISO(todayISO, { zone: timezone })
@@ -173,5 +176,5 @@ export async function buildRideHistory(
     }
   }
 
-  return { timezone, now, today, history };
+  return { timezone, now, date: todayISO, today, history };
 }
