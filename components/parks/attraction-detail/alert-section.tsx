@@ -24,6 +24,9 @@ type AlertSectionProps = {
   // Temps d'attente standby actuel (si disponible/ouvert) : sert à proposer un
   // seuil par défaut « un cran en dessous » pour une nouvelle alerte.
   currentWaitTime?: number;
+  // Attraction indisponible sur une longue période : on n'autorise pas d'alerte
+  // (aucun temps d'attente à surveiller).
+  unavailable?: boolean;
 };
 
 // Alertes de temps d'attente de l'attraction. Disponibles uniquement connecté ;
@@ -35,7 +38,22 @@ type AlertSectionProps = {
 // d'accueil. On garde donc l'écran d'installation UNIQUEMENT sur mobile non
 // installé (iOS par nécessité, Android par choix produit — meilleure UX depuis
 // l'app installée) ; sur desktop on va directement au formulaire.
-export default function AlertSection(props: AlertSectionProps) {
+export default function AlertSection({
+  unavailable,
+  ...props
+}: AlertSectionProps) {
+  const t = useTranslations("attractionDetail");
+
+  // Indisponible en continu : aucune file à surveiller -> on ne propose pas
+  // d'alerte, on l'explique simplement.
+  if (unavailable) {
+    return (
+      <p className="py-4 text-center text-sm text-muted-foreground">
+        {t("alertsUnavailable")}
+      </p>
+    );
+  }
+
   // Séquence installer/se connecter mutualisée avec les rappels de spectacles.
   return (
     <NotificationGate>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { useTranslations } from "next-intl";
 import { Bell, LineChart } from "lucide-react";
 import {
@@ -10,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { WaitTime } from "@/types/waitTime";
+import type { RideHistoryResponse } from "@/types/rideHistory";
 import ImageSection from "./image-section";
 import AlertSection from "./alert-section";
 import ChartSection from "./chart-section";
@@ -50,6 +53,48 @@ export default function AttractionDetailDialog({
   onOpenChange,
 }: AttractionDetailDialogProps) {
   const t = useTranslations("attractionDetail");
+
+  // Historique + prévision récupérés ICI (et rafraîchis toutes les 60 s tant que
+  // le popup est ouvert) puis partagés : le graphique l'affiche, et la section
+  // Alertes s'en sert pour savoir si l'attraction est indisponible en continu.
+  const rideId = target?.rideId;
+  const [history, setHistory] = useState<RideHistoryResponse | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(true);
+
+  useEffect(() => {
+    if (rideId == null) return;
+    const controller = new AbortController();
+    let cancelled = false;
+
+    const fetchHistory = () =>
+      axios
+        .get<{ data: RideHistoryResponse }>(
+          `/api/park/${parkIdentifier}/ride/${rideId}/history`,
+          { signal: controller.signal },
+        )
+        .then((res) => {
+          if (!cancelled) setHistory(res.data.data);
+        })
+        .catch(() => {
+          // Le graphique est un bonus : en cas d'échec on garde l'état courant.
+        });
+
+    setHistoryLoading(true);
+    setHistory(null);
+    fetchHistory().finally(() => {
+      if (!cancelled) setHistoryLoading(false);
+    });
+
+    const interval = setInterval(fetchHistory, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      controller.abort();
+    };
+  }, [rideId, parkIdentifier]);
+
+  const chronicallyUnavailable =
+    history?.meta.chronicallyUnavailable ?? false;
 
   return (
     <Dialog open={target !== null} onOpenChange={onOpenChange}>
@@ -103,6 +148,7 @@ export default function AttractionDetailDialog({
                   rideName={target.rideName}
                   parkIdentifier={parkIdentifier}
                   parkName={parkName}
+                  unavailable={chronicallyUnavailable}
                   currentWaitTime={(() => {
                     // Temps standby actuel (seulement si ouvert et exploitable) :
                     // sert au seuil par défaut « un cran en dessous ».
@@ -123,10 +169,7 @@ export default function AttractionDetailDialog({
                 title={t("chartTitle")}
                 icon={<LineChart className="size-4" />}
               >
-                <ChartSection
-                  parkIdentifier={parkIdentifier}
-                  rideId={target.rideId}
-                />
+                <ChartSection data={history} loading={historyLoading} />
               </Section>
             </div>
           </>

@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import axios from "axios";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import WaitTimeChart from "@/components/parks/wait-time-chart";
 import type { RideHistoryResponse } from "@/types/rideHistory";
 
 type ChartSectionProps = {
-  parkIdentifier: string;
-  rideId: number;
+  // Historique + prévision, récupérés et rafraîchis par le popup parent (partagé
+  // avec la section Alertes qui a besoin du statut d'indisponibilité).
+  data: RideHistoryResponse | null;
+  loading: boolean;
 };
 
 // Pastille de couleur du badge de fiabilité de la prévision.
@@ -19,55 +19,14 @@ const RELIABILITY_COLOR: Record<string, string> = {
   high: "bg-emerald-500",
 };
 
-// Récupère l'historique du jour + prévision pour l'attraction (à la demande) et
-// rend le graphique. États chargement / vide / ok.
-export default function ChartSection({
-  parkIdentifier,
-  rideId,
-}: ChartSectionProps) {
+// Rend le graphique du jour + prévision. États : chargement / indisponible /
+// pas de données / graphique.
+export default function ChartSection({ data, loading }: ChartSectionProps) {
   const t = useTranslations("attractionDetail");
-  const [data, setData] = useState<RideHistoryResponse | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  // Rafraîchissement périodique tant que le popup est ouvert : la prévision (et
-  // la courbe du jour) évoluent en direct. Le 1er appel gère le spinner ; les
-  // suivants sont SILENCIEUX (on ne repasse pas `loading` à true) pour ne pas
-  // faire clignoter le graphique — la nouvelle donnée est passée telle quelle,
-  // le graphique anime la transition (voir wait-time-chart.tsx).
-  useEffect(() => {
-    const controller = new AbortController();
-    let cancelled = false;
-
-    const fetchHistory = () =>
-      axios
-        .get<{ data: RideHistoryResponse }>(
-          `/api/park/${parkIdentifier}/ride/${rideId}/history`,
-          { signal: controller.signal },
-        )
-        .then((res) => {
-          if (!cancelled) setData(res.data.data);
-        })
-        .catch(() => {
-          // Le graphique est un bonus : en cas d'échec on garde l'état courant.
-        });
-
-    setLoading(true);
-    fetchHistory().finally(() => {
-      if (!cancelled) setLoading(false);
-    });
-
-    const interval = setInterval(fetchHistory, 60_000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-      controller.abort();
-    };
-  }, [parkIdentifier, rideId]);
-
-  // Hauteur réservée (≈ graphique 180px + légende + note) : identique pour les
-  // états chargement / vide / rendu afin que la taille du popup ne change PAS
-  // entre l'ouverture (spinner) et l'affichage du graphique (pas de « saut »).
-  if (loading) {
+  // Hauteur réservée (≈ graphique 180px + légende + note) : identique pour tous
+  // les états afin que la taille du popup ne « saute » pas.
+  if (loading && !data) {
     return (
       <div className="flex h-[226px] items-center justify-center">
         <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -75,15 +34,21 @@ export default function ChartSection({
     );
   }
 
-  // On affiche le graphique dès qu'il y a soit des données observées du jour,
-  // soit une prévision (cas AVANT ouverture : pas encore d'observé, mais une
-  // prévision pré-ouverture est disponible -> point 1 de A FAIRE).
-  const hasData =
-    data && (data.today.some((p) => p.waitTime != null) || data.forecast.length > 0);
-  if (!hasData) {
+  const hasActual = !!data && data.today.some((p) => p.waitTime != null);
+  const hasForecast = !!data && data.forecast.length > 0;
+
+  if (!data || (!hasActual && !hasForecast)) {
+    // Message adapté : indisponibilité durable > indisponibilité du jour > pas
+    // encore de données. Une attraction fermée toute la journée (ou en continu)
+    // ne doit pas afficher « pas encore de données ».
+    const message = data?.meta.chronicallyUnavailable
+      ? t("chartUnavailablePermanent")
+      : data && data.today.length > 0
+        ? t("chartUnavailable")
+        : t("chartEmpty");
     return (
       <div className="flex h-[226px] items-center justify-center text-center text-sm text-muted-foreground">
-        {t("chartEmpty")}
+        {message}
       </div>
     );
   }

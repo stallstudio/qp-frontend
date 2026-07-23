@@ -42,6 +42,7 @@ export async function GET(
       preOpening: false,
       method: "none",
       historyDays: 0,
+      chronicallyUnavailable: false,
     },
   });
 
@@ -111,14 +112,22 @@ export async function GET(
     const forecast: TimedPoint[] = fresh
       ? ((forecastRow.forecast as unknown as TimedPoint[]) ?? [])
       : [];
-    const historyDays =
+    const baseProfile =
       fresh &&
       forecastRow.baseProfile &&
       typeof forecastRow.baseProfile === "object"
-        ? Number(
-            (forecastRow.baseProfile as { historyDays?: number }).historyDays ?? 0,
-          )
-        : 0;
+        ? (forecastRow.baseProfile as {
+            historyDays?: number;
+            availabilityRatio?: number;
+          })
+        : null;
+    const historyDays = baseProfile ? Number(baseProfile.historyDays ?? 0) : 0;
+    // Attraction « indisponible en permanence » : ouverte moins d'~20 % du temps
+    // pendant les heures d'ouverture sur l'historique (même seuil que le worker).
+    const availabilityRatio = baseProfile
+      ? Number(baseProfile.availabilityRatio ?? 1)
+      : 1;
+    const chronicallyUnavailable = fresh ? availabilityRatio < 0.2 : false;
 
     const data: RideHistoryResponse = {
       timezone: rideHistory.timezone,
@@ -138,6 +147,7 @@ export async function GET(
         preOpening: fresh ? forecastRow.preOpening : false,
         method: fresh ? forecastRow.method : "none",
         historyDays,
+        chronicallyUnavailable,
       },
     };
 

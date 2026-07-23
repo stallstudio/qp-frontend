@@ -23,6 +23,9 @@ export interface RideHistoryResponse {
     preOpening: boolean;
     method: string;
     historyDays: number;
+    // true = attraction indisponible sur une longue période (ouverte < ~20 % du
+    // temps) -> message dédié + alertes désactivées.
+    chronicallyUnavailable: boolean;
   };
 }
 
