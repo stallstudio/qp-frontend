@@ -3,7 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { startThemeTransition, resolvesToDark } from "@/lib/theme-transition";
-import { Globe, Clock, Palette, Sun, Moon, MonitorSmartphone } from "lucide-react";
+import {
+  Globe,
+  Clock,
+  Palette,
+  Sun,
+  Moon,
+  MonitorSmartphone,
+  Thermometer,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -15,6 +23,7 @@ import { LANGUAGES } from "@/lib/locales";
 import { useUser } from "@/components/providers/user-provider";
 import type { ThemePreference } from "@/lib/user-preferences";
 import type { TimeFormatType } from "@/components/providers/time-format-provider";
+import type { TemperatureUnit } from "@/components/providers/temperature-unit-provider";
 
 // Réglages du compte — DIRECTION « contrôles tactiles » : on remplace les menus
 // déroulants par des contrôles directs. Le thème devient trois vignettes
@@ -146,6 +155,11 @@ export default function PreferencesCard() {
     { value: "12h", label: t("timeFormat12") },
   ];
 
+  const temperatureOptions: { value: TemperatureUnit; label: string }[] = [
+    { value: "celsius", label: t("temperatureCelsius") },
+    { value: "fahrenheit", label: t("temperatureFahrenheit") },
+  ];
+
   return (
     <div className="flex flex-col gap-2.5">
       {/* Thème — segment tactile compact (icône + libellé), sur la même rangée
@@ -181,6 +195,18 @@ export default function PreferencesCard() {
           value={prefs?.timeFormat}
           options={timeOptions}
           onChange={(v) => updatePreferences({ timeFormat: v })}
+        />
+      </SettingRow>
+
+      {/* Unité de température — interrupteur segmenté °C / °F. */}
+      <SettingRow
+        icon={<Thermometer className="size-4" />}
+        label={t("temperatureUnit")}
+      >
+        <SlidingSegment
+          value={prefs?.temperatureUnit}
+          options={temperatureOptions}
+          onChange={(v) => updatePreferences({ temperatureUnit: v })}
         />
       </SettingRow>
 

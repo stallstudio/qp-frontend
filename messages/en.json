@@ -19,6 +19,18 @@
     "trendingText": "Trending in recent hours",
     "visitsNote": "visits"
   },
+  "weather": {
+    "clear": "Clear sky",
+    "mainlyClear": "Mainly clear",
+    "partlyCloudy": "Partly cloudy",
+    "overcast": "Overcast",
+    "fog": "Fog",
+    "drizzle": "Drizzle",
+    "rain": "Rain",
+    "snow": "Snow",
+    "thunderstorm": "Thunderstorm",
+    "unknown": "Weather unavailable"
+  },
   "parkPage": {
     "backHome": "Back home",
     "localTime": "Local Time",
@@ -241,7 +253,8 @@
     "liveWaitTimes": "Live Wait Times"
   },
   "settings": {
-    "timeFormat": "Time format"
+    "timeFormat": "Time format",
+    "temperatureUnit": "Temperature unit"
   },
   "welcome": {
     "welcomeTo": "Welcome to",
@@ -341,6 +354,9 @@
     "timeFormat": "Time format",
     "timeFormat24": "24-hour",
     "timeFormat12": "12-hour",
+    "temperatureUnit": "Temperature unit",
+    "temperatureCelsius": "Celsius",
+    "temperatureFahrenheit": "Fahrenheit",
     "alertsTitle": "Active alerts",
     "alertsEmpty": "No alerts yet. Create one from an attraction.",
     "threshold": "Below {minutes} min",

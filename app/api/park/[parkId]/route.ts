@@ -6,6 +6,7 @@ import {
 } from "@/lib/opening-hours";
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDate } from "@/lib/show-times";
+import { getWeatherByParkAndDate } from "@/lib/weather";
 import { ParkLiveData, CoverImage } from "@/types/api";
 import { isBlacklisted } from "@/lib/ip-rules";
 
@@ -122,6 +123,7 @@ export async function GET(
     );
     const showTimes = await getShowTimesByParkAndDate(park.id, today);
     const openingHours = await getOpeningHoursByParkAndDate(park.id, today);
+    const weather = await getWeatherByParkAndDate(park.id, today);
 
     const lastUpdate =
       park.lastUpdatedAt?.toISOString() || new Date().toISOString();
@@ -146,6 +148,7 @@ export async function GET(
       openingHours: openingHours ?? [],
       waitTimes,
       shows: showTimes ?? [],
+      weather,
       lastUpdate,
     };
 

@@ -3,6 +3,7 @@
 import ParkCoverImage from "./cover-image";
 import ParkOpeningHours from "./opening-hours";
 import ParkLocalTime from "./local-time";
+import ParkWeather from "./park-weather";
 import Link from "next/link";
 import { Undo2 } from "lucide-react";
 import { ParkStatusBadge } from "./name-status";
@@ -65,7 +66,7 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [park.name, park.openingHours]);
+  }, [park.name, park.openingHours, park.weather]);
 
   useEffect(() => {
     let rafId = 0;
@@ -169,7 +170,17 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
                   timezone={park.timezone}
                   openingHours={park.openingHours}
                 />
-                <ParkLocalTime timezone={park.timezone} />
+                <div className="flex items-center gap-3 flex-wrap">
+                  <ParkLocalTime timezone={park.timezone} />
+                  {park.weather && (
+                    <>
+                      <span className="text-white/50" aria-hidden>
+                        —
+                      </span>
+                      <ParkWeather weather={park.weather} />
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 

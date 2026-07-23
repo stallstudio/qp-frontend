@@ -14,6 +14,7 @@ import { useTheme } from "next-themes";
 import { useLocale } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
+import { useTemperatureUnit } from "@/hooks/useTemperatureUnit";
 import {
   FAV_SYNC_EVENT,
   readFavorites,
@@ -68,6 +69,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const { theme, setTheme } = useTheme();
   const { timeFormat, setFormat } = useTimeFormat();
+  const { temperatureUnit, setUnit } = useTemperatureUnit();
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -88,11 +90,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     (prefs: UserPreferences) => {
       setTheme(prefs.theme);
       setFormat(prefs.timeFormat);
+      setUnit(prefs.temperatureUnit);
       if (prefs.locale !== locale) {
         router.replace(pathname, { locale: prefs.locale });
       }
     },
-    [setTheme, setFormat, locale, router, pathname],
+    [setTheme, setFormat, setUnit, locale, router, pathname],
   );
 
   const refresh = useCallback(async () => {
@@ -164,6 +167,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             locale,
             theme: (theme as UserPreferences["theme"]) ?? "system",
             timeFormat,
+            temperatureUnit,
           };
           try {
             await axios.patch("/api/user/preferences", localPrefs);
@@ -228,12 +232,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       // Application optimiste à l'UI locale, puis persistance.
       if (patch.theme !== undefined) setTheme(patch.theme);
       if (patch.timeFormat !== undefined) setFormat(patch.timeFormat);
+      if (patch.temperatureUnit !== undefined) setUnit(patch.temperatureUnit);
       if (patch.locale !== undefined && patch.locale !== locale) {
         router.replace(pathname, { locale: patch.locale });
       }
       persistPreferences(patch);
     },
-    [setTheme, setFormat, locale, router, pathname, persistPreferences],
+    [setTheme, setFormat, setUnit, locale, router, pathname, persistPreferences],
   );
 
   // Synchro descendante des préférences : tout changement local (sélecteur de
@@ -249,6 +254,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       locale,
       theme: (theme as UserPreferences["theme"]) ?? "system",
       timeFormat,
+      temperatureUnit,
     };
     const saved = profile.preferences;
     const diff: Partial<UserPreferences> = {};
@@ -256,11 +262,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (current.theme !== saved.theme) diff.theme = current.theme;
     if (current.timeFormat !== saved.timeFormat)
       diff.timeFormat = current.timeFormat;
+    if (current.temperatureUnit !== saved.temperatureUnit)
+      diff.temperatureUnit = current.temperatureUnit;
 
     if (Object.keys(diff).length > 0) {
       persistPreferences(diff);
     }
-  }, [status, profile, locale, theme, timeFormat, persistPreferences]);
+  }, [
+    status,
+    profile,
+    locale,
+    theme,
+    timeFormat,
+    temperatureUnit,
+    persistPreferences,
+  ]);
 
   return (
     <UserContext.Provider

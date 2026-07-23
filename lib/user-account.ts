@@ -34,6 +34,7 @@ export async function getPreferences(
       locale: DEFAULT_PREFERENCES.locale,
       theme: DEFAULT_PREFERENCES.theme,
       timeFormat: "h24",
+      temperatureUnit: DEFAULT_PREFERENCES.temperatureUnit,
     },
   });
   return {
@@ -41,6 +42,7 @@ export async function getPreferences(
       locale: row.locale,
       theme: row.theme,
       timeFormat: timeFormatFromDb(row.timeFormat),
+      temperatureUnit: row.temperatureUnit,
     },
     initialized: row.initialized,
   };

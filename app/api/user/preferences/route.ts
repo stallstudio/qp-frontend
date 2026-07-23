@@ -54,6 +54,9 @@ export async function PATCH(request: NextRequest) {
     ...(patch.timeFormat !== undefined && {
       timeFormat: timeFormatToDb(patch.timeFormat),
     }),
+    ...(patch.temperatureUnit !== undefined && {
+      temperatureUnit: patch.temperatureUnit,
+    }),
   };
   const create = {
     userId,
@@ -63,6 +66,8 @@ export async function PATCH(request: NextRequest) {
     timeFormat: patch.timeFormat
       ? timeFormatToDb(patch.timeFormat)
       : ("h24" as const),
+    temperatureUnit:
+      patch.temperatureUnit ?? DEFAULT_PREFERENCES.temperatureUnit,
   };
 
   for (let attempt = 0; ; attempt++) {
@@ -76,6 +81,7 @@ export async function PATCH(request: NextRequest) {
         locale: row.locale,
         theme: row.theme,
         timeFormat: timeFormatFromDb(row.timeFormat),
+        temperatureUnit: row.temperatureUnit,
       });
     } catch (error) {
       if (isConflict(error) && attempt < MAX_RETRIES) {

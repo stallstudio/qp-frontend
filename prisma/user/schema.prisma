@@ -105,12 +105,18 @@ enum TimeFormat {
   h24
 }
 
+enum TemperatureUnit {
+  celsius
+  fahrenheit
+}
+
 model UserPreferences {
-  id         String     @id @default(cuid())
-  userId     String     @unique
-  locale     String     @default("fr") @db.VarChar(10)
-  theme      Theme      @default(system)
-  timeFormat TimeFormat @default(h24)
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  locale          String          @default("fr") @db.VarChar(10)
+  theme           Theme           @default(system)
+  timeFormat      TimeFormat      @default(h24)
+  temperatureUnit TemperatureUnit @default(celsius)
   // false tant que l'utilisateur n'a jamais enregistré de préférence. Permet, au
   // premier login, de fusionner ses réglages locaux dans un compte « vierge »
   // plutôt que d'écraser ses choix par les valeurs par défaut du compte.

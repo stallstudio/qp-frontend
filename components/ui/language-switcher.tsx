@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
-import { Check, Languages, Clock } from "lucide-react";
+import { Check, Languages, Clock, Thermometer } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./button";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
+import { useTemperatureUnit } from "@/hooks/useTemperatureUnit";
 import { LANGUAGES as languages } from "@/lib/locales";
 
 interface LanguageSwitcherProps {
@@ -27,6 +28,7 @@ export default function LanguageSwitcher({
   const router = useRouter();
   const pathname = usePathname();
   const { timeFormat, toggleTimeFormat } = useTimeFormat();
+  const { temperatureUnit, toggleUnit } = useTemperatureUnit();
 
   const t = useTranslations("settings");
 
@@ -72,6 +74,18 @@ export default function LanguageSwitcher({
           </span>
           <span className="text-muted-foreground text-sm">
             {timeFormat === "12h" ? "12h" : "24h"}
+          </span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={toggleUnit}
+          className="flex items-center justify-between cursor-pointer"
+        >
+          <span className="flex items-center gap-2">
+            <Thermometer className="size-4" />
+            <span>{t("temperatureUnit")}</span>
+          </span>
+          <span className="text-muted-foreground text-sm">
+            {temperatureUnit === "fahrenheit" ? "°F" : "°C"}
           </span>
         </DropdownMenuItem>
       </DropdownMenuContent>

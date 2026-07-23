@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import type { Metadata } from "next";
 import { TimeFormatProvider } from "@/components/providers/time-format-provider";
+import { TemperatureUnitProvider } from "@/components/providers/temperature-unit-provider";
 import AuthSessionProvider from "@/components/providers/session-provider";
 import { UserProvider } from "@/components/providers/user-provider";
 import { AuthGateProvider } from "@/components/providers/auth-gate-provider";
@@ -105,14 +106,16 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <TimeFormatProvider>
-        <AuthSessionProvider>
-          <UserProvider>
-            <AuthGateProvider>
-              {children}
-              <CookieConsent />
-            </AuthGateProvider>
-          </UserProvider>
-        </AuthSessionProvider>
+        <TemperatureUnitProvider>
+          <AuthSessionProvider>
+            <UserProvider>
+              <AuthGateProvider>
+                {children}
+                <CookieConsent />
+              </AuthGateProvider>
+            </UserProvider>
+          </AuthSessionProvider>
+        </TemperatureUnitProvider>
       </TimeFormatProvider>
     </NextIntlClientProvider>
   );

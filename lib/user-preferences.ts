@@ -1,5 +1,6 @@
 import { routing } from "@/i18n/routing";
 import type { TimeFormatType } from "@/components/providers/time-format-provider";
+import type { TemperatureUnit } from "@/components/providers/temperature-unit-provider";
 
 // Contrat unique des préférences utilisateur, partagé backend <-> frontend.
 // Pour ajouter une préférence : l'ajouter au schéma Prisma, ici (type + défaut +
@@ -11,12 +12,14 @@ export interface UserPreferences {
   locale: string;
   theme: ThemePreference;
   timeFormat: TimeFormatType;
+  temperatureUnit: TemperatureUnit;
 }
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
   locale: routing.defaultLocale,
   theme: "system",
   timeFormat: "24h",
+  temperatureUnit: "celsius",
 };
 
 const THEMES: ThemePreference[] = ["light", "dark", "system"];
@@ -57,6 +60,12 @@ export function parsePreferencesPatch(
   }
   if (data.timeFormat === "12h" || data.timeFormat === "24h") {
     patch.timeFormat = data.timeFormat;
+  }
+  if (
+    data.temperatureUnit === "celsius" ||
+    data.temperatureUnit === "fahrenheit"
+  ) {
+    patch.temperatureUnit = data.temperatureUnit;
   }
 
   return patch;

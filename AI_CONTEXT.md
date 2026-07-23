@@ -191,6 +191,26 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   **pur**, interface `ForecastStrategy` extensible, v1 `profile-trend-v1` =
   profil médian des jours précédents × échelle du jour + raccord tendance).
 
+### Météo (ajout 2026-07)
+
+- La route `GET /api/park/[parkId]` renvoie `weather: ParkWeather | null`
+  (temp min/max + `weatherCode` WMO), lu par `lib/weather.ts`
+  (`getWeatherByParkAndDate`, table `daily_weather` remplie par le worker via
+  Open-Meteo). `null` si le parc n'a pas de coordonnées / pas de données.
+- Affichage : `components/parks/park-weather.tsx` dans le header du parc
+  (sur la ligne de l'heure locale, séparé par un tiret) — icône `lucide` mappée
+  par `lib/weather-icon.ts` (`getWeatherVisual` : code WMO → icône + clé i18n) +
+  plage `18° - 26°C`.
+- **Unité °C/°F** : préférence utilisateur calquée sur le format horaire.
+  `TemperatureUnitProvider` (localStorage `temperature-unit-preference`, défaut
+  **celsius**), hook `useTemperatureUnit`, conversion via `lib/temperature.ts`.
+  Réglable dans le **profil** (`preferences-card`, segment °C/°F) et le
+  **sélecteur du footer** (`language-switcher`, sous le format horaire).
+  Intégrée au contrat `UserPreferences` (`temperatureUnit`, enum DB
+  `TemperatureUnit`), synchro compte via `UserProvider` comme les autres prefs.
+- i18n : namespace `weather` (fr+en, repli EN). Schema : modèle `DailyWeather`
+  + `city`/`latitude`/`longitude` sur `Park` (⚠️ `prisma generate` requis).
+
 ## Conventions
 
 - Composants avec état/hooks/browser → `"use client"`. Pages `page.tsx` de route

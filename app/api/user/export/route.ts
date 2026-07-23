@@ -39,7 +39,13 @@ export async function GET() {
       }),
       prisma.userPreferences.findUnique({
         where: { userId },
-        select: { locale: true, theme: true, timeFormat: true, createdAt: true },
+        select: {
+          locale: true,
+          theme: true,
+          timeFormat: true,
+          temperatureUnit: true,
+          createdAt: true,
+        },
       }),
       prisma.favorite.findMany({
         where: { userId },

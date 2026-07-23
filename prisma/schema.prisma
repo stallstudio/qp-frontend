@@ -29,6 +29,9 @@ model Park {
   cover                 Json?
   badge                 String?   @db.VarChar(255)
   country               String?   @db.VarChar(100)
+  city                  String?   @db.VarChar(255)
+  latitude              Float?
+  longitude             Float?
   groupId               Int?
   display               Boolean   @default(false)
   queueTypeLabels       Json?
@@ -51,9 +54,28 @@ model Park {
   showTimes       ShowTime[]
   poiChanges      PoiChange[]
   appVersions     AppVersion[]
+  dailyWeather    DailyWeather[]
 
   @@index([groupId])
   @@map("parks")
+}
+
+model DailyWeather {
+  id          Int      @id @default(autoincrement())
+  parkId      Int
+  park        Park     @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  date        String   @db.VarChar(10) // Format: YYYY-MM-DD (jour local du parc)
+  tempMin     Float? // °C
+  tempMax     Float? // °C
+  weatherCode Int? // Code WMO (0 = ciel clair ... 95+ = orage)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([parkId, date])
+  @@index([parkId])
+  @@index([date])
+  @@index([parkId, date])
+  @@map("daily_weather")
 }
 
 model Ride {

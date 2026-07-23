@@ -8,6 +8,12 @@ export type CoverImage = {
   credit: string | null;
 };
 
+export type ParkWeather = {
+  tempMin: number | null;
+  tempMax: number | null;
+  weatherCode: number | null; // Code WMO (voir lib/weather-icon.ts)
+};
+
 export type ParkLiveData = {
   identifier: string;
   name: string;
@@ -17,6 +23,7 @@ export type ParkLiveData = {
   openingHours: OpeningHour[];
   waitTimes: WaitTime[];
   shows: ShowTime[];
+  weather: ParkWeather | null;
   lastUpdate: string;
 };
 

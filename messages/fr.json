@@ -19,6 +19,18 @@
     "trendingText": "Tendances des dernières heures",
     "visitsNote": "vues"
   },
+  "weather": {
+    "clear": "Ciel dégagé",
+    "mainlyClear": "Plutôt dégagé",
+    "partlyCloudy": "Partiellement nuageux",
+    "overcast": "Couvert",
+    "fog": "Brouillard",
+    "drizzle": "Bruine",
+    "rain": "Pluie",
+    "snow": "Neige",
+    "thunderstorm": "Orage",
+    "unknown": "Météo indisponible"
+  },
   "parkPage": {
     "backHome": "Retour à l'accueil",
     "localTime": "Heure locale",
@@ -241,7 +253,8 @@
     "liveWaitTimes": "Temps d'attente en direct"
   },
   "settings": {
-    "timeFormat": "Format de l'heure"
+    "timeFormat": "Format de l'heure",
+    "temperatureUnit": "Unité de température"
   },
   "welcome": {
     "welcomeTo": "Bienvenue sur",
@@ -341,6 +354,9 @@
     "timeFormat": "Format horaire",
     "timeFormat24": "24 heures",
     "timeFormat12": "12 heures",
+    "temperatureUnit": "Unité de température",
+    "temperatureCelsius": "Celsius",
+    "temperatureFahrenheit": "Fahrenheit",
     "alertsTitle": "Alertes actives",
     "alertsEmpty": "Aucune alerte pour le moment. Créez-en une depuis une attraction.",
     "threshold": "Sous {minutes} min",
