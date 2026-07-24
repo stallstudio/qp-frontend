@@ -204,7 +204,11 @@ export function calculateParkHours(
         timezone,
       );
       const endTime = startTime.plus({ minutes: duration });
-      allEndTimes.push(endTime.hour);
+      // Un créneau qui franchit minuit (ex. La Cinéscénie 22:30 + 90 min = 00:00)
+      // retomberait sur l'heure 0 et n'étendrait pas la grille : on le borne à
+      // 23 h (la timeline représente une seule journée).
+      const crossesMidnight = endTime.toISODate() !== startTime.toISODate();
+      allEndTimes.push(crossesMidnight ? 23 : endTime.hour);
     });
   });
 
@@ -216,7 +220,9 @@ export function calculateParkHours(
   }
 
   const minHour = Math.min(...allStartTimes);
-  const maxHour = Math.max(...allEndTimes);
+  // Inclure les heures de DÉBUT : un spectacle tardif (La Cinéscénie 22:30) doit
+  // étendre la grille même si sa fin franchit minuit.
+  const maxHour = Math.max(...allStartTimes, ...allEndTimes);
 
   const startHour = Math.max(0, minHour - 1);
   const endHour = Math.min(23, maxHour + 1);
