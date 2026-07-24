@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { DateTime } from "luxon";
 import { motion } from "motion/react";
 import {
   FastForward,
@@ -16,6 +17,8 @@ import {
 } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import WaitTrend from "@/components/parks/wait-trend";
+import WaitTimeChart from "@/components/parks/wait-time-chart";
+import type { TimedPoint } from "@/types/rideHistory";
 import FavoriteStar from "@/components/ui/favorite-star";
 import { Button } from "@/components/ui/button";
 import NumberStepper from "@/components/ui/number-stepper";
@@ -502,6 +505,81 @@ export function ReminderDemo() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Prévision d'affluence — RÉUTILISE le vrai graphique (WaitTimeChart) avec des */
+/* données factices : courbe pleine = temps observé du jour, pointillé =        */
+/* prévision jusqu'à la fermeture, ligne « maintenant », badge de fiabilité.    */
+/* -------------------------------------------------------------------------- */
+
+export function ForecastDemo() {
+  const t = useTranslations("attractionDetail");
+
+  const demo = useMemo(() => {
+    // Journée fixe (stable d'un rendu à l'autre), fuseau arbitraire.
+    const zone = "Europe/Paris";
+    const day = DateTime.fromISO("2024-06-15T00:00", { zone });
+    const at = (h: number, m: number) => day.set({ hour: h, minute: m }).toISO()!;
+
+    // Observé 10:00 -> « maintenant » (15:00) : montée de matinée.
+    const today: TimedPoint[] = (
+      [
+        [10, 0, 5], [10, 30, 10], [11, 0, 15], [11, 30, 25], [12, 0, 35],
+        [12, 30, 45], [13, 0, 55], [13, 30, 50], [14, 0, 45], [14, 30, 40],
+        [15, 0, 45],
+      ] as [number, number, number][]
+    ).map(([h, m, w]) => ({ t: at(h, m), waitTime: w, status: "open" }));
+
+    // Prévision 15:30 -> fermeture (19:00) : pic d'après-midi puis décrue.
+    const forecast: TimedPoint[] = (
+      [
+        [15, 30, 55], [16, 0, 60], [16, 30, 55], [17, 0, 45],
+        [17, 30, 40], [18, 0, 30], [18, 30, 20], [19, 0, 10],
+      ] as [number, number, number][]
+    ).map(([h, m, w]) => ({ t: at(h, m), waitTime: w }));
+
+    return {
+      today,
+      forecast,
+      zone,
+      window: { open: at(10, 0), close: at(19, 0) },
+      now: at(15, 0),
+    };
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <WaitTimeChart
+        today={demo.today}
+        forecast={demo.forecast}
+        window={demo.window}
+        now={demo.now}
+        timezone={demo.zone}
+        nowLabel={t("chartNow")}
+        todayLabel={t("chartToday")}
+        actualLabel={t("chartActual")}
+        forecastLabel={t("chartForecast")}
+      />
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span className="h-0.5 w-4 rounded bg-primary" />
+          {t("chartToday")}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-4 border-t-2 border-dashed border-primary/50" />
+          {t("chartForecast")}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full bg-emerald-500" />
+          {t("reliabilityLabel")}: {t("reliability_high")}
+        </span>
+      </div>
+      <p className="text-center text-[11px] text-muted-foreground/80">
+        {t("chartForecastNote")}
+      </p>
     </div>
   );
 }

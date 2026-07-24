@@ -13,7 +13,6 @@ import {
   // TrendingUp, // SUSPENDU : carte « tendance » du guide masquée (historique désactivé).
   ListTree,
   Star,
-  Flame,
   Search,
   Drama,
   Activity,
@@ -22,6 +21,8 @@ import {
   CalendarClock,
   Eye,
   UserCircle,
+  LineChart,
+  CloudSun,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,6 +39,7 @@ import {
   ShowsDemo,
   AlertDemo,
   ReminderDemo,
+  ForecastDemo,
 } from "./demos";
 
 export default function AboutPageClient() {
@@ -200,6 +202,11 @@ export default function AboutPageClient() {
                   body={tCards("detail.body")}
                 />
                 <Vignette
+                  icon={CloudSun}
+                  title={tCards("weather.title")}
+                  body={tCards("weather.body")}
+                />
+                <Vignette
                   icon={UserCircle}
                   title={tCards("account.title")}
                   body={tCards("account.body")}
@@ -212,9 +219,12 @@ export default function AboutPageClient() {
                   demo={<SearchDemo />}
                 />
                 <Vignette
-                  icon={Flame}
-                  title={tCards("popular.title")}
-                  body={tCards("popular.body")}
+                  wide
+                  icon={LineChart}
+                  title={tCards("forecast.title")}
+                  body={tCards("forecast.body")}
+                  demoLabel={demoLabel}
+                  demo={<ForecastDemo />}
                 />
                 <Vignette
                   icon={Activity}

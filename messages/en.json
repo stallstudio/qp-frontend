@@ -146,7 +146,7 @@
   },
   "about": {
     "metaTitle": "About",
-    "metaDescription": "Discover Queue Park: where wait times come from, how favorites work, trend arrows, popular parks and all the features.",
+    "metaDescription": "Discover Queue Park: where wait times come from, how favorites work, wait-time forecasts, weather and all the features.",
     "backHome": "Back to home",
     "heroTitle": "About Queue Park",
     "heroSubtitle": "Your favorite parks' wait times, live and free for everyone.",
@@ -204,9 +204,9 @@
         "ridesLabel": "Favorite attractions (profile)",
         "hint": "Tap a star: the favorite park jumps to the top of the home page."
       },
-      "popular": {
-        "title": "Popular parks",
-        "body": "The \"Popular parks\" section highlights the parks most viewed on Queue Park over the last few hours. It's a good reflection of where attention — and crowds — are gathering right now."
+      "forecast": {
+        "title": "Wait-time forecast",
+        "body": "On an attraction's page, the solid line traces the wait time observed since opening, and the dashed line estimates the rest of the day up to closing. It draws on comparable past days (weekday or weekend, holidays, weather). A reliability level — low, medium or high — tells you how much to trust it."
       },
       "search": {
         "title": "Search & random park",
@@ -222,7 +222,7 @@
       },
       "preferences": {
         "title": "Your way",
-        "body": "Queue Park adapts to you: light, dark or automatic theme (following your system), 12-hour or 24-hour time format, and an interface available in 14 languages. Your choices are remembered for your next visits."
+        "body": "Queue Park adapts to you: light, dark or automatic theme (following your system), 12-hour or 24-hour time format, °C or °F temperature unit, and an interface available in 14 languages. Your choices are remembered for your next visits."
       },
       "alerts": {
         "title": "Wait-time alerts",
@@ -239,6 +239,10 @@
       "account": {
         "title": "Your account",
         "body": "Sign in without a password (Google or magic link). Your favourites, alerts and preferences follow you across all your devices."
+      },
+      "weather": {
+        "title": "Park weather",
+        "body": "Each park's header shows the current temperature and an icon summarizing the weather, refreshed every hour. Handy to anticipate crowds — and to know whether to pack a cap or a raincoat."
       }
     }
   },

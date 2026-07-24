@@ -146,7 +146,7 @@
   },
   "about": {
     "metaTitle": "À propos",
-    "metaDescription": "Découvrez Queue Park : d'où viennent les temps d'attente, comment fonctionnent les favoris, les flèches de tendance, les parcs populaires et toutes les fonctionnalités.",
+    "metaDescription": "Découvrez Queue Park : d'où viennent les temps d'attente, comment fonctionnent les favoris, les prévisions d'affluence, la météo et toutes les fonctionnalités.",
     "backHome": "Retour à l'accueil",
     "heroTitle": "À propos de Queue Park",
     "heroSubtitle": "Les temps d'attente de vos parcs préférés, en direct et pour tous.",
@@ -204,9 +204,9 @@
         "ridesLabel": "Attractions favorites (profil)",
         "hint": "Touchez une étoile : le parc favori remonte en tête de l'accueil."
       },
-      "popular": {
-        "title": "Les parcs populaires",
-        "body": "La section « Parcs populaires » met en avant les parcs les plus consultés sur Queue Park au cours des dernières heures. C'est un bon reflet de là où l'affluence — et l'intérêt — se concentrent en ce moment."
+      "forecast": {
+        "title": "Prévision d'affluence",
+        "body": "Sur la fiche d'une attraction, la courbe pleine retrace le temps d'attente observé depuis l'ouverture, et le pointillé une estimation jusqu'à la fermeture. Elle s'appuie sur les journées passées comparables (semaine ou week-end, vacances, météo). Un indice de fiabilité — faible, moyenne ou haute — indique à quel point s'y fier."
       },
       "search": {
         "title": "Recherche & parc au hasard",
@@ -222,7 +222,7 @@
       },
       "preferences": {
         "title": "À votre main",
-        "body": "Queue Park s'adapte à vous : thème clair, sombre ou automatique (selon votre système), format d'heure 12h ou 24h, et une interface disponible en 14 langues. Vos choix sont mémorisés pour vos prochaines visites."
+        "body": "Queue Park s'adapte à vous : thème clair, sombre ou automatique (selon votre système), format d'heure 12h ou 24h, unité de température °C ou °F, et une interface disponible en 14 langues. Vos choix sont mémorisés pour vos prochaines visites."
       },
       "alerts": {
         "title": "Alertes de temps d'attente",
@@ -239,6 +239,10 @@
       "account": {
         "title": "Votre compte",
         "body": "Connectez-vous sans mot de passe (Google ou lien magique). Vos favoris, alertes et préférences vous suivent sur tous vos appareils."
+      },
+      "weather": {
+        "title": "La météo du parc",
+        "body": "L'en-tête de chaque parc affiche la température actuelle et une icône résumant le temps qu'il fait, mises à jour chaque heure. Pratique pour anticiper l'affluence — et savoir s'il faut prévoir la casquette ou le K-way."
       }
     }
   },
