@@ -1,7 +1,10 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { DateTime } from "luxon";
+import { useLocale, useTranslations } from "next-intl";
 import { Bell, Clock } from "lucide-react";
+import { getLuxonFormat } from "@/lib/utils";
+import { useTimeFormat } from "@/hooks/useTimeFormat";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +16,7 @@ import type { ShowTime } from "@/types/show";
 import ImageSection from "@/components/parks/attraction-detail/image-section";
 import NotificationGate from "@/components/parks/notification-gate";
 import {
-  getShowDisplayDuration,
+  getShowAccessInfo,
   formatDuration,
 } from "@/components/parks/show-time-table/utils";
 import ReminderSection from "./reminder-section";
@@ -57,18 +60,27 @@ export default function ShowDetailDialog({
   onOpenChange,
 }: ShowDetailDialogProps) {
   const t = useTranslations("showDetail");
+  const locale = useLocale();
+  const { is12Hour } = useTimeFormat();
 
-  // Durée du spectacle affichée en sous-titre du popup (retirée de la liste).
-  const durationMin = target ? getShowDisplayDuration(target, timezone) : null;
-  const subtitle =
-    durationMin !== null
-      ? t("duration", { duration: formatDuration(durationMin) })
-      : undefined;
+  // Sous-titre du popup : soit une plage d'accès (attractions à ACCÈS CONTINU,
+  // ex. Puy du Fou 12:00–20:15), soit une durée de représentation. `duration`
+  // seul induirait en erreur pour un accès continu (cf. getShowAccessInfo).
+  const access = target ? getShowAccessInfo(target, timezone) : null;
+  let subtitle: string | undefined;
+  if (access?.kind === "continuous") {
+    const fmt = getLuxonFormat(is12Hour);
+    const start = DateTime.fromISO(access.startTime, { zone: timezone }).toFormat(fmt);
+    const end = DateTime.fromISO(access.endTime, { zone: timezone }).toFormat(fmt);
+    subtitle = t("continuousAccess", { range: `${start} – ${end}` });
+  } else if (access?.kind === "duration") {
+    subtitle = t("duration", { duration: formatDuration(access.minutes, locale) });
+  }
 
   return (
     <Dialog open={target !== null} onOpenChange={onOpenChange}>
       <DialogContent
-        className="flex max-h-[88vh] flex-col gap-0 overflow-hidden rounded-4xl p-0 sm:max-w-md"
+        className="flex max-h-[88vh] flex-col gap-0 overflow-hidden rounded-4xl border-0 p-0 sm:max-w-md"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {target && (

@@ -107,7 +107,7 @@ export default function AttractionDetailDialog({
           asynchrones (alertes, graphique) : il ne peut plus être poussé
           hors champ par leur croissance ni par un focus qui ferait défiler. */}
       <DialogContent
-        className="flex max-h-[88vh] flex-col gap-0 overflow-hidden rounded-4xl p-0 sm:max-w-md"
+        className="flex max-h-[88vh] flex-col gap-0 overflow-hidden rounded-4xl border-0 p-0 sm:max-w-md"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {target && (

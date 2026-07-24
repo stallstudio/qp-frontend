@@ -2,16 +2,89 @@ import { ShowTime, ShowSchedule } from "@/types/show";
 import { DateTime } from "luxon";
 import { ScheduleWithPosition } from "./types";
 
-export function formatDuration(minutes: number): string {
-  if (minutes < 60) {
-    return `${minutes}min`;
-  }
+// Durée en toutes lettres, localisée : « 34 minutes », « 1 heure »,
+// « 2 heures 30 minutes ». `Intl.NumberFormat` (style unit, unitDisplay long)
+// gère nativement l'espace, le mot complet ET le pluriel dans chaque langue.
+export function formatDuration(minutes: number, locale: string): string {
+  const unit = (value: number, name: "hour" | "minute") =>
+    new Intl.NumberFormat(locale, {
+      style: "unit",
+      unit: name,
+      unitDisplay: "long",
+    }).format(value);
+
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
-  if (remainingMinutes === 0) {
-    return `${hours}h`;
+
+  const parts: string[] = [];
+  if (hours > 0) parts.push(unit(hours, "hour"));
+  if (remainingMinutes > 0 || hours === 0) {
+    parts.push(unit(remainingMinutes, "minute"));
   }
-  return `${hours}h${remainingMinutes.toString().padStart(2, "0")}`;
+  return parts.join(" ");
+}
+
+// ————————————————————————— Accès continu —————————————————————————
+// Certaines « attractions-spectacles » (ex. Puy du Fou : Les Amoureux de Verdun,
+// Le Mystère de La Pérouse) ne sont pas des représentations à heure fixe mais des
+// ACCÈS CONTINUS : la source donne un unique créneau couvrant toute la plage
+// d'ouverture (ex. 12:00 → 20:15), et le champ `duration` (15/20 min) est la durée
+// de VISITE, pas un horaire. Afficher « Durée : 20 min » induit en erreur — on
+// veut montrer la plage d'accès. On détecte ce cas par un créneau dont l'amplitude
+// dépasse largement la durée de visite.
+const CONTINUOUS_MIN_SPAN_MIN = 120;
+const CONTINUOUS_SPAN_RATIO = 3;
+
+export type ShowAccessInfo =
+  | { kind: "duration"; minutes: number }
+  | { kind: "continuous"; startTime: string; endTime: string };
+
+// Amplitude (min) d'un créneau si sa fin est connue et postérieure au début.
+function getSlotSpanMinutes(
+  schedule: ShowSchedule,
+  timezone: string,
+): number | null {
+  if (!schedule.endTime) return null;
+  const start = DateTime.fromISO(schedule.startTime, { zone: timezone });
+  const end = DateTime.fromISO(schedule.endTime, { zone: timezone });
+  const diff = end.diff(start, "minutes").minutes;
+  return diff > 0 ? Math.round(diff) : null;
+}
+
+// Créneau à accès continu = fin connue, amplitude longue ET très supérieure à la
+// durée de visite (quand celle-ci est connue).
+export function isContinuousAccessSlot(
+  schedule: ShowSchedule,
+  showDuration: number,
+  timezone: string,
+): boolean {
+  const span = getSlotSpanMinutes(schedule, timezone);
+  if (span === null || span < CONTINUOUS_MIN_SPAN_MIN) return false;
+  if (showDuration > 0 && span < CONTINUOUS_SPAN_RATIO * showDuration) {
+    return false;
+  }
+  return true;
+}
+
+// Info d'accès à afficher dans le popup : soit une plage horaire (accès continu),
+// soit une durée. Un accès continu se reconnaît à un unique créneau long.
+export function getShowAccessInfo(
+  show: ShowTime,
+  timezone: string,
+): ShowAccessInfo | null {
+  if (
+    show.schedules.length === 1 &&
+    show.schedules[0].endTime &&
+    isContinuousAccessSlot(show.schedules[0], show.duration, timezone)
+  ) {
+    return {
+      kind: "continuous",
+      startTime: show.schedules[0].startTime,
+      endTime: show.schedules[0].endTime,
+    };
+  }
+  const minutes = getShowDisplayDuration(show, timezone);
+  return minutes !== null ? { kind: "duration", minutes } : null;
 }
 
 export function getShowDisplayDuration(
@@ -55,6 +128,12 @@ export function calculateSlotDuration(
   nextSchedule: ShowSchedule | null,
   timezone: string,
 ): number {
+  // Accès continu : la barre couvre toute la plage [début, fin] et non la durée
+  // de visite (sinon un accès 12:00–20:15 s'afficherait comme un bloc de 20 min).
+  if (isContinuousAccessSlot(schedule, showDuration, timezone)) {
+    return getSlotSpanMinutes(schedule, timezone)!;
+  }
+
   if (showDuration > 0) {
     return showDuration;
   }
