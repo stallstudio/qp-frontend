@@ -72,7 +72,7 @@
     "notifTitle": "Alerts",
     "thrillsLink": "View the show on Thrills",
     "duration": "Duration: {duration}",
-    "continuousAccess": "Continuous access · {range}",
+    "continuousAccess": "Continuous · {range}",
     "signInIntro": "Sign in to be reminded before a show starts.",
     "reminderIntro": "Pick a time, then how long before it you want to be reminded.",
     "leadLabel": "How long before the show do you want to be reminded?",

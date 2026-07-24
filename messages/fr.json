@@ -72,7 +72,7 @@
     "notifTitle": "Alertes",
     "thrillsLink": "Voir le spectacle sur Thrills",
     "duration": "Durée : {duration}",
-    "continuousAccess": "Accès continu · {range}",
+    "continuousAccess": "En continu · {range}",
     "signInIntro": "Connectez-vous pour être prévenu avant le début d'un spectacle.",
     "reminderIntro": "Choisissez un horaire, puis le délai avant lequel être prévenu.",
     "leadLabel": "Combien de temps avant le spectacle souhaites-tu être prévenu ?",
