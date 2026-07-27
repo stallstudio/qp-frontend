@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import WaitTimeChart from "@/components/parks/wait-time-chart";
+import { ClickableTooltip } from "@/components/ui/clickable-tooltip";
 import type { RideHistoryResponse } from "@/types/rideHistory";
 
 type ChartSectionProps = {
@@ -10,13 +11,6 @@ type ChartSectionProps = {
   // avec la section Alertes qui a besoin du statut d'indisponibilité).
   data: RideHistoryResponse | null;
   loading: boolean;
-};
-
-// Pastille de couleur du badge de fiabilité de la prévision.
-const RELIABILITY_COLOR: Record<string, string> = {
-  low: "bg-red-500",
-  medium: "bg-amber-500",
-  high: "bg-emerald-500",
 };
 
 // Rend le graphique du jour + prévision. États : chargement / indisponible /
@@ -71,21 +65,27 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
           <span className="h-0.5 w-4 rounded bg-primary" />
           {t("chartToday")}
         </span>
+        {/* Pas d'échelle qualitative de « fiabilité » : l'indice calculé mesure
+            le VOLUME de données disponibles, pas la justesse réelle de la
+            prévision (jamais confrontée à l'observé). Annoncer « fiabilité
+            haute » promettrait plus que ce qu'on sait tenir. La réserve est
+            portée par « Prévision » elle-même (souligné pointillé = explication
+            au survol/tact), plutôt que par une entrée de légende en plus. */}
         {data.forecast.length > 0 && (
-          <span className="flex items-center gap-1.5">
-            <span className="w-4 border-t-2 border-dashed border-primary/50" />
-            {t("chartForecast")}
-          </span>
-        )}
-        {data.forecast.length > 0 && (
-          <span className="flex items-center gap-1.5">
-            <span
-              className={`size-2 rounded-full ${
-                RELIABILITY_COLOR[data.meta.confidenceLevel]
-              }`}
-            />
-            {t("reliabilityLabel")}: {t(`reliability_${data.meta.confidenceLevel}`)}
-          </span>
+          <ClickableTooltip
+            content={t("estimateTooltip")}
+            className="max-w-[15rem] text-center text-xs"
+          >
+            <button
+              type="button"
+              className="flex cursor-help items-center gap-1.5"
+            >
+              <span className="w-4 border-t-2 border-dashed border-primary/50" />
+              <span className="underline decoration-dotted underline-offset-2">
+                {t("chartForecast")}
+              </span>
+            </button>
+          </ClickableTooltip>
         )}
       </div>
       {data.forecast.length > 0 && (
