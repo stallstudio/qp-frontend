@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { DateTime } from "luxon";
 import { getPrisma } from "@/lib/prisma";
 import { getUserPrisma } from "@/lib/user-prisma";
+import { purgeOldRequestLogs } from "@/lib/api-request-log";
 import { isPushConfigured, sendPush, type PushPayload } from "@/lib/web-push";
 import { buildAlertMessage } from "@/lib/alert-messages";
+import { rideSlug } from "@/lib/slug";
 import {
   buildShowReminderMessage,
   type ReminderShow,
@@ -28,6 +30,34 @@ export const dynamic = "force-dynamic";
 // Marge de réarmement au-dessus du seuil : évite le « flapping » (alertes en
 // rafale) quand le temps oscille juste autour du seuil.
 const REARM_MARGIN = 5;
+
+// ——————————————————————— Verrou anti-chevauchement ———————————————————————
+// La Schedule déclenche cette route toutes les 1-2 min, mais un passage peut
+// durer plus longtemps (les envois push sont séquentiels : un par abonnement et
+// par utilisateur). Sans verrou, deux exécutions se chevauchent et, comme on
+// ENVOIE avant de désarmer / supprimer, la même alerte part deux fois.
+//
+// Verrou EN MÉMOIRE (l'app tourne dans un seul conteneur). S'il fallait un jour
+// passer à plusieurs instances, c'est ici qu'un verrou partagé s'imposerait.
+const MAX_RUN_MS = 5 * 60_000;
+
+const globalForCron = globalThis as unknown as {
+  alertsCronStartedAt: number | null | undefined;
+};
+
+// Renvoie `false` si un passage est déjà en cours. Un verrou plus vieux que
+// MAX_RUN_MS est considéré comme abandonné (processus tué en plein run) et
+// repris, plutôt que de bloquer les alertes indéfiniment.
+function acquireRunLock(): boolean {
+  const startedAt = globalForCron.alertsCronStartedAt;
+  if (startedAt != null && Date.now() - startedAt < MAX_RUN_MS) return false;
+  globalForCron.alertsCronStartedAt = Date.now();
+  return true;
+}
+
+function releaseRunLock(): void {
+  globalForCron.alertsCronStartedAt = null;
+}
 
 // Protection de l'endpoint : un secret partagé avec la Dokploy Schedule. Accepté
 // en `Authorization: Bearer <secret>` ou en `?key=<secret>`.
@@ -129,7 +159,10 @@ async function processShowReminders(
       const payload: PushPayload = {
         title: msg.title,
         body: msg.body,
-        url: `/${locale}/park/${reminders[0].parkIdentifier}`,
+        // Les spectacles n'ont pas de page dédiée : on ouvre la page du parc
+        // directement sur l'onglet Spectacles, sans quoi l'utilisateur atterrit
+        // sur les temps d'attente et doit changer d'onglet lui-même.
+        url: `/${locale}/park/${reminders[0].parkIdentifier}?tab=shows`,
         tag: single ? `show-${single.id}` : "qp-show-reminders-digest",
       };
 
@@ -197,6 +230,20 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  if (!acquireRunLock()) {
+    // 200 et non 409 : ce n'est pas une erreur, juste un passage sauté. La
+    // Schedule ne doit pas être alertée pour ça.
+    return NextResponse.json({ skipped: true, reason: "already running" });
+  }
+
+  try {
+    return await runAlertsPass();
+  } finally {
+    releaseRunLock();
+  }
+}
+
+async function runAlertsPass(): Promise<NextResponse> {
   const userPrisma = getUserPrisma();
   const prisma = getPrisma();
   const now = new Date();
@@ -216,6 +263,12 @@ export async function GET(request: NextRequest) {
     where: { activeDate: { lt: alertPurgeCutoff } },
   });
 
+  // Entretien du journal de consultations (base principale) : la table
+  // grossissait sans limite alors que seules les 2 dernières heures servent au
+  // classement des parcs populaires. Ce cron tournant déjà en continu, il évite
+  // une planification dédiée. Par lots, pour ne pas verrouiller la table.
+  const purgedRequestLogs = await purgeOldRequestLogs();
+
   // Passe « rappels de spectacles » (temporelle), indépendante des alertes de
   // seuil ci-dessous. Traitée en premier pour être exécutée même si l'app n'a
   // aucune alerte active.
@@ -230,6 +283,7 @@ export async function GET(request: NextRequest) {
       checked: 0,
       sent: 0,
       purgedAlerts: purgedAlerts.count,
+      purgedRequestLogs,
       ...reminderSummary,
     });
   }
@@ -315,6 +369,7 @@ export async function GET(request: NextRequest) {
       rearmed: toRearm.length,
       expired: toExpire.length,
       purgedAlerts: purgedAlerts.count,
+      purgedRequestLogs,
       ...reminderSummary,
     });
   }
@@ -365,13 +420,21 @@ export async function GET(request: NextRequest) {
         threshold: a.threshold,
       })),
     );
-    // Une seule attraction -> lien direct vers son parc et tag par attraction
-    // (une nouvelle notif remplace la précédente). Plusieurs -> tag digest commun.
+    // Une seule attraction -> lien profond vers SA page (l'utilisateur voit
+    // immédiatement le temps d'attente, le graphique et son alerte, sans avoir à
+    // retrouver la ligne dans la liste du parc) et tag par attraction (une
+    // nouvelle notif remplace la précédente). Plusieurs -> page du parc, qui les
+    // regroupe toutes, et tag digest commun.
     const single = userAlerts.length === 1 ? userAlerts[0] : null;
     const payload: PushPayload = {
       title: msg.title,
       body: msg.body,
-      url: `/${locale}/park/${(single ?? userAlerts[0]).parkIdentifier}`,
+      url: single
+        ? `/${locale}/park/${single.parkIdentifier}/ride/${rideSlug(
+            single.rideId,
+            single.rideName,
+          )}`
+        : `/${locale}/park/${userAlerts[0].parkIdentifier}`,
       tag: single ? `ride-${single.rideId}` : "qp-alerts-digest",
     };
 
@@ -428,6 +491,7 @@ export async function GET(request: NextRequest) {
     rearmed: toRearm.length,
     expired: toExpire.length,
     purgedAlerts: purgedAlerts.count,
+    purgedRequestLogs,
     prunedSubscriptions: deadEndpoints.length,
     ...reminderSummary,
   });

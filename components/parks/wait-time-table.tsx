@@ -3,13 +3,14 @@
 import { WaitTime, QueueTime } from "@/types/waitTime";
 import { motion } from "motion/react";
 import { getStatusBadge, getTimeSlotBadge, getWaitTimeBadge } from "@/lib/badge";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useWaitTimeChanges } from "@/hooks/useWaitTimeChanges";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useFavorites } from "@/hooks/useFavorites";
-import WaitTrend from "@/components/parks/wait-trend";
 import AttractionDetailDialog from "@/components/parks/attraction-detail/attraction-detail-dialog";
+import { Link } from "@/i18n/routing";
+import { rideSlug } from "@/lib/slug";
 import { cn } from "@/lib/utils";
 import {
   ChevronRight,
@@ -58,19 +59,12 @@ type WaitTimeTableProps = {
   queueTypeLabels?: Record<string, string> | null;
   parkIdentifier: string;
   parkName: string;
-  history?: Record<number, number[]>;
-  // Vrai quand le parc a des horaires connus et qu'il est actuellement fermé.
-  // Dans ce cas on masque les flèches de tendance (les temps sont figés / la
-  // tendance n'a plus de sens). Voir usage plus bas.
-  parkClosed?: boolean;
+  // Lien profond `/park/{parc}/ride/{slug}` : attraction dont le popup doit
+  // s'ouvrir dès l'arrivée sur la page.
+  initialRideId?: number | null;
 };
 
 const STATUS_ORDER = { open: 0, down: 1, closed: 2, maintenance: 3 } as const;
-
-// SUSPENDU : les flèches de tendance dépendent de l'historique, désactivé pour
-// le moment (voir HISTORY_ENABLED dans park-page-client.tsx). On garde tout le
-// code de rendu ci-dessous ; repasser ce drapeau à `true` pour réactiver.
-const TRENDS_ENABLED = false;
 
 // Grille partagée par l'en-tête et chaque ligne pour aligner les colonnes.
 // Le cluster d'action (chevron d'expand + œil) est désormais collé À LA FIN DU
@@ -90,12 +84,12 @@ export default function ParkWaitTimeTable({
   queueTypeLabels,
   parkIdentifier,
   parkName,
-  history = {},
-  parkClosed = false,
+  initialRideId = null,
 }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const tStatus = useTranslations("attractionStatus");
   const tDetail = useTranslations("attractionDetail");
+  const tFav = useTranslations("favorites");
   const { is12Hour } = useTimeFormat();
   const [detailTarget, setDetailTarget] = useState<WaitTime | null>(null);
   const [expandedRides, setExpandedRides] = useState<Set<number>>(new Set());
@@ -123,6 +117,19 @@ export default function ParkWaitTimeTable({
   );
 
   const changedRides = useWaitTimeChanges(waitTimes, 3000);
+
+  // Lien profond : on ouvre le popup une seule fois, à l'arrivée. Sans ce garde,
+  // le rafraîchissement 60 s (nouvelle référence de `waitTimes`) le rouvrirait
+  // indéfiniment après chaque fermeture.
+  const deepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (deepLinkHandled.current || initialRideId == null) return;
+    const target = waitTimes.find((wt) => wt.rideId === initialRideId);
+    // Attraction absente du flux du moment (fermée pour la saison, retirée par
+    // le fournisseur) : on reste simplement sur la page du parc.
+    if (target) setDetailTarget(target);
+    deepLinkHandled.current = true;
+  }, [initialRideId, waitTimes]);
 
   const getQueueLabel = (queueType: string): string => {
     if (queueTypeLabels && queueTypeLabels[queueType]) {
@@ -202,6 +209,16 @@ export default function ParkWaitTimeTable({
   const sortButtonClass =
     "inline-flex items-center gap-1 cursor-pointer select-none hover:text-foreground transition-colors";
 
+  // La liste n'est plus un `<table>` (les lignes sont des blocs animés), mais
+  // elle en garde la SÉMANTIQUE via les rôles ARIA : sans eux, un lecteur
+  // d'écran n'annoncerait qu'une suite de `<div>` sans en-têtes ni colonnes.
+  const ariaSort = (key: SortKey) =>
+    key === sortKey
+      ? sortDir === "asc"
+        ? ("ascending" as const)
+        : ("descending" as const)
+      : ("none" as const);
+
   // Signature de l'ordre courant : on ne (ré)anime le `layout` QUE quand cet
   // ordre change (reclassement réel). Ainsi, déplier une attraction ne déclenche
   // aucune animation de position (plus d'effet d'étirement à l'ouverture).
@@ -217,47 +234,62 @@ export default function ParkWaitTimeTable({
 
   return (
     <div className="w-full text-sm">
-      {/* En-tête (colonnes triables) — hors zone animée. */}
-      <div
-        className={cn(
-          GRID_COLS,
-          "h-10 border-b font-medium text-muted-foreground",
-        )}
-      >
-        <button
-          type="button"
-          onClick={() => handleSort("name")}
-          className={cn(sortButtonClass, "justify-self-start")}
-        >
-          {t("attraction")}
-          {sortIndicator("name")}
-        </button>
-        <button
-          type="button"
-          onClick={() => handleSort("wait")}
-          className={sortButtonClass}
-        >
-          {t("waitTime")}
-          {sortIndicator("wait")}
-        </button>
-        <button
-          type="button"
-          onClick={() => handleSort("status")}
-          className={cn(
-            sortButtonClass,
-            "justify-self-end pe-0 sm:justify-self-start",
-          )}
-        >
-          {t("status")}
-          {sortIndicator("status")}
-        </button>
-      </div>
+      <div role="table" aria-label={t("tableLabel", { park: parkName })}>
+        {/* En-tête (colonnes triables) — hors zone animée. */}
+        <div role="rowgroup">
+          <div
+            role="row"
+            className={cn(
+              GRID_COLS,
+              "h-10 border-b font-medium text-muted-foreground",
+            )}
+          >
+            <div
+              role="columnheader"
+              aria-sort={ariaSort("name")}
+              className="justify-self-start"
+            >
+              <button
+                type="button"
+                onClick={() => handleSort("name")}
+                className={sortButtonClass}
+              >
+                {t("attraction")}
+                {sortIndicator("name")}
+              </button>
+            </div>
+            <div role="columnheader" aria-sort={ariaSort("wait")}>
+              <button
+                type="button"
+                onClick={() => handleSort("wait")}
+                className={sortButtonClass}
+              >
+                {t("waitTime")}
+                {sortIndicator("wait")}
+              </button>
+            </div>
+            <div
+              role="columnheader"
+              aria-sort={ariaSort("status")}
+              className="justify-self-end sm:justify-self-start"
+            >
+              <button
+                type="button"
+                onClick={() => handleSort("status")}
+                className={cn(sortButtonClass, "pe-0")}
+              >
+                {t("status")}
+                {sortIndicator("status")}
+              </button>
+            </div>
+          </div>
+        </div>
 
-      {/* Corps : une ligne standby par attraction (+ files dépliées). Chaque
-          attraction est un bloc `motion` animé en `layout` pour que le reclassement
-          (tri, favoris épinglés, changements de temps) glisse au lieu de sauter. */}
-      {sortedWaitTimes.length > 0 ? (
-        sortedWaitTimes.map((waitTime, index) => {
+        {/* Corps : une ligne standby par attraction (+ files dépliées). Chaque
+            attraction est un bloc `motion` animé en `layout` pour que le
+            reclassement (tri, favoris épinglés, changements de temps) glisse au
+            lieu de sauter. */}
+        {sortedWaitTimes.map((waitTime, index) => {
           // Files triées : standby en premier, puis les autres par ordre alpha.
           const sortedQueues = [...waitTime.queues].sort((a, b) => {
             if (a.type === "standby") return -1;
@@ -269,7 +301,6 @@ export default function ParkWaitTimeTable({
           const otherQueues = sortedQueues.filter((q) => q.type !== "standby");
           const isExpanded = expandedRides.has(waitTime.rideId);
           const hasMultipleQueues = sortedQueues.length > 1;
-          const rideHistory = history[waitTime.rideId];
           // Frontière favoris / reste : séparateur ondulé (sans libellé) inséré
           // avant la 1re attraction classique.
           const isBoundary = hasFavBoundary && index === favCount;
@@ -277,9 +308,14 @@ export default function ParkWaitTimeTable({
           return (
             <Fragment key={waitTime.rideId}>
               {/* Frontière basse des favoris : trait plein nettement plus épais
-                  (3px) pour bien séparer les favoris des autres attractions. */}
-              {isBoundary && <div className="border-t-[3px] border-border" />}
+                  (3px) pour bien séparer les favoris des autres attractions.
+                  Purement visuel -> retiré de l'arbre d'accessibilité, sans quoi
+                  il casserait la structure `table > rowgroup > row`. */}
+              {isBoundary && (
+                <div role="presentation" className="border-t-[3px] border-border" />
+              )}
               <motion.div
+                role="rowgroup"
                 layout="position"
                 layoutDependency={orderKey}
                 transition={{ type: "spring", stiffness: 320, damping: 36 }}
@@ -290,6 +326,7 @@ export default function ParkWaitTimeTable({
                 {/* Ligne standby (toujours affichée) */}
                 {standbyQueue && (
                   <div
+                    role="row"
                     className={cn(
                       GRID_COLS,
                       "group transition-colors duration-500",
@@ -315,11 +352,20 @@ export default function ParkWaitTimeTable({
                         directement le dernier mot → ils restent COLLÉS À LA FIN DU
                         TEXTE, sur la dernière ligne, quel que soit le nombre de
                         lignes. Les icônes sont `inline-flex align-middle`. */}
-                    <div className="min-w-0 py-2 pe-1 font-medium sm:pe-2">
+                    {/* `rowheader` (et non `cell`) : le nom identifie la ligne,
+                        ce qui permet aux lecteurs d'écran de le rappeler en
+                        naviguant d'une colonne à l'autre. */}
+                    <div
+                      role="rowheader"
+                      className="min-w-0 py-2 pe-1 font-medium sm:pe-2"
+                    >
                       {/* Étoile jaune devant les favoris pour les repérer d'un
                           coup d'œil (les favoris sont épinglés en tête). */}
                       {isFavorite(favKey(waitTime.rideId)) && (
-                        <Star className="mr-1 inline-block size-3.5 align-[-2px] fill-amber-400 text-amber-400" />
+                        <Star
+                          aria-label={tFav("myFavorites")}
+                          className="mr-1 inline-block size-3.5 align-[-2px] fill-amber-400 text-amber-400"
+                        />
                       )}
                       <span className="wrap-break-word">
                         {waitTime.rideName}
@@ -331,7 +377,10 @@ export default function ParkWaitTimeTable({
                             e.stopPropagation();
                             toggleExpand(waitTime.rideId);
                           }}
-                          aria-label={t("attraction")}
+                          aria-expanded={isExpanded}
+                          aria-label={t("toggleQueues", {
+                            ride: waitTime.rideName,
+                          })}
                           className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-foreground"
                         >
                           <ChevronRight
@@ -342,10 +391,31 @@ export default function ParkWaitTimeTable({
                           />
                         </button>
                       )}
-                      <button
-                        type="button"
+                      {/* VRAI lien vers le lien profond de l'attraction,
+                          neutralisé au clic simple pour ouvrir le popup
+                          (l'expérience dans la liste ne change pas). L'intérêt
+                          d'un `<a>` plutôt qu'un `<button>` : « copier l'adresse
+                          du lien » permet de partager une attraction, et
+                          Ctrl+clic / clic milieu ouvrent bien un nouvel onglet
+                          qui arrive sur le parc avec ce popup ouvert. */}
+                      <Link
+                        href={`/park/${parkIdentifier}/ride/${rideSlug(
+                          waitTime.rideId,
+                          waitTime.rideName,
+                        )}`}
                         onClick={(e) => {
                           e.stopPropagation();
+                          // Modificateurs enfoncés (nouvel onglet, nouvelle
+                          // fenêtre) : on laisse le navigateur faire.
+                          if (
+                            e.metaKey ||
+                            e.ctrlKey ||
+                            e.shiftKey ||
+                            e.altKey
+                          ) {
+                            return;
+                          }
+                          e.preventDefault();
                           setDetailTarget(waitTime);
                         }}
                         aria-label={tDetail("openFor", {
@@ -354,51 +424,20 @@ export default function ParkWaitTimeTable({
                         className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-primary"
                       >
                         <Eye className="size-3.5" />
-                      </button>
+                      </Link>
                     </div>
-                    <div className="py-2">
-                      {(() => {
-                        const showTrend =
-                          TRENDS_ENABLED &&
-                          !parkClosed &&
-                          !standbyQueue.timeSlot &&
-                          standbyQueue.status === "open" &&
-                          standbyQueue.waitTime >= 0;
-                        if (standbyQueue.timeSlot) {
-                          return getTimeSlotBadge(
-                            standbyQueue.timeSlot,
-                            is12Hour,
-                          );
-                        }
-                        if (!showTrend) {
-                          // Indispo / fermé : badge à sa largeur naturelle, pas de flèche.
-                          return getWaitTimeBadge(
+                    <div role="cell" className="py-2">
+                      {standbyQueue.timeSlot
+                        ? getTimeSlotBadge(standbyQueue.timeSlot, is12Hour)
+                        : getWaitTimeBadge(
                             standbyQueue.waitTime,
                             unavailableLabel,
-                          );
-                        }
-                        // Badge dans une boîte à largeur minimale (min-w-14) pour
-                        // que les flèches d'une ligne à l'autre repartent du même x
-                        // (colonne alignée). C'est un *minimum* : les badges 1–2
-                        // chiffres collent la flèche, « +90 min » élargit juste sa
-                        // boîte au lieu de déborder.
-                        return (
-                          <div className="flex items-center gap-1">
-                            <span className="inline-flex min-w-14">
-                              {getWaitTimeBadge(
-                                standbyQueue.waitTime,
-                                unavailableLabel,
-                              )}
-                            </span>
-                            <WaitTrend
-                              history={rideHistory ?? []}
-                              current={standbyQueue.waitTime}
-                            />
-                          </div>
-                        );
-                      })()}
+                          )}
                     </div>
-                    <div className="flex justify-end py-2 pe-0 sm:block">
+                    <div
+                      role="cell"
+                      className="flex justify-end py-2 pe-0 sm:block"
+                    >
                       {getStatusBadge(standbyQueue.status, statusLabels)}
                     </div>
                   </div>
@@ -409,6 +448,7 @@ export default function ParkWaitTimeTable({
                   otherQueues.map((queue) => (
                     <div
                       key={`${waitTime.rideId}-${queue.type}`}
+                      role="row"
                       className={cn(
                         GRID_COLS,
                         "border-t transition-colors duration-500",
@@ -416,7 +456,10 @@ export default function ParkWaitTimeTable({
                           "bg-accent",
                       )}
                     >
-                      <div className="flex items-center gap-1 py-2 pe-2 ps-6 font-medium text-muted-foreground">
+                      <div
+                        role="rowheader"
+                        className="flex items-center gap-1 py-2 pe-2 ps-6 font-medium text-muted-foreground"
+                      >
                         <CornerDownRight className="size-3.5" />
                         <span>{getQueueLabel(queue.type)}</span>
                         {QUEUE_TYPE_MAP[queue.type] &&
@@ -425,12 +468,15 @@ export default function ParkWaitTimeTable({
                             return <Icon className="size-3.5" />;
                           })()}
                       </div>
-                      <div className="py-2">
+                      <div role="cell" className="py-2">
                         {queue.timeSlot
                           ? getTimeSlotBadge(queue.timeSlot, is12Hour)
                           : getWaitTimeBadge(queue.waitTime, unavailableLabel)}
                       </div>
-                      <div className="flex justify-end py-2 pe-0 sm:block">
+                      <div
+                        role="cell"
+                        className="flex justify-end py-2 pe-0 sm:block"
+                      >
                         {getStatusBadge(queue.status, statusLabels)}
                       </div>
                     </div>
@@ -438,8 +484,12 @@ export default function ParkWaitTimeTable({
               </motion.div>
             </Fragment>
           );
-        })
-      ) : (
+        })}
+      </div>
+
+      {/* Message d'absence de données : HORS du `role="table"`, qui n'accepte
+          que des lignes. */}
+      {sortedWaitTimes.length === 0 && (
         <div className="py-4 text-center text-muted-foreground">
           {t("noWaitTimes")}
         </div>

@@ -3,25 +3,26 @@
 import { Card } from "@/components/ui/card";
 import { AlertCircle, Clock, Drama, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { getParkStatus } from "@/lib/utils";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
-import { usePageVisibility } from "@/hooks/usePageVisibility";
 import ParkWaitTimeTable from "./wait-time-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ParkLiveData } from "@/types/api";
 import ParkShowTimeTable from "./show-time-table";
 
 type MainCardProps = {
   park: ParkLiveData;
-  history?: Record<number, number[]>;
   onRefresh?: () => Promise<void>;
+  // Lien profond vers une attraction : force l'onglet « temps d'attente » et
+  // demande à la table d'ouvrir le popup correspondant.
+  initialRideId?: number | null;
 };
 
 export default function MainCard({
   park,
-  history = {},
   onRefresh,
+  initialRideId = null,
 }: MainCardProps) {
   const [activeTab, setActiveTab] = useState<string>("");
   const t = useTranslations("waitTimeTable");
@@ -29,32 +30,11 @@ export default function MainCard({
   const tShows = useTranslations("shows");
   const tNoData = useTranslations("noData");
 
-  const {
-    timeSinceLastUpdate,
-    handleRefresh,
-    startIntervals,
-    clearIntervals,
-  } = useAutoRefresh(park.lastUpdate, onRefresh, 60000);
-
-  usePageVisibility(
+  // La mise en pause quand l'onglet est caché (et le rattrapage au retour) est
+  // gérée par le hook lui-même.
+  const { timeSinceLastUpdate } = useAutoRefresh(
     park.lastUpdate,
-    () => {
-      const lastUpdateTime = new Date(park.lastUpdate).getTime();
-      const currentTime = Date.now();
-      const timeSinceUpdate = currentTime - lastUpdateTime;
-
-      if (timeSinceUpdate > 60 * 1000) {
-        handleRefresh();
-      }
-
-      const calculateRemainingSeconds = () => {
-        const targetTime = lastUpdateTime + 60 * 1000;
-        const remainingMs = targetTime - Date.now();
-        return Math.ceil(remainingMs / 1000);
-      };
-      startIntervals(calculateRemainingSeconds);
-    },
-    clearIntervals,
+    onRefresh,
     60000,
   );
 
@@ -63,21 +43,26 @@ export default function MainCard({
   const showTabs = hasWaitTimes && hasShows;
   const parkDate = park.openingHours?.[0]?.date ?? null;
 
-  // Parc « fermé » = on a des horaires pour le jour mais l'heure courante est
-  // hors de ces plages. Dans ce cas les flèches de tendance n'ont plus de sens
-  // (temps figés) et on les masque. En revanche, si aucun horaire n'est connu
-  // (statut « unknown » — souvent une simple erreur de récupération), on garde
-  // tout pour ne pas dégrader l'expérience.
-  const parkClosed = getParkStatus(park.openingHours) === "closed";
+  // `?tab=shows` : utilisé par les rappels de spectacles, qui doivent ouvrir la
+  // page directement sur l'onglet concerné et non sur les temps d'attente.
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
 
   useEffect(() => {
     if (showTabs) {
-      if (hasShows && !hasWaitTimes) {
+      // Un lien profond vers une attraction l'emporte sur tout le reste : le
+      // popup est dans l'onglet des temps d'attente.
+      if (initialRideId != null) {
+        setActiveTab("wait-times");
+      } else if (requestedTab === "shows" || (hasShows && !hasWaitTimes)) {
         setActiveTab("show-times");
       } else {
         setActiveTab("wait-times");
       }
     }
+    // Onglet initial uniquement : changer d'onglet à la main ne doit pas être
+    // écrasé par un rendu ultérieur.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <Card className="w-full rounded-4xl p-2.5 sm:p-4 gap-0 pb-0">
@@ -121,8 +106,7 @@ export default function MainCard({
               queueTypeLabels={park.queueTypeLabels}
               parkIdentifier={park.identifier}
               parkName={park.name}
-              history={history}
-              parkClosed={parkClosed}
+              initialRideId={initialRideId}
             />
           </TabsContent>
           <TabsContent value="show-times">
@@ -141,8 +125,7 @@ export default function MainCard({
           queueTypeLabels={park.queueTypeLabels}
           parkIdentifier={park.identifier}
           parkName={park.name}
-          history={history}
-          parkClosed={parkClosed}
+          initialRideId={initialRideId}
         />
       ) : hasShows ? (
         <ParkShowTimeTable
