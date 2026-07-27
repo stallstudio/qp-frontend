@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
 import { getCategoryLabel, getSubcategoryLabel } from "@/lib/report-config";
 
 interface DiscordEmbed {
@@ -25,6 +27,9 @@ async function sendReportDiscordNotification(params: {
   subcategory: string;
   details: string;
   email: string;
+  // Vrai si l'e-mail provient du compte connecté (et non d'une saisie libre) :
+  // information utile au support pour savoir à qui il répond réellement.
+  fromAccount: boolean;
   locale: string;
   ipAddress: string;
   userAgent: string | null;
@@ -40,6 +45,7 @@ async function sendReportDiscordNotification(params: {
     subcategory,
     details,
     email,
+    fromAccount,
     locale,
     ipAddress,
     userAgent,
@@ -71,7 +77,7 @@ async function sendReportDiscordNotification(params: {
         inline: false,
       },
       {
-        name: "Email",
+        name: fromAccount ? "Email (compte)" : "Email",
         value: `\`${email}\``,
         inline: true,
       },
@@ -103,6 +109,13 @@ async function sendReportDiscordNotification(params: {
   }
 }
 
+// Plafond par IP : un signalement légitime est un acte rare et réfléchi. Cinq
+// par heure laisse largement la place à quelqu'un qui remonte plusieurs
+// anomalies d'affilée, tout en rendant inutile une boucle de spam (qui
+// remplirait la table `reports` ET noierait le webhook Discord).
+const REPORT_LIMIT = 5;
+const REPORT_WINDOW_MS = 60 * 60_000;
+
 export async function POST(request: Request) {
   const ipAddress =
     request.headers.get("x-forwarded-for")?.split(",")[0] ??
@@ -112,15 +125,50 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { parkIdentifier, category, subcategory, details, email, locale } =
-      body;
+    const {
+      parkIdentifier,
+      category,
+      subcategory,
+      details,
+      email,
+      locale,
+      website,
+    } = body;
+
+    // Honeypot : `website` est un champ invisible que seul un robot remplit. On
+    // répond 200 (et non 400) pour ne pas lui apprendre qu'il a été repéré.
+    if (typeof website === "string" && website.trim() !== "") {
+      return NextResponse.json({ success: true });
+    }
+
+    const limit = rateLimit(
+      `report:${ipAddress}`,
+      REPORT_LIMIT,
+      REPORT_WINDOW_MS,
+    );
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limit.retryAfter) },
+        },
+      );
+    }
+
+    // Utilisateur connecté : l'e-mail vient de la SESSION, jamais du corps de la
+    // requête (le client ne l'envoie plus, et on ne lui ferait pas confiance).
+    const session = await auth();
+    const accountEmail = session?.user?.email?.trim() || null;
+    const effectiveEmail =
+      accountEmail ?? (typeof email === "string" ? email.trim() : "");
 
     if (
       !parkIdentifier ||
       !category ||
       !subcategory ||
       !details?.trim() ||
-      !email?.trim()
+      !effectiveEmail
     ) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -131,7 +179,7 @@ export async function POST(request: Request) {
     const prisma = getPrisma();
 
     const trimmedDetails = details.trim();
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = effectiveEmail.toLowerCase();
     const normalizedLocale = locale || "en";
 
     await prisma.report.create({
@@ -153,6 +201,7 @@ export async function POST(request: Request) {
       subcategory,
       details: trimmedDetails,
       email: normalizedEmail,
+      fromAccount: accountEmail !== null,
       locale: normalizedLocale,
       ipAddress,
       userAgent,
