@@ -153,6 +153,22 @@ Conséquences assumées, à ne pas « corriger » :
 - L'ouverture du popup est gardée par un `useRef` : sans lui, le
   rafraîchissement 60 s rouvrirait le popup après chaque fermeture.
 
+**⚠️ L'œil de la liste est un `<a>` qui ne navigue pas** (clic simple →
+`preventDefault` + popup ; Ctrl/⌘/clic milieu → vrai lien). Deux conséquences
+contre-intuitives, déjà traitées dans `wait-time-table.tsx` :
+
+- `prefetch={false}` **obligatoire** : il y a un lien par attraction et la route
+  est `force-dynamic`, donc chaque préchargement re-rend la page complète du parc
+  côté serveur. Sans ça, arriver sur un parc en déclenchait des dizaines.
+- **NextTopLoader** (`app/layout.tsx`) pose un écouteur de clic sur `document`
+  qui **ne teste pas `defaultPrevented`** : il démarrait sa barre sur un clic qui
+  ne navigue pas, et rien ne venait jamais la terminer (barre + rond qui tournent
+  à l'infini). Neutralisé par `e.nativeEvent.stopImmediatePropagation()` — un
+  `stopPropagation` React ne suffit pas, React est branché sur le **même nœud** —
+  doublé d'un `target="_self"` (la librairie ignore les ancres qui en portent un),
+  pour ne dépendre ni de l'ordre d'enregistrement des écouteurs ni des détails de
+  la librairie. **Même précaution pour tout futur `<a>` au clic annulé.**
+
 ### Parcs populaires
 
 Calculés dans `api/parks/route.ts` : `apiRequestLog.groupBy(parkId)` sur les
@@ -241,8 +257,17 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
 > **L'œil est un VRAI lien** (`<Link>` vers `/park/{parc}/ride/{slug}`) dont le
 > clic simple est neutralisé pour ouvrir le popup. Ne pas le repasser en
 > `<button>` : c'est ce qui rend une attraction partageable (« copier l'adresse
-> du lien ») et fait fonctionner Ctrl+clic / clic milieu. Le chargement de
-> l'historique vit dans `hooks/useRideHistory.ts`.
+> du lien ») et fait fonctionner Ctrl+clic / clic milieu. Voir les **deux pièges**
+> (préchargement, NextTopLoader) dans « Liens profonds attraction ». Le
+> chargement de l'historique vit dans `hooks/useRideHistory.ts`.
+
+> **Nom + icônes, jamais séparés** : le nom de l'attraction est découpé en
+> « début » + « dernier mot », et ce dernier mot est rendu dans le même
+> `whitespace-nowrap` que le chevron et l'œil. Sur mobile, les icônes se
+> retrouvaient sinon **seules sur une ligne**, sans texte. Quand la place manque,
+> c'est donc le dernier mot qui part à la ligne avec elles. Garde-fou : au-delà
+> de 18 caractères, le dernier mot ne serait plus sécable et déborderait de la
+> colonne → on repasse au flux normal.
 
 > **Terminologie** : côté produit/UI on parle d'**alertes** (« créer une
 > alerte », namespace i18n `alerts`, modèles `Alert`/`AlertHistory`, routes
@@ -400,10 +425,10 @@ lancer build/tsc ici ; se fier à la revue manuelle (le repo compile côté user
 - Contenu i18n sous le namespace `about` dans `fr.json` + `en.json` (fallback EN
   pour les autres langues).
 - **Footer** (`components/ui/footer.tsx`) : rangée de boutons dans l'ordre
-  **compte, À propos, langue, thème**. Le compte = `components/ui/footer-auth.tsx`
+  **thème, compte, langue | À propos**. Le compte = `components/ui/footer-auth.tsx`
   (client) : connecté → lien `/profile` (avatar + « Profil ») ; sinon → bouton
-  d'auth ouvrant `AuthDialog`. Le « | » ne sépare plus que les **catégories**
-  (compte/nav vs préférences).
+  d'auth ouvrant `AuthDialog`. Le « | » sépare les **réglages** (thème, compte,
+  langue) de la **navigation** (À propos).
 
 ## Comptes utilisateurs (ajout 2026-07) — **optionnel**
 
@@ -466,10 +491,40 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
   `name`/`description`/raccourcis, `lang`/`start_url` cohérents). Le
   `<link rel="manifest">` est posé par `generateMetadata` du layout
   (`manifest: /${locale}/manifest.webmanifest`). Seuls fr+en traduits (repli EN).
+- **Icônes PWA — `purpose: "any"` uniquement, jamais `any maskable`** : le logo
+  est un **disque** corail sur fond transparent. Le fourre-tout `any maskable`
+  laissait Android lui appliquer son masque (cercle, squircle, goutte), rognant
+  le disque et bouchant les coins en blanc — une icône `maskable` doit être
+  opaque bord à bord avec son contenu dans le cercle de sécurité à 80 %. Choix
+  assumé : on reste sur le PNG transparent, qui s'intègre mieux qu'un fond plein
+  rogné. `theme_color`/`background_color` = **`#0b0b0e`** et non du blanc : le
+  `background_color` peint l'écran de démarrage **derrière le logo corail**, un
+  fond clair (a fortiori corail) le rendait invisible. La spec n'y accepte qu'une
+  couleur unie, pas de dégradé.
+- ⚠️ **`public/apple-touch-icon.png` doit être OPAQUE** : iOS compose la
+  transparence sur du **noir**, pas sur du blanc — le logo atterrissait dans un
+  carré noir sur l'écran d'accueil. Il porte donc un dégradé diagonal
+  `#c75138 → #640606`, repris des couleurs **échantillonnées dans le logo** (le
+  corail du disque assombri d'un cran vers le rouge du wagon). Le corail pur est
+  volontairement écarté : c'est la couleur du disque, un fond corail le rend
+  invisible. Logo à 88 % (le masque iOS rogne peu, pas de zone de sécurité à 80 %
+  comme Android). Régénération : `node scripts/generate-apple-icon.mjs`.
+  ⚠️ iOS ne sait PAS servir deux icônes selon le mode clair/sombre pour une page
+  web (`media` est ignoré sur `apple-touch-icon`, les variantes d'iOS 18 passent
+  par l'`Assets.xcassets` d'une app native) : ce fond unique doit tenir sur les
+  deux, d'où le choix d'un fond sombre.
 - **Préférences — concurrence** : `PATCH /api/user/preferences` fait un **seul
   `upsert`** avec **retry** sur l'erreur MariaDB « Record has changed since last
   read » (déclenchée par des changements de langue rapprochés qui enchaînent les
   requêtes). Le dernier écrit gagne.
+- **Graphique — axe des heures** : le pas entre deux graduations est **calculé**
+  (1/2/3/4/6/12 h, au plus 5 intervalles) et l'axe est en `interval={0}`, donc
+  recharts affiche exactement les graduations fournies. Une graduation par heure
+  ne tient pas dans la largeur du popup : avec `preserveStartEnd` + `minTickGap`,
+  recharts parcourait la liste **en partant de la fin** et masquait
+  l'avant-dernière heure pleine, seule, au milieu d'une suite régulière (on lisait
+  10:00 … 15:00 puis 17:00). Marges d'un pas côté ouverture et d'un demi-pas côté
+  fermeture, pour qu'aucune graduation ne vienne se coller aux bornes.
 - **Graphique — barres d'indispo** : `wait-time-chart.tsx` colore les plages sans
   temps réel (rouge fermé/maintenance, orange en panne, **gris = indisponible**) ;
   au survol, tooltip du statut (le gris affiche `attractionStatus.unavailable`).
