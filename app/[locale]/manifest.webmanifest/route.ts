@@ -34,21 +34,32 @@ export async function GET(
     display: "standalone",
     orientation: "portrait-primary",
     categories: ["travel", "entertainment", "lifestyle", "utilities"],
-    theme_color: "#ffffff",
-    background_color: "#ffffff",
+    // Sombre plutôt que blanc. `background_color` = fond de l'écran de démarrage
+    // au lancement de l'app installée : le logo étant un disque CORAIL, un fond
+    // clair (a fortiori corail) le rendait invisible. Sur un fond quasi noir il
+    // ressort au maximum, et c'est raccord avec le thème sombre du site.
+    // La spec n'accepte qu'une couleur unie ici — pas de dégradé possible.
+    theme_color: "#0b0b0e",
+    background_color: "#0b0b0e",
+    // Uniquement `purpose: "any"` : le logo tel quel, fond transparent. Pas
+    // d'icône `maskable` — elle imposerait un fond plein rogné par le masque du
+    // lanceur, alors qu'un disque sur fond transparent s'intègre mieux.
+    // ⚠️ Ne PAS remettre `purpose: "any maskable"` : ce fourre-tout laissait
+    // Android appliquer son masque au logo transparent, rognant le disque et
+    // bouchant les coins en blanc.
     icons: [
       { src: "/favicon.ico", sizes: "any", type: "image/x-icon" },
       {
         src: "/web-app-manifest-192x192.png",
         sizes: "192x192",
         type: "image/png",
-        purpose: "any maskable",
+        purpose: "any",
       },
       {
         src: "/web-app-manifest-512x512.png",
         sizes: "512x512",
         type: "image/png",
-        purpose: "any maskable",
+        purpose: "any",
       },
     ],
     shortcuts: [
