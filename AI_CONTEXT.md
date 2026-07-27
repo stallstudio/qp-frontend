@@ -2,7 +2,7 @@
 
 > Fiche de contexte pour l'assistant IA. But : comprendre le projet sans relire
 > tout le code. À maintenir à jour quand l'architecture change.
-> Dernière mise à jour : 2026-07-20.
+> Dernière mise à jour : 2026-07-27.
 
 ## En un mot
 
@@ -31,14 +31,14 @@ Frontend **Queue Park** (https://queue-park.com) : site public affichant les
 app/
   [locale]/
     layout.tsx        # NextIntlClientProvider + TimeFormatProvider + metadata
-    page.tsx          # Accueil (client) : header, recherche, favoris, populaires, liste
+    page.tsx          # Accueil (SERVEUR) -> components/home/home-page-client.tsx
     about/page.tsx    # Page À propos (server -> AboutPageClient) [AJOUTÉE]
     park/[parkIdentifier]/  # Page d'un parc
+      ride/[rideSlug]/      # Lien profond : page du parc + popup ouvert [AJOUTÉ]
   api/
-    parks/route.ts              # GET liste des parcs + parcs populaires
-    park/[parkId]/route.ts      # GET données live d'un parc (waitTimes, shows, horaires)
-    park/[parkId]/history/route.ts # GET historique du jour (pour sparklines/tendances)
-    report/route.ts             # POST signalement de problème
+    parks/route.ts              # GET liste des parcs + populaires (refresh client)
+    park/[parkId]/route.ts      # GET données live d'un parc (refresh client)
+    report/route.ts             # POST signalement de problème (rate-limité + honeypot)
   globals.css        # Thème Tailwind v4, animations (shine, border-beam, etc.)
 components/
   home/              # header (hero scroll-shrink), popular-parks, favorite-parks, parks-list, search
@@ -71,10 +71,87 @@ types/               # api.ts, waitTime.ts, show.ts, openingHour.ts, park.ts, gr
 ## Flux de données
 
 1. Le **worker** remplit la base (parcs, rides, wait_times, shows, opening_hours…).
-2. Les **routes API** du frontend lisent cette base via Prisma (`lib/prisma.ts`
-   → `getPrisma()`), pas d'appel HTTP au worker.
-3. Les **composants clients** (`page.tsx`, `park-page-client.tsx`) appellent ces
-   routes via `axios` et gèrent l'auto-refresh (~60 s).
+2. La **couche métier** lit cette base via Prisma (`lib/prisma.ts` →
+   `getPrisma()`), pas d'appel HTTP au worker :
+   - `lib/park-live-data.ts` → `getParkIdentity()` / `buildParkLiveData()`
+   - `lib/parks-list.ts` → `getParksWithHours()` / `getHomeData()`
+3. **Premier affichage = rendu serveur** (2026-07-27). `app/[locale]/page.tsx` et
+   `park/[parkIdentifier]/page.tsx` sont des composants SERVEUR qui appellent
+   directement cette couche et passent les données en props. Le HTML servi
+   contient donc les temps d'attente — auparavant les deux pages étaient des
+   composants clients qui affichaient un squelette puis appelaient leur propre
+   API (invisible pour les moteurs de recherche, et un aller-retour réseau de
+   plus avant le premier contenu).
+4. Les **routes API** (`/api/parks`, `/api/park/[parkId]`) partagent EXACTEMENT
+   la même couche métier et ne servent plus qu'au **rafraîchissement client**
+   (~60 s via `useAutoRefresh`). ⚠️ Toute évolution de la forme des données se
+   fait dans `lib/`, jamais dans une route seule.
+
+> ⚠️ **Les deux pages sont en `dynamic = "force-dynamic"`** : les temps d'attente
+> et le classement des populaires sont vivants. La mise en cache se fait au
+> niveau de la couche métier (liste des parcs mémorisée 5 min), pas de la page.
+
+### Journal des consultations (`lib/api-request-log.ts`)
+
+`api_request_logs` alimente le classement des « parcs populaires » (agrégation
+sur 2 h). Deux règles, toutes deux corrigées le 2026-07-27 :
+
+- **`logParkRequest()` n'est jamais attendu** (fire-and-forget, retour `void`
+  pour empêcher un `await` par réflexe). L'écriture était auparavant `await`ée
+  avant la réponse, sur *chaque* requête, donc à chaque rafraîchissement de
+  chaque onglet.
+- Le rendu serveur de la page parc journalise via **`after()`** (Next), donc
+  après l'envoi de la réponse. Sans ça, seuls les rafraîchissements auraient été
+  comptés et le classement se serait vidé de ses premières visites.
+- **`purgeOldRequestLogs()`** (appelée par le cron des alertes, au plus une fois
+  par heure, par lots de 10 000) applique une rétention de 7 jours
+  (`API_LOG_RETENTION_DAYS`). La table grossissait sans limite alors que le
+  `groupBy` de l'accueil ne regarde que 2 h — c'est ce qui aurait fini par
+  ralentir la page d'accueil.
+
+### Données structurées (`components/parks/park-json-ld.tsx`)
+
+JSON-LD `AmusementPark` (nom, adresse, géo, image, horaires du jour convertis au
+fuseau du parc) + `BreadcrumbList`, injecté par le composant serveur de la page
+parc. Les types d'horaires `private_event` / `sold_out` sont exclus. **Ne baliser
+que ce qui est visible sur la page** — Google traite le reste comme du spam.
+
+### URL du site (`lib/site-url.ts`)
+
+`getSiteUrl()` est la **source unique** de l'URL publique : `SITE_URL`, sinon
+`AUTH_URL` (déjà positionnée par environnement), sinon la production. Elle était
+codée en dur dans le layout, `robots.ts`, `sitemap.ts` et les JSON-LD, si bien
+que sur `dev.queue-park.com` toutes les URL canoniques désignaient la production.
+`isProductionSite()` conditionne l'indexation : **hors production, `robots.txt`
+interdit tout** (un environnement de test indexable concurrence la production sur
+ses propres pages).
+
+### Liens profonds attraction (`app/[locale]/park/[id]/ride/[rideSlug]/`)
+
+⚠️ **Ce n'est PAS une page attraction.** Cette route rend la page du parc à
+l'identique, avec le popup de l'attraction déjà ouvert (`initialRideId` traverse
+`ParkPageClient` → `MainCard` → `wait-time-table`). Elle sert aux notifications
+push et au partage d'un lien d'attraction. Les vraies pages d'attraction sont sur
+**Thrills**, pas ici — ne pas y reconstruire une page dédiée.
+
+Conséquences assumées, à ne pas « corriger » :
+
+- **canonical → la page du parc** et **absence du sitemap** : le contenu servi
+  est celui du parc, indexer une URL par attraction soumettrait des dizaines
+  d'adresses au contenu identique.
+- Seuls le `<title>`, la description et la vignette OG sont propres à
+  l'attraction — c'est ce que voit le destinataire d'un lien partagé.
+- **L'identifiant d'URL est l'id numérique**, le nom n'est qu'un habillage
+  (`lib/slug.ts`). Les noms d'attractions changent (le worker fait un UPDATE sur
+  la ligne existante via la clé `parkId:externalId`, l'id est donc stable) :
+  toute ancienne forme d'URL résout encore et **redirige en 301** vers la forme
+  courante, donc aucune notification ni aucun lien partagé ne tombe dans le vide.
+- L'attraction est résolue depuis la table `rides`, pas depuis les temps
+  d'attente du moment : une attraction fermée pour la saison ne doit pas
+  transformer un lien en 404. Si elle est absente du flux, la page du parc
+  s'affiche sans popup.
+- L'ouverture du popup est gardée par un `useRef` : sans lui, le
+  rafraîchissement 60 s rouvrirait le popup après chaque fermeture.
 
 ### Parcs populaires
 
@@ -104,41 +181,45 @@ C'est donc un classement par **nombre de consultations récentes**.
   pointillée, **à venir** = `bg-primary/20` bordure pleine. Une **légende**
   (namespace i18n `shows.legend*`) est rendue sous la timeline sur chaque page.
 
-### Flèches de tendance (`components/parks/wait-trend.tsx`)
+### Historique & tendances — SUPPRIMÉS (2026-07-27)
 
-Compare le temps courant à la 1re valeur d'une fenêtre des 5 derniers points
-d'historique connus (ignore les `-1`). Seuil `±5 min` : hausse (rouge ↗),
-baisse (verte ↘), stable (gris →). Rien si indispo ou historique vide.
+Les flèches de tendance et l'historique global du jour, suspendus depuis
+plusieurs semaines derrière les drapeaux `HISTORY_ENABLED`/`TRENDS_ENABLED`, ont
+été **supprimés** : `components/parks/wait-trend.tsx`, la route
+`/api/park/[parkId]/history`, la prop `history` traversant
+`park-page-client → main-card → wait-time-table`, la prop `parkClosed`, la
+vignette « tendance » du guide À propos et sa démo. Git conserve tout
+l'historique si le besoin revient. ⚠️ À ne pas confondre avec le graphique du
+popup attraction, qui lui est **actif** (route dédiée `ride/[rideId]/history`).
 
-> **⏸️ SUSPENDU (temporaire).** L'historique et les tendances sont désactivés
-> pour l'instant, **code conservé** (rien de supprimé), réactivables via des
-> drapeaux :
-> - `HISTORY_ENABLED` dans `park-page-client.tsx` : à `false`, `fetchHistory`
->   sort immédiatement → **aucune requête** vers `/api/park/:id/history`.
-> - `TRENDS_ENABLED` dans `wait-time-table.tsx` : à `false`, les flèches ne sont
->   jamais rendues (le composant `WaitTrend` et son branchement restent en
->   place). Le prop `parkClosed` (masquage quand parc fermé) reste, en aval.
-> - La carte « tendance » du **guide À propos** (`about-page-client.tsx`) est
->   **commentée** (imports `TrendingUp` / `TrendDemo` commentés aussi).
->
-> Pour réactiver : repasser les deux drapeaux à `true` et décommenter la
-> vignette + ses imports.
+### Favoris (`components/providers/favorites-provider.tsx`)
 
-### Favoris (`hooks/useFavorites.ts`)
+**Le compte est la SOURCE DE VÉRITÉ.** Les favoris exigent une session ; il n'y a
+donc aucun état « hors ligne » à réconcilier. `localStorage` n'est plus qu'un
+**cache d'affichage** (`lib/favorites-storage.ts` :
+`readFavoritesCache`/`writeFavoritesCache`/`clearFavoritesCache`) qui évite que
+les étoiles clignotent au chargement.
 
-`localStorage` = source de travail (même connecté ; le `UserProvider` miroite avec
-le compte). Namespaces isolés (`"parks"`, `"rides"`). SSR-safe (hydratation après
-montage), synchronisé entre onglets (`storage`) et instances (`qp-fav-change`).
+- `FavoritesProvider` (monté dans `[locale]/layout.tsx`, **sous**
+  `AuthGateProvider`) détient l'état, hydrate depuis le cache au montage puis
+  depuis `GET /api/user/favorites`, purge tout à la déconnexion et se synchronise
+  entre onglets via `storage`.
+- `hooks/useFavorites.ts` n'est plus qu'un **sélecteur** sur ce contexte.
+  `toggle` est **asynchrone** (`Promise<boolean>`) : `false` = non connecté (le
+  garde a ouvert le modal) ou plafond atteint.
+- Mutations **ciblées** : `PATCH /api/user/favorites` `{ namespace, key, value }`
+  applique un seul favori et renvoie l'état complet, qui devient l'état affiché.
+  Fini le `PUT` global debouncé et les fenêtres temporelles `mirroringUntil…` :
+  deux onglets ne peuvent plus s'écraser mutuellement.
+- **Plafond parcs = 20** (`PARK_FAVORITES_LIMIT`), désormais **vérifié côté
+  serveur** (409) et plus seulement dans l'UI.
+- La route `POST /api/user/favorites/merge` a été supprimée : rien ne pouvant
+  être favorisé sans compte, il n'y avait plus rien à fusionner.
+
 Les favoris sont épinglés en tête des listes. Dans `wait-time-table.tsx`, le
 groupe des favoris est encadré de deux séparateurs ondulés ambrés
 (`components/ui/wavy-divider.tsx`), celui du haut portant le libellé
 `favorites.yours` (« Vos favoris »).
-
-- **Plafond parcs = 20** (`PARK_FAVORITES_LIMIT`/`FAV_LIMITS` dans
-  `lib/favorites-storage.ts`). `useFavorites().toggle` renvoie un **booléen**
-  (`false` si l'ajout dépasse le plafond ; le retrait n'est jamais bloqué) — les
-  boutons étoile parc (`park-card.tsx`, `parks/header.tsx`) affichent un toast si
-  refusé. La synchro descendante depuis le compte n'est **pas** tronquée.
 - **Accueil** (`components/home/favorite-parks.tsx`) : au-delà de 9 parcs (= 3×3),
   8 cartes + tuile « Voir les N autres » ; le reste se **déroule vers le bas**
   (hauteur 0→auto via `motion`) et se replie vers le haut.
@@ -156,6 +237,12 @@ liste). Le popup empile des sections : image (placeholder `CameraOff`), favoris
 (`favorite-section.tsx`), alertes (`alert-section.tsx`), graphique
 du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
 (`thrills-section.tsx`, lien placeholder vers thrills.world).
+
+> **L'œil est un VRAI lien** (`<Link>` vers `/park/{parc}/ride/{slug}`) dont le
+> clic simple est neutralisé pour ouvrir le popup. Ne pas le repasser en
+> `<button>` : c'est ce qui rend une attraction partageable (« copier l'adresse
+> du lien ») et fait fonctionner Ctrl+clic / clic milieu. Le chargement de
+> l'historique vit dans `hooks/useRideHistory.ts`.
 
 > **Terminologie** : côté produit/UI on parle d'**alertes** (« créer une
 > alerte », namespace i18n `alerts`, modèles `Alert`/`AlertHistory`, routes
@@ -189,23 +276,35 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   `lib/wait-times-history.ts` reconstruit la courbe **observée** du jour depuis
   `wait_times`. La **prévision** n'est plus calculée ici : elle est
   **précalculée par le worker** et stockée (`ride_forecast`) ; la route la LIT
-  (si `date` = jour logique courant, sinon périmée -> pas de prévision). `meta`
-  expose `confidenceLevel` (low/medium/high) + `preOpening`.
-  `components/parks/attraction-detail/chart-section.tsx` affiche un **badge de
-  fiabilité** + une note « mise à jour à l'ouverture » si `preOpening`.
-  (`lib/wait-times-forecast.ts` ne sert plus qu'aux helpers de reconstruction
-  `sampleDaySeries`/`sliceIntervalsForWindow`.)
+  (si `date` = jour logique courant, sinon périmée -> pas de prévision).
+  `lib/wait-times-series.ts` (ex-`wait-times-forecast.ts`, élagué : le moteur de
+  prévision vivait encore ici en double du worker) ne porte plus que la
+  reconstruction de la courbe observée — `sampleDaySeries` /
+  `sliceIntervalsForWindow`.
+- **Pas de badge de « fiabilité ».** `meta.confidenceLevel` est toujours renvoyé
+  par l'API mais **n'est plus affiché** : il mesure le VOLUME de données
+  disponibles (`0.2 + 0.08 × jours + 0.3 × recouvrement`), pas la justesse réelle
+  de la prévision, qui n'est jamais confrontée à l'observé — ce qui rendait
+  « Fiabilité : haute » systématique dès 7 jours d'historique. `chart-section.tsx`
+  affiche à la place une mention neutre **« Estimation »** avec un tooltip
+  explicatif (`attractionDetail.estimateLabel`/`estimateTooltip`), plus la note
+  « mise à jour à l'ouverture » si `preOpening`. Pour en refaire un indicateur
+  honnête : mesurer l'erreur réelle (prévision de la veille vs observé) et
+  afficher une marge chiffrée (« ± 8 min ») sous forme de bande sur la courbe.
 
 ### Météo (ajout 2026-07)
 
 - La route `GET /api/park/[parkId]` renvoie `weather: ParkWeather | null` :
   météo **courante** (`currentTemp`/`currentWeatherCode`, lus sur la ligne
-  `Park`, remplis par le worker) + min/max du jour (`daily_weather`, conservés
-  mais **non affichés**). `null` si ni courant ni prévision.
+  `Park`, remplis par le worker) + min/max du jour (`daily_weather`).
+  `null` si ni courant ni prévision.
 - Affichage : `components/parks/park-weather.tsx` dans le header du parc
   (sur la ligne de l'heure locale, séparé par un tiret) — icône `lucide` mappée
   par `lib/weather-icon.ts` (code WMO courant → icône + clé i18n) + **température
-  actuelle uniquement** `22°C`. Le header masque le bloc si `currentTemp` absent.
+  actuelle** `22°C`. Le header masque le bloc si `currentTemp` absent. Les
+  **min/max du jour** apparaissent au survol (et au tact) via `ClickableTooltip`,
+  pas en permanence : l'en-tête porte déjà statut, horaires et heure locale.
+  Sans min/max connus, aucun tooltip n'est monté.
 - **Unité °C/°F** : préférence utilisateur calquée sur le format horaire.
   `TemperatureUnitProvider` (localStorage `temperature-unit-preference`, défaut
   **celsius**), hook `useTemperatureUnit`, conversion via `lib/temperature.ts`.
@@ -215,6 +314,58 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   `TemperatureUnit`), synchro compte via `UserProvider` comme les autres prefs.
 - i18n : namespace `weather` (fr+en, repli EN). Schema : modèle `DailyWeather`
   + `city`/`latitude`/`longitude` sur `Park` (⚠️ `prisma generate` requis).
+
+## Robustesse & SEO (2026-07-27)
+
+- **Fichiers spéciaux Next** : `app/robots.ts`, `app/[locale]/not-found.tsx`,
+  `app/[locale]/error.tsx`, `app/not-found.tsx` (hors locale, textes en dur) et
+  `app/global-error.tsx` (styles en ligne : aucun provider disponible). Écran
+  partagé `components/ui/status-screen.tsx`, i18n `errorPages`.
+- **Vrai 404** : `park/[parkIdentifier]/page.tsx` appelle `notFound()` si le parc
+  n'existe pas (au lieu d'un 200 + redirection client). La recherche du parc
+  passe par un `cache()` React partagé avec `generateMetadata` (1 seule requête).
+- **OG image dynamique** : `park/[parkIdentifier]/opengraph-image.tsx`
+  (`revalidate = 900`) rend nom du parc + attente moyenne + attraction la plus
+  demandée ; `ride/[rideSlug]/opengraph-image.tsx` rend le nom de l'attraction et
+  son attente du moment. Ne PAS remettre de clé `images` dans `generateMetadata`,
+  sinon elle écrase la vignette générée. i18n `og`.
+- **Icônes** : `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`
+  vivent dans `public/` (dans `app/` elles n'étaient pas servies — seul
+  `favicon.ico` y est une convention Next).
+- **Cache** : `sitemap.ts` en `revalidate = 3600` ; `/api/parks` mémorise
+  parcs + horaires 5 min en mémoire (comme `lib/ip-rules.ts`) et renvoie
+  `s-maxage=60` ; `/api/park/[parkId]` reste en `no-store` **volontairement** (il
+  alimente `apiRequestLog`, base des « parcs populaires »).
+- **Optimiseur d'images** : `IMAGE_ALLOWED_HOSTS` (env, hôtes séparés par des
+  virgules) restreint `remotePatterns` ; vide = permissif (comportement
+  historique). `BUILTIN_IMAGE_HOSTS` dans `next.config.ts` porte les hôtes imposés
+  par le code (avatars Google) : les oublier casserait toutes les photos de
+  profil.
+- **Liens profonds push** : alerte sur UNE attraction →
+  `/{locale}/park/{parc}/ride/{slug}` (parc + popup ouvert) ; plusieurs → page du
+  parc ; rappel de spectacle → page du parc avec `?tab=shows` (lu par
+  `main-card.tsx` pour choisir l'onglet initial).
+- **`/api/report`** : plafond 5/h par IP (`lib/rate-limit.ts`, fenêtre glissante
+  en mémoire) + champ honeypot `website` (réponse 200 silencieuse). L'e-mail d'un
+  utilisateur connecté vient de la **session**, jamais du corps de la requête.
+- **Cron alertes** : verrou en mémoire anti-chevauchement (`acquireRunLock`,
+  abandon après 5 min). Sans lui, un passage lent chevauchait le suivant et la
+  même alerte partait deux fois (on envoie AVANT de désarmer / supprimer).
+- **Auto-refresh** : `hooks/useAutoRefresh.ts` gère lui-même la visibilité de
+  l'onglet (un seul intervalle 1 s, arrêté quand l'onglet est caché, rattrapage
+  au retour). `usePageVisibility` a été supprimé.
+- **⚠️ `Intl` et hydratation** : `Intl.DisplayNames` s'appuie sur les données ICU
+  du runtime, et Node ≠ navigateur (`HK` → « Hong Kong SAR China » côté Node,
+  « Hong Kong » côté Chrome). Depuis que l'accueil est rendu côté serveur, tout
+  appel pendant le rendu d'un composant client provoque une erreur
+  d'hydratation. Le nom de pays est donc résolu **une seule fois côté serveur**
+  (`lib/parks-list.ts` → `ParkList.countryName`) ; `getCountryName` ne doit plus
+  être appelée depuis un composant client. Même piste pour
+  `toLocaleLowerCase()`/`toLocaleDateString()` sans locale explicite : ils
+  dépendent de la locale par défaut du runtime.
+- **Accessibilité** : `wait-time-table.tsx` n'est pas un `<table>` (blocs animés)
+  mais porte les rôles ARIA `table`/`rowgroup`/`row`/`columnheader`/`rowheader`/
+  `cell` + `aria-sort`. Toute nouvelle ligne doit conserver cette structure.
 
 ## Conventions
 
