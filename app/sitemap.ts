@@ -1,11 +1,19 @@
 import { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
 import { getPrisma } from "@/lib/prisma";
+import { getSiteUrl } from "@/lib/site-url";
 
-export const dynamic = "force-dynamic";
+// La liste des parcs bouge quelques fois par mois, pas à chaque requête : sans
+// revalidation, CHAQUE appel régénérait ~1 400 entrées (14 locales × ~100 parcs)
+// et rejouait la requête SQL. On régénère au plus une fois par heure.
+//
+// Les liens profonds `/park/{parc}/ride/{slug}` n'y figurent VOLONTAIREMENT pas :
+// ils servent la page du parc, les déclarer reviendrait à soumettre des dizaines
+// d'URL au contenu identique.
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://queue-park.com";
+  const baseUrl = getSiteUrl();
   const prisma = getPrisma();
 
   const parks = await prisma.park.findMany({
