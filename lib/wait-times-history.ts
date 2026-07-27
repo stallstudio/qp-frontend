@@ -3,14 +3,14 @@
 // = une ligne startTime -> endTime, endTime = null pour l'état courant).
 //
 // Ce module concentre TOUT l'accès Prisma + la gestion du fuseau/horaires ; il
-// alimente le module PUR `lib/wait-times-forecast.ts`. Séparation nette
+// alimente le module PUR `lib/wait-times-series.ts`. Séparation nette
 // données / algorithme.
 
 import { DateTime } from "luxon";
 import { getPrisma } from "@/lib/prisma";
 import { calculateParkDate, getOpeningHoursByParkAndDate } from "@/lib/opening-hours";
-import type { DayIntervals, WaitInterval } from "@/lib/wait-times-forecast";
-import { sliceIntervalsForWindow } from "@/lib/wait-times-forecast";
+import type { DayIntervals, WaitInterval } from "@/lib/wait-times-series";
+import { sliceIntervalsForWindow } from "@/lib/wait-times-series";
 
 const DEFAULT_HISTORY_DAYS = 7;
 
@@ -130,6 +130,13 @@ export async function buildRideHistory(
     close: todayWindow.close,
     intervals: todayIntervals,
   };
+
+  // La prévision étant précalculée par le worker, l'appelant demande souvent
+  // `historyDays: 0` (courbe du jour uniquement). On sort AVANT les deux
+  // requêtes d'historique, qui ne renverraient rien de toute façon.
+  if (historyDays <= 0) {
+    return { timezone, now, date: todayISO, today, history: [] };
+  }
 
   // Jours précédents : une seule requête d'intervalles + une seule requête
   // d'horaires, puis regroupement par jour côté JS.

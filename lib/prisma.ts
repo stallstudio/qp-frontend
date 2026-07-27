@@ -33,14 +33,6 @@ export const getPrisma = (): PrismaClient => {
   return globalForPrisma.prisma;
 };
 
-// Préserver l'instance en développement
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = globalForPrisma.prisma;
-}
-
-export const disconnectDatabase = async (): Promise<void> => {
-  if (globalForPrisma.prisma) {
-    await globalForPrisma.prisma.$disconnect();
-    globalForPrisma.prisma = undefined;
-  }
-};
+// L'instance est déjà mémorisée sur `globalThis` (voir `getPrisma`), ce qui la
+// préserve d'un rechargement à chaud en développement — aucune réaffectation
+// supplémentaire n'est nécessaire.

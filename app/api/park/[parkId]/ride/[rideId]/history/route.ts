@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { isBlacklisted } from "@/lib/ip-rules";
 import { buildRideHistory } from "@/lib/wait-times-history";
-import { sampleDaySeries, type TimedPoint } from "@/lib/wait-times-forecast";
+import { sampleDaySeries, type TimedPoint } from "@/lib/wait-times-series";
 import type { ConfidenceLevel, RideHistoryResponse } from "@/types/rideHistory";
 
 // Cadence d'échantillonnage (min) de la courbe du jour ET de la prévision.

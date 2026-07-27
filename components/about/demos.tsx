@@ -16,7 +16,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { AnimatePresence } from "motion/react";
-import WaitTrend from "@/components/parks/wait-trend";
 import WaitTimeChart from "@/components/parks/wait-time-chart";
 import type { TimedPoint } from "@/types/rideHistory";
 import FavoriteStar from "@/components/ui/favorite-star";
@@ -94,75 +93,6 @@ export function LiveDemo() {
           <span className="font-medium">{r.name}</span>
           {getWaitTimeBadge(waits[r.id])}
         </motion.div>
-      ))}
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Flèches de tendance — Disneyland Paris                                      */
-/* Les temps évoluent en continu et les flèches se recalculent en direct       */
-/* (hausse rouge / stable / baisse verte).                                     */
-/* -------------------------------------------------------------------------- */
-
-const TREND_RIDES = [
-  { id: "btm", name: "Big Thunder Mountain" },
-  { id: "hyperspace", name: "Hyperspace Mountain" },
-  { id: "phantom", name: "Phantom Manor" },
-] as const;
-
-// Chaque attraction monte puis redescend : la flèche passe par les 3 états.
-const TREND_POOLS: Record<string, number[]> = {
-  btm: [20, 25, 30, 40, 45, 40, 30, 35],
-  hyperspace: [35, 30, 25, 20, 15, 15, 25, 45],
-  phantom: [15, 15, 20, 25, 20, 15, 10, 15],
-};
-
-type TrendState = { cur: number; hist: number[] };
-
-export function TrendDemo() {
-  const [state, setState] = useState<Record<string, TrendState>>({
-    btm: { cur: 20, hist: [12, 15, 18] },
-    hyperspace: { cur: 35, hist: [40, 38, 37] },
-    phantom: { cur: 15, hist: [15, 14, 15] },
-  });
-  const cursor = useRef<Record<string, number>>({
-    btm: 0,
-    hyperspace: 0,
-    phantom: 0,
-  });
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setState((prev) => {
-        const next: Record<string, TrendState> = { ...prev };
-        for (const r of TREND_RIDES) {
-          const pool = TREND_POOLS[r.id];
-          cursor.current[r.id] = (cursor.current[r.id] + 1) % pool.length;
-          const cur = pool[cursor.current[r.id]];
-          next[r.id] = {
-            cur,
-            hist: [...prev[r.id].hist.slice(-4), prev[r.id].cur],
-          };
-        }
-        return next;
-      });
-    }, 1800);
-    return () => clearInterval(id);
-  }, []);
-
-  return (
-    <div className="flex flex-col gap-2.5 text-sm">
-      {TREND_RIDES.map((r) => (
-        <div key={r.id} className="flex items-center justify-between gap-2">
-          <span className="font-medium">{r.name}</span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-flex w-16 justify-end">
-              {getWaitTimeBadge(state[r.id].cur)}
-            </span>
-            <WaitTrend history={state[r.id].hist} current={state[r.id].cur} />
-          </span>
-        </div>
       ))}
     </div>
   );
@@ -570,11 +500,9 @@ export function ForecastDemo() {
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-4 border-t-2 border-dashed border-primary/50" />
-          {t("chartForecast")}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-emerald-500" />
-          {t("reliabilityLabel")}: {t("reliability_high")}
+          <span className="underline decoration-dotted underline-offset-2">
+            {t("chartForecast")}
+          </span>
         </span>
       </div>
       <p className="text-center text-[11px] text-muted-foreground/80">

@@ -10,7 +10,6 @@ import {
   Heart,
   Flag,
   Clock,
-  // TrendingUp, // SUSPENDU : carte « tendance » du guide masquée (historique désactivé).
   ListTree,
   Star,
   Search,
@@ -31,7 +30,6 @@ import AboutHeader from "./about-header";
 import Vignette from "./vignette";
 import {
   LiveDemo,
-  // TrendDemo, // SUSPENDU : voir carte « tendance » masquée plus bas.
   QueuesDemo,
   FavoriteDemo,
   StatusDemo,
@@ -151,16 +149,6 @@ export default function AboutPageClient() {
                   demoLabel={demoLabel}
                   demo={<LiveDemo />}
                 />
-                {/* SUSPENDU : carte « tendance » masquée tant que l'historique
-                    est désactivé (voir HISTORY_ENABLED / TRENDS_ENABLED). À
-                    réafficher en même temps que la réactivation des tendances.
-                <Vignette
-                  icon={TrendingUp}
-                  title={tCards("trend.title")}
-                  body={tCards("trend.body")}
-                  demoLabel={demoLabel}
-                  demo={<TrendDemo />}
-                /> */}
                 <Vignette
                   icon={ListTree}
                   title={tCards("queues.title")}

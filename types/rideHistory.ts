@@ -1,4 +1,4 @@
-import type { TimedPoint } from "@/lib/wait-times-forecast";
+import type { TimedPoint } from "@/lib/wait-times-series";
 
 export type { TimedPoint };
 
