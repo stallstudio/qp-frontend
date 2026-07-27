@@ -11,39 +11,35 @@ import { useTranslations } from "next-intl";
 import MainCard from "@/components/parks/main-card";
 import { ParkLiveData } from "@/types/api";
 import ReportProblemDialog from "@/components/parks/report-problem-dialog";
+import { PARK_PAGE_SHELL } from "@/components/parks/page-shell";
 
-// SUSPENDU : la récupération de l'historique du jour (sparklines / tendances)
-// est mise en pause. Le code est conservé et se réactive en repassant ce
-// drapeau à `true`. Voir aussi TRENDS_ENABLED dans wait-time-table.tsx.
-const HISTORY_ENABLED = false;
-
+/**
+ * Partie interactive de la page d'un parc.
+ *
+ * `initialData` vient du composant SERVEUR : la page est donc peinte complète
+ * dès le premier rendu, sans squelette ni aller-retour réseau. Ce composant ne
+ * garde que ce qui doit vivre côté client — le rafraîchissement automatique
+ * (60 s) et la gestion des erreurs réseau qui vont avec.
+ *
+ * `initialData` n'est `null` que si la base était injoignable au moment du
+ * rendu : on retombe alors sur l'ancien comportement (squelette + chargement).
+ */
 export default function ParkPageClient({
   parkIdentifier,
+  initialData,
+  initialRideId = null,
 }: {
   parkIdentifier: string;
+  initialData: ParkLiveData | null;
+  // Lien profond `/park/{parc}/ride/{slug}` : attraction dont le popup doit être
+  // ouvert d'emblée (notification push, lien partagé).
+  initialRideId?: number | null;
 }) {
   const t = useTranslations("errors");
   const router = useRouter();
-  const [parkData, setParkData] = useState<ParkLiveData | null>(null);
-  const [history, setHistory] = useState<Record<number, number[]>>({});
-  const [loading, setLoading] = useState(true);
-  const hasLoadedData = useRef(false);
-
-  const fetchHistory = useCallback(async () => {
-    // Historique suspendu : on ne déclenche plus AUCUNE requête vers
-    // /api/park/:id/history pour le moment. Ancien code conservé ci-dessous,
-    // réactivable via HISTORY_ENABLED.
-    if (!HISTORY_ENABLED) return;
-
-    try {
-      const response = await axios.get<{ data: Record<number, number[]> }>(
-        `/api/park/${parkIdentifier}/history`,
-      );
-      setHistory(response.data.data ?? {});
-    } catch {
-      // L'historique est un bonus : en cas d'échec on masque simplement les sparklines.
-    }
-  }, [parkIdentifier]);
+  const [parkData, setParkData] = useState<ParkLiveData | null>(initialData);
+  const [loading, setLoading] = useState(initialData === null);
+  const hasLoadedData = useRef(initialData !== null);
 
   const fetchParkData = useCallback(
     async (showLoading: boolean) => {
@@ -74,9 +70,14 @@ export default function ParkPageClient({
   );
 
   useEffect(() => {
+    // Données déjà rendues côté serveur : aucun appel au montage. Le premier
+    // rafraîchissement viendra du décompte de `useAutoRefresh`, comme les suivants.
+    if (initialData !== null) return;
     fetchParkData(true);
-    fetchHistory();
-  }, [parkIdentifier, router, fetchParkData, fetchHistory]);
+    // `initialData` n'est lu qu'au montage (il ne change pas pour un même parc) :
+    // le relire ici relancerait un chargement à chaque nouveau rendu serveur.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parkIdentifier, fetchParkData]);
 
   if (loading) {
     return <ParkSkeleton />;
@@ -87,14 +88,14 @@ export default function ParkPageClient({
   }
 
   return (
-    <div className="flex min-h-[123vh] w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-3 sm:px-4 gap-8">
+    <div className={PARK_PAGE_SHELL}>
       <main className="flex-1 flex flex-col gap-1 mt-4">
         <ParkHeader park={parkData} />
         <MainCard
           park={parkData}
-          history={history}
+          initialRideId={initialRideId}
           onRefresh={async () => {
-            await Promise.all([fetchParkData(false), fetchHistory()]);
+            await fetchParkData(false);
           }}
         />
         <div className="flex justify-center mt-4">

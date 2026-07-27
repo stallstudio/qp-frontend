@@ -1,108 +1,41 @@
 import { NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-import { DateTime } from "luxon";
-import { fetchOpeningHoursForParks } from "@/lib/opening-hours";
-import { CoverImage } from "@/types/api";
-import { getWhitelistedIps } from "@/lib/ip-rules";
+import { getHomeData } from "@/lib/parks-list";
+import { DATA_DISCLAIMER } from "@/lib/api-disclaimer";
 
-function normalizeCover(raw: unknown): CoverImage[] {
-  if (!raw || !Array.isArray(raw) || raw.length === 0) return [];
-  return raw.map((item: unknown) => {
-    if (typeof item === "string") return { url: item, credit: null };
-    if (typeof item === "object" && item !== null && "url" in item) {
-      const obj = item as { url: string; credit?: string | null };
-      return { url: obj.url, credit: obj.credit ?? null };
-    }
-    return { url: String(item), credit: null };
-  });
-}
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
+/**
+ * Liste des parcs + parcs populaires.
+ *
+ * Comme pour la route parc, la page d'accueil ne passe plus par ici pour son
+ * PREMIER affichage (son composant serveur appelle `getHomeData` directement) :
+ * cette route sert aux rechargements côté client.
+ */
 export async function GET() {
   try {
-    const prisma = getPrisma();
+    const { parks, popularParks } = await getHomeData();
 
-    const twoHoursAgo = DateTime.now().minus({ hours: 2 }).toJSDate();
-
-    const whitelistedIps = await getWhitelistedIps();
-
-    const [parks, popularParksData] = await Promise.all([
-      prisma.park.findMany({
-        where: {
-          display: true,
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Parks list retrieved successfully",
+        disclaimer: DATA_DISCLAIMER,
+        data: { parks, popularParks },
+        counts: {
+          parks: parks.length,
+          popularParks: popularParks.length,
         },
-        select: {
-          id: true,
-          identifier: true,
-          name: true,
-          timezone: true,
-          cover: true,
-          badge: true,
-          country: true,
-          group: {
-            select: {
-              name: true,
-            },
-          },
-        },
-        orderBy: { name: "asc" },
-      }),
-      prisma.apiRequestLog.groupBy({
-        by: ["parkId"],
-        where: {
-          createdAt: {
-            gte: twoHoursAgo,
-          },
-          statusCode: 200,
-          parkId: {
-            not: null,
-          },
-          ...(whitelistedIps.length > 0 && {
-            ipAddress: { notIn: whitelistedIps },
-          }),
-        },
-        _count: {
-          parkId: true,
-        },
-        orderBy: {
-          _count: {
-            parkId: "desc",
-          },
-        },
-        take: 8,
-      }),
-    ]);
-
-    const openingHoursByPark = await fetchOpeningHoursForParks(parks);
-
-    const parksWithOpeningHours = parks.map((park) => ({
-      ...park,
-      cover: normalizeCover(park.cover),
-      openingHours: openingHoursByPark.get(park.id) || [],
-    }));
-
-    const displayableIdentifiers = new Set(parks.map((p) => p.identifier));
-
-    const popularParks = popularParksData
-      .map((item) => item.parkId)
-      .filter(
-        (id): id is string => id !== null && displayableIdentifiers.has(id),
-      )
-      .slice(0, 6);
-
-    return NextResponse.json({
-      success: true,
-      message: "Parks list retrieved successfully",
-      disclaimer:
-        "This data is provided by the TWTS (Thrills Wait Times Service) and is strictly intended for authorized use only. Access and usage are exclusively permitted for thrills.world and queue-park.com. Any unauthorized access, use, reproduction, or distribution is strictly prohibited. If you wish to use or integrate this data, you must obtain prior written permission by contacting contact@queue-park.com. Unauthorized usage may result in immediate actions including permanent IP banning and revocation of access without notice. We actively monitor access to ensure compliance. By accessing this data, you agree to these terms.",
-      data: {
-        parks: parksWithOpeningHours,
-        popularParks,
       },
-      counts: {
-        parks: parksWithOpeningHours.length,
-        popularParks: popularParks.length,
+      {
+        headers: {
+          // Réponse identique pour tout le monde : un cache partagé peut la
+          // servir 1 min, et continuer à la servir 5 min de plus pendant qu'il
+          // la rafraîchit en arrière-plan.
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
       },
-    });
+    );
   } catch (error) {
     console.error("Error fetching parks list", error);
     return NextResponse.json(
