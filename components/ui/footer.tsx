@@ -59,10 +59,9 @@ export default function Footer() {
           <CookieSettingsButton />
         </div>
       </div>
-      {/* Ordre : compte, À propos | langue, thème. Le « | » ne sert plus qu'à
-          séparer les catégories (compte/navigation vs préférences). */}
+      {/* Ordre : À propos | compte, langue, thème. Le « | » sépare la navigation
+          des réglages (compte/langue/thème). */}
       <div className="flex flex-wrap items-center justify-center gap-2 order-1 sm:order-2 sm:justify-end">
-        <FooterAuth />
         <Link
           href="/about"
           className={buttonVariants({ variant: "secondary" })}
@@ -71,6 +70,7 @@ export default function Footer() {
           {tAbout("metaTitle")}
         </Link>
         <span className="text-muted-foreground">|</span>
+        <FooterAuth />
         <LanguageSwitcher />
         <AnimatedThemeToggler
           className={buttonVariants({ variant: "secondary" })}
