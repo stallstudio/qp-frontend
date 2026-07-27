@@ -2,7 +2,7 @@
 
 import { DateTime } from "luxon";
 import { cn, getLuxonFormat } from "@/lib/utils";
-import { ClickableTooltip } from "./clickable-tooltip";
+import { ClickableTooltip } from "@/components/ui/clickable-tooltip";
 import {
   ScheduleWithPosition,
   PIXEL_PER_MINUTE,
