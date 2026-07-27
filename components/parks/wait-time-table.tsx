@@ -305,6 +305,25 @@ export default function ParkWaitTimeTable({
           // avant la 1re attraction classique.
           const isBoundary = hasFavBoundary && index === favCount;
 
+          // Nom découpé en « début » + « dernier mot ». Le dernier mot et le
+          // cluster d'icônes (chevron + œil) sont rendus dans un même bloc
+          // INSÉCABLE : les icônes ne peuvent donc plus se retrouver seules sur
+          // une ligne (retour mobile). Quand la place manque, c'est le dernier
+          // mot QUI PART À LA LIGNE AVEC elles — « Voltron Nevera powered by » /
+          // « Rimac ⌄ 👁 » plutôt que « … powered by Rimac » / « ⌄ 👁 ».
+          //
+          // Garde-fou : un dernier mot très long resterait insécable et
+          // déborderait de la colonne (étroite sur mobile). Au-delà de 18
+          // caractères on repasse donc au flux normal ; seules les icônes
+          // restent alors solidaires entre elles.
+          const lastSpace = waitTime.rideName.lastIndexOf(" ");
+          const candidateTail = waitTime.rideName.slice(lastSpace + 1);
+          const glued = candidateTail.length <= 18;
+          const nameHead = glued
+            ? waitTime.rideName.slice(0, lastSpace + 1)
+            : waitTime.rideName;
+          const nameTail = glued ? candidateTail : "";
+
           return (
             <Fragment key={waitTime.rideId}>
               {/* Frontière basse des favoris : trait plein nettement plus épais
@@ -367,64 +386,90 @@ export default function ParkWaitTimeTable({
                           className="mr-1 inline-block size-3.5 align-[-2px] fill-amber-400 text-amber-400"
                         />
                       )}
-                      <span className="wrap-break-word">
-                        {waitTime.rideName}
-                      </span>
-                      {hasMultipleQueues && (
-                        <button
-                          type="button"
+                      <span className="wrap-break-word">{nameHead}</span>
+                      {/* Dernier mot + icônes : bloc insécable (voir plus haut). */}
+                      <span className="whitespace-nowrap">
+                        {nameTail}
+                        {hasMultipleQueues && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpand(waitTime.rideId);
+                            }}
+                            aria-expanded={isExpanded}
+                            aria-label={t("toggleQueues", {
+                              ride: waitTime.rideName,
+                            })}
+                            className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            <ChevronRight
+                              className={cn(
+                                "size-4 transition-transform duration-200",
+                                isExpanded && "rotate-90",
+                              )}
+                            />
+                          </button>
+                        )}
+                        {/* VRAI lien vers le lien profond de l'attraction,
+                            neutralisé au clic simple pour ouvrir le popup
+                            (l'expérience dans la liste ne change pas). L'intérêt
+                            d'un `<a>` plutôt qu'un `<button>` : « copier l'adresse
+                            du lien » permet de partager une attraction, et
+                            Ctrl+clic / clic milieu ouvrent bien un nouvel onglet
+                            qui arrive sur le parc avec ce popup ouvert. */}
+                        <Link
+                          href={`/park/${parkIdentifier}/ride/${rideSlug(
+                            waitTime.rideId,
+                            waitTime.rideName,
+                          )}`}
+                          // Ce lien ne navigue jamais au clic simple : préparer
+                          // la destination serait du gaspillage pur. Et il y en a
+                          // un PAR ATTRACTION — sans ça, arriver sur la page
+                          // déclenchait le préchargement de dizaines d'URL, dont
+                          // chacune re-rend la page complète du parc côté serveur
+                          // (route `force-dynamic`).
+                          prefetch={false}
+                          // `target="_self"` ne change rien au comportement (c'est
+                          // la valeur par défaut) mais sert de garde-fou contre
+                          // NextTopLoader : son écouteur de clic global ne teste
+                          // pas `defaultPrevented`, donc il démarrait sa barre de
+                          // progression sur un clic qui ne navigue pas — et rien
+                          // ne venait jamais la terminer (barre + rond qui
+                          // tournent indéfiniment). Il ignore les ancres portant
+                          // un `target`. `stopImmediatePropagation` ci-dessous
+                          // l'arrête déjà avant ; les deux se complètent, l'un ne
+                          // dépendant pas de l'ordre d'enregistrement des
+                          // écouteurs, l'autre pas des détails de la librairie.
+                          target="_self"
                           onClick={(e) => {
                             e.stopPropagation();
-                            toggleExpand(waitTime.rideId);
+                            // Modificateurs enfoncés (nouvel onglet, nouvelle
+                            // fenêtre) : on laisse le navigateur faire.
+                            if (
+                              e.metaKey ||
+                              e.ctrlKey ||
+                              e.shiftKey ||
+                              e.altKey
+                            ) {
+                              return;
+                            }
+                            e.preventDefault();
+                            // Empêche l'événement natif d'atteindre les écouteurs
+                            // de navigation posés sur `document` (NextTopLoader) :
+                            // `stopPropagation` ne suffit pas, React y est branché
+                            // sur le MÊME nœud.
+                            e.nativeEvent.stopImmediatePropagation();
+                            setDetailTarget(waitTime);
                           }}
-                          aria-expanded={isExpanded}
-                          aria-label={t("toggleQueues", {
+                          aria-label={tDetail("openFor", {
                             ride: waitTime.rideName,
                           })}
-                          className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-foreground"
+                          className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-primary"
                         >
-                          <ChevronRight
-                            className={cn(
-                              "size-4 transition-transform duration-200",
-                              isExpanded && "rotate-90",
-                            )}
-                          />
-                        </button>
-                      )}
-                      {/* VRAI lien vers le lien profond de l'attraction,
-                          neutralisé au clic simple pour ouvrir le popup
-                          (l'expérience dans la liste ne change pas). L'intérêt
-                          d'un `<a>` plutôt qu'un `<button>` : « copier l'adresse
-                          du lien » permet de partager une attraction, et
-                          Ctrl+clic / clic milieu ouvrent bien un nouvel onglet
-                          qui arrive sur le parc avec ce popup ouvert. */}
-                      <Link
-                        href={`/park/${parkIdentifier}/ride/${rideSlug(
-                          waitTime.rideId,
-                          waitTime.rideName,
-                        )}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Modificateurs enfoncés (nouvel onglet, nouvelle
-                          // fenêtre) : on laisse le navigateur faire.
-                          if (
-                            e.metaKey ||
-                            e.ctrlKey ||
-                            e.shiftKey ||
-                            e.altKey
-                          ) {
-                            return;
-                          }
-                          e.preventDefault();
-                          setDetailTarget(waitTime);
-                        }}
-                        aria-label={tDetail("openFor", {
-                          ride: waitTime.rideName,
-                        })}
-                        className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-primary"
-                      >
-                        <Eye className="size-3.5" />
-                      </Link>
+                          <Eye className="size-3.5" />
+                        </Link>
+                      </span>
                     </div>
                     <div role="cell" className="py-2">
                       {standbyQueue.timeSlot
