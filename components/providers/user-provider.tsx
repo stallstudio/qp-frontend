@@ -15,11 +15,6 @@ import { useLocale } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useTemperatureUnit } from "@/hooks/useTemperatureUnit";
-import {
-  FAV_SYNC_EVENT,
-  readFavorites,
-  writeFavorites,
-} from "@/lib/favorites-storage";
 import type { UserProfile } from "@/types/user";
 import type { UserPreferences } from "@/lib/user-preferences";
 
@@ -50,21 +45,6 @@ const UserContext = createContext<UserContextValue | undefined>(undefined);
 // page (ou à la déconnexion), garantissant UNE réconciliation par session.
 const reconciledUsers = new Set<string>();
 
-const currentFavorites = () => ({
-  parks: [...readFavorites("parks")],
-  rides: [...readFavorites("rides")],
-  shows: [...readFavorites("shows")],
-});
-
-// Vide les favoris locaux (tous namespaces) : appelé à la déconnexion pour ne pas
-// laisser fuiter des favoris d'une session précédente vers un autre compte à la
-// prochaine fusion (les favoris nécessitent désormais un compte).
-const clearLocalFavorites = () => {
-  writeFavorites("parks", new Set());
-  writeFavorites("rides", new Set());
-  writeFavorites("shows", new Set());
-};
-
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const { theme, setTheme } = useTheme();
@@ -76,13 +56,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
-  // Fenêtre pendant laquelle les écritures de favoris viennent de la synchro
-  // (miroir compte -> local) et ne doivent PAS être repoussées vers le compte.
-  const mirroringUntilRef = useRef(0);
-  const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Idem pour les préférences : après l'application des prefs du compte, le
-  // temps que thème/locale se propagent (next-themes est asynchrone), on ne
-  // repousse pas de diff transitoire vers le compte.
+  // Après l'application des préférences du compte, le temps que thème/locale se
+  // propagent (next-themes est asynchrone), on ne repousse pas vers le compte un
+  // écart purement transitoire.
   const prefsMirroringUntilRef = useRef(0);
 
   // Applique des préférences de compte à l'UI locale (thème / format / langue).
@@ -107,15 +83,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Réconciliation à la connexion : fusion des favoris + application/adoption des
-  // préférences, une seule fois par utilisateur.
+  // Réconciliation des préférences à la connexion, une seule fois par
+  // utilisateur. Les favoris ne passent PLUS par ici : ils appartiennent au
+  // `FavoritesProvider`, qui les lit directement depuis le compte.
   useEffect(() => {
     if (status !== "authenticated") {
       if (status === "unauthenticated") {
         reconciledUsers.clear();
         setProfile(null);
-        // Favoris = compte : on ne garde aucun favori local hors session.
-        clearLocalFavorites();
       }
       return;
     }
@@ -123,23 +98,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     (async () => {
-      // 1. Fusion des favoris locaux avec le compte (union, rien n'est perdu).
-      const local = currentFavorites();
-      try {
-        const { data: merged } = await axios.post<{
-          parks: string[];
-          rides: string[];
-          shows: string[];
-        }>("/api/user/favorites/merge", local);
-        mirroringUntilRef.current = Date.now() + 1500;
-        writeFavorites("parks", new Set(merged.parks));
-        writeFavorites("rides", new Set(merged.rides));
-        writeFavorites("shows", new Set(merged.shows ?? []));
-      } catch {
-        // on continue même si la fusion échoue : le compte reste utilisable.
-      }
-
-      // 2. Chargement du profil (préférences + compteurs à jour post-fusion).
+      // Chargement du profil (préférences + compteurs).
       let loaded: UserProfile | null = null;
       try {
         const { data } = await axios.get<UserProfile>("/api/user/me");
@@ -190,31 +149,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     // changement d'état d'authentification, pas à chaque changement de thème/locale.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
-
-  // Synchro continue : tout (dé)favori local est repoussé vers le compte (PUT
-  // complet, debouncé). Ignoré pendant la fenêtre de miroir (post-fusion).
-  useEffect(() => {
-    if (status !== "authenticated") return;
-
-    const schedulePush = () => {
-      if (Date.now() < mirroringUntilRef.current) return;
-      if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-      pushTimerRef.current = setTimeout(() => {
-        axios
-          .put("/api/user/favorites", currentFavorites())
-          .then(() => refresh())
-          .catch(() => {});
-      }, 800);
-    };
-
-    window.addEventListener(FAV_SYNC_EVENT, schedulePush);
-    window.addEventListener("storage", schedulePush);
-    return () => {
-      window.removeEventListener(FAV_SYNC_EVENT, schedulePush);
-      window.removeEventListener("storage", schedulePush);
-      if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-    };
-  }, [status, refresh]);
 
   // Persiste un patch de préférences (compte + état local du profil), SANS le
   // réappliquer à l'UI : utilisé quand le changement vient déjà de l'UI.

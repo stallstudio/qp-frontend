@@ -1,5 +1,14 @@
 import type { FavoriteType } from "@/lib/generated/user-client";
 import type { FavoritesPayload } from "@/types/user";
+import type { FavNamespace } from "@/lib/favorites-storage";
+
+// Correspondance entre les namespaces côté client ("parks") et le type stocké en
+// base ("park"). Une seule table de vérité pour les deux sens.
+export const NAMESPACE_TO_TYPE: Record<FavNamespace, FavoriteType> = {
+  parks: "park",
+  rides: "ride",
+  shows: "show",
+};
 
 // Regroupe les favoris (lignes { type, key }) en { parks: [...], rides: [...] },
 // le format attendu par le front (miroir des namespaces localStorage).
@@ -17,27 +26,3 @@ export function groupFavorites(
   return { parks, rides, shows };
 }
 
-// Normalise un payload réseau en liste de favoris typés, en dédoublonnant.
-export function flattenFavorites(
-  input: unknown,
-): { type: FavoriteType; key: string }[] {
-  const data = (input ?? {}) as Record<string, unknown>;
-  const out: { type: FavoriteType; key: string }[] = [];
-  const seen = new Set<string>();
-
-  const collect = (type: FavoriteType, values: unknown) => {
-    if (!Array.isArray(values)) return;
-    for (const value of values) {
-      if (typeof value !== "string" || !value) continue;
-      const dedupeKey = `${type}:${value}`;
-      if (seen.has(dedupeKey)) continue;
-      seen.add(dedupeKey);
-      out.push({ type, key: value });
-    }
-  };
-
-  collect("park", data.parks);
-  collect("ride", data.rides);
-  collect("show", data.shows);
-  return out;
-}

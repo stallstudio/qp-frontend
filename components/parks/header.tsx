@@ -40,10 +40,10 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
   const { isAuthenticated } = useUser();
   const isFav = isFavorite(park.identifier);
 
-  const handleToggle = () => {
+  const handleToggle = async () => {
     // false = non connecté (modal déjà ouvert par le garde) ou plafond atteint :
     // on ne montre le toast « plafond » que si connecté.
-    if (!toggle(park.identifier) && isAuthenticated) {
+    if (!(await toggle(park.identifier)) && isAuthenticated) {
       toast.error(tFav("parkLimit", { max: PARK_FAVORITES_LIMIT }));
     }
   };

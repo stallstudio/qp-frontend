@@ -8,7 +8,9 @@ import { TemperatureUnitProvider } from "@/components/providers/temperature-unit
 import AuthSessionProvider from "@/components/providers/session-provider";
 import { UserProvider } from "@/components/providers/user-provider";
 import { AuthGateProvider } from "@/components/providers/auth-gate-provider";
+import { FavoritesProvider } from "@/components/providers/favorites-provider";
 import CookieConsent from "@/components/cookie-consent";
+import { getSiteUrl } from "@/lib/site-url";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -39,14 +41,14 @@ export async function generateMetadata({
       address: false,
       telephone: false,
     },
-    metadataBase: new URL("https://queue-park.com"),
+    metadataBase: new URL(getSiteUrl()),
     alternates: {
       canonical: "/",
     },
     openGraph: {
       type: "website",
       locale: locale,
-      url: "https://queue-park.com",
+      url: getSiteUrl(),
       title: t("ogTitle"),
       description: t("ogDescription"),
       siteName: "Queue Park",
@@ -109,9 +111,14 @@ export default async function LocaleLayout({
         <TemperatureUnitProvider>
           <AuthSessionProvider>
             <UserProvider>
+              {/* AuthGateProvider avant FavoritesProvider : `useFavorites`
+                  s'appuie sur le garde pour ouvrir le modal de connexion quand
+                  un visiteur non connecté clique sur une étoile. */}
               <AuthGateProvider>
-                {children}
-                <CookieConsent />
+                <FavoritesProvider>
+                  {children}
+                  <CookieConsent />
+                </FavoritesProvider>
               </AuthGateProvider>
             </UserProvider>
           </AuthSessionProvider>
