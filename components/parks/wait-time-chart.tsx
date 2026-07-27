@@ -137,13 +137,31 @@ export default function WaitTimeChart({
     const yTicks: number[] = [];
     for (let v = 0; v <= yMax; v += step) yTicks.push(v);
 
-    // Axe X : ouverture, fermeture, et toutes les heures pleines entre les deux.
+    // Axe X : ouverture, fermeture, et heures pleines entre les deux — avec un
+    // PAS adapté à l'amplitude de la journée.
+    //
+    // Une graduation par heure ne tient pas dans la largeur du popup : recharts
+    // en supprimait alors une « au milieu » (on lisait 10:00 … 15:00 puis 17:00,
+    // sans 16:00), ce qui donnait un axe irrégulier sans raison visible. On
+    // choisit donc nous-mêmes un pas qui laisse au plus 5 intervalles, et l'axe
+    // affiche EXACTEMENT ces graduations (`interval={0}` côté XAxis).
+    const HOUR_MS = 3_600_000;
+    const spanHours = (xMax - xMin) / HOUR_MS;
+    const stepHours = [1, 2, 3, 4, 6, 12].find((s) => spanHours / s <= 5) ?? 24;
+    const stepMs = stepHours * HOUR_MS;
+
     const xTicks: number[] = [xMin];
-    let cur = DateTime.fromMillis(xMin).setZone(timezone).startOf("hour");
-    if (cur.toMillis() <= xMin) cur = cur.plus({ hours: 1 });
-    while (cur.toMillis() < xMax) {
+    // On démarre à la première heure pleine située à AU MOINS un pas de
+    // l'ouverture, et on s'arrête un DEMI-pas avant la fermeture : sans ces deux
+    // marges, la première (ou la dernière) graduation viendrait se coller à
+    // l'heure d'ouverture/fermeture avec un écart deux fois plus petit que les
+    // autres — le défaut qu'on cherche justement à corriger.
+    let cur = DateTime.fromMillis(xMin + stepMs).setZone(timezone).startOf("hour");
+    if (cur.toMillis() < xMin + stepMs) cur = cur.plus({ hours: 1 });
+    const lastAllowed = xMax - stepMs / 2;
+    while (cur.toMillis() <= lastAllowed) {
       xTicks.push(cur.toMillis());
-      cur = cur.plus({ hours: 1 });
+      cur = cur.plus({ hours: stepHours });
     }
     xTicks.push(xMax);
 
@@ -290,7 +308,13 @@ export default function WaitTimeChart({
 
   return (
     <ChartContainer config={chartConfig} className="aspect-auto h-[180px] w-full">
-      <LineChart data={data} margin={{ top: 18, right: 10, left: -10, bottom: 0 }}>
+      {/* Marge droite = demi-libellé d'heure. La graduation de FERMETURE est
+          posée pile sur le bord droit de la zone de tracé : sans cette marge,
+          recharts en rogne la moitié (« 22:00 » s'affichait « 22:0 »). C'est
+          `interval="preserveStartEnd"` qui recalait auparavant la dernière
+          graduation vers l'intérieur ; `interval={0}` (voir XAxis) ne le fait
+          pas, c'est donc à la marge de réserver la place. */}
+      <LineChart data={data} margin={{ top: 18, right: 20, left: -10, bottom: 0 }}>
         <CartesianGrid vertical horizontal strokeDasharray="3 3" />
         <XAxis
           dataKey="t"
@@ -298,12 +322,17 @@ export default function WaitTimeChart({
           scale="time"
           domain={[xMin, xMax]}
           ticks={xTicks}
-          interval="preserveStartEnd"
+          // `interval={0}` : on affiche toutes les graduations calculées, sans
+          // laisser recharts en supprimer une pour cause de chevauchement. C'est
+          // le calcul du pas ci-dessus qui garantit qu'elles tiennent (au plus
+          // 6 libellés) ; avec `preserveStartEnd` + `minTickGap`, recharts
+          // parcourait la liste EN PARTANT DE LA FIN et masquait l'avant-dernière
+          // heure pleine, seule, au milieu d'une suite par ailleurs régulière.
+          interval={0}
           tickFormatter={fmtTime}
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          minTickGap={24}
         />
         <YAxis
           domain={[0, yMax]}
