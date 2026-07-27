@@ -29,7 +29,9 @@
     "rain": "Rain",
     "snow": "Snow",
     "thunderstorm": "Thunderstorm",
-    "unknown": "Weather unavailable"
+    "unknown": "Weather unavailable",
+    "min": "Min",
+    "max": "Max"
   },
   "parkPage": {
     "backHome": "Back home",
@@ -123,6 +125,8 @@
     "waitTime": "Wait Time",
     "status": "Status",
     "noWaitTimes": "No wait times available for now",
+    "tableLabel": "Wait times — {park}",
+    "toggleQueues": "Show the other queues for {ride}",
     "refreshingIn": "Refreshing in",
     "second": "second",
     "seconds": "seconds",
@@ -143,6 +147,23 @@
     "parkNotFound": "The park you are looking for does not exist",
     "networkErrorRefresh": "A network error occurred while refreshing data",
     "networkError": "A network error occurred. Please check your connection and try again."
+  },
+  "og": {
+    "subtitle": "Live wait times",
+    "averageWait": "Average wait",
+    "openAttractions": "Open attractions",
+    "busiest": "Busiest right now",
+    "noLiveData": "No live wait times right now",
+    "currentWait": "Current wait",
+    "rideClosed": "Attraction currently closed"
+  },
+  "errorPages": {
+    "notFoundTitle": "Page not found",
+    "notFoundMessage": "This page doesn't exist or has been moved. The park you were looking for may have changed address.",
+    "errorTitle": "Something went wrong",
+    "errorMessage": "We couldn't display this page. Try again in a moment — if the problem persists, write to us at contact@queue-park.com.",
+    "retry": "Try again",
+    "backHome": "Back home"
   },
   "about": {
     "metaTitle": "About",
@@ -186,13 +207,6 @@
         "title": "Live wait times",
         "body": "Every attraction shows its current wait time, refreshed automatically about once a minute — no need to reload the page, Queue Park does it for you every 60 seconds. The color sets the tone instantly: green for quick, orange for medium, red for long."
       },
-      "trend": {
-        "title": "Trends",
-        "body": "Next to a wait time, a small arrow shows the queue's recent direction: it points up (red) when the wait is growing, down (green) when it's shrinking, and stays flat (grey) when it's stable. Handy to decide whether to go now… or wait a bit.",
-        "up": "Rising",
-        "stable": "Stable",
-        "down": "Falling"
-      },
       "queues": {
         "title": "Queue types",
         "body": "A single attraction may offer several queues: the classic line (Standby), plus options like Fastlane (skip-the-line), Single Rider (lone seat) or Virtual Queue. Tap an attraction that offers several to unfold all of its times."
@@ -206,7 +220,7 @@
       },
       "forecast": {
         "title": "Wait-time forecast",
-        "body": "On an attraction's page, the solid line traces the wait time observed since opening, and the dashed line estimates the rest of the day up to closing. It draws on comparable past days (weekday or weekend, holidays, weather). A reliability level — low, medium or high — tells you how much to trust it."
+        "body": "On an attraction's page, the solid line traces the wait time observed since opening, and the dashed line estimates the rest of the day up to closing. It draws on comparable past days (weekday or weekend, holidays, weather). It is an estimate, not a promise: a breakdown or a rain shower is enough to prove it wrong."
       },
       "search": {
         "title": "Search & random park",
@@ -255,7 +269,8 @@
     "ogDescription": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues and plan your visit with live data.",
     "twitterTitle": "Queue Park - Live Theme Park Wait Times",
     "twitterDescription": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues and plan your visit.",
-    "liveWaitTimes": "Live Wait Times"
+    "liveWaitTimes": "Live Wait Times",
+    "rideDescription": "Live wait time for {ride} at {park}: current queue, today's trend and forecast. Set an alert to be notified when the wait drops."
   },
   "settings": {
     "timeFormat": "Time format",
@@ -294,10 +309,12 @@
     "detailsPlaceholder": "Describe the problem with as much detail as possible so we can analyze and resolve it effectively.",
     "emailLabel": "Your email address",
     "emailDescription": "We will use your email address to keep you informed about the resolution of your report.",
+    "emailAccountNotice": "Your account email address will be sent along with this report, so we can keep you informed about its resolution.",
     "cancel": "Cancel",
     "submit": "Submit Report",
     "success": "Thank you for your report! We will review it.",
     "error": "An error occurred while submitting the report. Please try again.",
+    "rateLimited": "You've sent several reports recently. Please wait a moment before sending another one.",
     "validation": {
       "categoryRequired": "Please select a category",
       "subcategoryRequired": "Please select a subcategory",
@@ -446,10 +463,7 @@
     "alertsUnavailable": "No alert available: this attraction rarely or never shows a wait time.",
     "chartForecastNote": "Rough estimate for the rest of the day.",
     "chartForecastPreOpeningNote": "Estimate based on past days — will update once the park opens.",
-    "reliabilityLabel": "Reliability",
-    "reliability_low": "Low",
-    "reliability_medium": "Medium",
-    "reliability_high": "High",
+    "estimateTooltip": "Estimated from comparable past days. Reality may differ.",
     "installTitle": "Install Queue Park",
     "installIntro": "Alerts require the app installed on your device.",
     "installButton": "Install the app",

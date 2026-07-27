@@ -29,7 +29,9 @@
     "rain": "Pluie",
     "snow": "Neige",
     "thunderstorm": "Orage",
-    "unknown": "Météo indisponible"
+    "unknown": "Météo indisponible",
+    "min": "Min",
+    "max": "Max"
   },
   "parkPage": {
     "backHome": "Retour à l'accueil",
@@ -123,6 +125,8 @@
     "waitTime": "Temps",
     "status": "État",
     "noWaitTimes": "Aucun temps d'attente disponible pour le moment",
+    "tableLabel": "Temps d'attente — {park}",
+    "toggleQueues": "Afficher les autres files de {ride}",
     "refreshingIn": "Actualisation dans",
     "second": "seconde",
     "seconds": "secondes",
@@ -143,6 +147,23 @@
     "parkNotFound": "Le parc que vous recherchez n'existe pas",
     "networkErrorRefresh": "Un problème réseau est survenu lors de l'actualisation des données",
     "networkError": "Une erreur réseau est survenue. Vérifiez votre connexion et réessayez."
+  },
+  "og": {
+    "subtitle": "Temps d'attente en direct",
+    "averageWait": "Attente moyenne",
+    "openAttractions": "Attractions ouvertes",
+    "busiest": "La plus demandée",
+    "noLiveData": "Aucun temps d'attente en direct pour le moment",
+    "currentWait": "Attente actuelle",
+    "rideClosed": "Attraction fermée pour le moment"
+  },
+  "errorPages": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundMessage": "Cette page n'existe pas ou a été déplacée. Le parc que vous cherchiez a peut-être changé d'adresse.",
+    "errorTitle": "Une erreur est survenue",
+    "errorMessage": "Nous n'avons pas réussi à afficher cette page. Réessayez dans un instant — si le problème persiste, écrivez-nous à contact@queue-park.com.",
+    "retry": "Réessayer",
+    "backHome": "Retour à l'accueil"
   },
   "about": {
     "metaTitle": "À propos",
@@ -186,13 +207,6 @@
         "title": "Temps d'attente en direct",
         "body": "Chaque attraction affiche son temps d'attente actuel, mis à jour automatiquement environ toutes les minutes — pas besoin de rafraîchir la page, Queue Park le fait automatiquement pour vous toutes les 60 secondes. La couleur donne le ton en un instant : vert pour rapide, orange pour moyen, rouge pour long."
       },
-      "trend": {
-        "title": "Les tendances",
-        "body": "À côté d'un temps d'attente, une petite flèche indique la direction récente de la file : elle monte (rouge) si l'attente s'allonge, elle descend (verte) si elle se réduit, et reste horizontale (grise) quand c'est stable. Pratique pour décider d'y aller maintenant… ou d'attendre un peu.",
-        "up": "En hausse",
-        "stable": "Stable",
-        "down": "En baisse"
-      },
       "queues": {
         "title": "Les types de files",
         "body": "Une même attraction peut proposer plusieurs files : la file classique (Standby), ainsi que des options comme Fastlane (coupe-file), Single Rider (personne seule) ou Virtual Queue (file virtuelle). Touchez une attraction qui en propose plusieurs pour déplier tous ses temps."
@@ -206,7 +220,7 @@
       },
       "forecast": {
         "title": "Prévision d'affluence",
-        "body": "Sur la fiche d'une attraction, la courbe pleine retrace le temps d'attente observé depuis l'ouverture, et le pointillé une estimation jusqu'à la fermeture. Elle s'appuie sur les journées passées comparables (semaine ou week-end, vacances, météo). Un indice de fiabilité — faible, moyenne ou haute — indique à quel point s'y fier."
+        "body": "Sur la fiche d'une attraction, la courbe pleine retrace le temps d'attente observé depuis l'ouverture, et le pointillé une estimation jusqu'à la fermeture. Elle s'appuie sur les journées passées comparables (semaine ou week-end, vacances, météo). C'est une estimation, pas une promesse : une panne ou une averse suffisent à la démentir."
       },
       "search": {
         "title": "Recherche & parc au hasard",
@@ -255,7 +269,8 @@
     "ogDescription": "Temps d'attente en temps réel pour plus de 100 parcs d'attractions dans le monde. Suivez les files d'attente et planifiez votre visite avec des données en direct.",
     "twitterTitle": "Queue Park - Temps d'attente des parcs en direct",
     "twitterDescription": "Temps d'attente en temps réel pour plus de 100 parcs d'attractions dans le monde. Suivez les files d'attente et planifiez votre visite.",
-    "liveWaitTimes": "Temps d'attente en direct"
+    "liveWaitTimes": "Temps d'attente en direct",
+    "rideDescription": "Temps d'attente en direct de {ride} à {park} : file actuelle, évolution de la journée et prévision. Activez une alerte pour être prévenu quand l'attente baisse."
   },
   "settings": {
     "timeFormat": "Format de l'heure",
@@ -294,10 +309,12 @@
     "detailsPlaceholder": "Décrivez le problème avec le plus de détails possible afin que nous puissions l'analyser et le résoudre au mieux.",
     "emailLabel": "Votre adresse e-mail",
     "emailDescription": "Nous utiliserons votre adresse e-mail pour vous tenir informé de la résolution de votre signalement.",
+    "emailAccountNotice": "L'adresse e-mail de votre compte sera transmise avec ce signalement, afin que nous puissions vous tenir informé de sa résolution.",
     "cancel": "Annuler",
     "submit": "Envoyer le signalement",
     "success": "Merci pour votre signalement ! Nous allons l'analyser.",
     "error": "Une erreur est survenue lors de l'envoi du signalement. Veuillez réessayer.",
+    "rateLimited": "Vous avez envoyé plusieurs signalements récemment. Merci de patienter avant d'en envoyer un nouveau.",
     "validation": {
       "categoryRequired": "Veuillez sélectionner une catégorie",
       "subcategoryRequired": "Veuillez sélectionner une sous-catégorie",
@@ -446,10 +463,7 @@
     "alertsUnavailable": "Aucune alerte possible : cette attraction n'affiche pas ou très rarement de temps d'attente.",
     "chartForecastNote": "Estimation indicative de la fin de journée.",
     "chartForecastPreOpeningNote": "Estimation basée sur les jours précédents — mise à jour à l'ouverture du parc.",
-    "reliabilityLabel": "Fiabilité",
-    "reliability_low": "Faible",
-    "reliability_medium": "Moyenne",
-    "reliability_high": "Haute",
+    "estimateTooltip": "Estimation d'après les journées passées comparables. La réalité peut varier.",
     "installTitle": "Installez Queue Park",
     "installIntro": "Les alertes nécessitent que l'application soit installée sur votre appareil.",
     "installButton": "Installer l'application",
