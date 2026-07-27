@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ParkCategoryCard from "../parks/park-category-card";
-import { getCountryName, getParkStatus } from "@/lib/utils";
+import { getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { ParkList } from "@/types/api";
 import { Switch } from "../ui/switch";
@@ -66,7 +66,9 @@ export default function ParksList({ parks }: ParksListProps) {
   const groupParksByCountry = () => {
     const grouped: Record<string, ParkList[]> = {};
     filteredParks.forEach((park) => {
-      const countryName = getCountryName(park.country || "Unknown Country");
+      // Nom résolu côté serveur (voir `ParkList.countryName`) : le recalculer
+      // ici donnerait un libellé différent au SSR et à l'hydratation.
+      const countryName = park.countryName || "Unknown Country";
       if (!grouped[countryName]) {
         grouped[countryName] = [];
       }

@@ -43,6 +43,10 @@ export interface ParkList {
   cover: CoverImage[];
   badge?: string;
   country: string;
+  // Nom anglais du pays, résolu CÔTÉ SERVEUR (`lib/parks-list.ts`). Ne pas le
+  // recalculer dans un composant client : `Intl.DisplayNames` ne donne pas le
+  // même résultat sous Node et dans le navigateur (voir `getCountryName`).
+  countryName: string;
   group: Group;
   openingHours: OpeningHour[];
 }

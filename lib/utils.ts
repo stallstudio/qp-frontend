@@ -54,9 +54,34 @@ export const getParkLink = (park: ParkList) => {
   return `/park/${park.identifier}`;
 };
 
+/**
+ * Nom anglais d'un pays depuis son code ISO.
+ *
+ * ⚠️ **À N'APPELER QUE CÔTÉ SERVEUR.** `Intl.DisplayNames` s'appuie sur les
+ * données ICU du runtime, et Node et les navigateurs n'embarquent pas la même
+ * version de CLDR : pour `HK`, Node renvoie « Hong Kong SAR China » là où Chrome
+ * renvoie « Hong Kong ». Appelée pendant le rendu d'un composant client (donc
+ * exécutée une fois sur le serveur au SSR, une fois dans le navigateur à
+ * l'hydratation), elle produit deux résultats différents et React signale une
+ * erreur d'hydratation.
+ *
+ * Le nom est donc résolu UNE FOIS, dans `lib/parks-list.ts`, et transporté dans
+ * `ParkList.countryName`.
+ */
 export function getCountryName(code: string): string {
   if (!code) return "";
 
   const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
   return regionNames.of(code.toUpperCase()) ?? code;
+}
+
+/**
+ * Classe de drapeau twemoji (`twa-flag-…`) depuis le nom anglais du pays.
+ *
+ * `toLowerCase()` et non `toLocaleLowerCase()` : ce dernier dépend de la locale
+ * par défaut du runtime (en turc, « I » devient « ı »), ce qui rendrait la classe
+ * dépendante de l'environnement — le même piège que ci-dessus.
+ */
+export function getCountryFlagClass(countryName: string): string {
+  return `twa twa-flag-${countryName.toLowerCase().replace(/\s+/g, "-")} twa-lg`;
 }

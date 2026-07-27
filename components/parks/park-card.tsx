@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/routing";
-import { getCountryName, getParkLink, getParkStatus } from "@/lib/utils";
+import { getCountryFlagClass, getParkLink, getParkStatus } from "@/lib/utils";
 import TitleWithStatus from "./title-with-status";
 import { ParkList } from "@/types/api";
 import { useSearchParams } from "next/navigation";
@@ -43,11 +43,11 @@ export default function ParkCard({
   const { isAuthenticated } = useUser();
   const isFav = isFavorite(park.identifier);
 
-  const handleToggle = () => {
+  const handleToggle = async () => {
     // toggle() renvoie false aussi bien si l'utilisateur n'est pas connecté (le
     // garde a déjà ouvert le modal) que si le plafond est atteint : on ne montre
     // le toast « plafond » que dans ce dernier cas (connecté).
-    if (!toggle(park.identifier) && isAuthenticated) {
+    if (!(await toggle(park.identifier)) && isAuthenticated) {
       toast.error(tFav("parkLimit", { max: PARK_FAVORITES_LIMIT }));
     }
   };
@@ -85,9 +85,7 @@ export default function ParkCard({
             </div>
           )}
 
-          <div
-            className={`twa twa-flag-${getCountryName(park.country).toLocaleLowerCase().replace(/\s+/g, "-")} twa-lg`}
-          />
+          <div className={getCountryFlagClass(park.countryName)} />
         </div>
       </div>
     </Link>
