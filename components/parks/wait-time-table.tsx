@@ -8,17 +8,16 @@ import { useTranslations } from "next-intl";
 import { useWaitTimeChanges } from "@/hooks/useWaitTimeChanges";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useNotifications } from "@/components/providers/notifications-provider";
 import AttractionDetailDialog from "@/components/parks/attraction-detail/attraction-detail-dialog";
-import { Link } from "@/i18n/routing";
-import { rideSlug } from "@/lib/slug";
 import { cn } from "@/lib/utils";
 import {
+  BellRing,
   ChevronRight,
   ChevronUp,
   ChevronDown,
   User,
   Clock,
-  Eye,
   FastForward,
   CornerDownRight,
   Star,
@@ -67,8 +66,8 @@ type WaitTimeTableProps = {
 const STATUS_ORDER = { open: 0, down: 1, closed: 2, maintenance: 3 } as const;
 
 // Grille partagée par l'en-tête et chaque ligne pour aligner les colonnes.
-// Le cluster d'action (chevron d'expand + œil) est désormais collé À LA FIN DU
-// NOM (dans la 1re colonne), donc plus de piste d'action dédiée : 3 colonnes.
+// Le chevron d'expand est collé À LA FIN DU NOM (dans la 1re colonne), donc pas
+// de piste d'action dédiée : 3 colonnes.
 // - mobile : Temps (4rem) et État (6rem, « Maintenance ») resserrés pour laisser
 //   le MAXIMUM de largeur au nom ;
 // - ≥ sm : proportions 4/1/1 comme l'ancienne table.
@@ -100,6 +99,10 @@ export default function ParkWaitTimeTable({
   // mais restent épinglés en tête, d'où l'usage de `isFavorite` pour le tri.
   const { isFavorite } = useFavorites("rides");
   const favKey = (rideId: number) => `${parkIdentifier}:${rideId}`;
+
+  // Attractions sous alerte de temps d'attente : une cloche les signale dans la
+  // liste (le réglage lui-même reste dans le popup).
+  const { alertRideIds } = useNotifications();
 
   const statusLabels: Record<string, string> = {
     open: tStatus("open"),
@@ -348,29 +351,34 @@ export default function ParkWaitTimeTable({
                     role="row"
                     className={cn(
                       GRID_COLS,
-                      "group transition-colors duration-500",
+                      "cursor-pointer transition-colors duration-500 hover:bg-accent/50",
                       changedRides.has(`${waitTime.rideId}-standby`) &&
                         "bg-accent",
-                      hasMultipleQueues && "cursor-pointer hover:bg-accent/50",
                     )}
-                    onClick={() =>
-                      hasMultipleQueues && toggleExpand(waitTime.rideId)
-                    }
+                    // Toute la ligne ouvre le popup de détail ; seul le chevron
+                    // (qui stoppe la propagation) déplie les files secondaires.
+                    onClick={() => setDetailTarget(waitTime)}
+                    // La ligne remplace l'ancienne icône « œil » : elle doit
+                    // rester atteignable au clavier, d'où le tabIndex et la
+                    // gestion d'Entrée / Espace.
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" && e.key !== " ") return;
+                      e.preventDefault();
+                      setDetailTarget(waitTime);
+                    }}
                   >
-                    {/* Nom + cluster d'action accolé À LA FIN DU NOM : chevron
-                        d'expand (si files multiples) puis œil d'ouverture du
-                        popup. Le nom peut passer à la ligne (min-w-0 + wrap), les
-                        icônes restent sur la dernière ligne. */}
-                    {/* pe resserré (surtout mobile) + cluster d'icônes collé au
-                        nom : padding horizontal des boutons réduit (px-0.5) et
-                        plus aucune marge/gap entre le nom et les icônes, pour que
-                        le nom garde le MAXIMUM de largeur et passe moins vite à la
-                        ligne. La hauteur de touche reste correcte (py-1). */}
+                    {/* Nom + chevron d'expand (si files multiples) accolé À LA
+                        FIN DU NOM. Le nom peut passer à la ligne (min-w-0 +
+                        wrap), le chevron reste sur la dernière ligne. */}
+                    {/* pe resserré (surtout mobile) + chevron collé au nom :
+                        marge réduite pour que le nom garde le MAXIMUM de largeur
+                        et passe moins vite à la ligne. */}
                     {/* Rendu EN FLUX INLINE (pas de flex) : le nom coule et peut
-                        passer sur plusieurs lignes ; le chevron et l'œil suivent
-                        directement le dernier mot → ils restent COLLÉS À LA FIN DU
-                        TEXTE, sur la dernière ligne, quel que soit le nombre de
-                        lignes. Les icônes sont `inline-flex align-middle`. */}
+                        passer sur plusieurs lignes ; le chevron suit directement
+                        le dernier mot → il reste COLLÉ À LA FIN DU TEXTE, sur la
+                        dernière ligne, quel que soit le nombre de lignes. Il est
+                        `inline-flex align-middle`. */}
                     {/* `rowheader` (et non `cell`) : le nom identifie la ligne,
                         ce qui permet aux lecteurs d'écran de le rappeler en
                         naviguant d'une colonne à l'autre. */}
@@ -387,21 +395,39 @@ export default function ParkWaitTimeTable({
                         />
                       )}
                       <span className="wrap-break-word">{nameHead}</span>
-                      {/* Dernier mot + icônes : bloc insécable (voir plus haut). */}
+                      {/* Dernier mot + chevron : bloc insécable (voir plus haut). */}
                       <span className="whitespace-nowrap">
                         {nameTail}
                         {hasMultipleQueues && (
                           <button
                             type="button"
+                            // Seule zone de la ligne qui NE déclenche PAS le
+                            // popup : le clic doit être précis sur le chevron,
+                            // d'où l'arrêt de la propagation vers la ligne.
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleExpand(waitTime.rideId);
                             }}
+                            // La ligne écoute Entrée/Espace pour ouvrir le popup :
+                            // sans ça, une validation au clavier sur le chevron
+                            // déplierait ET ouvrirait le popup.
+                            onKeyDown={(e) => e.stopPropagation()}
                             aria-expanded={isExpanded}
                             aria-label={t("toggleQueues", {
                               ride: waitTime.rideName,
                             })}
-                            className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-foreground"
+                            // p-1 (+ -my-1 pour ne pas grandir la ligne) : cible
+                            // de clic confortable au doigt malgré une icône de
+                            // 16 px, avec un fond au survol qui montre bien que
+                            // le chevron est une commande distincte de la ligne.
+                            // ms-1.5 : le pavé de survol ne doit pas toucher le
+                            // texte (avec p-1, une simple marge de 2 px collait
+                            // le fond au dernier caractère).
+                            // `align-middle` cale le milieu de la boîte sur
+                            // baseline + demi-hauteur d'x, soit ~1 px SOUS le
+                            // centre optique de la ligne : d'où le `-top-px`, qui
+                            // le recentre sans toucher au flux.
+                            className="relative -top-px -my-1 ms-1.5 inline-flex rounded-md p-1 align-middle text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                           >
                             <ChevronRight
                               className={cn(
@@ -411,64 +437,22 @@ export default function ParkWaitTimeTable({
                             />
                           </button>
                         )}
-                        {/* VRAI lien vers le lien profond de l'attraction,
-                            neutralisé au clic simple pour ouvrir le popup
-                            (l'expérience dans la liste ne change pas). L'intérêt
-                            d'un `<a>` plutôt qu'un `<button>` : « copier l'adresse
-                            du lien » permet de partager une attraction, et
-                            Ctrl+clic / clic milieu ouvrent bien un nouvel onglet
-                            qui arrive sur le parc avec ce popup ouvert. */}
-                        <Link
-                          href={`/park/${parkIdentifier}/ride/${rideSlug(
-                            waitTime.rideId,
-                            waitTime.rideName,
-                          )}`}
-                          // Ce lien ne navigue jamais au clic simple : préparer
-                          // la destination serait du gaspillage pur. Et il y en a
-                          // un PAR ATTRACTION — sans ça, arriver sur la page
-                          // déclenchait le préchargement de dizaines d'URL, dont
-                          // chacune re-rend la page complète du parc côté serveur
-                          // (route `force-dynamic`).
-                          prefetch={false}
-                          // `target="_self"` ne change rien au comportement (c'est
-                          // la valeur par défaut) mais sert de garde-fou contre
-                          // NextTopLoader : son écouteur de clic global ne teste
-                          // pas `defaultPrevented`, donc il démarrait sa barre de
-                          // progression sur un clic qui ne navigue pas — et rien
-                          // ne venait jamais la terminer (barre + rond qui
-                          // tournent indéfiniment). Il ignore les ancres portant
-                          // un `target`. `stopImmediatePropagation` ci-dessous
-                          // l'arrête déjà avant ; les deux se complètent, l'un ne
-                          // dépendant pas de l'ordre d'enregistrement des
-                          // écouteurs, l'autre pas des détails de la librairie.
-                          target="_self"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Modificateurs enfoncés (nouvel onglet, nouvelle
-                            // fenêtre) : on laisse le navigateur faire.
-                            if (
-                              e.metaKey ||
-                              e.ctrlKey ||
-                              e.shiftKey ||
-                              e.altKey
-                            ) {
-                              return;
-                            }
-                            e.preventDefault();
-                            // Empêche l'événement natif d'atteindre les écouteurs
-                            // de navigation posés sur `document` (NextTopLoader) :
-                            // `stopPropagation` ne suffit pas, React y est branché
-                            // sur le MÊME nœud.
-                            e.nativeEvent.stopImmediatePropagation();
-                            setDetailTarget(waitTime);
-                          }}
-                          aria-label={tDetail("openFor", {
-                            ride: waitTime.rideName,
-                          })}
-                          className="ml-1 inline-flex align-middle rounded-md text-muted-foreground transition-colors hover:text-primary"
-                        >
-                          <Eye className="size-3.5" />
-                        </Link>
+                        {/* Cloche : alerte de temps d'attente active sur cette
+                            attraction. Purement informative (le réglage est dans
+                            le popup) et affichée à la place de l'ancien œil. */}
+                        {alertRideIds.has(waitTime.rideId) && (
+                          <BellRing
+                            aria-label={tDetail("notifActive")}
+                            className={cn(
+                              "inline-block size-3.5 align-[-2px] text-primary",
+                              // Après le chevron, son padding fait déjà l'espace :
+                              // la cloche s'y recolle pour rester un même bloc
+                              // d'icônes. Sans chevron, elle doit se décoller du
+                              // texte comme le ferait le chevron lui-même.
+                              hasMultipleQueues ? "ms-0.5" : "ms-1.5",
+                            )}
+                          />
+                        )}
                       </span>
                     </div>
                     <div role="cell" className="py-2">
@@ -496,10 +480,19 @@ export default function ParkWaitTimeTable({
                       role="row"
                       className={cn(
                         GRID_COLS,
-                        "border-t transition-colors duration-500",
+                        "cursor-pointer border-t transition-colors duration-500 hover:bg-accent/50",
                         changedRides.has(`${waitTime.rideId}-${queue.type}`) &&
                           "bg-accent",
                       )}
+                      // Les files secondaires appartiennent à la même attraction :
+                      // elles ouvrent le même popup que la ligne standby.
+                      onClick={() => setDetailTarget(waitTime)}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter" && e.key !== " ") return;
+                        e.preventDefault();
+                        setDetailTarget(waitTime);
+                      }}
                     >
                       <div
                         role="rowheader"
@@ -540,7 +533,7 @@ export default function ParkWaitTimeTable({
         </div>
       )}
 
-      {/* Popup « détail attraction », piloté par l'œil de chaque ligne. */}
+      {/* Popup « détail attraction », ouvert par un clic sur une ligne. */}
       <AttractionDetailDialog
         target={detailTarget}
         parkIdentifier={parkIdentifier}
