@@ -2,7 +2,7 @@
 
 > Fiche de contexte pour l'assistant IA. But : comprendre le projet sans relire
 > tout le code. À maintenir à jour quand l'architecture change.
-> Dernière mise à jour : 2026-07-27.
+> Dernière mise à jour : 2026-07-28.
 
 ## En un mot
 
@@ -300,8 +300,9 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   (fetché à la demande, **indépendant** de l'historique global suspendu).
   `lib/wait-times-history.ts` reconstruit la courbe **observée** du jour depuis
   `wait_times`. La **prévision** n'est plus calculée ici : elle est
-  **précalculée par le worker** et stockée (`ride_forecast`) ; la route la LIT
-  (si `date` = jour logique courant, sinon périmée -> pas de prévision).
+  **précalculée par le worker** et stockée (`ride_forecast`, rafraîchie toutes
+  les 10 min) ; la route la LIT (si `date` = jour logique courant, sinon périmée
+  -> pas de prévision) et en extrait aussi la marge d'erreur mesurée.
   `lib/wait-times-series.ts` (ex-`wait-times-forecast.ts`, élagué : le moteur de
   prévision vivait encore ici en double du worker) ne porte plus que la
   reconstruction de la courbe observée — `sampleDaySeries` /
@@ -309,13 +310,32 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
 - **Pas de badge de « fiabilité ».** `meta.confidenceLevel` est toujours renvoyé
   par l'API mais **n'est plus affiché** : il mesure le VOLUME de données
   disponibles (`0.2 + 0.08 × jours + 0.3 × recouvrement`), pas la justesse réelle
-  de la prévision, qui n'est jamais confrontée à l'observé — ce qui rendait
-  « Fiabilité : haute » systématique dès 7 jours d'historique. `chart-section.tsx`
-  affiche à la place une mention neutre **« Estimation »** avec un tooltip
-  explicatif (`attractionDetail.estimateLabel`/`estimateTooltip`), plus la note
-  « mise à jour à l'ouverture » si `preOpening`. Pour en refaire un indicateur
-  honnête : mesurer l'erreur réelle (prévision de la veille vs observé) et
-  afficher une marge chiffrée (« ± 8 min ») sous forme de bande sur la courbe.
+  de la prévision — ce qui rendait « Fiabilité : haute » systématique dès 7 jours
+  d'historique. `chart-section.tsx` affiche à la place une mention neutre
+  **« Estimation »** avec un tooltip (`attractionDetail.estimateTooltip`), plus la
+  note « mise à jour à l'ouverture » si `preOpening`.
+- **Bande d'incertitude « ± X min » (2026-07-28)** — remplace ce que le badge de
+  fiabilité prétendait dire, cette fois **mesuré** :
+  - Le worker confronte chaque jour ses prévisions à l'observé (table
+    `forecast_accuracy`, cf. AI_CONTEXT du worker) et en déduit une marge par
+    fenêtre d'horizon. **Chaque point** de `forecast` porte donc sa propre
+    `margin` : l'erreur croît avec l'échéance, une marge unique pour toute la
+    courbe serait trompeuse. `meta.marginMinutes`/`marginSamples` donnent la
+    valeur agrégée (mention textuelle sous le graphique).
+  - `margin` **absente/null = pas assez de mesures** -> aucune bande n'est
+    tracée. On n'affiche jamais une incertitude qu'on ne connaît pas.
+  - ⚠️ `wait-time-chart.tsx` est passé de `LineChart` à **`ComposedChart`** :
+    la bande est une `Area` de PLAGE (`dataKey="band"`, valeur `[bas, haut]`),
+    que `LineChart` n'accepte pas comme enfant. Rendu des `Line` inchangé.
+  - La bande est ancrée à **largeur nulle sur le dernier point observé** : à
+    l'instant présent l'attente est connue, l'incertitude ne s'ouvre qu'en
+    avançant. Sans cet ancrage elle démarrait en marche d'escalier.
+  - Le tooltip exclut `band` des lignes numériques (sa valeur est un couple) et
+    reporte la marge sur la ligne « Prévision ». `yMax` englobe le HAUT de la
+    bande, sinon elle est rognée par le cadre.
+  - i18n : `attractionDetail.marginInline`/`marginLegend`/`marginTooltip`/
+    `marginNote`. La démo À propos (`demos.tsx`) porte des marges factices
+    croissantes pour montrer le comportement réel.
 
 ### Météo (ajout 2026-07)
 
@@ -403,10 +423,13 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   La page À propos réutilise ce motif.
 - Commentaires du code en français, orientés « pourquoi ».
 
-## Pas de node/npm dans le shell agent
+## node/npm dans le shell agent
 
-`node`, `npm`, `npx` ne sont pas sur le PATH du shell non-interactif. Éviter de
-lancer build/tsc ici ; se fier à la revue manuelle (le repo compile côté user).
+Disponibles via `Documents/Windsurf/nodejs/node-v22.15.0-win-x64` (sur le PATH du
+shell bash au 2026-07-28 ; ça ne l'était pas auparavant). `npx tsc --noEmit` et
+`npx prisma generate` tournent donc ici — les utiliser plutôt que de se fier à la
+seule revue manuelle. `prisma generate` n'accède pas à la base ; **`db push` et
+`migrate` si**, ne pas les lancer sans demander.
 
 ## Page À propos (ajout 2026-07)
 
