@@ -153,21 +153,21 @@ Conséquences assumées, à ne pas « corriger » :
 - L'ouverture du popup est gardée par un `useRef` : sans lui, le
   rafraîchissement 60 s rouvrirait le popup après chaque fermeture.
 
-**⚠️ L'œil de la liste est un `<a>` qui ne navigue pas** (clic simple →
-`preventDefault` + popup ; Ctrl/⌘/clic milieu → vrai lien). Deux conséquences
-contre-intuitives, déjà traitées dans `wait-time-table.tsx` :
+**⚠️ Deux pièges à connaître avant de remettre un `<a>` au clic annulé dans une
+liste.** La liste n'en contient plus (l'œil, seul lien de ce genre, a été retiré
+le 2026-07-28 au profit d'une ligne cliquable), mais les deux ont coûté cher :
 
-- `prefetch={false}` **obligatoire** : il y a un lien par attraction et la route
-  est `force-dynamic`, donc chaque préchargement re-rend la page complète du parc
-  côté serveur. Sans ça, arriver sur un parc en déclenchait des dizaines.
+- `prefetch={false}` **obligatoire** : il y aurait un lien par attraction et la
+  route est `force-dynamic`, donc chaque préchargement re-rend la page complète du
+  parc côté serveur. Sans ça, arriver sur un parc en déclenchait des dizaines.
 - **NextTopLoader** (`app/layout.tsx`) pose un écouteur de clic sur `document`
   qui **ne teste pas `defaultPrevented`** : il démarrait sa barre sur un clic qui
   ne navigue pas, et rien ne venait jamais la terminer (barre + rond qui tournent
-  à l'infini). Neutralisé par `e.nativeEvent.stopImmediatePropagation()` — un
+  à l'infini). Se neutralise par `e.nativeEvent.stopImmediatePropagation()` — un
   `stopPropagation` React ne suffit pas, React est branché sur le **même nœud** —
   doublé d'un `target="_self"` (la librairie ignore les ancres qui en portent un),
   pour ne dépendre ni de l'ordre d'enregistrement des écouteurs ni des détails de
-  la librairie. **Même précaution pour tout futur `<a>` au clic annulé.**
+  la librairie.
 
 ### Parcs populaires
 
@@ -196,6 +196,23 @@ C'est donc un classement par **nombre de consultations récentes**.
   **terminé** = `bg-muted/50` grisé, **en cours** = `bg-primary/10` bordure
   pointillée, **à venir** = `bg-primary/20` bordure pleine. Une **légende**
   (namespace i18n `shows.legend*`) est rendue sous la timeline sur chaque page.
+- **Même comportement que les attractions** (2026-07-28) : plus d'œil, un clic
+  n'importe où sur la ligne ouvre `show-detail-dialog.tsx`, cloche `BellRing` en
+  bout de nom si un rappel est programmé, survol qui allume les **deux moitiés**
+  de la ligne (état `hoveredUid` partagé nom ↔ timeline, `duration-500` comme les
+  attractions). ⚠️ La timeline est aussi cliquable, avec deux garde-fous : le clic
+  final d'un **glisser-défiler** est ignoré (`draggedRef`, seuil 5 px) et un clic
+  sur un créneau étroit n'ouvre que son infobulle (`stopPropagation`).
+- ⚠️ **Tout se mesure en minutes depuis le début du jour LOGIQUE du parc**
+  (`getParkDayStart` dans `utils.ts`), jamais en heure du mur (`.hour`). Les
+  colonnes peuvent donc dépasser 23 : `24` = colonne « 00:00 » du lendemain
+  (plafond `MAX_GRID_END_HOUR = 27`). Avant, `Math.min(23, …)` bornait la grille :
+  un spectacle de 23:55 (Disneyland California, ouvert jusqu'à minuit) débordait
+  et se retrouvait **rogné au bord droit**. Conséquences : l'en-tête compose ses
+  libellés en `dayStart.plus({ hours })` (`set({ hour })` refuse 24), un créneau
+  d'après minuit se place à 24 h+ au lieu de repartir à gauche, et le repère
+  « maintenant » se teste sur sa **position** (il disparaissait après minuit quand
+  on le comparait à `now.hour`).
 
 ### Historique & tendances — SUPPRIMÉS (2026-07-27)
 
@@ -207,6 +224,25 @@ plusieurs semaines derrière les drapeaux `HISTORY_ENABLED`/`TRENDS_ENABLED`, on
 vignette « tendance » du guide À propos et sa démo. Git conserve tout
 l'historique si le besoin revient. ⚠️ À ne pas confondre avec le graphique du
 popup attraction, qui lui est **actif** (route dédiée `ride/[rideId]/history`).
+
+### Alertes actives dans les listes (`components/providers/notifications-provider.tsx`)
+
+Provider monté dans `[locale]/layout.tsx` **sous** `FavoritesProvider`. Il charge
+UNE fois `GET /api/user/alerts` + `GET /api/user/show-reminders` et expose
+`alertRideIds` / `reminderShowKeys` (clé `${parc}:${nomDuSpectacle}`, helper
+`showReminderKey`) — c'est ce qui allume la **cloche** des lignes. Un fetch par
+ligne serait absurde sur un parc à 50 attractions, et les deux tableaux
+coexistent sur la même page.
+
+- **Pas de cache localStorage**, contrairement aux favoris : une alerte ne vaut
+  que pour la journée et peut être supprimée par le moteur — un cache périmé
+  afficherait des cloches fantômes.
+- `refresh()` est appelé par `alert-section.tsx` / `reminder-section.tsx` après
+  création ou suppression, et par la remise à zéro du profil.
+- Resynchronisation au **retour d'onglet** (`visibilitychange`) : une alerte qui
+  notifie est supprimée côté serveur, la cloche resterait sinon allumée jusqu'au
+  rechargement — précisément au moment où l'utilisateur revient dans l'app après
+  avoir reçu la notification. Pas d'interrogation périodique.
 
 ### Favoris (`components/providers/favorites-provider.tsx`)
 
@@ -247,27 +283,41 @@ groupe des favoris est encadré de deux séparateurs ondulés ambrés
 
 ### Popup « détail attraction » (`components/parks/attraction-detail/`)
 
-Chaque ligne d'attraction a une icône **œil** à droite (à côté du chevron
-d'expand) qui ouvre `attraction-detail-dialog.tsx` (plus d'étoile/cloche dans la
-liste). Le popup empile des sections : image (placeholder `CameraOff`), favoris
+**Un clic n'importe où sur la ligne** ouvre `attraction-detail-dialog.tsx` — plus
+d'icône œil (2026-07-28), plus d'étoile/cloche cliquable dans la liste. Le popup
+empile des sections : image (placeholder `CameraOff`), favoris
 (`favorite-section.tsx`), alertes (`alert-section.tsx`), graphique
 du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
 (`thrills-section.tsx`, lien placeholder vers thrills.world).
 
-> **L'œil est un VRAI lien** (`<Link>` vers `/park/{parc}/ride/{slug}`) dont le
-> clic simple est neutralisé pour ouvrir le popup. Ne pas le repasser en
-> `<button>` : c'est ce qui rend une attraction partageable (« copier l'adresse
-> du lien ») et fait fonctionner Ctrl+clic / clic milieu. Voir les **deux pièges**
-> (préchargement, NextTopLoader) dans « Liens profonds attraction ». Le
-> chargement de l'historique vit dans `hooks/useRideHistory.ts`.
+> **Ligne cliquable vs chevron** : la ligne entière (standby ET files
+> secondaires) ouvre le popup ; le **chevron** est la SEULE zone qui ne le fait
+> pas — il déplie les files secondaires et arrête la propagation (clic et
+> clavier). D'où son `p-1` (+ `-my-1` pour ne pas grandir la ligne) et son fond au
+> survol : la cible doit être atteignable au doigt et se lire comme une commande
+> distincte. Les lignes portent `tabIndex`/Entrée/Espace : l'œil était le seul
+> élément focusable, il fallait le remplacer.
+
+> ⚠️ **Perte assumée avec l'œil** : c'était un VRAI `<Link>` vers
+> `/park/{parc}/ride/{slug}`, donc « copier l'adresse du lien » et Ctrl+clic. Un
+> `<a>` ne peut pas envelopper le nom sans casser le collage du chevron (élément
+> interactif imbriqué), et une ligne cliquable est un `<div>`. Les liens profonds
+> eux-mêmes restent actifs (mails d'alerte, page `/ride/...`, `initialRideId`) —
+> voir les **deux pièges** (préchargement, NextTopLoader) dans « Liens profonds
+> attraction ». Le chargement de l'historique vit dans `hooks/useRideHistory.ts`.
 
 > **Nom + icônes, jamais séparés** : le nom de l'attraction est découpé en
 > « début » + « dernier mot », et ce dernier mot est rendu dans le même
-> `whitespace-nowrap` que le chevron et l'œil. Sur mobile, les icônes se
+> `whitespace-nowrap` que le chevron et la cloche. Sur mobile, les icônes se
 > retrouvaient sinon **seules sur une ligne**, sans texte. Quand la place manque,
 > c'est donc le dernier mot qui part à la ligne avec elles. Garde-fou : au-delà
 > de 18 caractères, le dernier mot ne serait plus sécable et déborderait de la
-> colonne → on repasse au flux normal.
+> colonne → on repasse au flux normal. Même découpage côté spectacles.
+
+> **Cloche `BellRing` en bout de nom** = une alerte est armée sur cette
+> attraction (rappel programmé côté spectacles). Purement informative, alimentée
+> par le `NotificationsProvider` (voir plus bas). Espacement : `ms-0.5` derrière
+> le chevron (son padding fait déjà l'espace), `ms-1.5` s'il n'y a pas de chevron.
 
 > **Terminologie** : côté produit/UI on parle d'**alertes** (« créer une
 > alerte », namespace i18n `alerts`, modèles `Alert`/`AlertHistory`, routes
@@ -307,6 +357,25 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   prévision vivait encore ici en double du worker) ne porte plus que la
   reconstruction de la courbe observée — `sampleDaySeries` /
   `sliceIntervalsForWindow`.
+- ⚠️ **La courbe observée doit atteindre la FERMETURE.** La grille de buckets
+  s'arrête *avant* `close` : une journée terminée voyait donc sa courbe s'arrêter
+  jusqu'à un pas complet trop tôt (fermeture 19:30 → dernier point 19:15) alors
+  que l'axe, lui, va jusqu'à 19:30 — impossible de savoir le temps affiché en fin
+  de journée. `sampleDaySeries` ajoute donc un point de fermeture, **uniquement
+  quand la journée est finie** (en cours de journée la courbe s'arrête à
+  « maintenant », la prévision prend le relais). Ce point est échantillonné en
+  `inclusiveEnd` : l'attraction qui bascule « fermée » à l'heure pile laisserait
+  sinon un dernier point vide, alors que la question est justement « quel temps
+  affichait-elle en fermant ? ».
+- ⚠️ **`chronicallyUnavailable` n'est pas qu'un message** : il DÉSACTIVE aussi les
+  alertes de l'attraction. Il exige donc `historyDays >= 3`
+  (`MIN_HISTORY_DAYS_FOR_UNAVAILABLE`) en plus de `availabilityRatio < 0.2` : un
+  parc récemment ajouté produit un profil quasi vide où le ratio tombe à ~0, et on
+  déclarait « n'affiche jamais de temps d'attente » des attractions qui en
+  affichent en direct (constaté sur PortAventura, 46 lignes `ride_forecast` à
+  `historyDays: 0`). Second garde-fou côté popup : si l'attraction affiche un
+  temps d'attente **en ce moment**, le direct tranche contre l'historique et
+  l'alerte reste possible.
 - **Pas de badge de « fiabilité ».** `meta.confidenceLevel` est toujours renvoyé
   par l'API mais **n'est plus affiché** : il mesure le VOLUME de données
   disponibles (`0.2 + 0.08 × jours + 0.3 × recouvrement`), pas la justesse réelle
@@ -349,8 +418,11 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   météo **courante** (`currentTemp`/`currentWeatherCode`, lus sur la ligne
   `Park`, remplis par le worker) + min/max du jour (`daily_weather`).
   `null` si ni courant ni prévision.
-- Affichage : `components/parks/park-weather.tsx` dans le header du parc
-  (sur la ligne de l'heure locale, séparé par un tiret) — icône `lucide` mappée
+- Affichage : `components/parks/park-weather.tsx` dans le header du parc, sur la
+  ligne de l'heure sur place, séparé par une **puce `•`** : « 🕐 17:52 • ☀ 32°C ».
+  Les deux décrivent le même instant, et **le libellé a été supprimé** (2026-07-29,
+  clé `parkPage.localTime` retirée des 14 locales) : l'horloge désigne une heure,
+  la météo qui suit dit assez qu'on parle de maintenant. Icône `lucide` mappée
   par `lib/weather-icon.ts` (code WMO courant → icône + clé i18n) + **température
   actuelle** `22°C`. Le header masque le bloc si `currentTemp` absent. Les
   **min/max du jour** apparaissent au survol (et au tact) via `ClickableTooltip`,
@@ -481,7 +553,8 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
   (compte prime ; toute modif locale de thème/langue/format est reflétée au
   compte sans coupler les composants concernés).
 - **Routes** `app/api/user/*` : `me`, `preferences`, `favorites` (+`/merge`),
-  `alerts` (+`/[id]`, `/history`), `push`.
+  `alerts` (+`/[id]`, `/history`), `show-reminders` (+`/[id]`, `/history`),
+  `notifications` (DELETE = remise à zéro), `push`.
 - **UI** : bloc accueil `components/home/user-block.tsx` (au-dessus des favoris),
   popup `components/auth/auth-dialog.tsx`, page `app/[locale]/profile/` +
   `components/profile/*`. La **page profil est calquée sur la page À propos**
@@ -489,16 +562,31 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
   Alertes / Préférences). Onglet **Alertes** = **fil unifié** (`AlertsSection`) :
   sous-onglets **Actives / Historique** + filtre **Tout · Attractions ·
   Spectacles** (le type = attribut de ligne : pastille `RollerCoaster` vs
-  `Drama`), une seule liste pleine largeur ; interrupteur d'activation en
-  **Switch à icône** (`size="lg"`, cloche active/barrée). Onglet **Préférences**
+  `Drama`), une seule liste pleine largeur. Onglet **Préférences**
   = **contrôles tactiles** (`PreferencesCard`) : thème en **3 vignettes** (soleil
   / lune / écran), heure en **interrupteur segmenté** 24 h/12 h, langue en menu.
   En tête : **3 vignettes** cliquables (parcs favoris
   `x/20`, attractions favorites, alertes actives) → popups favoris.
   Squelette : `components/profile/profile-skeleton.tsx`
-  (affiché tant que la session charge). La **création** d'alerte reste réservée au
-  popup « détail attraction » ; le profil permet de **modifier le seuil**,
-  (dé)activer et supprimer.
+  (affiché tant que la session charge).
+- ⚠️ **L'onglet Alertes est en LECTURE SEULE** (2026-07-28) : ni création, ni
+  modification, ni suppression, ni (dés)activation — plus de Switch, de crayon ni
+  de corbeille, plus de popups d'édition seuil/délai. Il ne reste que la pastille
+  de type, le nom, le parc et le badge de valeur. **Tout se règle depuis le popup
+  de l'attraction ou du spectacle**, seul endroit qui montre le contexte (temps
+  d'attente courant, horaires des représentations) ; un second jeu de contrôles
+  n'était qu'un doublon à maintenir. Le sous-onglet « Actives » ne liste que les
+  alertes `active` (celles qui ont notifié sont supprimées, celles expirées avec
+  la journée n'ont plus rien à y faire). `PATCH /api/user/alerts/[id]` n'a donc
+  plus d'appelant (le `DELETE` de la même route sert toujours au popup).
+- **Remise à zéro** (`privacy-section.tsx`, au-dessus de la suppression de
+  compte) : `DELETE /api/user/notifications` vide en UNE `$transaction` les
+  quatre tables `Alert` / `AlertHistory` / `ShowReminder` / `ShowReminderHistory`
+  de l'utilisateur — à moitié effacé, l'état serait incohérent. Compte,
+  préférences et favoris intacts. Confirmation par simple dialogue (pas de
+  recopie d'e-mail comme pour le compte : c'est irréversible mais réparable),
+  bordure neutre + bouton contour rouge, le bloc rouge plein restant réservé à la
+  suppression du compte. i18n `privacy.resetAlerts*`.
 - **`AuthDialog` fusionné** : connexion et inscription = un seul flux passwordless,
   donc plus de prop `mode` — libellé neutre unique (`auth.title`/`auth.subtitle`).
 - **Historique** (`components/profile/alert-history-section.tsx`, export
@@ -510,6 +598,14 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
   l'édition/suppression d'un rappel ; le `ShowReminder` consommé est supprimé).
   **Rien n'est purgé** côté base ; les routes `/api/user/alerts/history` +
   `/api/user/show-reminders/history` bornent juste l'**affichage** à 30 jours.
+- ⚠️ **L'heure d'une représentation s'affiche dans le fuseau DU PARC.** La base
+  utilisateurs ne stocke que `parkIdentifier` : les routes `show-reminders`
+  (+`/history`) résolvent le `timezone` depuis la base principale (une requête
+  pour tous les parcs cités, même motif que la résolution des noms de parcs) et
+  le posent sur le DTO (`timezone: string | null`, `null` = parc introuvable →
+  repli navigateur). Sans ça, le profil affichait « 08:35 » pour un spectacle de
+  23:35 à Disneyland California. ⚠️ En revanche `sentAt` (réception de la
+  notification) reste dans le fuseau du LECTEUR : c'est un moment qu'il a vécu.
   ⚠️ `ShowReminderHistory` : penser à `npm run user:generate` + `user:push`.
 - i18n : namespaces `userBlock`, `auth`, `profile`, `alerts` (fr+en).
 ## Divers (2026-07-20)
@@ -560,6 +656,12 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
 - **Client Prisma user** : les modèles `Alert`/`AlertHistory`/`PushSubscription`
   doivent être **générés** (`npm run user:generate`) — un client périmé rend
   `prisma.alert` `undefined` et casse `/api/user/me`, le profil et le moteur.
+  ⚠️ Un client périmé se manifeste AUSSI par une erreur SQL trompeuse du genre
+  « `The column show_reminders.sent does not exist` » : ce n'est pas la base qui
+  est en retard, c'est le client qui sélectionne encore une colonne supprimée du
+  schéma. Réflexe : `npm run user:generate` (et `npx prisma generate` pour la base
+  principale) avant de chercher plus loin — ça règle du même coup les erreurs
+  `tsc` du type « Property 'rideForecast' does not exist ».
 
 ## Alertes Web Push (moteur — ajout 2026-07)
 
@@ -585,15 +687,28 @@ livraison navigateur = **push/notification**.)
   `seuil + REARM_MARGIN=5`). Écrit `alert_history`, purge les endpoints morts (410/404).
   **Regroupement par utilisateur** : si plusieurs attractions passent sous leur
   seuil dans le même passage, une seule notif « digest » listée est envoyée (pas
-  une par attraction) — l'historique/désarmement restent par alerte.
-- **Expiration quotidienne** : une alerte ne vaut QUE pour le jour de sa
-  (ré)activation. `Alert.activeDate` est (re)calé sur « maintenant » à la création
-  / réactivation / changement de seuil ; le moteur **désactive** (`active=false`)
-  toute alerte dont ce jour — évalué dans le **fuseau du parc** (jointure
-  `ride → park.timezone`) — est antérieur à aujourd'hui.
-- **Édition depuis le profil** : `components/profile/alerts-section.tsx` permet de
-  **modifier le seuil** (stepper, `PATCH` debouncé) en plus de (dé)activer /
-  supprimer. La création reste réservée au popup d'attraction.
+  une par attraction) — l'historique reste par alerte.
+- ⚠️ **Une alerte est à USAGE UNIQUE** (2026-07-28) : après l'écriture dans
+  `alert_history`, le moteur la **SUPPRIME** (avant : `active=false`). Elle avait
+  atteint son objectif, et le profil ne propose plus de la réactiver. Effet de
+  bord bienvenu : plus de notification répétée quand le temps oscille autour du
+  seuil. L'historique survit (relation `Alert → AlertHistory` en
+  `onDelete: SetNull`). Même schéma que les rappels de spectacles, qui écrivent
+  dans `ShowReminderHistory` puis se suppriment.
+- ⚠️ **Expiration quotidienne = SUPPRESSION** : une alerte ne vaut QUE pour le
+  jour de sa création. `Alert.activeDate` est calé sur « maintenant » à la
+  création / au changement de seuil ; passé **minuit dans le fuseau du parc**
+  (jointure `ride → park.timezone` — pas celui du serveur ni de l'utilisateur), le
+  moteur la supprime. Rien à journaliser : ces alertes-là n'ont jamais notifié.
+  La purge à 7 jours en tête de passe n'est plus qu'un **filet** pour d'anciennes
+  lignes désactivées (la boucle d'expiration ne lit que les actives).
+  ⚠️ Cas connu, assumé : pour un parc qui ferme **après** minuit, l'alerte
+  disparaît alors que le visiteur est encore sur place. Le « jour logique » du
+  worker (`getParkLogicalDate`) serait la variante à retenir si on veut la tenir
+  jusqu'à la fermeture réelle.
+- **Corbeilles** : même style partout (`variant="ghost"` +
+  `text-destructive hover:text-destructive`), popups attraction et spectacle
+  compris — c'est désormais le SEUL endroit où l'on supprime.
 - **Web Push (serveur)** `lib/web-push.ts` (VAPID via `web-push`), messages
   localisés par `lib/alert-messages.ts` (fr/en, repli EN — pas de next-intl dans
   un job de fond). Titre **aléatoire + emoji** (convivial, non redondant), corps
