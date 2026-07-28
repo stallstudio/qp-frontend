@@ -47,16 +47,24 @@ const MS_PER_MIN = 60_000;
 
 // Intervalle couvrant l'instant `t`, ou `null` si aucun. `end = null` couvre
 // jusqu'à l'infini (intervalle courant).
+//
+// `inclusiveEnd` accepte AUSSI l'intervalle qui se termine pile en `t`. Réservé
+// au point de FERMETURE : une attraction qui bascule « fermée » à l'heure pile
+// laisserait sinon un dernier point vide, alors que la question posée est
+// justement « quel temps affichait-elle en fermant ? ».
 function sampleIntervalAt(
   intervals: WaitInterval[],
   t: Date,
+  inclusiveEnd = false,
 ): WaitInterval | null {
   const ts = t.getTime();
+  let endingHere: WaitInterval | null = null;
   for (const iv of intervals) {
     const end = iv.end ? iv.end.getTime() : Infinity;
     if (iv.start.getTime() <= ts && ts < end) return iv;
+    if (inclusiveEnd && end === ts && iv.start.getTime() < ts) endingHere = iv;
   }
-  return null;
+  return endingHere;
 }
 
 // Instants de DÉBUT de chaque bucket, de `open` à `close` (exclus).
@@ -103,17 +111,38 @@ export function sampleDaySeries(
 ): TimedPoint[] {
   const limit = Math.min(day.close.getTime(), upTo.getTime());
   const points: TimedPoint[] = [];
-  for (const bucket of bucketInstants(day.open, day.close, stepMinutes)) {
-    if (bucket.getTime() > limit) break;
-    const iv = sampleIntervalAt(day.intervals, bucket);
+
+  const pushPoint = (instant: Date, inclusiveEnd = false) => {
+    const iv = sampleIntervalAt(day.intervals, instant, inclusiveEnd);
     const available = iv?.available ?? false;
     points.push({
-      t: bucket.toISOString(),
+      t: instant.toISOString(),
       waitTime: available ? iv!.waitTime : null,
       // Statut porté uniquement quand indispo (sinon inutile) : sert à colorer
       // la barre basse et le tooltip (closed/maintenance = rouge, down = orange).
       status: available ? undefined : iv?.status,
     });
+  };
+
+  for (const bucket of bucketInstants(day.open, day.close, stepMinutes)) {
+    if (bucket.getTime() > limit) break;
+    pushPoint(bucket);
   }
+
+  // Point de FERMETURE. `bucketInstants` s'arrête AVANT `close` : sans ça, la
+  // courbe d'une journée terminée s'interrompait jusqu'à un pas complet avant la
+  // fermeture (parc fermant à 19:30 -> dernier point à 19:15), alors que l'axe,
+  // lui, va bien jusqu'à 19:30 — on ne savait donc pas le temps affiché en fin de
+  // journée. Ajouté UNIQUEMENT quand la journée est finie : en cours de journée,
+  // la courbe doit s'arrêter à « maintenant », c'est la prévision qui prend le
+  // relais. Le dernier pas peut être plus court que les autres (fermeture pas
+  // forcément alignée sur la grille) — c'est voulu.
+  const lastMs = points.length
+    ? Date.parse(points[points.length - 1].t)
+    : null;
+  if (limit === day.close.getTime() && lastMs !== null && lastMs < limit) {
+    pushPoint(day.close, true);
+  }
+
   return points;
 }
