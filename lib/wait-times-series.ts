@@ -15,6 +15,11 @@ export type TimedPoint = {
   t: string;
   waitTime: number | null;
   status?: string | null;
+  // Points de PRÉVISION uniquement : marge d'erreur (± minutes) attendue à cet
+  // horizon, calculée par le worker à partir de la justesse réellement mesurée
+  // les jours précédents (table `forecast_accuracy`). `null`/absent = pas assez
+  // de mesures -> le graphique n'affiche pas de bande d'incertitude.
+  margin?: number | null;
 };
 
 // Intervalle temporel issu du modèle `wait_times` : la valeur `waitTime` reste

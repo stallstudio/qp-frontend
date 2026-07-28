@@ -12,6 +12,8 @@ export interface RideHistoryResponse {
   // Courbe observée du jour (null = indisponible -> coupure).
   today: TimedPoint[];
   // Prévision de « maintenant » à la fermeture (vide si parc déjà fermé).
+  // Chaque point porte sa propre `margin` (± minutes) : l'erreur croît avec
+  // l'horizon, une marge unique pour toute la courbe serait trompeuse.
   forecast: TimedPoint[];
   meta: {
     scale: number;
@@ -26,6 +28,12 @@ export interface RideHistoryResponse {
     // true = attraction indisponible sur une longue période (ouverte < ~20 % du
     // temps) -> message dédié + alertes désactivées.
     chronicallyUnavailable: boolean;
+    // Marge d'erreur MOYENNE de cette attraction (± minutes, toutes fenêtres
+    // d'horizon confondues), et nombre de mesures qui la fondent. Sert la
+    // mention textuelle sous le graphique ; le tracé de la bande utilise, lui,
+    // la marge propre à chaque point. null = pas encore mesuré.
+    marginMinutes: number | null;
+    marginSamples: number;
   };
 }
 

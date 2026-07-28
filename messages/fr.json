@@ -220,7 +220,7 @@
       },
       "forecast": {
         "title": "Prévision d'affluence",
-        "body": "Sur la fiche d'une attraction, la courbe pleine retrace le temps d'attente observé depuis l'ouverture, et le pointillé une estimation jusqu'à la fermeture. Elle s'appuie sur les journées passées comparables (semaine ou week-end, vacances, météo). C'est une estimation, pas une promesse : une panne ou une averse suffisent à la démentir."
+        "body": "Sur la fiche d'une attraction, la courbe pleine retrace le temps d'attente observé depuis l'ouverture, et le pointillé une estimation jusqu'à la fermeture. Elle s'appuie sur les journées passées comparables (jour de la semaine, vacances, météo, horaires). La zone claire autour du pointillé est notre marge d'erreur réelle : nous comparons chaque jour nos prévisions de la veille à ce qui s'est vraiment passé, et elle s'élargit à mesure que l'échéance s'éloigne."
       },
       "search": {
         "title": "Recherche & parc au hasard",
@@ -464,6 +464,10 @@
     "chartForecastNote": "Estimation indicative de la fin de journée.",
     "chartForecastPreOpeningNote": "Estimation basée sur les jours précédents — mise à jour à l'ouverture du parc.",
     "estimateTooltip": "Estimation d'après les journées passées comparables. La réalité peut varier.",
+    "marginInline": "± {minutes} min",
+    "marginLegend": "Marge d'erreur",
+    "marginTooltip": "Écart moyen entre nos prévisions et l'attente réellement constatée les jours précédents. La bande s'élargit avec l'échéance.",
+    "marginNote": "Sur les derniers jours, nos prévisions se sont trompées de {minutes} min en moyenne.",
     "installTitle": "Installez Queue Park",
     "installIntro": "Les alertes nécessitent que l'application soit installée sur votre appareil.",
     "installButton": "Installer l'application",

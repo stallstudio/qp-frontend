@@ -442,7 +442,7 @@ export function ReminderDemo() {
 /* -------------------------------------------------------------------------- */
 /* Prévision d'affluence — RÉUTILISE le vrai graphique (WaitTimeChart) avec des */
 /* données factices : courbe pleine = temps observé du jour, pointillé =        */
-/* prévision jusqu'à la fermeture, ligne « maintenant », badge de fiabilité.    */
+/* prévision jusqu'à la fermeture, ligne « maintenant », bande de marge.        */
 /* -------------------------------------------------------------------------- */
 
 export function ForecastDemo() {
@@ -464,12 +464,14 @@ export function ForecastDemo() {
     ).map(([h, m, w]) => ({ t: at(h, m), waitTime: w, status: "open" }));
 
     // Prévision 15:30 -> fermeture (19:00) : pic d'après-midi puis décrue.
+    // La marge s'élargit avec l'échéance, comme dans le vrai graphique (elle y
+    // vient de l'erreur mesurée les jours précédents à chaque horizon).
     const forecast: TimedPoint[] = (
       [
-        [15, 30, 55], [16, 0, 60], [16, 30, 55], [17, 0, 45],
-        [17, 30, 40], [18, 0, 30], [18, 30, 20], [19, 0, 10],
-      ] as [number, number, number][]
-    ).map(([h, m, w]) => ({ t: at(h, m), waitTime: w }));
+        [15, 30, 55, 3], [16, 0, 60, 4], [16, 30, 55, 6], [17, 0, 45, 7],
+        [17, 30, 40, 9], [18, 0, 30, 10], [18, 30, 20, 11], [19, 0, 10, 12],
+      ] as [number, number, number, number][]
+    ).map(([h, m, w, margin]) => ({ t: at(h, m), waitTime: w, margin }));
 
     return {
       today,
@@ -492,6 +494,7 @@ export function ForecastDemo() {
         todayLabel={t("chartToday")}
         actualLabel={t("chartActual")}
         forecastLabel={t("chartForecast")}
+        marginLabel={(minutes) => t("marginInline", { minutes })}
       />
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
@@ -503,6 +506,10 @@ export function ForecastDemo() {
           <span className="underline decoration-dotted underline-offset-2">
             {t("chartForecast")}
           </span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-4 rounded-[2px] bg-primary/20" />
+          {t("marginLegend")}
         </span>
       </div>
       <p className="text-center text-[11px] text-muted-foreground/80">

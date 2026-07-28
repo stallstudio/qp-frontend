@@ -220,7 +220,7 @@
       },
       "forecast": {
         "title": "Wait-time forecast",
-        "body": "On an attraction's page, the solid line traces the wait time observed since opening, and the dashed line estimates the rest of the day up to closing. It draws on comparable past days (weekday or weekend, holidays, weather). It is an estimate, not a promise: a breakdown or a rain shower is enough to prove it wrong."
+        "body": "On an attraction's page, the solid line traces the wait time observed since opening, and the dashed line estimates the rest of the day up to closing. It draws on comparable past days (day of the week, school holidays, weather, opening hours). The shaded area around the dashed line is our real margin of error: every day we compare yesterday's forecasts against what actually happened, and it widens the further ahead you look."
       },
       "search": {
         "title": "Search & random park",
@@ -464,6 +464,10 @@
     "chartForecastNote": "Rough estimate for the rest of the day.",
     "chartForecastPreOpeningNote": "Estimate based on past days — will update once the park opens.",
     "estimateTooltip": "Estimated from comparable past days. Reality may differ.",
+    "marginInline": "± {minutes} min",
+    "marginLegend": "Margin of error",
+    "marginTooltip": "Average gap between our forecasts and the wait actually observed on previous days. The band widens further ahead.",
+    "marginNote": "Over the past few days, our forecasts were off by {minutes} min on average.",
     "installTitle": "Install Queue Park",
     "installIntro": "Alerts require the app installed on your device.",
     "installButton": "Install the app",

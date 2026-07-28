@@ -112,7 +112,7 @@ model RideForecast {
   park            Park      @relation(fields: [parkId], references: [id], onDelete: Cascade)
   date            String    @db.VarChar(10) // jour local visé (YYYY-MM-DD)
   baseProfile     Json // { stepMinutes, values: (number|null)[] } aligné sur l'ouverture
-  forecast        Json // série finale { t, waitTime }[]
+  forecast        Json // série finale { t, waitTime, margin }[]
   scale           Float     @default(1)
   confidence      Float     @default(0)
   confidenceLevel String    @default("low") @db.VarChar(10) // low | medium | high
@@ -122,6 +122,14 @@ model RideForecast {
   closeTime       DateTime?
   computedAt      DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  // Écrits par le worker (voir tw-waittimes-worker/src/services/forecast/).
+  // Le front ne LIT que `marginMinutes`/`marginSamples` : la marge du tracé est
+  // portée par chaque point de `forecast`.
+  referenceForecast   Json?
+  referenceComputedAt DateTime?
+  marginMinutes       Float?
+  marginSamples       Int?      @default(0)
 
   @@index([parkId])
   @@map("ride_forecast")

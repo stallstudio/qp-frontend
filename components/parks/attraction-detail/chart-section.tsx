@@ -30,6 +30,12 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
 
   const hasActual = !!data && data.today.some((p) => p.waitTime != null);
   const hasForecast = !!data && data.forecast.length > 0;
+  // Marge d'erreur MESURÉE (prévision de la veille confrontée à l'observé). On
+  // ne l'annonce que si au moins un point de la courbe en porte une : le
+  // graphique et le texte doivent dire la même chose.
+  const hasMargin =
+    !!data && data.forecast.some((p) => p.margin != null && p.margin > 0);
+  const marginMinutes = data?.meta.marginMinutes;
 
   if (!data || (!hasActual && !hasForecast)) {
     // Message adapté : indisponibilité durable > indisponibilité du jour > pas
@@ -59,6 +65,7 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
         todayLabel={t("chartToday")}
         actualLabel={t("chartActual")}
         forecastLabel={t("chartForecast")}
+        marginLabel={(minutes) => t("marginInline", { minutes })}
       />
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
@@ -87,12 +94,38 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
             </button>
           </ClickableTooltip>
         )}
+        {/* Entrée de légende de la bande d'incertitude : un aplat de la même
+            couleur que la prévision, pour qu'on relie les deux d'un coup d'œil. */}
+        {hasMargin && (
+          <ClickableTooltip
+            content={t("marginTooltip")}
+            className="max-w-[15rem] text-center text-xs"
+          >
+            <button
+              type="button"
+              className="flex cursor-help items-center gap-1.5"
+            >
+              <span className="h-2.5 w-4 rounded-[2px] bg-primary/20" />
+              <span className="underline decoration-dotted underline-offset-2">
+                {t("marginLegend")}
+              </span>
+            </button>
+          </ClickableTooltip>
+        )}
       </div>
       {data.forecast.length > 0 && (
         <p className="text-center text-[11px] text-muted-foreground/80">
           {data.meta.preOpening
             ? t("chartForecastPreOpeningNote")
             : t("chartForecastNote")}
+        </p>
+      )}
+      {/* Chiffre d'honnêteté : ce que valent VRAIMENT nos prévisions sur cette
+          attraction, mesuré et non postulé. Remplace l'ancien badge
+          « Fiabilité : haute », qui ne comptait que des jours d'historique. */}
+      {hasMargin && marginMinutes != null && (
+        <p className="text-center text-[11px] text-muted-foreground/70">
+          {t("marginNote", { minutes: Math.round(marginMinutes) })}
         </p>
       )}
     </div>

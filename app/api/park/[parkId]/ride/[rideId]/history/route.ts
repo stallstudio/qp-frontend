@@ -43,6 +43,8 @@ export async function GET(
       method: "none",
       historyDays: 0,
       chronicallyUnavailable: false,
+      marginMinutes: null,
+      marginSamples: 0,
     },
   });
 
@@ -105,6 +107,8 @@ export async function GET(
         preOpening: true,
         method: true,
         baseProfile: true,
+        marginMinutes: true,
+        marginSamples: true,
       },
     });
 
@@ -148,6 +152,12 @@ export async function GET(
         method: fresh ? forecastRow.method : "none",
         historyDays,
         chronicallyUnavailable,
+        // Marge d'erreur MESURÉE (moyenne des écarts prévu/observé des jours
+        // précédents). Remplace l'ancien indice de « fiabilité », qui ne
+        // mesurait qu'un volume de données et affichait « haute » dès 7 jours
+        // d'historique sans jamais confronter la prévision au réel.
+        marginMinutes: fresh ? forecastRow.marginMinutes : null,
+        marginSamples: fresh ? (forecastRow.marginSamples ?? 0) : 0,
       },
     };
 

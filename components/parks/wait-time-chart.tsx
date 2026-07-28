@@ -4,9 +4,10 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { DateTime } from "luxon";
 import {
+  Area,
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ReferenceLine,
   XAxis,
   YAxis,
@@ -32,12 +33,20 @@ type WaitTimeChartProps = {
   // graphique pour opposer la courbe pleine du jour à la prévision en pointillé.
   actualLabel: string;
   forecastLabel: string;
+  // Libellé de la marge d'erreur dans le tooltip, ex. « ± {minutes} min ».
+  marginLabel: (minutes: number) => string;
 };
 
 type ChartRow = {
   t: number;
   actual: number | null;
   forecast: number | null;
+  // Bande d'incertitude [bas, haut] autour de la prévision. Recharts rend un
+  // `Area` en « plage » quand la valeur est un couple. null = marge inconnue
+  // (pas encore assez de mesures) -> aucune bande, plutôt qu'une bande inventée.
+  band?: [number, number] | null;
+  // Marge (± minutes) du point de prévision, pour le tooltip.
+  margin?: number | null;
   // Statut d'indispo (quand actual == null) : colore la barre basse + tooltip.
   status?: string | null;
   // Ancre invisible : vaut 0 sur les points d'indispo, null ailleurs. Sert
@@ -81,6 +90,7 @@ export default function WaitTimeChart({
   todayLabel,
   actualLabel,
   forecastLabel,
+  marginLabel,
 }: WaitTimeChartProps) {
   const { is12Hour } = useTimeFormat();
   const tStatus = useTranslations("attractionStatus");
@@ -90,7 +100,7 @@ export default function WaitTimeChart({
       .setZone(timezone)
       .toFormat(is12Hour ? "h:mm a" : "HH:mm");
 
-  const { data, xMin, xMax, yMax, yTicks, xTicks, nowMs, downBands } = useMemo(() => {
+  const { data, xMin, xMax, yMax, yTicks, xTicks, nowMs, downBands, hasBand } = useMemo(() => {
     const rows = new Map<number, ChartRow>();
     const row = (t: number) => {
       let entry = rows.get(t);
@@ -106,12 +116,34 @@ export default function WaitTimeChart({
       r.actual = p.waitTime;
       r.status = p.status;
     }
-    for (const p of forecast) row(Date.parse(p.t)).forecast = p.waitTime;
+    // Bande d'incertitude : chaque point de prévision porte SA marge, mesurée à
+    // un horizon comparable sur les jours précédents (l'erreur croît avec
+    // l'horizon — une marge unique pour toute la courbe serait trompeuse).
+    let hasBand = false;
+    for (const p of forecast) {
+      const r = row(Date.parse(p.t));
+      r.forecast = p.waitTime;
+      if (p.waitTime != null && p.margin != null && p.margin > 0) {
+        r.margin = p.margin;
+        r.band = [Math.max(0, p.waitTime - p.margin), p.waitTime + p.margin];
+        hasBand = true;
+      }
+    }
 
     // Raccord : le dernier point observé amorce aussi la prévision (continuité
     // solide -> pointillé).
     const lastActual = [...today].reverse().find((p) => p.waitTime != null);
-    if (lastActual) row(Date.parse(lastActual.t)).forecast = lastActual.waitTime;
+    if (lastActual) {
+      const r = row(Date.parse(lastActual.t));
+      r.forecast = lastActual.waitTime;
+      // La bande part d'une largeur NULLE sur le point observé : à l'instant
+      // présent le temps d'attente est connu, l'incertitude ne s'ouvre qu'en
+      // avançant. Sans ce point d'ancrage, la bande commencerait « en marche
+      // d'escalier » au premier point de prévision.
+      if (hasBand && lastActual.waitTime != null) {
+        r.band = [lastActual.waitTime, lastActual.waitTime];
+      }
+    }
 
     const data = [...rows.values()].sort((a, b) => a.t - b.t);
 
@@ -123,8 +155,10 @@ export default function WaitTimeChart({
     // obtenue en faisant TOUCHER cette barre aux points connus voisins (bornes
     // étendues plus bas), pas en inventant des valeurs.
 
+    // La borne haute de l'axe doit englober le HAUT de la bande, sinon celle-ci
+    // se retrouve rognée par le cadre.
     const values = data
-      .flatMap((d) => [d.actual, d.forecast])
+      .flatMap((d) => [d.actual, d.forecast, d.band?.[1] ?? null])
       .filter((v): v is number => v != null);
     const times = data.map((d) => d.t);
     const xMin = win ? Date.parse(win.open) : Math.min(...times, nowMs);
@@ -213,7 +247,7 @@ export default function WaitTimeChart({
       d.downMarker = d.t <= nowMs && d.actual == null ? 0 : null;
     }
 
-    return { data, xMin, xMax, yMax, yTicks, xTicks, nowMs, downBands };
+    return { data, xMin, xMax, yMax, yTicks, xTicks, nowMs, downBands, hasBand };
   }, [today, forecast, now, win, timezone]);
 
   const chartConfig = {
@@ -239,9 +273,12 @@ export default function WaitTimeChart({
     payload?: TipEntry[];
   }) {
     if (!active || !payload?.length) return null;
-    // On exclut l'ancre invisible (downMarker) des lignes numériques affichées.
+    // On exclut l'ancre invisible (downMarker) et la bande d'incertitude (dont
+    // la valeur est un COUPLE [bas, haut], pas un temps d'attente) des lignes
+    // numériques affichées. La marge est reportée sur la ligne « Prévision ».
     let rows = payload.filter(
-      (p) => p.value != null && p.dataKey !== "downMarker",
+      (p) =>
+        p.value != null && p.dataKey !== "downMarker" && p.dataKey !== "band",
     );
     // Au point de raccord (« Maintenant »), le dernier temps observé amorce aussi
     // la prévision : les deux séries portent la MÊME valeur au même instant. On
@@ -283,6 +320,7 @@ export default function WaitTimeChart({
     }
 
     const ms = rows[0].payload?.t;
+    const margin = rows[0].payload?.margin;
     return (
       <div className="rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
         {ms != null && <div className="mb-1 font-medium">{fmtTime(ms)}</div>}
@@ -298,6 +336,13 @@ export default function WaitTimeChart({
               </span>
               <span className="ml-auto font-mono font-medium tabular-nums">
                 {r.value} min
+                {/* Marge affichée sur la seule ligne de prévision : c'est
+                    l'incertitude MESURÉE à cet horizon, pas une décoration. */}
+                {r.dataKey === "forecast" && margin != null && (
+                  <span className="ml-1 font-normal text-muted-foreground">
+                    {marginLabel(margin)}
+                  </span>
+                )}
               </span>
             </div>
           ))}
@@ -314,7 +359,10 @@ export default function WaitTimeChart({
           `interval="preserveStartEnd"` qui recalait auparavant la dernière
           graduation vers l'intérieur ; `interval={0}` (voir XAxis) ne le fait
           pas, c'est donc à la marge de réserver la place. */}
-      <LineChart data={data} margin={{ top: 18, right: 20, left: -10, bottom: 0 }}>
+      {/* `ComposedChart` et non `LineChart` : la bande d'incertitude est une
+          `Area` de plage, que `LineChart` n'accepte pas comme enfant. Le rendu
+          des `Line` est identique. */}
+      <ComposedChart data={data} margin={{ top: 18, right: 20, left: -10, bottom: 0 }}>
         <CartesianGrid vertical horizontal strokeDasharray="3 3" />
         <XAxis
           dataKey="t"
@@ -375,6 +423,27 @@ export default function WaitTimeChart({
           />
         )}
         <ChartTooltip content={<WaitTooltip />} />
+        {/* Bande d'incertitude, rendue AVANT les courbes pour passer dessous.
+            Sa demi-hauteur est la marge d'erreur RÉELLEMENT mesurée les jours
+            précédents à un horizon comparable (table `forecast_accuracy`) : elle
+            s'élargit donc naturellement en s'éloignant de « maintenant ».
+            Absente tant que la mesure manque — on ne dessine pas une
+            incertitude qu'on ne connaît pas. */}
+        {hasBand && (
+          <Area
+            dataKey="band"
+            type="monotone"
+            fill="var(--color-forecast)"
+            fillOpacity={0.12}
+            stroke="none"
+            connectNulls={false}
+            activeDot={false}
+            isAnimationActive
+            animationDuration={350}
+            animationEasing="ease-in-out"
+            legendType="none"
+          />
+        )}
         {/* Ancre invisible : porte une valeur (0) sur les points d'indispo pour
             que le tooltip s'active au survol de la barre basse. Aucun trait/point
             visible. */}
@@ -417,7 +486,7 @@ export default function WaitTimeChart({
           animationDuration={350}
           animationEasing="ease-in-out"
         />
-      </LineChart>
+      </ComposedChart>
     </ChartContainer>
   );
 }
