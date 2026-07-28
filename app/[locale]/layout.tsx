@@ -9,6 +9,7 @@ import AuthSessionProvider from "@/components/providers/session-provider";
 import { UserProvider } from "@/components/providers/user-provider";
 import { AuthGateProvider } from "@/components/providers/auth-gate-provider";
 import { FavoritesProvider } from "@/components/providers/favorites-provider";
+import { NotificationsProvider } from "@/components/providers/notifications-provider";
 import CookieConsent from "@/components/cookie-consent";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -116,8 +117,12 @@ export default async function LocaleLayout({
                   un visiteur non connecté clique sur une étoile. */}
               <AuthGateProvider>
                 <FavoritesProvider>
-                  {children}
-                  <CookieConsent />
+                  {/* Alertes/rappels actifs : alimente la cloche affichée sur
+                      les lignes des listes attractions et spectacles. */}
+                  <NotificationsProvider>
+                    {children}
+                    <CookieConsent />
+                  </NotificationsProvider>
                 </FavoritesProvider>
               </AuthGateProvider>
             </UserProvider>
