@@ -24,8 +24,9 @@ type AlertStrings = {
   digestLine: (p: AlertRide) => string;
   // Pied du digest quand la liste est tronquée.
   more: (n: number) => string;
-  // Note ajoutée en bas du corps : l'alerte est désactivée (objectif atteint),
-  // réactivable depuis le profil. Pluriel pour le digest.
+  // Note « l'alerte est désactivée (objectif atteint), réactivable depuis le
+  // profil ». ⚠️ PLUS UTILISÉE : les appels sont commentés dans
+  // `buildAlertMessage` — on garde les textes pour pouvoir la rétablir.
   deactivatedNote: (count: number) => string;
 };
 
@@ -95,8 +96,10 @@ export function buildAlertMessage(
   if (rides.length === 1) {
     return {
       title: pick(d.singleTitles),
-      // On rappelle en bas que l'alerte est désactivée (objectif atteint).
-      body: `${d.singleBody(rides[0])}\n\n${d.deactivatedNote(1)}`,
+      body: d.singleBody(rides[0]),
+      // MIS EN PAUSE : on n'ajoute plus la note « alerte en pause, réactive-la
+      // dans ton profil » en bas du corps (trop verbeux dans une notif).
+      // body: `${d.singleBody(rides[0])}\n\n${d.deactivatedNote(1)}`,
     };
   }
 
@@ -106,7 +109,9 @@ export function buildAlertMessage(
   const lines = shown.map((r) => d.digestLine(r));
   const rest = sorted.length - shown.length;
   if (rest > 0) lines.push(d.more(rest));
-  lines.push("", d.deactivatedNote(rides.length));
+  // MIS EN PAUSE (voir plus haut) : plus de note « alertes en pause » en pied de
+  // digest.
+  // lines.push("", d.deactivatedNote(rides.length));
 
   return { title: d.digestTitle(rides.length), body: lines.join("\n") };
 }
