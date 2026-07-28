@@ -62,6 +62,15 @@ export default function AttractionDetailDialog({
     chronicallyUnavailable,
   } = useRideHistory(parkIdentifier, target?.rideId ?? null);
 
+  // Temps standby actuel (seulement si ouvert et exploitable) : sert au seuil par
+  // défaut « un cran en dessous » ET de garde-fou contre un verdict d'historique
+  // erroné (voir plus bas).
+  const standby = target?.queues.find((q) => q.type === "standby");
+  const currentWaitTime =
+    standby && standby.status === "open" && standby.waitTime >= 0
+      ? standby.waitTime
+      : undefined;
+
   return (
     <Dialog open={target !== null} onOpenChange={onOpenChange}>
       {/* rounded-4xl : même radius que l'en-tête de parc et le container temps
@@ -114,19 +123,13 @@ export default function AttractionDetailDialog({
                   rideName={target.rideName}
                   parkIdentifier={parkIdentifier}
                   parkName={parkName}
-                  unavailable={chronicallyUnavailable}
-                  currentWaitTime={(() => {
-                    // Temps standby actuel (seulement si ouvert et exploitable) :
-                    // sert au seuil par défaut « un cran en dessous ».
-                    const standby = target.queues.find(
-                      (q) => q.type === "standby",
-                    );
-                    return standby &&
-                      standby.status === "open" &&
-                      standby.waitTime >= 0
-                      ? standby.waitTime
-                      : undefined;
-                  })()}
+                  // L'historique peut se tromper (parc récemment ajouté, collecte
+                  // interrompue) : s'il affiche un temps d'attente EN CE MOMENT,
+                  // le direct tranche et on laisse poser une alerte.
+                  unavailable={
+                    chronicallyUnavailable && currentWaitTime === undefined
+                  }
+                  currentWaitTime={currentWaitTime}
                 />
                 </div>
               </Section>

@@ -8,6 +8,10 @@ import type { ConfidenceLevel, RideHistoryResponse } from "@/types/rideHistory";
 // Cadence d'échantillonnage (min) de la courbe du jour ET de la prévision.
 const CHART_STEP_MINUTES = 15;
 
+// Nombre de jours d'historique minimum avant d'oser qualifier une attraction
+// d'« indisponible en permanence » (message dédié + alertes désactivées).
+const MIN_HISTORY_DAYS_FOR_UNAVAILABLE = 3;
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -131,7 +135,16 @@ export async function GET(
     const availabilityRatio = baseProfile
       ? Number(baseProfile.availabilityRatio ?? 1)
       : 1;
-    const chronicallyUnavailable = fresh ? availabilityRatio < 0.2 : false;
+    // ...mais ce verdict n'a de sens qu'avec assez d'historique pour l'appuyer.
+    // Un parc qui vient d'être ajouté (ou dont la collecte a été interrompue)
+    // produit un profil quasi vide : le ratio y tombe naturellement à ~0, et on
+    // déclarait alors « n'affiche jamais de temps d'attente » des attractions qui
+    // en affichent en direct — ce qui désactivait AUSSI leurs alertes. Sans
+    // plusieurs jours d'observation, on ne conclut donc rien.
+    const chronicallyUnavailable =
+      !!fresh &&
+      historyDays >= MIN_HISTORY_DAYS_FOR_UNAVAILABLE &&
+      availabilityRatio < 0.2;
 
     const data: RideHistoryResponse = {
       timezone: rideHistory.timezone,
