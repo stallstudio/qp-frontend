@@ -170,12 +170,16 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
                   timezone={park.timezone}
                   openingHours={park.openingHours}
                 />
-                <div className="flex items-center gap-3 flex-wrap">
+                {/* « Actuellement : 17:52 • ☀ 32°C » — l'heure sur place et la
+                    météo décrivent le MÊME instant, elles tiennent donc sur une
+                    seule ligne, séparées par une puce. `flex-wrap` : si la place
+                    manque, la météo passe à la ligne plutôt que d'être rognée. */}
+                <div className="flex flex-wrap items-center gap-2">
                   <ParkLocalTime timezone={park.timezone} />
                   {park.weather?.currentTemp != null && (
                     <>
-                      <span className="text-white/50" aria-hidden>
-                        —
+                      <span className="text-white" aria-hidden>
+                        •
                       </span>
                       <ParkWeather weather={park.weather} />
                     </>
