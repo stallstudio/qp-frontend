@@ -163,7 +163,10 @@ function TypeChips({
   );
 }
 
-// Pastille (icône) : carré à bords arrondis, teinté selon le type.
+// Marqueur de type de la ligne, teinté (orange attraction / violet spectacle).
+// Sur MOBILE, la pastille 36 px mangeait une largeur qui manque au nom (la ligne
+// porte déjà badge + interrupteur + deux actions) : on la remplace par un simple
+// point de couleur, qui porte la même information de type.
 function Avatar({
   kind,
   children,
@@ -172,13 +175,21 @@ function Avatar({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${
-        kind === "show" ? "bg-show/10 text-show" : "bg-primary/10 text-primary"
-      }`}
-    >
-      {children}
-    </div>
+    <>
+      <span
+        aria-hidden
+        className={`size-2.5 shrink-0 rounded-full sm:hidden ${
+          kind === "show" ? "bg-show" : "bg-primary"
+        }`}
+      />
+      <div
+        className={`hidden size-9 shrink-0 items-center justify-center rounded-xl sm:flex ${
+          kind === "show" ? "bg-show/10 text-show" : "bg-primary/10 text-primary"
+        }`}
+      >
+        {children}
+      </div>
+    </>
   );
 }
 
@@ -275,7 +286,10 @@ function EditThresholdDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
+        {/* Centré aussi sur desktop (`DialogHeader` repasse à gauche dès `sm`) :
+            la question surmonte un stepper centré, comme dans le popup
+            d'attraction. */}
+        <DialogHeader className="text-center sm:text-center">
           <DialogTitle>{alert?.rideName}</DialogTitle>
           <DialogDescription>{tAlert("thresholdLabel")}</DialogDescription>
         </DialogHeader>
@@ -367,7 +381,7 @@ function EditLeadDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
+        <DialogHeader className="text-center sm:text-center">
           <DialogTitle>{reminder?.showName}</DialogTitle>
           <DialogDescription>{tShow("leadLabel")}</DialogDescription>
         </DialogHeader>
@@ -494,6 +508,9 @@ export default function AlertsSection() {
     try {
       await axios.delete(`/api/user/show-reminders/${reminder.id}`);
       toast.success(t("deleted"));
+      // Les rappels de spectacle entrent dans le compteur « alertes actives » de
+      // l'en-tête : sans ce refresh, la vignette resterait sur l'ancien total.
+      refresh();
     } catch {
       toast.error(t("deleteError"));
       setReminders(previous);
@@ -550,7 +567,7 @@ export default function AlertsSection() {
   };
 
   const heading = (
-    <div className="mb-3 flex items-center gap-2">
+    <div className="mb-2 flex items-center gap-2">
       <span className="text-primary">
         <Bell className="size-4" />
       </span>
@@ -563,6 +580,13 @@ export default function AlertsSection() {
   return (
     <>
       {heading}
+
+      {/* Règle du jeu (alertes et rappels ne valent que pour la journée en
+          cours) : juste sous le titre, AVANT les sélecteurs — c'est le cadre de
+          la section entière, pas une note de la seule liste des actives. */}
+      <p className="mb-3 text-sm text-muted-foreground">
+        {t("alertsDailyNote")}
+      </p>
 
       {/* Barre d'outils : filtres par type à gauche, sous-onglets Actives /
           Historique poussés à droite (`ml-auto`). Se replient si étroit. */}
@@ -580,11 +604,6 @@ export default function AlertsSection() {
 
       {subTab === "active" ? (
         <div className="mt-3">
-          {/* Rappel : alertes et rappels ne valent que pour la journée en cours. */}
-          <p className="mb-3 text-sm text-muted-foreground">
-            {t("alertsDailyNote")}
-          </p>
-
           {loading ? (
             <div className="flex justify-center py-6 text-muted-foreground">
               <Loader2 className="size-5 animate-spin" />

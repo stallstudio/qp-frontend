@@ -37,21 +37,30 @@ type HistoryItem = {
   subtitle: string;
 };
 
-// Pastille (icône) : carré à bords arrondis, teinté selon le type (orange
-// attraction / violet spectacle) — cohérent avec le fil des alertes actives.
+// Marqueur de type (orange attraction / violet spectacle) — cohérent avec le fil
+// des alertes actives : point de couleur sur mobile (la pastille prenait trop de
+// largeur), pastille à icône dès `sm`.
 function HistoryAvatar({ kind }: { kind: "ride" | "show" }) {
   return (
-    <div
-      className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${
-        kind === "show" ? "bg-show/10 text-show" : "bg-primary/10 text-primary"
-      }`}
-    >
-      {kind === "ride" ? (
-        <RollerCoaster className="size-4" />
-      ) : (
-        <Drama className="size-4" />
-      )}
-    </div>
+    <>
+      <span
+        aria-hidden
+        className={`size-2.5 shrink-0 rounded-full sm:hidden ${
+          kind === "show" ? "bg-show" : "bg-primary"
+        }`}
+      />
+      <div
+        className={`hidden size-9 shrink-0 items-center justify-center rounded-xl sm:flex ${
+          kind === "show" ? "bg-show/10 text-show" : "bg-primary/10 text-primary"
+        }`}
+      >
+        {kind === "ride" ? (
+          <RollerCoaster className="size-4" />
+        ) : (
+          <Drama className="size-4" />
+        )}
+      </div>
+    </>
   );
 }
 

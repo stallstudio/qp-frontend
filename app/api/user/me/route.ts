@@ -16,8 +16,8 @@ export async function GET() {
 
   const prisma = getUserPrisma();
 
-  const [user, prefs, favorites, activeAlerts] = await Promise.all(
-    [
+  const [user, prefs, favorites, activeRideAlerts, activeShowReminders] =
+    await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: { id: true, email: true, name: true, image: true },
@@ -28,8 +28,11 @@ export async function GET() {
         select: { type: true, key: true },
       }),
       prisma.alert.count({ where: { userId, active: true } }),
-    ],
-  );
+      // Les rappels de spectacle comptent aussi comme des alertes actives : une
+      // ligne `show_reminders` n'existe QUE tant qu'elle est en attente (le cron
+      // la supprime à l'envoi), donc pas de filtre à appliquer ici.
+      prisma.showReminder.count({ where: { userId } }),
+    ]);
 
   if (!user) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -47,7 +50,7 @@ export async function GET() {
     favorites: grouped,
     counts: {
       favorites: favorites.length,
-      activeAlerts,
+      activeAlerts: activeRideAlerts + activeShowReminders,
     },
   };
 
