@@ -440,7 +440,7 @@
     "createTitle": "Créer une alerte",
     "createDescription": "Soyez prévenu lorsque l'attente de {ride} passe sous un seuil.",
     "createFor": "Créer une alerte pour {ride}",
-    "thresholdLabel": "Me prévenir quand l'attente passe sous",
+    "thresholdLabel": "En dessous de quel temps d'attente souhaites-tu être prévenu ?",
     "thresholdOption": "{minutes} min",
     "thresholdHint": "Vous recevrez une alerte dès que le temps d'attente descend sous ce seuil.",
     "cancel": "Annuler",

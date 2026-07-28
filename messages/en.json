@@ -440,7 +440,7 @@
     "createTitle": "Create an alert",
     "createDescription": "Get notified when the wait for {ride} drops below a threshold.",
     "createFor": "Create an alert for {ride}",
-    "thresholdLabel": "Notify me when the wait drops below",
+    "thresholdLabel": "Below which wait time do you want to be notified?",
     "thresholdOption": "{minutes} min",
     "thresholdHint": "You'll be alerted as soon as the wait time falls below this threshold.",
     "cancel": "Cancel",
