@@ -248,13 +248,13 @@ async function runAlertsPass(): Promise<NextResponse> {
   const prisma = getPrisma();
   const now = new Date();
 
-  // Purge des alertes expirées depuis plus d'UNE SEMAINE. Une alerte ne vaut que
-  // pour sa journée d'activation (`activeDate`) : désactivée le lendemain, elle
-  // reste réactivable/modifiable quelques jours, puis est supprimée au bout d'une
-  // semaine. `activeDate` est rafraîchi à chaque (ré)activation, donc une alerte
-  // réactivée repart pour une semaine. Les anciennes lignes sans `activeDate`
-  // (= sans expiration) sont ignorées. L'historique associé est conservé
-  // (relation Alert→AlertHistory en `onDelete: SetNull`).
+  // Filet de sécurité : les alertes ACTIVES sont désormais supprimées dès que
+  // leur journée est passée dans le fuseau du parc (voir plus bas), et une alerte
+  // qui notifie est supprimée aussitôt. Ne peuvent donc traîner ici que des
+  // lignes DÉSACTIVÉES d'anciennes versions, que la boucle d'expiration ne voit
+  // pas (elle ne lit que les actives) : on les balaie au bout d'une semaine. Les
+  // lignes sans `activeDate` (= sans expiration) sont ignorées. L'historique
+  // associé survit (relation Alert→AlertHistory en `onDelete: SetNull`).
   const ALERT_RETENTION_DAYS = 7;
   const alertPurgeCutoff = new Date(
     now.getTime() - ALERT_RETENTION_DAYS * 24 * 60 * 60 * 1000,
@@ -321,8 +321,11 @@ async function runAlertsPass(): Promise<NextResponse> {
   const toExpire: string[] = [];
   for (const a of alerts) {
     // Expiration quotidienne : une alerte ne vaut que pour la journée où elle a
-    // été activée. Si ce jour (dans le fuseau du parc) est passé, on la désactive
-    // et on ne l'évalue plus (l'utilisateur a quitté le parc).
+    // été activée. Passé MINUIT DANS LE FUSEAU DU PARC (pas celui du serveur ni
+    // celui de l'utilisateur : c'est la journée sur place qui compte), elle est
+    // SUPPRIMÉE — l'utilisateur a quitté le parc, et le profil ne propose plus de
+    // la réactiver. Une alerte qui traîne n'aurait donc plus qu'un seul effet
+    // possible : notifier pour une visite qui n'a pas lieu.
     if (a.activeDate) {
       const tz = tzByRide.get(a.rideId) ?? "Europe/Paris";
       const activeDay = DateTime.fromJSDate(a.activeDate).setZone(tz).toISODate();
@@ -346,11 +349,13 @@ async function runAlertsPass(): Promise<NextResponse> {
     }
   }
 
-  // 4a. Expiration : désactivation des alertes des jours précédents.
+  // 4a. Expiration : suppression des alertes dont la journée est passée dans le
+  //     parc. L'historique des notifications déjà envoyées n'en dépend pas
+  //     (relation en `onDelete: SetNull`) ; ces alertes-là, elles, n'ont jamais
+  //     notifié — il n'y a donc rien à journaliser.
   if (toExpire.length > 0) {
-    await userPrisma.alert.updateMany({
+    await userPrisma.alert.deleteMany({
       where: { id: { in: toExpire } },
-      data: { active: false },
     });
   }
 
@@ -448,8 +453,14 @@ async function runAlertsPass(): Promise<NextResponse> {
       else if (res.gone) deadEndpoints.push(s.endpoint);
     }
 
-    // Historique + désarmement PAR alerte, même si l'utilisateur n'a AUCUN
-    // abonnement valide (il verra l'historique ; on n'insiste pas en boucle).
+    // Journal PERMANENT puis SUPPRESSION de l'alerte consommée, même si
+    // l'utilisateur n'a AUCUN abonnement valide (il verra l'historique ; on
+    // n'insiste pas en boucle). Une alerte est à usage unique : son objectif est
+    // atteint, la garder désactivée n'aurait servi qu'à la réactiver depuis le
+    // profil — ce que le profil ne propose plus (tout se règle depuis la page du
+    // parc). Ça règle aussi le cas du temps qui oscille autour du seuil
+    // (10 → 15 → 20 …) : plus d'alerte, donc plus de notification répétée.
+    // L'historique survit à la suppression (relation en `onDelete: SetNull`).
     for (const a of userAlerts) {
       const entry = waitByRide.get(a.rideId)!;
       await userPrisma.alertHistory.create({
@@ -463,16 +474,7 @@ async function runAlertsPass(): Promise<NextResponse> {
           actualWaitTime: entry.waitTime,
         },
       });
-      // Objectif atteint : on considère l'alerte comme « réussie » et on la
-      // DÉSACTIVE (au lieu de la désarmer). Ainsi, si le temps oscille autour du
-      // seuil (10 → 15 → 20 …), on n'envoie PAS une notif à chaque passage : une
-      // seule suffit. L'utilisateur peut la réactiver depuis son profil (la notif
-      // le lui rappelle). `armed:false` par cohérence si elle est réactivée plus
-      // tard sans repasser au-dessus du seuil.
-      await userPrisma.alert.update({
-        where: { id: a.id },
-        data: { active: false, armed: false, lastAlertedAt: new Date() },
-      });
+      await userPrisma.alert.delete({ where: { id: a.id } });
     }
     if (delivered) sent++;
   }
