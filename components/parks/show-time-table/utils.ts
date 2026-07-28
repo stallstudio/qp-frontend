@@ -164,26 +164,47 @@ export function calculateSlotDuration(
   return 30;
 }
 
+// Début du jour LOGIQUE du parc : origine commune à toutes les positions de la
+// timeline. Tout est exprimé en minutes depuis cet instant, jamais en heure du
+// mur (`.hour`) — c'est ce qui permet à une journée de déborder sur le lendemain
+// (parc ouvert jusqu'à minuit, spectacle de 23:55) sans repartir à zéro.
+export function getParkDayStart(
+  timezone: string,
+  parkDate?: string | null,
+): DateTime {
+  return parkDate
+    ? DateTime.fromISO(parkDate, { zone: timezone }).startOf("day")
+    : DateTime.now().setZone(timezone).startOf("day");
+}
+
+// Garde-fou : une grille ne va jamais au-delà de 03:00 le lendemain, même si une
+// source annonce une fin aberrante.
+const MAX_GRID_END_HOUR = 27;
+
+const defaultHours = (): number[] => {
+  const hours: number[] = [];
+  for (let h = 9; h <= 23; h++) hours.push(h);
+  return hours;
+};
+
+/**
+ * Heures (colonnes) de la grille. Les valeurs PEUVENT dépasser 23 : `24` est la
+ * colonne « 00:00 » du lendemain. Sans ça, un spectacle de 23:55 débordait de la
+ * grille et se retrouvait rogné au bord droit (Disneyland California, ouvert
+ * jusqu'à minuit).
+ */
 export function calculateParkHours(
   shows: ShowTime[],
   timezone: string,
   parkDate?: string | null,
 ): number[] {
-  const hours: number[] = [];
+  if (shows.length === 0) return defaultHours();
 
-  if (shows.length === 0) {
-    for (let h = 9; h <= 23; h++) {
-      hours.push(h);
-    }
-    return hours;
-  }
+  // Minutes depuis le début du jour logique (peuvent dépasser 24 h).
+  const startMinutes: number[] = [];
+  const endMinutes: number[] = [];
 
-  const allStartTimes: number[] = [];
-  const allEndTimes: number[] = [];
-
-  const today = parkDate
-    ? DateTime.fromISO(parkDate, { zone: timezone }).startOf("day")
-    : DateTime.now().setZone(timezone).startOf("day");
+  const today = getParkDayStart(timezone, parkDate);
 
   shows.forEach((show) => {
     const todaySchedules = show.schedules.filter((s) => {
@@ -194,7 +215,8 @@ export function calculateParkHours(
       const startTime = DateTime.fromISO(schedule.startTime, {
         zone: timezone,
       });
-      allStartTimes.push(startTime.hour);
+      const fromDayStart = startTime.diff(today, "minutes").minutes;
+      startMinutes.push(fromDayStart);
 
       const nextSchedule = todaySchedules[index + 1] || null;
       const duration = calculateSlotDuration(
@@ -203,45 +225,43 @@ export function calculateParkHours(
         nextSchedule,
         timezone,
       );
-      const endTime = startTime.plus({ minutes: duration });
-      // Un créneau qui franchit minuit (ex. La Cinéscénie 22:30 + 90 min = 00:00)
-      // retomberait sur l'heure 0 et n'étendrait pas la grille : on le borne à
-      // 23 h (la timeline représente une seule journée).
-      const crossesMidnight = endTime.toISODate() !== startTime.toISODate();
-      allEndTimes.push(crossesMidnight ? 23 : endTime.hour);
+      endMinutes.push(fromDayStart + duration);
     });
   });
 
-  if (allStartTimes.length === 0) {
-    for (let h = 9; h <= 23; h++) {
-      hours.push(h);
-    }
-    return hours;
-  }
+  if (startMinutes.length === 0) return defaultHours();
 
-  const minHour = Math.min(...allStartTimes);
-  // Inclure les heures de DÉBUT : un spectacle tardif (La Cinéscénie 22:30) doit
-  // étendre la grille même si sa fin franchit minuit.
-  const maxHour = Math.max(...allStartTimes, ...allEndTimes);
+  const minHour = Math.floor(Math.min(...startMinutes) / 60);
+  // Dernière colonne NÉCESSAIRE : celle qui contient la dernière minute du
+  // dernier créneau (une fin pile à l'heure n'en réclame pas une de plus).
+  const lastNeededHour = Math.ceil(Math.max(...endMinutes) / 60) - 1;
 
   const startHour = Math.max(0, minHour - 1);
-  const endHour = Math.min(23, maxHour + 1);
+  // Une heure de marge après le dernier créneau, comme avant.
+  const endHour = Math.min(
+    MAX_GRID_END_HOUR,
+    Math.max(lastNeededHour, minHour) + 1,
+  );
 
+  const hours: number[] = [];
   for (let h = startHour; h <= endHour; h++) {
     hours.push(h);
   }
-
   return hours;
 }
 
 export function getSchedulePosition(
   startTime: string,
   duration: number,
+  dayStart: DateTime,
   parkHoursStart: number,
   timezone: string,
 ): { left: number; width: number } {
   const start = DateTime.fromISO(startTime, { zone: timezone });
-  const minutesFromStart = (start.hour - parkHoursStart) * 60 + start.minute;
+  // Position mesurée depuis le début du jour logique : un créneau d'après minuit
+  // se place à 24 h+ au lieu de repartir à 0 (donc à gauche de la grille).
+  const minutesFromStart =
+    start.diff(dayStart, "minutes").minutes - parkHoursStart * 60;
 
   return { left: minutesFromStart, width: duration };
 }
@@ -253,9 +273,7 @@ export function calculateScheduleLanes(
   timezone: string,
   parkDate?: string | null,
 ): { schedules: ScheduleWithPosition[]; totalLanes: number } {
-  const today = parkDate
-    ? DateTime.fromISO(parkDate, { zone: timezone }).startOf("day")
-    : DateTime.now().setZone(timezone).startOf("day");
+  const today = getParkDayStart(timezone, parkDate);
 
   const sortedSchedules = [...schedules]
     .filter((s) => {
@@ -280,6 +298,7 @@ export function calculateScheduleLanes(
       const { left, width } = getSchedulePosition(
         schedule.startTime,
         duration,
+        today,
         parkHoursStart,
         timezone,
       );
