@@ -129,8 +129,12 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
         hourCycle: is12Hour ? "h12" : "h23",
       });
 
-  const formatTime = (iso: string) =>
-    DateTime.fromISO(iso)
+  // Heure de la représentation dans le fuseau DU PARC (voir `alerts-section`) :
+  // l'historique doit rejouer l'horaire tel qu'il était sur place. `formatDate`
+  // au-dessus, lui, date la RÉCEPTION de la notification — c'est un moment vécu
+  // par le lecteur, il reste donc dans son fuseau.
+  const formatTime = (iso: string, timezone: string | null) =>
+    DateTime.fromISO(iso, { zone: timezone ?? undefined })
       .setLocale(locale)
       .toLocaleString({
         ...DateTime.TIME_SIMPLE,
@@ -161,7 +165,7 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
             sentAt: h.sentAt,
             title: h.showName,
             subtitle: `${h.parkName} · ${t("historyShowLine", {
-              time: formatTime(h.startTime),
+              time: formatTime(h.startTime, h.timezone),
               lead: h.leadMinutes,
             })}`,
           }));

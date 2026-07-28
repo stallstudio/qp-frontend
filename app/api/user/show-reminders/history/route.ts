@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUserId } from "@/lib/auth-helpers";
 import { getUserPrisma } from "@/lib/user-prisma";
+import { getPrisma } from "@/lib/prisma";
 import { toShowReminderHistoryDTO } from "@/lib/user-account";
 
 export const runtime = "nodejs";
@@ -27,5 +28,19 @@ export async function GET() {
     take: 100,
   });
 
-  return NextResponse.json(rows.map(toShowReminderHistoryDTO));
+  // Le journal ne stocke que l'identifiant du parc : on résout son FUSEAU depuis
+  // la base principale, pour réafficher l'heure de la représentation telle
+  // qu'elle était sur place (une requête pour tous les parcs cités).
+  const identifiers = [...new Set(rows.map((r) => r.parkIdentifier))];
+  const parks = identifiers.length
+    ? await getPrisma().park.findMany({
+        where: { identifier: { in: identifiers } },
+        select: { identifier: true, timezone: true },
+      })
+    : [];
+  const tzByPark = new Map(parks.map((p) => [p.identifier, p.timezone]));
+
+  return NextResponse.json(
+    rows.map((r) => toShowReminderHistoryDTO(r, tzByPark.get(r.parkIdentifier))),
+  );
 }

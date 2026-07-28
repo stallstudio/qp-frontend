@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUserId } from "@/lib/auth-helpers";
 import { getUserPrisma } from "@/lib/user-prisma";
+import { getPrisma } from "@/lib/prisma";
 import { toShowReminderDTO } from "@/lib/user-account";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Fuseaux des parcs cités, en UNE requête sur la base principale (la base
+// utilisateurs ne stocke que l'identifiant du parc). Sert à afficher l'heure des
+// représentations à l'heure DU PARC, pas à celle du lecteur.
+async function timezonesByIdentifier(
+  identifiers: string[],
+): Promise<Map<string, string>> {
+  if (identifiers.length === 0) return new Map();
+  const parks = await getPrisma().park.findMany({
+    where: { identifier: { in: identifiers } },
+    select: { identifier: true, timezone: true },
+  });
+  return new Map(parks.map((p) => [p.identifier, p.timezone]));
+}
 
 // Délais autorisés (minutes avant le début d'une représentation).
 const ALLOWED_LEADS = [10, 20, 30, 40, 50, 60];
@@ -28,7 +43,13 @@ export async function GET(request: NextRequest) {
     },
     orderBy: { startTime: "asc" },
   });
-  return NextResponse.json(rows.map(toShowReminderDTO));
+
+  const tzByPark = await timezonesByIdentifier([
+    ...new Set(rows.map((r) => r.parkIdentifier)),
+  ]);
+  return NextResponse.json(
+    rows.map((r) => toShowReminderDTO(r, tzByPark.get(r.parkIdentifier))),
+  );
 }
 
 // POST : crée (ou met à jour le délai d') un rappel pour une représentation
@@ -105,5 +126,9 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json(toShowReminderDTO(reminder), { status: 201 });
+  const tzByPark = await timezonesByIdentifier([parkIdentifier]);
+  return NextResponse.json(
+    toShowReminderDTO(reminder, tzByPark.get(parkIdentifier)),
+    { status: 201 },
+  );
 }

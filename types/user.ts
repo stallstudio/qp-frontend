@@ -42,6 +42,11 @@ export interface ShowReminderDTO {
   showName: string;
   startTime: string;
   leadMinutes: number;
+  // Fuseau du parc, résolu depuis la base principale à la lecture (la base
+  // utilisateurs ne stocke que l'identifiant). Une représentation s'annonce à
+  // l'heure DU PARC : « 23:35 » là-bas, pas « 08:35 » chez le lecteur.
+  // null = parc introuvable -> l'appelant retombe sur le fuseau du navigateur.
+  timezone: string | null;
 }
 
 // Rappel de spectacle DÉJÀ ENVOYÉ (historique des notifications de spectacles) :
@@ -55,6 +60,8 @@ export interface ShowReminderHistoryDTO {
   startTime: string;
   leadMinutes: number;
   sentAt: string;
+  // Fuseau du parc (voir `ShowReminderDTO.timezone`).
+  timezone: string | null;
 }
 
 // Profil complet renvoyé par GET /api/user/me.

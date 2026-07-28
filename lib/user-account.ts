@@ -61,7 +61,13 @@ export function toAlertDTO(a: Alert): AlertDTO {
   };
 }
 
-export function toShowReminderDTO(r: ShowReminder): ShowReminderDTO {
+// `timezone` vient de la base principale (résolu par la route depuis
+// `parkIdentifier`) : sans lui, l'heure d'une représentation s'afficherait dans
+// le fuseau du lecteur, soit un horaire qui n'existe pas sur place.
+export function toShowReminderDTO(
+  r: ShowReminder,
+  timezone?: string,
+): ShowReminderDTO {
   return {
     id: r.id,
     parkIdentifier: r.parkIdentifier,
@@ -69,12 +75,14 @@ export function toShowReminderDTO(r: ShowReminder): ShowReminderDTO {
     showName: r.showName,
     startTime: r.startTime.toISOString(),
     leadMinutes: r.leadMinutes,
+    timezone: timezone ?? null,
   };
 }
 
 // Entrée du journal permanent des rappels de spectacles envoyés.
 export function toShowReminderHistoryDTO(
   h: ShowReminderHistory,
+  timezone?: string,
 ): ShowReminderHistoryDTO {
   return {
     id: h.id,
@@ -84,6 +92,7 @@ export function toShowReminderHistoryDTO(
     startTime: h.startTime.toISOString(),
     leadMinutes: h.leadMinutes,
     sentAt: h.sentAt.toISOString(),
+    timezone: timezone ?? null,
   };
 }
 
