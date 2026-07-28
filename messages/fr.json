@@ -35,7 +35,6 @@
   },
   "parkPage": {
     "backHome": "Retour à l'accueil",
-    "localTime": "Heure locale",
     "todayHours": "Horaires du jour",
     "extraOpeningHours": "Accès anticipé",
     "extendedHours": "Horaires prolongés",
@@ -80,6 +79,7 @@
     "leadLabel": "Combien de temps avant le spectacle souhaites-tu être prévenu ?",
     "leadOption": "{minutes} min avant",
     "reminderActive": "Rappel {minutes} min avant",
+    "reminderScheduled": "Rappel programmé",
     "save": "Activer le rappel",
     "update": "Mettre à jour",
     "remove": "Supprimer",
@@ -240,7 +240,7 @@
       },
       "alerts": {
         "title": "Alertes de temps d'attente",
-        "body": "Depuis la fiche d'une attraction, choisissez un seuil : vous êtes prévenu par notification dès que l'attente passe en dessous. Une fois envoyée, l'alerte se désactive (objectif atteint) et se réactive en un clic depuis votre profil. Nécessite un compte et l'autorisation des notifications."
+        "body": "Depuis la fiche d'une attraction, choisissez un seuil : vous êtes prévenu par notification dès que l'attente passe en dessous. Une fois envoyée, l'alerte a fait son travail : elle disparaît et rejoint votre historique. Il suffit d'en reposer une depuis la fiche de l'attraction. Nécessite un compte et l'autorisation des notifications."
       },
       "reminders": {
         "title": "Rappels de spectacles",
@@ -356,7 +356,7 @@
       "preferences": "Préférences",
       "alerts": "Alertes"
     },
-    "alertsDailyNote": "Les alertes ne valent que pour la journée en cours : elles se désactivent automatiquement le lendemain et se suppriment au bout d'une semaine.",
+    "alertsDailyNote": "Les alertes et rappels ne valent que pour la journée en cours : ils disparaissent dès que la notification est envoyée, et au plus tard à minuit. Tout se règle depuis la fiche de l'attraction ou du spectacle.",
     "favoritesCount": "Favoris",
     "favoritesParksCount": "{count, plural, one {Parc favori} other {Parcs favoris}}",
     "favoritesRidesCount": "{count, plural, one {Attraction favorite} other {Attractions favorites}}",
@@ -425,6 +425,13 @@
     "emailInvalid": "Adresse e-mail invalide.",
     "exportLabel": "Mes données",
     "exportButton": "Télécharger",
+    "resetAlertsLabel": "Réinitialiser mes alertes",
+    "resetAlertsNote": "Efface vos alertes et rappels en cours ainsi que tout l'historique des notifications reçues. Votre compte et vos favoris sont conservés.",
+    "resetAlertsButton": "Réinitialiser",
+    "resetAlertsConfirmTitle": "Tout remettre à zéro ?",
+    "resetAlertsConfirmDescription": "Vos alertes de temps d'attente, vos rappels de spectacles et l'historique des notifications reçues seront supprimés. Cette action est irréversible.",
+    "resetAlertsConfirmButton": "Réinitialiser",
+    "resetAlertsDone": "Alertes, rappels et historique supprimés",
     "deleteLabel": "Supprimer mon compte",
     "deleteNote": "Cette action est définitive : préférences, favoris, alertes et rappels seront effacés.",
     "deleteButton": "Supprimer",

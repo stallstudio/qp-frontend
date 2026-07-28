@@ -35,7 +35,6 @@
   },
   "parkPage": {
     "backHome": "Back home",
-    "localTime": "Local Time",
     "todayHours": "Today's Hours",
     "extraOpeningHours": "Extra opening hours",
     "extendedHours": "Extended hours",
@@ -80,6 +79,7 @@
     "leadLabel": "How long before the show do you want to be reminded?",
     "leadOption": "{minutes} min before",
     "reminderActive": "Reminder {minutes} min before",
+    "reminderScheduled": "Reminder scheduled",
     "save": "Set reminder",
     "update": "Update",
     "remove": "Remove",
@@ -240,7 +240,7 @@
       },
       "alerts": {
         "title": "Wait-time alerts",
-        "body": "From a ride's page, pick a threshold: you get a notification as soon as the wait drops below it. Once sent, the alert turns off (goal reached) and can be re-enabled in one tap from your profile. Requires an account and notification permission."
+        "body": "From a ride's page, pick a threshold: you get a notification as soon as the wait drops below it. Once sent, the alert has done its job: it disappears and moves to your history. Just set a new one from the ride's page. Requires an account and notification permission."
       },
       "reminders": {
         "title": "Show reminders",
@@ -356,7 +356,7 @@
       "preferences": "Preferences",
       "alerts": "Alerts"
     },
-    "alertsDailyNote": "Alerts only apply to the current day: they turn off automatically the next day and are deleted after a week.",
+    "alertsDailyNote": "Alerts and reminders only apply to the current day: they disappear as soon as the notification is sent, and at midnight at the latest. Everything is set from the ride's or show's page.",
     "favoritesCount": "Favorites",
     "favoritesParksCount": "{count, plural, one {Favorite park} other {Favorite parks}}",
     "favoritesRidesCount": "{count, plural, one {Favorite attraction} other {Favorite attractions}}",
@@ -425,6 +425,13 @@
     "emailInvalid": "Invalid email address.",
     "exportLabel": "My data",
     "exportButton": "Download",
+    "resetAlertsLabel": "Reset my alerts",
+    "resetAlertsNote": "Erases your pending alerts and reminders along with the whole history of notifications received. Your account and favorites are kept.",
+    "resetAlertsButton": "Reset",
+    "resetAlertsConfirmTitle": "Reset everything?",
+    "resetAlertsConfirmDescription": "Your wait-time alerts, show reminders and the history of notifications received will be deleted. This cannot be undone.",
+    "resetAlertsConfirmButton": "Reset",
+    "resetAlertsDone": "Alerts, reminders and history deleted",
     "deleteLabel": "Delete my account",
     "deleteNote": "This is permanent: preferences, favorites, alerts and reminders will be erased.",
     "deleteButton": "Delete",
