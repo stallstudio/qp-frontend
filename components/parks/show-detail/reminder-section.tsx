@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import NumberStepper from "@/components/ui/number-stepper";
 import { cn, getLuxonFormat } from "@/lib/utils";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
+import { useNotifications } from "@/components/providers/notifications-provider";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import type { ShowSchedule } from "@/types/show";
 import type { ShowReminderDTO } from "@/types/user";
@@ -49,6 +50,8 @@ export default function ReminderSection({
   const t = useTranslations("showDetail");
   const tShows = useTranslations("shows");
   const { is12Hour } = useTimeFormat();
+  // Rafraîchit la cloche « rappel programmé » affichée sur la ligne de la liste.
+  const { refresh: refreshNotifications } = useNotifications();
   const push = usePushNotifications();
 
   const [reminders, setReminders] = useState<ShowReminderDTO[]>([]);
@@ -162,6 +165,7 @@ export default function ReminderSection({
         },
       );
       setReminders((prev) => [...prev.filter((r) => r.id !== data.id), data]);
+      refreshNotifications();
 
       if (push.supported && !pushOk) {
         toast.warning(t("pushBlocked"));
@@ -181,6 +185,7 @@ export default function ReminderSection({
     try {
       await axios.delete(`/api/user/show-reminders/${existing.id}`);
       setReminders((prev) => prev.filter((r) => r.id !== existing.id));
+      refreshNotifications();
       setLead(DEFAULT_LEAD);
       toast.success(t("reminderRemoved"));
     } catch {
@@ -302,12 +307,15 @@ export default function ReminderSection({
               {existing ? t("reminderModify") : t("reminderActivate")}
             </Button>
             {existing && (
+              // Même corbeille que le popup d'attraction et que le fil du
+              // profil : bouton fantôme teinté en destructif.
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
                 onClick={remove}
                 disabled={deleting}
                 aria-label={t("remove")}
+                className="text-destructive hover:text-destructive"
               >
                 {deleting ? (
                   <Loader2 className="size-4 animate-spin" />

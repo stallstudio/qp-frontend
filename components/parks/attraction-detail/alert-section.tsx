@@ -12,6 +12,7 @@ import {
   defaultThresholdForWait,
 } from "@/lib/alert-thresholds";
 import { useUser } from "@/components/providers/user-provider";
+import { useNotifications } from "@/components/providers/notifications-provider";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import NotificationGate from "@/components/parks/notification-gate";
 import type { AlertDTO } from "@/types/user";
@@ -76,6 +77,8 @@ function AlertForm({
   const t = useTranslations("attractionDetail");
   const tAlert = useTranslations("alerts");
   const { refresh } = useUser();
+  // Rafraîchit la cloche « alerte active » affichée sur la ligne de la liste.
+  const { refresh: refreshNotifications } = useNotifications();
   const push = usePushNotifications();
   // Défaut d'une nouvelle alerte : un cran sous le temps actuel de l'attraction.
   const defaultThreshold = defaultThresholdForWait(currentWaitTime);
@@ -125,6 +128,7 @@ function AlertForm({
       });
       setExisting(data);
       refresh();
+      refreshNotifications();
 
       // L'alerte est enregistrée quoi qu'il arrive ; on prévient juste si ce
       // navigateur ne pourra pas recevoir les push (permission refusée / non
@@ -150,6 +154,7 @@ function AlertForm({
       setThreshold(defaultThreshold);
       toast.success(t("deleted"));
       refresh();
+      refreshNotifications();
     } catch {
       toast.error(tAlert("createError"));
     } finally {
@@ -217,12 +222,16 @@ function AlertForm({
           {existing ? t("update") : t("save")}
         </Button>
         {existing && (
+          // Même corbeille que le fil du profil : bouton fantôme teinté en
+          // destructif, plutôt qu'un bouton contour neutre. La suppression se
+          // fait désormais UNIQUEMENT ici, elle doit se lire du premier coup.
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={remove}
             disabled={deleting}
             aria-label={t("delete")}
+            className="text-destructive hover:text-destructive"
           >
             {deleting ? (
               <Loader2 className="size-4 animate-spin" />

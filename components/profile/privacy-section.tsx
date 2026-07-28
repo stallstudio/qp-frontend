@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import {
+  BellOff,
   Download,
   Loader2,
   Mail,
@@ -23,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useUser } from "@/components/providers/user-provider";
+import { useNotifications } from "@/components/providers/notifications-provider";
 
 // Section « Confidentialité » du profil (conformité RGPD / CNIL) : rectification
 // de l'e-mail (déconnexion ensuite), portabilité (export JSON), effacement du
@@ -30,12 +32,16 @@ import { useUser } from "@/components/providers/user-provider";
 // à onglets du profil).
 export default function PrivacySection() {
   const t = useTranslations("privacy");
-  const { profile } = useUser();
+  const { profile, refresh } = useUser();
+  // Cloches des listes de parcs : elles doivent s'éteindre avec la remise à zéro.
+  const { refresh: refreshNotifications } = useNotifications();
   const currentEmail = profile?.email ?? "";
 
   const [email, setEmail] = useState(currentEmail);
   const [savingEmail, setSavingEmail] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -79,6 +85,22 @@ export default function PrivacySection() {
       toast.error(t("genericError"));
     } finally {
       setExporting(false);
+    }
+  };
+
+  const resetAlerts = async () => {
+    setResetting(true);
+    try {
+      await axios.delete("/api/user/notifications");
+      toast.success(t("resetAlertsDone"));
+      setResetOpen(false);
+      // Compteur « alertes actives » de l'en-tête + cloches des listes.
+      refresh();
+      refreshNotifications();
+    } catch {
+      toast.error(t("genericError"));
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -158,6 +180,29 @@ export default function PrivacySection() {
         </div>
       </div>
 
+      {/* Remise à zéro des alertes : même gabarit que la suppression du compte,
+          mais bordure NEUTRE et bouton en contour — le bloc rouge reste réservé
+          à l'action irrattrapable qu'est la suppression du compte. */}
+      <div className="flex flex-col gap-2 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <BellOff className="size-4 text-muted-foreground" />
+            {t("resetAlertsLabel")}
+          </span>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t("resetAlertsNote")}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setResetOpen(true)}
+          className="w-full shrink-0 text-destructive hover:text-destructive sm:w-auto"
+        >
+          <Trash2 className="size-4" />
+          {t("resetAlertsButton")}
+        </Button>
+      </div>
+
       {/* Suppression du compte : même gabarit, bordure d'accent destructive. */}
       <div className="flex flex-col gap-2 rounded-xl border border-destructive/30 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
@@ -179,6 +224,37 @@ export default function PrivacySection() {
           {t("deleteButton")}
         </Button>
       </div>
+
+      {/* Confirmation de la remise à zéro. Pas de saisie à recopier ici : c'est
+          irréversible mais réparable (il suffit de reposer des alertes), à la
+          différence de la suppression du compte. */}
+      <Dialog open={resetOpen} onOpenChange={setResetOpen}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>{t("resetAlertsConfirmTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("resetAlertsConfirmDescription")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setResetOpen(false)}
+              disabled={resetting}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={resetAlerts}
+              disabled={resetting}
+            >
+              {resetting && <Loader2 className="size-4 animate-spin" />}
+              {t("resetAlertsConfirmButton")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Popup de confirmation : saisir l'e-mail du compte pour valider. */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

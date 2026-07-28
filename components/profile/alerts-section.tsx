@@ -6,34 +6,8 @@ import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { AnimatePresence, motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
-import {
-  Bell,
-  BellRing,
-  BellOff,
-  Drama,
-  Pencil,
-  RollerCoaster,
-  Trash2,
-  Loader2,
-} from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import NumberStepper from "@/components/ui/number-stepper";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { ALERT_THRESHOLDS } from "@/lib/alert-thresholds";
-import {
-  REMINDER_LEAD_VALUES,
-  availableLeadValues,
-} from "@/lib/reminder-leads";
+import { Bell, BellRing, Drama, RollerCoaster, Loader2 } from "lucide-react";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
-import { useUser } from "@/components/providers/user-provider";
 import type { AlertDTO, ShowReminderDTO } from "@/types/user";
 import AlertHistoryFeed from "./alert-history-section";
 
@@ -45,8 +19,12 @@ import AlertHistoryFeed from "./alert-history-section";
 //     (pastille + accent : orange pour les attractions, violet pour les
 //     spectacles), et les deux types sont mélangés puis triés par ordre
 //     alphabétique.
-// La CRÉATION ne se fait jamais ici (toujours depuis le popup d'une attraction /
-// d'un spectacle).
+//
+// Cet onglet est en LECTURE SEULE : ni création, ni modification, ni suppression.
+// Tout se règle depuis le popup de l'attraction ou du spectacle concerné, seul
+// endroit où l'on voit le contexte (temps d'attente courant, horaires des
+// représentations). Le profil ne fait que RÉCAPITULER ce qui est armé — un
+// second jeu de contrôles ici n'aurait été qu'un doublon à maintenir.
 
 type TypeFilter = "all" | "rides" | "shows";
 type SubTab = "active" | "history";
@@ -164,9 +142,8 @@ function TypeChips({
 }
 
 // Marqueur de type de la ligne, teinté (orange attraction / violet spectacle).
-// Sur MOBILE, la pastille 36 px mangeait une largeur qui manque au nom (la ligne
-// porte déjà badge + interrupteur + deux actions) : on la remplace par un simple
-// point de couleur, qui porte la même information de type.
+// Sur MOBILE, la pastille 36 px mangeait une largeur qui manque au nom : on la
+// remplace par un simple point de couleur, qui porte la même information de type.
 function Avatar({
   kind,
   children,
@@ -247,181 +224,11 @@ function FeedRow({
   );
 }
 
-// Popup d'édition du seuil (même geste que sur la page attraction).
-function EditThresholdDialog({
-  alert,
-  open,
-  onOpenChange,
-  onSaved,
-}: {
-  alert: AlertDTO | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSaved: (id: string, threshold: number) => void;
-}) {
-  const t = useTranslations("profile");
-  const tAlert = useTranslations("alerts");
-  const [threshold, setThreshold] = useState(alert?.threshold ?? 20);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (alert) setThreshold(alert.threshold);
-  }, [alert, open]);
-
-  const save = async () => {
-    if (!alert) return;
-    setSaving(true);
-    try {
-      await axios.patch(`/api/user/alerts/${alert.id}`, { threshold });
-      onSaved(alert.id, threshold);
-      toast.success(t("thresholdSaved"));
-      onOpenChange(false);
-    } catch {
-      toast.error(t("updateError"));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        {/* Centré aussi sur desktop (`DialogHeader` repasse à gauche dès `sm`) :
-            la question surmonte un stepper centré, comme dans le popup
-            d'attraction. */}
-        <DialogHeader className="text-center sm:text-center">
-          <DialogTitle>{alert?.rideName}</DialogTitle>
-          <DialogDescription>{tAlert("thresholdLabel")}</DialogDescription>
-        </DialogHeader>
-        <div className="flex justify-center py-2">
-          <NumberStepper
-            value={threshold}
-            onChange={setThreshold}
-            values={ALERT_THRESHOLDS}
-            disabled={saving}
-            format={(v) => tAlert("thresholdOption", { minutes: v })}
-            aria-label={tAlert("thresholdLabel")}
-          />
-        </div>
-        <DialogFooter>
-          <Button
-            onClick={save}
-            disabled={saving || threshold === alert?.threshold}
-            className="w-full"
-          >
-            {saving && <Loader2 className="size-4 animate-spin" />}
-            {t("validate")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Popup d'édition du délai de prévenance d'un rappel de spectacle. Réutilise le
-// MÊME endpoint que la page spectacle (POST upsert par parc+spectacle+horaire),
-// qui recalcule `fireAt` et réarme le rappel — comportement identique des deux
-// côtés.
-function EditLeadDialog({
-  reminder,
-  open,
-  onOpenChange,
-  onSaved,
-}: {
-  reminder: ShowReminderDTO | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSaved: (updated: ShowReminderDTO) => void;
-}) {
-  const t = useTranslations("profile");
-  const tShow = useTranslations("showDetail");
-  const [lead, setLead] = useState(reminder?.leadMinutes ?? 30);
-  const [saving, setSaving] = useState(false);
-
-  // Délais encore valides pour CETTE représentation (déclenchement pas déjà
-  // passé). On ne propose donc jamais un délai plus long que le temps restant.
-  const leadOptions = reminder
-    ? availableLeadValues(reminder.startTime)
-    : REMINDER_LEAD_VALUES;
-  const tooLate = reminder != null && leadOptions.length === 0;
-
-  useEffect(() => {
-    if (!reminder) return;
-    const opts = availableLeadValues(reminder.startTime);
-    // Garde le délai courant s'il est encore valide, sinon retombe sur le plus
-    // long encore possible (le stepper ne doit pas pointer une valeur exclue).
-    if (opts.includes(reminder.leadMinutes)) setLead(reminder.leadMinutes);
-    else if (opts.length > 0) setLead(opts[opts.length - 1]);
-  }, [reminder, open]);
-
-  const save = async () => {
-    if (!reminder) return;
-    setSaving(true);
-    try {
-      const { data } = await axios.post<ShowReminderDTO>(
-        "/api/user/show-reminders",
-        {
-          parkIdentifier: reminder.parkIdentifier,
-          parkName: reminder.parkName,
-          showName: reminder.showName,
-          startTime: reminder.startTime,
-          leadMinutes: lead,
-        },
-      );
-      onSaved(data);
-      toast.success(t("leadSaved"));
-      onOpenChange(false);
-    } catch {
-      toast.error(t("updateError"));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader className="text-center sm:text-center">
-          <DialogTitle>{reminder?.showName}</DialogTitle>
-          <DialogDescription>{tShow("leadLabel")}</DialogDescription>
-        </DialogHeader>
-        {tooLate ? (
-          <p className="py-3 text-center text-sm text-muted-foreground">
-            {t("leadTooLate")}
-          </p>
-        ) : (
-          <div className="flex justify-center py-2">
-            <NumberStepper
-              value={lead}
-              onChange={setLead}
-              values={leadOptions}
-              disabled={saving}
-              format={(v) => tShow("leadOption", { minutes: v })}
-              aria-label={tShow("leadLabel")}
-            />
-          </div>
-        )}
-        <DialogFooter>
-          <Button
-            onClick={save}
-            disabled={saving || tooLate || lead === reminder?.leadMinutes}
-            className="w-full"
-          >
-            {saving && <Loader2 className="size-4 animate-spin" />}
-            {tShow("reminderModify")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 export default function AlertsSection() {
   const t = useTranslations("profile");
   const tAlert = useTranslations("alerts");
   const locale = useLocale();
   const { is12Hour } = useTimeFormat();
-  const { refresh } = useUser();
 
   const [subTab, setSubTab] = useState<SubTab>("active");
   const [filter, setFilter] = useState<TypeFilter>("all");
@@ -430,12 +237,6 @@ export default function AlertsSection() {
   // Rappels de spectacle ACTIFS (programmés, pas encore envoyés).
   const [reminders, setReminders] = useState<ShowReminderDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [editing, setEditing] = useState<AlertDTO | null>(null);
-  // Rappel de spectacle dont on édite le délai de prévenance (null = fermé).
-  const [editingReminder, setEditingReminder] = useState<ShowReminderDTO | null>(
-    null,
-  );
 
   useEffect(() => {
     Promise.all([
@@ -443,7 +244,11 @@ export default function AlertsSection() {
       axios.get<ShowReminderDTO[]>("/api/user/show-reminders"),
     ])
       .then(([alertsRes, remindersRes]) => {
-        setAlerts(alertsRes.data);
+        // Sous-onglet « Actives » : on n'affiche que ce qui est réellement armé.
+        // Une alerte envoyée est supprimée par le moteur (elle rejoint
+        // l'historique) ; il ne reste inactives que celles expirées avec la
+        // journée, qui n'ont plus rien à faire dans cette liste.
+        setAlerts(alertsRes.data.filter((a) => a.active));
         // Toutes les lignes en base sont des rappels EN ATTENTE (les envoyés
         // sont passés en historique) : plus de filtre `sent`.
         setReminders(remindersRes.data);
@@ -452,75 +257,12 @@ export default function AlertsSection() {
       .finally(() => setLoading(false));
   }, [t]);
 
-  const toggleActive = async (alert: AlertDTO) => {
-    const next = !alert.active;
-    setBusyId(alert.id);
-    setAlerts((list) =>
-      list.map((a) => (a.id === alert.id ? { ...a, active: next } : a)),
-    );
-    try {
-      await axios.patch(`/api/user/alerts/${alert.id}`, { active: next });
-      refresh();
-    } catch {
-      toast.error(t("updateError"));
-      setAlerts((list) =>
-        list.map((a) => (a.id === alert.id ? { ...a, active: !next } : a)),
-      );
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const applyThreshold = (id: string, threshold: number) => {
-    setAlerts((list) =>
-      list.map((a) => (a.id === id ? { ...a, threshold } : a)),
-    );
-    refresh();
-  };
-
-  // Remplace le rappel édité par la version renvoyée (délai + fireAt recalculés).
-  const applyLead = (updated: ShowReminderDTO) => {
-    setReminders((list) =>
-      list.map((r) => (r.id === updated.id ? updated : r)),
-    );
-  };
-
-  const remove = async (alert: AlertDTO) => {
-    setBusyId(alert.id);
-    const previous = alerts;
-    setAlerts((list) => list.filter((a) => a.id !== alert.id));
-    try {
-      await axios.delete(`/api/user/alerts/${alert.id}`);
-      toast.success(t("deleted"));
-      refresh();
-    } catch {
-      toast.error(t("deleteError"));
-      setAlerts(previous);
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const removeReminder = async (reminder: ShowReminderDTO) => {
-    setBusyId(reminder.id);
-    const previous = reminders;
-    setReminders((list) => list.filter((r) => r.id !== reminder.id));
-    try {
-      await axios.delete(`/api/user/show-reminders/${reminder.id}`);
-      toast.success(t("deleted"));
-      // Les rappels de spectacle entrent dans le compteur « alertes actives » de
-      // l'en-tête : sans ce refresh, la vignette resterait sur l'ancien total.
-      refresh();
-    } catch {
-      toast.error(t("deleteError"));
-      setReminders(previous);
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const formatTime = (iso: string) =>
-    DateTime.fromISO(iso)
+  // Heure d'une représentation, TOUJOURS dans le fuseau du parc : un spectacle
+  // de 23:35 à Disneyland California doit se lire « 23:35 », pas l'heure qu'il
+  // est alors chez le lecteur. Fuseau absent (parc introuvable) = repli sur le
+  // navigateur, comme avant.
+  const formatTime = (iso: string, timezone: string | null) =>
+    DateTime.fromISO(iso, { zone: timezone ?? undefined })
       .setLocale(locale)
       .toLocaleString({
         ...DateTime.TIME_SIMPLE,
@@ -624,45 +366,14 @@ export default function AlertsSection() {
                     title={item.alert.rideName}
                     subtitle={item.alert.parkName}
                     trailing={
-                      <>
-                        <ValueBadge kind="ride">
-                          <span className="relative top-px text-[0.8em] leading-none text-muted-foreground">
-                            ≤
-                          </span>{" "}
-                          {tAlert("thresholdOption", {
-                            minutes: item.alert.threshold,
-                          })}
-                        </ValueBadge>
-                        <Switch
-                          checked={item.alert.active}
-                          disabled={busyId === item.id}
-                          onCheckedChange={() => toggleActive(item.alert)}
-                          aria-label={
-                            item.alert.active ? t("deactivate") : t("activate")
-                          }
-                          size="lg"
-                          checkedIcon={<BellRing />}
-                          uncheckedIcon={<BellOff />}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => setEditing(item.alert)}
-                          aria-label={t("edit")}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          disabled={busyId === item.id}
-                          onClick={() => remove(item.alert)}
-                          aria-label={t("delete")}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </>
+                      <ValueBadge kind="ride">
+                        <span className="relative top-px text-[0.8em] leading-none text-muted-foreground">
+                          ≤
+                        </span>{" "}
+                        {tAlert("thresholdOption", {
+                          minutes: item.alert.threshold,
+                        })}
+                      </ValueBadge>
                     }
                   />
                 ) : (
@@ -673,31 +384,12 @@ export default function AlertsSection() {
                     title={item.reminder.showName}
                     subtitle={`${item.reminder.parkName} · ${formatTime(
                       item.reminder.startTime,
+                      item.reminder.timezone,
                     )}`}
                     trailing={
-                      <>
-                        <ValueBadge kind="show">
-                          {t("leadBadge", { lead: item.reminder.leadMinutes })}
-                        </ValueBadge>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => setEditingReminder(item.reminder)}
-                          aria-label={t("editLead")}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          disabled={busyId === item.id}
-                          onClick={() => removeReminder(item.reminder)}
-                          aria-label={t("delete")}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </>
+                      <ValueBadge kind="show">
+                        {t("leadBadge", { lead: item.reminder.leadMinutes })}
+                      </ValueBadge>
                     }
                   />
                   ),
@@ -711,20 +403,6 @@ export default function AlertsSection() {
           <AlertHistoryFeed filter={filter} />
         </div>
       )}
-
-      <EditThresholdDialog
-        alert={editing}
-        open={editing !== null}
-        onOpenChange={(v) => !v && setEditing(null)}
-        onSaved={applyThreshold}
-      />
-
-      <EditLeadDialog
-        reminder={editingReminder}
-        open={editingReminder !== null}
-        onOpenChange={(v) => !v && setEditingReminder(null)}
-        onSaved={applyLead}
-      />
     </>
   );
 }
