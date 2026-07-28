@@ -465,11 +465,14 @@ export function ForecastDemo() {
 
     // Prévision 15:30 -> fermeture (19:00) : pic d'après-midi puis décrue.
     // La marge s'élargit avec l'échéance, comme dans le vrai graphique (elle y
-    // vient de l'erreur mesurée les jours précédents à chaque horizon).
+    // vient de l'erreur mesurée les jours précédents à chaque horizon), et reste
+    // un MULTIPLE DU PAS de l'attraction (ici 5 min, comme les temps affichés) :
+    // le vrai moteur cale la marge sur ce pas, une bande à ± 7 min sur une
+    // attraction qui n'affiche que des multiples de 5 n'aurait aucun sens.
     const forecast: TimedPoint[] = (
       [
-        [15, 30, 55, 3], [16, 0, 60, 4], [16, 30, 55, 6], [17, 0, 45, 7],
-        [17, 30, 40, 9], [18, 0, 30, 10], [18, 30, 20, 11], [19, 0, 10, 12],
+        [15, 30, 55, 5], [16, 0, 60, 5], [16, 30, 55, 5], [17, 0, 45, 10],
+        [17, 30, 40, 10], [18, 0, 30, 10], [18, 30, 20, 15], [19, 0, 10, 15],
       ] as [number, number, number, number][]
     ).map(([h, m, w, margin]) => ({ t: at(h, m), waitTime: w, margin }));
 

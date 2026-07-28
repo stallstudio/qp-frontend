@@ -323,7 +323,13 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
     courbe serait trompeuse. `meta.marginMinutes`/`marginSamples` donnent la
     valeur agrégée (mention textuelle sous le graphique).
   - `margin` **absente/null = pas assez de mesures** -> aucune bande n'est
-    tracée. On n'affiche jamais une incertitude qu'on ne connaît pas.
+    tracée. On n'affiche jamais une incertitude qu'on ne connaît pas. ⚠️ Les
+    marges ne regardent que les journées **passées** : le jour de la mise en
+    service, aucune attraction n'affiche de bande (ce n'est pas une panne).
+  - La marge est un **multiple du pas de l'attraction** (worker, `valueStepOf` /
+    `snapMargin`), avec un plancher d'un pas : sur une attraction qui n'affiche
+    que des multiples de 5, pas de « ± 7 min » — les bornes de la bande doivent
+    tomber sur des temps que l'attraction peut réellement afficher.
   - ⚠️ `wait-time-chart.tsx` est passé de `LineChart` à **`ComposedChart`** :
     la bande est une `Area` de PLAGE (`dataKey="band"`, valeur `[bas, haut]`),
     que `LineChart` n'accepte pas comme enfant. Rendu des `Line` inchangé.
