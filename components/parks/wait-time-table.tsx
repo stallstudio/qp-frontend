@@ -43,6 +43,35 @@ const QUEUE_TYPE_MAP: Record<string, QueueTypeInfo> = {
   },
 };
 
+// Au-delà de cette longueur, le dernier mot n'est plus collé aux icônes (voir
+// `splitGluedTail`).
+const MAX_GLUED_TAIL = 18;
+
+/**
+ * Découpe un libellé en « début » + « dernier mot ».
+ *
+ * Le dernier mot est ensuite rendu dans le même bloc `whitespace-nowrap` que les
+ * icônes qui le suivent (chevron, cloche, type de file). Sans ça, sur mobile,
+ * ces icônes se retrouvent SEULES sur une ligne, sans texte — un rendu qui
+ * n'évoque rien. Quand la place manque, c'est donc le dernier mot qui part à la
+ * ligne AVEC elles : « Voltron Nevera powered by » / « Rimac ⌄ 🔔 ».
+ *
+ * Garde-fou : un dernier mot très long resterait insécable et déborderait de la
+ * colonne (étroite sur mobile). Au-delà de `MAX_GLUED_TAIL` caractères on
+ * repasse donc au flux normal ; seules les icônes restent solidaires entre
+ * elles.
+ *
+ * Partagé par la ligne standby et les lignes de files secondaires : ces
+ * dernières étaient en `flex items-center`, si bien qu'un libellé sur deux
+ * lignes laissait son icône centrée verticalement à côté du bloc, détachée.
+ */
+function splitGluedTail(name: string): { head: string; tail: string } {
+  const lastSpace = name.lastIndexOf(" ");
+  const candidate = name.slice(lastSpace + 1);
+  if (candidate.length > MAX_GLUED_TAIL) return { head: name, tail: "" };
+  return { head: name.slice(0, lastSpace + 1), tail: candidate };
+}
+
 type SortKey = "name" | "wait" | "status";
 type SortDir = "asc" | "desc";
 
@@ -308,24 +337,12 @@ export default function ParkWaitTimeTable({
           // avant la 1re attraction classique.
           const isBoundary = hasFavBoundary && index === favCount;
 
-          // Nom découpé en « début » + « dernier mot ». Le dernier mot et le
-          // cluster d'icônes (chevron + œil) sont rendus dans un même bloc
-          // INSÉCABLE : les icônes ne peuvent donc plus se retrouver seules sur
-          // une ligne (retour mobile). Quand la place manque, c'est le dernier
-          // mot QUI PART À LA LIGNE AVEC elles — « Voltron Nevera powered by » /
-          // « Rimac ⌄ 👁 » plutôt que « … powered by Rimac » / « ⌄ 👁 ».
-          //
-          // Garde-fou : un dernier mot très long resterait insécable et
-          // déborderait de la colonne (étroite sur mobile). Au-delà de 18
-          // caractères on repasse donc au flux normal ; seules les icônes
-          // restent alors solidaires entre elles.
-          const lastSpace = waitTime.rideName.lastIndexOf(" ");
-          const candidateTail = waitTime.rideName.slice(lastSpace + 1);
-          const glued = candidateTail.length <= 18;
-          const nameHead = glued
-            ? waitTime.rideName.slice(0, lastSpace + 1)
-            : waitTime.rideName;
-          const nameTail = glued ? candidateTail : "";
+          // Nom découpé en « début » + « dernier mot » : ce dernier est rendu
+          // dans le même bloc insécable que le chevron et la cloche (voir
+          // `splitGluedTail`).
+          const { head: nameHead, tail: nameTail } = splitGluedTail(
+            waitTime.rideName,
+          );
 
           return (
             <Fragment key={waitTime.rideId}>
@@ -474,7 +491,12 @@ export default function ParkWaitTimeTable({
 
                 {/* Files secondaires (visibles seulement si dépliées) */}
                 {isExpanded &&
-                  otherQueues.map((queue) => (
+                  otherQueues.map((queue) => {
+                    const queueLabel = getQueueLabel(queue.type);
+                    const { head: queueHead, tail: queueTail } =
+                      splitGluedTail(queueLabel);
+                    const QueueIcon = QUEUE_TYPE_MAP[queue.type]?.icon;
+                    return (
                     <div
                       key={`${waitTime.rideId}-${queue.type}`}
                       role="row"
@@ -494,17 +516,30 @@ export default function ParkWaitTimeTable({
                         setDetailTarget(waitTime);
                       }}
                     >
+                      {/* Rendu EN FLUX INLINE, comme la ligne standby au-dessus,
+                          et non plus en `flex items-center` : un libellé sur
+                          deux lignes laissait sinon son icône de type de file
+                          centrée verticalement à côté du bloc, détachée du
+                          texte (surtout sur mobile).
+
+                          Plus de retrait `ps-6` non plus : la flèche part du
+                          MÊME bord gauche que les noms d'attraction, et le
+                          libellé se colle à elle. La hiérarchie se lit à la
+                          flèche et à la couleur atténuée, pas à un décalage qui
+                          désalignait la colonne. */}
                       <div
                         role="rowheader"
-                        className="flex items-center gap-1 py-2 pe-2 ps-6 font-medium text-muted-foreground"
+                        className="min-w-0 py-2 pe-2 font-medium text-muted-foreground"
                       >
-                        <CornerDownRight className="size-3.5" />
-                        <span>{getQueueLabel(queue.type)}</span>
-                        {QUEUE_TYPE_MAP[queue.type] &&
-                          (() => {
-                            const Icon = QUEUE_TYPE_MAP[queue.type].icon;
-                            return <Icon className="size-3.5" />;
-                          })()}
+                        <CornerDownRight className="me-0.5 inline-block size-3.5 align-[-2px]" />
+                        <span className="wrap-break-word">{queueHead}</span>
+                        {/* Dernier mot + icône de type : bloc insécable. */}
+                        <span className="whitespace-nowrap">
+                          {queueTail}
+                          {QueueIcon && (
+                            <QueueIcon className="ms-1 inline-block size-3.5 align-[-2px]" />
+                          )}
+                        </span>
                       </div>
                       <div role="cell" className="py-2">
                         {queue.timeSlot
@@ -518,7 +553,8 @@ export default function ParkWaitTimeTable({
                         {getStatusBadge(queue.status, statusLabels)}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
               </motion.div>
             </Fragment>
           );
