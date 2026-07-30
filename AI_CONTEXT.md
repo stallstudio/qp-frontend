@@ -175,6 +175,45 @@ Calculés dans `api/parks/route.ts` : `apiRequestLog.groupBy(parkId)` sur les
 **2 dernières heures**, statut 200, IP non whitelistées, top 8 → 6 affichés.
 C'est donc un classement par **nombre de consultations récentes**.
 
+### Liste « Tous les parcs » — catégories repliées (2026-07-30)
+
+`park-category-card.tsx` sait se **replier** à
+`CATEGORY_COLLAPSE_LIMIT = 10` parcs : 10 lignes + « Voir les N autres parcs »
+(même motif que les parcs favoris de l'accueil). Déclencheur : Fantawild
+(华强方特) et ses **49 parcs**, qui écrasaient une colonne entière.
+
+- ⚠️ **Deux catégories EN DUR, pas un seuil générique** (choix produit) :
+  `parks-list.tsx` (`COLLAPSED_GROUP_MATCH = "fantawild"`,
+  `COLLAPSED_COUNTRY_CODE = "CN"`) passe une prop `collapsible` ; la carte ne
+  décide rien (elle ignore si on trie par groupe ou par pays). Groupe Fantawild
+  en tri « par groupe », Chine en tri « par pays » — ce sont les MÊMES parcs vus
+  des deux façons. Partout ailleurs la liste reste entière, notamment pour les
+  liens internes (voir « Effet SEO » ci-dessous).
+- Le test porte sur les **données** d'un parc de la catégorie (`group.name`,
+  `country === "CN"`), jamais sur le libellé affiché : en tri par pays celui-ci
+  vient d'`Intl.DisplayNames` et n'est pas une constante fiable.
+- **Ordre d'une catégorie repliable : parcs OUVERTS d'abord**, alphabétique dans
+  chaque bloc (`sort` stable sur une liste déjà triée par nom). Les 10 places
+  visibles vont aux parcs consultables maintenant, pas aux dix premiers de
+  l'alphabet — dont la moitié dort quand il fait nuit en Chine. Cet ordre est
+  **conservé une fois déplié** (sinon la liste se réordonnerait sous le doigt au
+  moment du clic), et les catégories courtes restent purement alphabétiques.
+- Le dépliage réutilise l'`AnimatePresence` existante des parcs : aucune
+  animation dédiée, les lignes révélées arrivent comme celles que le filtre
+  « Masquer les parcs fermés » fait revenir.
+- ⚠️ `splitGroupsBalanced` (`parks-list.tsx`) compte la hauteur **affichée**
+  (`min(n, 10) + 1` pour une catégorie repliée), pas le nombre de parcs : sinon
+  Fantawild pesait 49 dans la balance et sa colonne finissait bien plus courte
+  que les deux autres.
+- i18n : `parksList.seeMoreParks` / `parksList.seeLess` (fr+en, repli EN).
+- **Effet SEO assumé** : les parcs repliés sont **absents du HTML** (rendu
+  conditionnel, pas un masquage CSS) et Googlebot ne clique pas le bouton — ils
+  perdent leur lien interne depuis l'accueil et ne restent découvrables que par
+  `sitemap.ts`. C'est précisément pourquoi la règle est limitée à ces deux
+  catégories. Variante zéro-perte si le besoin change : garder les 49 dans le DOM
+  et replier en CSS (`max-height`/`overflow-hidden`), au prix de l'animation par
+  ligne (l'`AnimatePresence` ne joue que sur ce qui entre/sort du DOM).
+
 ### Temps d'attente & files
 
 - `types/waitTime.ts` : `WaitTime` a un tableau `queues: QueueTime[]`.
