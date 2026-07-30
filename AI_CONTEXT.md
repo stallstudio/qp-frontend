@@ -2,7 +2,7 @@
 
 > Fiche de contexte pour l'assistant IA. But : comprendre le projet sans relire
 > tout le code. À maintenir à jour quand l'architecture change.
-> Dernière mise à jour : 2026-07-28.
+> Dernière mise à jour : 2026-07-30.
 
 ## En un mot
 
@@ -307,12 +307,24 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
 > attraction ». Le chargement de l'historique vit dans `hooks/useRideHistory.ts`.
 
 > **Nom + icônes, jamais séparés** : le nom de l'attraction est découpé en
-> « début » + « dernier mot », et ce dernier mot est rendu dans le même
-> `whitespace-nowrap` que le chevron et la cloche. Sur mobile, les icônes se
-> retrouvaient sinon **seules sur une ligne**, sans texte. Quand la place manque,
-> c'est donc le dernier mot qui part à la ligne avec elles. Garde-fou : au-delà
-> de 18 caractères, le dernier mot ne serait plus sécable et déborderait de la
-> colonne → on repasse au flux normal. Même découpage côté spectacles.
+> « début » + « dernier mot » (helper partagé `splitGluedTail`), et ce dernier
+> mot est rendu dans le même `whitespace-nowrap` que le chevron et la cloche. Sur
+> mobile, les icônes se retrouvaient sinon **seules sur une ligne**, sans texte.
+> Quand la place manque, c'est donc le dernier mot qui part à la ligne avec
+> elles. Garde-fou : au-delà de `MAX_GLUED_TAIL = 18` caractères, le dernier mot
+> ne serait plus sécable et déborderait de la colonne → on repasse au flux
+> normal. Même découpage côté spectacles.
+>
+> ⚠️ **Les lignes de files secondaires (dépliées) suivent la MÊME règle**
+> (2026-07-30). Elles étaient en `flex items-center gap-1 ps-6` : un libellé sur
+> deux lignes laissait son icône de type (`FastForward`/`User`/`Clock`) centrée
+> verticalement **à côté** du bloc, détachée du texte — très visible sur mobile.
+> Elles sont donc passées au même **flux inline** que la ligne standby, icône
+> collée au dernier mot. Le retrait `ps-6` a disparu du même coup : la flèche
+> `CornerDownRight` part désormais du **même bord gauche que les noms
+> d'attraction** et le libellé se colle à elle (`me-0.5`). La hiérarchie se lit à
+> la flèche et à la couleur atténuée, pas à un décalage qui désalignait la
+> colonne.
 
 > **Cloche `BellRing` en bout de nom** = une alerte est armée sur cette
 > attraction (rappel programmé côté spectacles). Purement informative, alimentée
@@ -368,14 +380,28 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   sinon un dernier point vide, alors que la question est justement « quel temps
   affichait-elle en fermant ? ».
 - ⚠️ **`chronicallyUnavailable` n'est pas qu'un message** : il DÉSACTIVE aussi les
-  alertes de l'attraction. Il exige donc `historyDays >= 3`
-  (`MIN_HISTORY_DAYS_FOR_UNAVAILABLE`) en plus de `availabilityRatio < 0.2` : un
-  parc récemment ajouté produit un profil quasi vide où le ratio tombe à ~0, et on
-  déclarait « n'affiche jamais de temps d'attente » des attractions qui en
-  affichent en direct (constaté sur PortAventura, 46 lignes `ride_forecast` à
-  `historyDays: 0`). Second garde-fou côté popup : si l'attraction affiche un
-  temps d'attente **en ce moment**, le direct tranche contre l'historique et
-  l'alerte reste possible.
+  alertes de l'attraction. Il exige donc `observedDays >= 3`
+  (`MIN_OBSERVED_DAYS_FOR_UNAVAILABLE`) en plus de `availabilityRatio < 0.2`.
+  **`observedDays`, surtout pas `historyDays`** (2026-07-30) — les deux viennent
+  du `baseProfile` du worker mais ne comptent pas la même chose :
+  `observedDays` = journées où l'attraction a été **vue**, ouverte ou non ;
+  `historyDays` = journées où elle a été **disponible** au moins une fois.
+  La première version du garde-fou testait `historyDays >= 3` et **s'annulait
+  elle-même** : une attraction qui n'affiche JAMAIS de temps (Eurosat
+  Coastiality) a par construction `historyDays = 0`, donc elle échappait au
+  verdict et laissait créer des alertes qui ne se déclencheraient jamais. Seul
+  `observedDays` sépare les deux cas qu'on veut distinguer — parc fraîchement
+  ajouté (0, on ne conclut rien, cf. PortAventura et ses 46 lignes
+  `ride_forecast` à `historyDays: 0`) vs attraction suivie depuis des semaines
+  sans jamais publier d'attente (élevé). Second garde-fou côté popup : si
+  l'attraction affiche un temps d'attente **en ce moment**, le direct tranche
+  contre l'historique et l'alerte reste possible.
+- **Formulation des messages** : « indisponible » était faux pour une attraction
+  qui ne publie simplement pas d'attente. `chartUnavailablePermanent` et
+  `alertsUnavailable` disent donc « **cette attraction ne communique pas de
+  temps d'attente** » (donc ni direct, ni prévision, ni alerte).
+  `chartUnavailable` (« indisponible pour le moment ») reste réservé au vrai cas
+  du jour : des données existent aujourd'hui mais aucun temps dedans.
 - **Pas de badge de « fiabilité ».** `meta.confidenceLevel` est toujours renvoyé
   par l'API mais **n'est plus affiché** : il mesure le VOLUME de données
   disponibles (`0.2 + 0.08 × jours + 0.3 × recouvrement`), pas la justesse réelle
@@ -383,34 +409,35 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   d'historique. `chart-section.tsx` affiche à la place une mention neutre
   **« Estimation »** avec un tooltip (`attractionDetail.estimateTooltip`), plus la
   note « mise à jour à l'ouverture » si `preOpening`.
-- **Bande d'incertitude « ± X min » (2026-07-28)** — remplace ce que le badge de
-  fiabilité prétendait dire, cette fois **mesuré** :
-  - Le worker confronte chaque jour ses prévisions à l'observé (table
-    `forecast_accuracy`, cf. AI_CONTEXT du worker) et en déduit une marge par
-    fenêtre d'horizon. **Chaque point** de `forecast` porte donc sa propre
-    `margin` : l'erreur croît avec l'échéance, une marge unique pour toute la
-    courbe serait trompeuse. `meta.marginMinutes`/`marginSamples` donnent la
-    valeur agrégée (mention textuelle sous le graphique).
-  - `margin` **absente/null = pas assez de mesures** -> aucune bande n'est
-    tracée. On n'affiche jamais une incertitude qu'on ne connaît pas. ⚠️ Les
-    marges ne regardent que les journées **passées** : le jour de la mise en
-    service, aucune attraction n'affiche de bande (ce n'est pas une panne).
-  - La marge est un **multiple du pas de l'attraction** (worker, `valueStepOf` /
-    `snapMargin`), avec un plancher d'un pas : sur une attraction qui n'affiche
-    que des multiples de 5, pas de « ± 7 min » — les bornes de la bande doivent
-    tomber sur des temps que l'attraction peut réellement afficher.
-  - ⚠️ `wait-time-chart.tsx` est passé de `LineChart` à **`ComposedChart`** :
-    la bande est une `Area` de PLAGE (`dataKey="band"`, valeur `[bas, haut]`),
-    que `LineChart` n'accepte pas comme enfant. Rendu des `Line` inchangé.
-  - La bande est ancrée à **largeur nulle sur le dernier point observé** : à
-    l'instant présent l'attente est connue, l'incertitude ne s'ouvre qu'en
-    avançant. Sans cet ancrage elle démarrait en marche d'escalier.
-  - Le tooltip exclut `band` des lignes numériques (sa valeur est un couple) et
-    reporte la marge sur la ligne « Prévision ». `yMax` englobe le HAUT de la
-    bande, sinon elle est rognée par le cadre.
-  - i18n : `attractionDetail.marginInline`/`marginLegend`/`marginTooltip`/
-    `marginNote`. La démo À propos (`demos.tsx`) porte des marges factices
-    croissantes pour montrer le comportement réel.
+- **Marge d'erreur « X min » — TEXTE SEUL, plus de bande (2026-07-30)** :
+  - Elle remplace ce que le badge de fiabilité prétendait dire, cette fois
+    **mesurée** : le worker confronte chaque jour ses prévisions à l'observé
+    (table `forecast_accuracy`, cf. AI_CONTEXT du worker) et en déduit une marge
+    par fenêtre d'horizon. `meta.marginMinutes`/`marginSamples` donnent la valeur
+    agrégée, seule chose affichée aujourd'hui.
+  - ⚠️ **La bande d'incertitude autour de la courbe a été SUPPRIMÉE** : plus
+    d'`Area` de plage `dataKey="band"`, plus d'entrée de légende, plus de mention
+    dans le tooltip, plus de marges factices dans la démo À propos. Le graphique
+    est donc revenu de `ComposedChart` à **`LineChart`** (le `ComposedChart`
+    n'existait QUE pour accueillir l'`Area`) — ne pas le remettre sans raison.
+  - Ce qui reste : une phrase sous le graphique, `attractionDetail.marginNote`,
+    « Sur les derniers jours, nos prévisions se sont trompées de **X min** en
+    moyenne. » Seule la **valeur** porte une infobulle (`marginNoteTooltip`,
+    souligné pointillé via `t.rich` + balise `<v>`) qui explique d'où sort ce
+    chiffre — souligner la phrase entière ferait d'un texte de bas de graphique
+    un gros bloc cliquable. L'infobulle tient en **une phrase** (`max-w-[13rem]`) :
+    elle sert à lever un doute sur l'origine du chiffre, pas à documenter le
+    moteur — les détails (repli sur le parc, arrondi au pas de l'attraction)
+    alourdissaient une bulle qui doit se lire d'un coup d'œil.
+  - Conséquence : la condition d'affichage porte sur `meta.marginMinutes` et non
+    plus sur la présence d'une `margin` point par point ; il n'y a plus de bande
+    avec laquelle rester cohérent. Les points de `forecast` portent toujours leur
+    `margin` dans la réponse de l'API — le graphique l'ignore, simplement.
+  - ⚠️ Les marges ne regardent que les journées **passées** : le jour de la mise
+    en service, aucune attraction n'affiche de chiffre (ce n'est pas une panne).
+    Elles sont un **multiple du pas de l'attraction** (worker, `valueStepOf` /
+    `snapMargin`) : pas de « ± 7 min » sur une attraction qui n'affiche que des
+    multiples de 5.
 
 ### Météo (ajout 2026-07)
 
@@ -477,6 +504,22 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
 - **Auto-refresh** : `hooks/useAutoRefresh.ts` gère lui-même la visibilité de
   l'onglet (un seul intervalle 1 s, arrêté quand l'onglet est caché, rattrapage
   au retour). `usePageVisibility` a été supprimé.
+  ⚠️ **Le décompte part du dernier FETCH CLIENT** (`nextRefreshAt`, replanifié
+  dans le `finally` de chaque tentative — succès comme échec), et surtout PAS de
+  `park.lastUpdate`. Le hook prenait auparavant cet horodatage en paramètre : or
+  c'est `parks.lastUpdatedAt`, que le worker n'écrit **que si son fetch
+  réussit**. Une source qui tombe (ou la nuit, ou une Schedule Dokploy qui
+  patine) le figeait, le décompte plongeait sous la fenêtre `-20 s` de
+  déclenchement et **plus rien ne se rafraîchissait jamais** — pas même au retour
+  d'onglet, puisque rafraîchir ne changeait pas la valeur de référence. D'où
+  l'impression de blocage. La fenêtre `-20` n'existe plus (elle n'avait de sens
+  que pour cet horodatage-là).
+  `park.lastUpdate` ne sert plus qu'à **afficher la fraîcheur de la donnée** :
+  au-delà de `STALE_DATA_MS = 10 min` (`main-card.tsx`), on affiche « Dernière
+  mise à jour : … » à la place du décompte — c'est une info sur la donnée, pas un
+  état d'échec ; le cycle continue de tourner derrière. ⚠️ Ce test est gardé par
+  un `mounted` : `Date.now()` diffère entre Node et le navigateur, un
+  `lastUpdate` pile sur le seuil provoquerait une erreur d'hydratation.
 - **⚠️ `Intl` et hydratation** : `Intl.DisplayNames` s'appuie sur les données ICU
   du runtime, et Node ≠ navigateur (`HK` → « Hong Kong SAR China » côté Node,
   « Hong Kong » côté Chrome). Depuis que l'accueil est rendu côté serveur, tout
@@ -523,6 +566,13 @@ seule revue manuelle. `prisma generate` n'accède pas à la base ; **`db push` e
 - `components/about/vignette.tsx` : petite carte (icône + titre + texte + démo).
 - `components/about/demos.tsx` : mini-démos **vivantes** réutilisant les vrais
   composants (`WaitTrend`, `FavoriteStar`, badges) — pas d'images statiques.
+  ⚠️ `ForecastDemo` réutilise le VRAI `WaitTimeChart`. Sa vignette n'est plus
+  `wide` (2026-07-30) : une seule carte à cheval sur deux colonnes cassait la
+  grille. Le graphique passe donc en prop **`compact`** (hauteur 132 px au lieu
+  de 180, axe Y plus étroit, police 10 px et au plus **3** intervalles horaires
+  au lieu de 5) — sans ça, 6 libellés d'heure ne tiennent pas dans la largeur
+  d'une vignette. `compact` est un vrai prop du composant partagé, pas une copie
+  du graphique : le popup reste la référence.
 - Contenu i18n sous le namespace `about` dans `fr.json` + `en.json` (fallback EN
   pour les autres langues).
 - **Footer** (`components/ui/footer.tsx`) : rangée de boutons dans l'ordre
