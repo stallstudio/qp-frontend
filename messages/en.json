@@ -12,7 +12,9 @@
     "title": "All Theme Parks",
     "sortByGroup": "By group",
     "sortByCountry": "By country",
-    "hideClosedParks": "Hide closed parks"
+    "hideClosedParks": "Hide closed parks",
+    "seeMoreParks": "See {count} more parks",
+    "seeLess": "See less"
   },
   "popularParks": {
     "title": "Popular parks",

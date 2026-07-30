@@ -12,7 +12,9 @@
     "title": "Tous les parcs",
     "sortByGroup": "Par groupe",
     "sortByCountry": "Par pays",
-    "hideClosedParks": "Masquer les parcs fermés"
+    "hideClosedParks": "Masquer les parcs fermés",
+    "seeMoreParks": "Voir les {count} autres parcs",
+    "seeLess": "Voir moins"
   },
   "popularParks": {
     "title": "Parcs populaires",
