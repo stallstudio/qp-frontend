@@ -30,11 +30,12 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
 
   const hasActual = !!data && data.today.some((p) => p.waitTime != null);
   const hasForecast = !!data && data.forecast.length > 0;
-  // Marge d'erreur MESURÉE (prévision de la veille confrontée à l'observé). On
-  // ne l'annonce que si au moins un point de la courbe en porte une : le
-  // graphique et le texte doivent dire la même chose.
-  const hasMargin =
-    !!data && data.forecast.some((p) => p.margin != null && p.margin > 0);
+  // Marge d'erreur MESURÉE (prévisions passées confrontées à l'observé).
+  // ⚠️ La bande « ± X min » a été retirée du graphique : ce chiffre ne se lit
+  // plus QUE dans la phrase sous la courbe. La condition d'affichage porte donc
+  // désormais sur la valeur agrégée elle-même (`meta.marginMinutes`) et non plus
+  // sur la présence d'une marge point par point — il n'y a plus de bande avec
+  // laquelle rester cohérent.
   const marginMinutes = data?.meta.marginMinutes;
 
   if (!data || (!hasActual && !hasForecast)) {
@@ -65,7 +66,6 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
         todayLabel={t("chartToday")}
         actualLabel={t("chartActual")}
         forecastLabel={t("chartForecast")}
-        marginLabel={(minutes) => t("marginInline", { minutes })}
       />
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
@@ -94,24 +94,6 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
             </button>
           </ClickableTooltip>
         )}
-        {/* Entrée de légende de la bande d'incertitude : un aplat de la même
-            couleur que la prévision, pour qu'on relie les deux d'un coup d'œil. */}
-        {hasMargin && (
-          <ClickableTooltip
-            content={t("marginTooltip")}
-            className="max-w-[15rem] text-center text-xs"
-          >
-            <button
-              type="button"
-              className="flex cursor-help items-center gap-1.5"
-            >
-              <span className="h-2.5 w-4 rounded-[2px] bg-primary/20" />
-              <span className="underline decoration-dotted underline-offset-2">
-                {t("marginLegend")}
-              </span>
-            </button>
-          </ClickableTooltip>
-        )}
       </div>
       {data.forecast.length > 0 && (
         <p className="text-center text-[11px] text-muted-foreground/80">
@@ -122,10 +104,28 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
       )}
       {/* Chiffre d'honnêteté : ce que valent VRAIMENT nos prévisions sur cette
           attraction, mesuré et non postulé. Remplace l'ancien badge
-          « Fiabilité : haute », qui ne comptait que des jours d'historique. */}
-      {hasMargin && marginMinutes != null && (
+          « Fiabilité : haute », qui ne comptait que des jours d'historique.
+          Seule la VALEUR porte l'infobulle (souligné pointillé) : c'est elle
+          qu'on peut trouver arbitraire, et souligner la phrase entière ferait
+          d'un texte de bas de graphique un gros bloc cliquable. */}
+      {marginMinutes != null && marginMinutes > 0 && (
         <p className="text-center text-[11px] text-muted-foreground/70">
-          {t("marginNote", { minutes: Math.round(marginMinutes) })}
+          {t.rich("marginNote", {
+            minutes: Math.round(marginMinutes),
+            v: (chunks) => (
+              <ClickableTooltip
+                content={t("marginNoteTooltip")}
+                className="max-w-[13rem] text-center text-xs"
+              >
+                <button
+                  type="button"
+                  className="cursor-help underline decoration-dotted underline-offset-2"
+                >
+                  {chunks}
+                </button>
+              </ClickableTooltip>
+            ),
+          })}
         </p>
       )}
     </div>
