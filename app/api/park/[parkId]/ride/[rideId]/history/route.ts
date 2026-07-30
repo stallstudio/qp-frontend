@@ -8,9 +8,10 @@ import type { ConfidenceLevel, RideHistoryResponse } from "@/types/rideHistory";
 // Cadence d'échantillonnage (min) de la courbe du jour ET de la prévision.
 const CHART_STEP_MINUTES = 15;
 
-// Nombre de jours d'historique minimum avant d'oser qualifier une attraction
-// d'« indisponible en permanence » (message dédié + alertes désactivées).
-const MIN_HISTORY_DAYS_FOR_UNAVAILABLE = 3;
+// Nombre de journées d'OBSERVATION minimum avant d'oser qualifier une
+// attraction de « ne publie pas de temps d'attente » (message dédié + alertes
+// désactivées).
+const MIN_OBSERVED_DAYS_FOR_UNAVAILABLE = 3;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -126,6 +127,7 @@ export async function GET(
       typeof forecastRow.baseProfile === "object"
         ? (forecastRow.baseProfile as {
             historyDays?: number;
+            observedDays?: number;
             availabilityRatio?: number;
           })
         : null;
@@ -135,15 +137,21 @@ export async function GET(
     const availabilityRatio = baseProfile
       ? Number(baseProfile.availabilityRatio ?? 1)
       : 1;
-    // ...mais ce verdict n'a de sens qu'avec assez d'historique pour l'appuyer.
-    // Un parc qui vient d'être ajouté (ou dont la collecte a été interrompue)
-    // produit un profil quasi vide : le ratio y tombe naturellement à ~0, et on
-    // déclarait alors « n'affiche jamais de temps d'attente » des attractions qui
-    // en affichent en direct — ce qui désactivait AUSSI leurs alertes. Sans
-    // plusieurs jours d'observation, on ne conclut donc rien.
+    // ...mais ce verdict n'a de sens qu'avec assez d'observation pour l'appuyer.
+    //
+    // ⚠️ Le garde-fou porte sur `observedDays` (journées où l'attraction a été
+    // VUE, ouverte ou non) et surtout PAS sur `historyDays` (journées où elle a
+    // été disponible au moins une fois). La première version testait
+    // `historyDays >= 3` et s'annulait elle-même : une attraction qui n'affiche
+    // JAMAIS de temps d'attente (Eurosat Coastiality) a par construction
+    // `historyDays = 0`, donc elle échappait au verdict et laissait créer des
+    // alertes qui ne se déclencheraient jamais. `observedDays` sépare bien les
+    // deux cas : parc fraîchement ajouté -> 0 (on ne conclut rien) ; attraction
+    // suivie depuis des semaines sans jamais publier d'attente -> élevé.
+    const observedDays = baseProfile ? Number(baseProfile.observedDays ?? 0) : 0;
     const chronicallyUnavailable =
       !!fresh &&
-      historyDays >= MIN_HISTORY_DAYS_FOR_UNAVAILABLE &&
+      observedDays >= MIN_OBSERVED_DAYS_FOR_UNAVAILABLE &&
       availabilityRatio < 0.2;
 
     const data: RideHistoryResponse = {
