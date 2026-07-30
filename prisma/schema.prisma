@@ -237,6 +237,23 @@ model WaitTime {
   // filtre et agrégat se calculent sur l'index seul, sans jamais lire la table.
   // Les retirer ferait retomber la requête sur 69 k accès aléatoires.
   @@index([startTime, status, waitTime])
+  // Date du dernier CHANGEMENT d'état par parc, pour la bande de fraîcheur du
+  // dashboard : `SELECT parkId, MAX(startTime) … GROUP BY parkId`. Avec parkId
+  // en tête, MariaDB fait un « Using index for group-by » et saute au dernier
+  // élément de chaque groupe — 8 501 lignes au lieu de 6,9 M, 37 ms contre 8,7 s.
+  //
+  // ⚠️ Cet index sert au signal « le contenu bouge », PAS au signal « l'API
+  // répond ». Les deux sont distincts et ne se lisent pas sur la même colonne :
+  // cette table stocke des INTERVALLES, une valeur inchangée ne crée aucune
+  // ligne et ne fait que rafraîchir `lastSeenAt`. La réception se lit donc sur
+  // `MAX(lastSeenAt) WHERE endTime IS NULL` (index parkId_endTime_lastSeenAt),
+  // et confondre les deux fait passer pour morts des parcs interrogés avec
+  // succès toutes les cinq minutes mais dont les temps ne varient jamais.
+  //
+  // ⚠️ Ne pas fusionner les deux agrégats en une seule requête : ramener
+  // `MAX(startTime)` sous un filtre `endTime IS NULL` force la lecture des
+  // lignes, l'optimiseur abandonne le parcours groupé et retombe à 9,4 s.
+  @@index([parkId, startTime])
   @@map("wait_times")
 }
 
