@@ -220,7 +220,7 @@
       },
       "forecast": {
         "title": "Wait-time forecast",
-        "body": "On an attraction's page, the solid line traces the wait time observed since opening, and the dashed line estimates the rest of the day up to closing. It draws on comparable past days (day of the week, school holidays, weather, opening hours). The shaded area around the dashed line is our real margin of error: every day we compare yesterday's forecasts against what actually happened, and it widens the further ahead you look."
+        "body": "On an attraction's page, the solid line traces the wait time observed since opening, and the dashed line estimates the rest of the day up to closing. It draws on comparable past days (day of the week, school holidays, weather, opening hours). Below the chart we state our real margin of error: every day we compare our forecasts against what actually happened."
       },
       "search": {
         "title": "Search & random park",
@@ -252,7 +252,7 @@
       },
       "account": {
         "title": "Your account",
-        "body": "Sign in without a password (Google or magic link). Your favourites, alerts and preferences follow you across all your devices."
+        "body": "An account is optional: wait times, opening hours and shows are all visible without signing in. It becomes useful the moment you want to keep something. Signing in needs no password — use Google or a link sent to your inbox. Your favourites, alerts, reminders and preferences then follow you from one device to the next."
       },
       "weather": {
         "title": "Park weather",
@@ -466,15 +466,13 @@
     "chartNow": "Now",
     "chartEmpty": "No data yet for today.",
     "chartUnavailable": "Attraction currently unavailable.",
-    "chartUnavailablePermanent": "This attraction rarely or never shows a wait time.",
-    "alertsUnavailable": "No alert available: this attraction rarely or never shows a wait time.",
+    "chartUnavailablePermanent": "This attraction does not report a wait time: no live tracking, no forecast.",
+    "alertsUnavailable": "This attraction does not report a wait time, so there is nothing to watch and no alert is possible.",
     "chartForecastNote": "Rough estimate for the rest of the day.",
     "chartForecastPreOpeningNote": "Estimate based on past days — will update once the park opens.",
     "estimateTooltip": "Estimated from comparable past days. Reality may differ.",
-    "marginInline": "± {minutes} min",
-    "marginLegend": "Margin of error",
-    "marginTooltip": "Average gap between our forecasts and the wait actually observed on previous days. The band widens further ahead.",
-    "marginNote": "Over the past few days, our forecasts were off by {minutes} min on average.",
+    "marginNote": "Over the past few days, our forecasts were off by <v>{minutes} min</v> on average.",
+    "marginNoteTooltip": "Average gap between our forecasts and the wait actually observed, over the last 14 days.",
     "installTitle": "Install Queue Park",
     "installIntro": "Alerts require the app installed on your device.",
     "installButton": "Install the app",
