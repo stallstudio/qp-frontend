@@ -19,6 +19,10 @@ type MainCardProps = {
   initialRideId?: number | null;
 };
 
+// Au-delà de ce délai sans écriture du worker, on affiche l'horodatage des
+// données plutôt que le décompte (voir `dataIsStale`).
+const STALE_DATA_MS = 10 * 60_000;
+
 export default function MainCard({
   park,
   onRefresh,
@@ -31,12 +35,24 @@ export default function MainCard({
   const tNoData = useTranslations("noData");
 
   // La mise en pause quand l'onglet est caché (et le rattrapage au retour) est
-  // gérée par le hook lui-même.
-  const { timeSinceLastUpdate } = useAutoRefresh(
-    park.lastUpdate,
-    onRefresh,
-    60000,
-  );
+  // gérée par le hook lui-même. ⚠️ Le décompte est celui du prochain FETCH
+  // CLIENT ; il ne dépend plus de `park.lastUpdate`, qui pouvait se figer et
+  // arrêter le cycle pour de bon (voir `useAutoRefresh`).
+  const { timeSinceLastUpdate, isRefreshing } = useAutoRefresh(onRefresh, 60000);
+
+  // Fraîcheur de la DONNÉE (horodatage du worker), à distinguer du décompte
+  // ci-dessus. Au-delà de ce délai, la source du parc ne répond plus (ou le parc
+  // est fermé) : on le dit au lieu d'afficher un décompte qui laisserait croire
+  // que les temps affichés sont d'il y a une minute.
+  //
+  // Évalué APRÈS montage seulement : `Date.now()` ne donne pas la même valeur
+  // sous Node et dans le navigateur, et un `lastUpdate` pile sur le seuil
+  // produirait une erreur d'hydratation. Le composant se re-rend chaque seconde
+  // (décompte), la valeur reste donc à jour ensuite.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const dataIsStale =
+    mounted && Date.now() - new Date(park.lastUpdate).getTime() > STALE_DATA_MS;
 
   const hasWaitTimes = park.waitTimes && park.waitTimes.length > 0;
   const hasShows = park.shows && park.shows.length > 0;
@@ -148,19 +164,26 @@ export default function MainCard({
         </div>
       )}
       <div className="flex justify-center text-sm text-muted-foreground my-4 flex-col items-center">
-        {timeSinceLastUpdate > 0 ? (
-          <p>
-            {t("refreshingIn")} {timeSinceLastUpdate}{" "}
-            {timeSinceLastUpdate < 2 ? t("second") : t("seconds")}
-          </p>
-        ) : timeSinceLastUpdate > -20 ? (
+        {/* Trois états, dans cet ordre : rafraîchissement en cours, données du
+            worker périmées, décompte normal.
+
+            ⚠️ « Dernière mise à jour » n'est plus l'état d'échec du décompte
+            (celui-ci ne peut plus se bloquer) mais une information sur la
+            DONNÉE : le worker n'a rien écrit depuis 10 min. Le décompte, lui,
+            continue de tourner derrière — on réessaie bel et bien. */}
+        {isRefreshing ? (
           <div className="flex text-muted-foreground items-center gap-1">
             <Loader2 className="h-4 w-4 animate-spin" />
             {t("nowRefreshing")}
           </div>
-        ) : (
+        ) : dataIsStale ? (
           <p>
             {t("lastUpdate")}: {new Date(park.lastUpdate).toLocaleString()}
+          </p>
+        ) : (
+          <p>
+            {t("refreshingIn")} {timeSinceLastUpdate}{" "}
+            {timeSinceLastUpdate < 2 ? t("second") : t("seconds")}
           </p>
         )}
         {park.shows.length > 0 && activeTab === "show-times" && (
