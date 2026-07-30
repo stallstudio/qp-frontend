@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from "motion/react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ParkCategoryCard from "../parks/park-category-card";
+import ParkCategoryCard, {
+  CATEGORY_COLLAPSE_LIMIT,
+} from "../parks/park-category-card";
 import { getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { ParkList } from "@/types/api";
@@ -11,6 +13,15 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 interface ParksListProps {
   parks: ParkList[];
 }
+
+// ⚠️ Le repli est VOLONTAIREMENT limité à deux catégories, en dur : le groupe
+// Fantawild (华强方特, 49 parcs) en tri « par groupe », et la Chine en tri « par
+// pays » — ce sont les mêmes parcs, vus des deux façons, et les seuls à écraser
+// une colonne de l'accueil. Choix assumé plutôt qu'un seuil générique : partout
+// ailleurs on préfère la liste complète, ne serait-ce que pour les liens
+// internes (les parcs repliés ne sont pas dans le HTML, voir park-category-card).
+const COLLAPSED_GROUP_MATCH = "fantawild";
+const COLLAPSED_COUNTRY_CODE = "CN";
 
 export default function ParksList({ parks }: ParksListProps) {
   const t = useTranslations("parksList");
@@ -41,6 +52,17 @@ export default function ParksList({ parks }: ParksListProps) {
   const filteredParks = onlyOpenParks
     ? parks.filter((park) => getParkStatus(park.openingHours) === "open")
     : parks;
+
+  // Le test porte sur les DONNÉES d'un parc de la catégorie, pas sur le libellé
+  // affiché : en tri par pays, `groupName` est un nom résolu par
+  // `Intl.DisplayNames` (« China »), qu'on ne veut pas comparer en dur.
+  const isCollapsibleCategory = (groupParks: ParkList[]) => {
+    const sample = groupParks[0];
+    if (!sample) return false;
+    return sortBy === "group"
+      ? sample.group.name.toLowerCase().includes(COLLAPSED_GROUP_MATCH)
+      : sample.country === COLLAPSED_COUNTRY_CODE;
+  };
 
   const groupParksByGroup = () => {
     const grouped: Record<string, ParkList[]> = {};
@@ -106,7 +128,15 @@ export default function ParksList({ parks }: ParksListProps) {
         if (counts[i] < counts[minIdx]) minIdx = i;
       }
       columns[minIdx].push([groupName, groupParks]);
-      counts[minIdx] += groupParks.length;
+      // On compte la hauteur RÉELLEMENT affichée, pas le nombre de parcs : une
+      // catégorie repliée n'occupe que ses 10 lignes + celle du bouton. Sinon
+      // Fantawild pesait 49 dans la balance et sa colonne finissait bien plus
+      // courte que les autres.
+      counts[minIdx] +=
+        isCollapsibleCategory(groupParks) &&
+        groupParks.length > CATEGORY_COLLAPSE_LIMIT
+          ? CATEGORY_COLLAPSE_LIMIT + 1
+          : groupParks.length;
     });
 
     return columns;
@@ -188,6 +218,7 @@ export default function ParksList({ parks }: ParksListProps) {
                   key={groupName}
                   groupName={groupName}
                   parks={groupParks}
+                  collapsible={isCollapsibleCategory(groupParks)}
                 />
               ))}
             </AnimatePresence>
@@ -207,6 +238,7 @@ export default function ParksList({ parks }: ParksListProps) {
                   key={groupName}
                   groupName={groupName}
                   parks={groupParks}
+                  collapsible={isCollapsibleCategory(groupParks)}
                 />
               ))}
             </AnimatePresence>
@@ -221,6 +253,7 @@ export default function ParksList({ parks }: ParksListProps) {
                 key={groupName}
                 groupName={groupName}
                 parks={groupParks}
+                collapsible={isCollapsibleCategory(groupParks)}
               />
             ))}
           </AnimatePresence>
