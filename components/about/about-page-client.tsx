@@ -194,10 +194,17 @@ export default function AboutPageClient() {
                   title={tCards("weather.title")}
                   body={tCards("weather.body")}
                 />
+                {/* Vignette de taille NORMALE, comme les autres : elle était en
+                    `wide` pour laisser respirer le graphique, mais une seule
+                    carte à cheval sur deux colonnes cassait la grille. Le
+                    graphique de la démo est simplement rendu plus compact
+                    (`compact` -> hauteur réduite et moins de graduations). */}
                 <Vignette
-                  icon={UserCircle}
-                  title={tCards("account.title")}
-                  body={tCards("account.body")}
+                  icon={LineChart}
+                  title={tCards("forecast.title")}
+                  body={tCards("forecast.body")}
+                  demoLabel={demoLabel}
+                  demo={<ForecastDemo />}
                 />
                 <Vignette
                   icon={Search}
@@ -207,12 +214,9 @@ export default function AboutPageClient() {
                   demo={<SearchDemo />}
                 />
                 <Vignette
-                  wide
-                  icon={LineChart}
-                  title={tCards("forecast.title")}
-                  body={tCards("forecast.body")}
-                  demoLabel={demoLabel}
-                  demo={<ForecastDemo />}
+                  icon={UserCircle}
+                  title={tCards("account.title")}
+                  body={tCards("account.body")}
                 />
                 <Vignette
                   icon={Activity}

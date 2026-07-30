@@ -442,7 +442,10 @@ export function ReminderDemo() {
 /* -------------------------------------------------------------------------- */
 /* Prévision d'affluence — RÉUTILISE le vrai graphique (WaitTimeChart) avec des */
 /* données factices : courbe pleine = temps observé du jour, pointillé =        */
-/* prévision jusqu'à la fermeture, ligne « maintenant », bande de marge.        */
+/* prévision jusqu'à la fermeture, ligne « maintenant ».                        */
+/*                                                                             */
+/* Rendu en mode `compact` : la vignette n'est plus `wide`, le graphique tient  */
+/* donc dans une seule colonne de la grille.                                    */
 /* -------------------------------------------------------------------------- */
 
 export function ForecastDemo() {
@@ -464,17 +467,15 @@ export function ForecastDemo() {
     ).map(([h, m, w]) => ({ t: at(h, m), waitTime: w, status: "open" }));
 
     // Prévision 15:30 -> fermeture (19:00) : pic d'après-midi puis décrue.
-    // La marge s'élargit avec l'échéance, comme dans le vrai graphique (elle y
-    // vient de l'erreur mesurée les jours précédents à chaque horizon), et reste
-    // un MULTIPLE DU PAS de l'attraction (ici 5 min, comme les temps affichés) :
-    // le vrai moteur cale la marge sur ce pas, une bande à ± 7 min sur une
-    // attraction qui n'affiche que des multiples de 5 n'aurait aucun sens.
+    // Plus de marges factices : la bande d'incertitude a été retirée du
+    // graphique, la marge d'erreur mesurée est désormais dite en texte sous la
+    // courbe du popup (elle n'a pas de sens sur des données inventées).
     const forecast: TimedPoint[] = (
       [
-        [15, 30, 55, 5], [16, 0, 60, 5], [16, 30, 55, 5], [17, 0, 45, 10],
-        [17, 30, 40, 10], [18, 0, 30, 10], [18, 30, 20, 15], [19, 0, 10, 15],
-      ] as [number, number, number, number][]
-    ).map(([h, m, w, margin]) => ({ t: at(h, m), waitTime: w, margin }));
+        [15, 30, 55], [16, 0, 60], [16, 30, 55], [17, 0, 45],
+        [17, 30, 40], [18, 0, 30], [18, 30, 20], [19, 0, 10],
+      ] as [number, number, number][]
+    ).map(([h, m, w]) => ({ t: at(h, m), waitTime: w }));
 
     return {
       today,
@@ -497,27 +498,21 @@ export function ForecastDemo() {
         todayLabel={t("chartToday")}
         actualLabel={t("chartActual")}
         forecastLabel={t("chartForecast")}
-        marginLabel={(minutes) => t("marginInline", { minutes })}
+        compact
       />
-      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+      {/* Légende resserrée (gap réduit, pas de soulignement pointillé) : dans une
+          vignette étroite, le pointillé décoratif du popup ne fait que charger
+          une ligne qui doit tenir sur une seule. */}
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded bg-primary" />
+          <span className="h-0.5 w-3.5 rounded bg-primary" />
           {t("chartToday")}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-4 border-t-2 border-dashed border-primary/50" />
-          <span className="underline decoration-dotted underline-offset-2">
-            {t("chartForecast")}
-          </span>
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-4 rounded-[2px] bg-primary/20" />
-          {t("marginLegend")}
+          <span className="w-3.5 border-t-2 border-dashed border-primary/50" />
+          {t("chartForecast")}
         </span>
       </div>
-      <p className="text-center text-[11px] text-muted-foreground/80">
-        {t("chartForecastNote")}
-      </p>
     </div>
   );
 }
