@@ -39,6 +39,22 @@ model Park {
   display               Boolean   @default(false)
   queueTypeLabels       Json?
   lastUpdatedAt         DateTime?
+  // Dernière RÉCEPTION de données par fetcher — « l'API a répondu quelque
+  // chose », distinct de « le contenu a bougé ».
+  //
+  // Ces deux colonnes existent parce que rien d'autre ne permet de le savoir :
+  // showService ne fait qu'un `createMany` des nouveautés et poiService ne
+  // journalise que les changements, si bien qu'une API répondant « rien de
+  // neuf » ne laissait aucune trace. Une API figée — l'ancienne version restée
+  // en ligne après une migration, par exemple — était donc indiscernable d'une
+  // API morte.
+  //
+  // ⚠️ Ne pas les confondre avec `lastUpdatedAt`, qui n'est écrit que par
+  // fetchParkWaitTimes et vaut « le fetch a réussi », même à vide.
+  // Les horaires n'en ont pas besoin : openingHoursService réécrit chaque ligne
+  // sans condition, donc `opening_hours.updatedAt` fait déjà foi.
+  showTimesSeenAt       DateTime?
+  poisSeenAt            DateTime?
   wait_times_fetcher    Boolean   @default(false)
   opening_hours_fetcher Boolean   @default(false)
   pois_fetcher          Boolean   @default(false)
@@ -209,6 +225,18 @@ model WaitTime {
   @@index([stateHash, rideId])
   @@index([rideId, type, endTime])
   @@index([parkId, endTime, lastSeenAt])
+  // Index COUVRANT des agrégats par fenêtre temporelle (dashboard admin,
+  // forecast accuracy). Les sept autres index commencent tous par `rideId` ou
+  // `parkId` : un index composite n'étant trié que par sa PREMIÈRE colonne,
+  // aucun ne sait répondre à « les lignes des dernières 24 h ». MariaDB
+  // balayait donc les 6,9 M de lignes pour en agréger 69 k (EXPLAIN :
+  // type=ALL, key=NULL) — 6,4 s pour une moyenne.
+  //
+  // `status` et `waitTime` sont dans l'index non pour affiner la recherche
+  // (impossible après une plage sur startTime) mais pour la rendre COUVRANTE :
+  // filtre et agrégat se calculent sur l'index seul, sans jamais lire la table.
+  // Les retirer ferait retomber la requête sur 69 k accès aléatoires.
+  @@index([startTime, status, waitTime])
   @@map("wait_times")
 }
 
