@@ -1,44 +1,61 @@
 {
   "home": {
     "title": "Queue Park",
-    "subtitle": "お気に入りの遊園地の待ち時間をリアルタイムでチェック！"
+    "subtitle": "お気に入りのテーマパークの待ち時間をライブでお届け！"
   },
   "search": {
-    "placeholder": "パーク名、グループ、国名で検索...",
-    "noResults": "該当するパークが見つかりませんでした。もう一度お試しください。",
-    "randomParkToast": "ダイスの結果："
+    "placeholder": "パーク名・グループ・国で検索...",
+    "noResults": "条件に合うパークが見つかりませんでした。もう一度お試しください。",
+    "randomParkToast": "サイコロが選んだのは："
   },
   "parksList": {
     "title": "すべてのテーマパーク",
     "sortByGroup": "グループ別",
     "sortByCountry": "国別",
-    "hideClosedParks": "休園中のパークを非表示"
+    "hideClosedParks": "閉園中のパークを隠す",
+    "seeMoreParks": "他 {count} 件のパークを表示",
+    "seeLess": "折りたたむ"
   },
   "popularParks": {
     "title": "人気のパーク",
-    "trendingText": "直近数時間のトレンド",
-    "visitsNote": "訪問数"
+    "trendingText": "直近数時間の注目",
+    "visitsNote": "回閲覧"
+  },
+  "weather": {
+    "clear": "快晴",
+    "mainlyClear": "おおむね晴れ",
+    "partlyCloudy": "晴れ時々くもり",
+    "overcast": "くもり",
+    "fog": "霧",
+    "drizzle": "霧雨",
+    "rain": "雨",
+    "snow": "雪",
+    "thunderstorm": "雷雨",
+    "unknown": "天気情報がありません",
+    "min": "最低",
+    "max": "最高"
   },
   "parkPage": {
     "backHome": "ホームに戻る",
     "todayHours": "本日の営業時間",
-    "extraOpeningHours": "特別営業時間",
+    "extraOpeningHours": "アーリーエントリー",
     "extendedHours": "延長営業",
-    "closedToday": "本日は休園です",
-    "hoursUnavailable": "現在、営業時間は利用できません",
-    "privateEvent": "貸切営業",
-    "privateEventNoHours": "本日は貸切営業です"
+    "closedToday": "本日休園",
+    "hoursUnavailable": "現在、営業時間の情報がありません",
+    "privateEvent": "貸切のため休園",
+    "privateEventNoHours": "本日は貸切のため休園"
   },
   "parkStatus": {
-    "open": "開園中",
-    "closed": "閉園"
+    "open": "営業中",
+    "closed": "休園"
   },
   "attractionStatus": {
     "open": "運営中",
-    "closed": "休止",
-    "down": "故障中",
+    "closed": "停止中",
+    "down": "故障",
     "maintenance": "メンテナンス",
-    "unavailable": "情報なし"
+    "unavailable": "情報なし",
+    "unavailableShort": "情報なし"
   },
   "tabs": {
     "waitTimes": "待ち時間",
@@ -46,99 +63,488 @@
   },
   "shows": {
     "show": "ショー",
-    "schedules": "スケジュール",
-    "updateInfo": "ショーは1時間ごとに更新されます",
-    "noMoreToday": "本日はこれ以上ショーはありません"
+    "schedules": "公演時間",
+    "updateInfo": "ショー情報は1時間ごとに更新されます",
+    "noMoreToday": "本日の公演は終了しました",
+    "legendPast": "終了",
+    "legendOngoing": "公演中",
+    "legendUpcoming": "これから"
+  },
+  "showDetail": {
+    "openFor": "{show} の詳細を見る",
+    "notifTitle": "通知",
+    "thrillsLink": "Thrills でこのショーを見る",
+    "duration": "所要時間：{duration}",
+    "continuousAccess": "随時入場 · {range}",
+    "signInIntro": "ログインすると、ショー開始前にお知らせを受け取れます。",
+    "reminderIntro": "公演を選び、その何分前に知らせるかを選択してください。",
+    "leadLabel": "ショーの何分前に知らせますか？",
+    "leadOption": "{minutes} 分前",
+    "reminderActive": "{minutes} 分前に通知",
+    "reminderScheduled": "リマインダー設定済み",
+    "save": "リマインダーを設定",
+    "update": "更新",
+    "remove": "削除",
+    "reminderSaved": "リマインダーを保存しました",
+    "reminderRemoved": "リマインダーを削除しました",
+    "reminderError": "問題が発生しました。もう一度お試しください。",
+    "pushBlocked": "リマインダーは保存しましたが、この端末には届きません（通知が許可されていません）。",
+    "noUpcoming": "本日はもう公演がありません。",
+    "leadTooLate": "この公演は開始が近すぎるため、リマインダーを設定できません。",
+    "reminderActivate": "リマインダーを有効にする",
+    "reminderModify": "リマインダーを編集"
   },
   "favorites": {
     "myFavorites": "お気に入り",
+    "yours": "あなたのお気に入り",
     "add": "お気に入りに追加",
     "remove": "お気に入りから削除",
-    "addPark": "この公園をお気に入りに追加",
-    "removePark": "この公園をお気に入りから削除"
+    "addPark": "このパークをお気に入りに追加",
+    "removePark": "このパークをお気に入りから削除",
+    "parkLimit": "お気に入りのパークは最大 {max} 件までです。",
+    "seeMore": "他 {count} 件を表示",
+    "seeLess": "折りたたむ",
+    "needAccount": "お気に入りに追加するにはログインしてください。"
+  },
+  "cookies": {
+    "message": "サイト改善のため分析用クッキーを使用しています。同意または拒否を選べます。",
+    "learnMore": "詳しく見る",
+    "accept": "同意する",
+    "refuse": "拒否する",
+    "manage": "クッキーの管理",
+    "legalNotice": "運営者情報",
+    "privacyPolicy": "プライバシー",
+    "cookiePolicy": "クッキー"
+  },
+  "manifest": {
+    "name": "Queue Park",
+    "description": "お気に入りのテーマパークの待ち時間とショー情報をライブでお届け。",
+    "shortcutAllParks": "すべてのパーク",
+    "shortcutParksShort": "パーク"
   },
   "waitTimeTable": {
     "attraction": "アトラクション",
     "waitTime": "待ち時間",
     "status": "状況",
-    "noWaitTimes": "現在、待ち時間情報はありません",
-    "refreshingIn": "更新まであと",
+    "noWaitTimes": "現在、待ち時間の情報はありません",
+    "tableLabel": "待ち時間 — {park}",
+    "toggleQueues": "{ride} の他の列を表示",
+    "refreshingIn": "更新まで",
     "second": "秒",
     "seconds": "秒",
     "nowRefreshing": "更新中...",
     "lastUpdate": "最終更新"
   },
   "footer": {
-    "copyright": "© {year} Queue Park. すべての権利は保護されています。",
-    "contactText": "お問い合わせ先："
+    "copyright": "© {year} Queue Park. All rights reserved.",
+    "contactText": "お問い合わせはこちら"
   },
   "noData": {
-    "title": "おっと、ごめんなさい！",
-    "message": "現在、このパークに関する情報がありません。後でまたお越しください！"
+    "title": "申し訳ありません",
+    "message": "このパークについて表示できる情報が現在ありません。後ほどご確認ください。"
   },
   "errors": {
-    "configError": "設定エラーが発生しました。サポートにお問い合わせください。",
-    "fetchError": "データの取得に失敗しました：",
-    "parkNotFound": "お探しのパークは見つかりませんでした",
+    "configError": "設定エラーです。サポートまでご連絡ください。",
+    "fetchError": "パークの取得に失敗しました：",
+    "parkNotFound": "お探しのパークは存在しません",
     "networkErrorRefresh": "データの更新中にネットワークエラーが発生しました",
-    "networkError": "ネットワークエラーが発生しました。接続を確認して再度お試しください。"
+    "networkError": "ネットワークエラーが発生しました。接続を確認してもう一度お試しください。"
+  },
+  "og": {
+    "subtitle": "ライブ待ち時間",
+    "averageWait": "平均待ち時間",
+    "openAttractions": "運営中のアトラクション",
+    "busiest": "今いちばん混雑",
+    "noLiveData": "現在ライブの待ち時間はありません",
+    "currentWait": "現在の待ち時間",
+    "rideClosed": "アトラクションは現在停止中"
+  },
+  "errorPages": {
+    "notFoundTitle": "ページが見つかりません",
+    "notFoundMessage": "このページは存在しないか、移動されました。お探しのパークのアドレスが変わった可能性があります。",
+    "errorTitle": "問題が発生しました",
+    "errorMessage": "このページを表示できませんでした。しばらくしてからもう一度お試しください。解決しない場合は contact@queue-park.com までご連絡ください。",
+    "retry": "再試行",
+    "backHome": "ホームに戻る"
+  },
+  "about": {
+    "metaTitle": "Queue Park について",
+    "metaDescription": "Queue Park のご紹介：待ち時間の取得元、お気に入りの仕組み、待ち時間予測、天気、そしてすべての機能について。",
+    "backHome": "ホームに戻る",
+    "heroTitle": "Queue Park について",
+    "heroSubtitle": "お気に入りパークの待ち時間を、ライブで、誰でも無料に。",
+    "tabs": {
+      "about": "概要",
+      "guide": "使い方ガイド"
+    },
+    "sectionAboutTitle": "私たちのプロジェクト",
+    "sectionGuideTitle": "使い方",
+    "demoLabel": "例",
+    "cards": {
+      "intro": {
+        "title": "Queue Park とは？",
+        "body": "Queue Park は、世界100か所以上のテーマパークのライブ待ち時間を一か所にまとめています。目指しているのは、いま乗るべきアトラクションがひと目でわかり、園内マップとにらめっこせずに一日をうまく組み立てられること。"
+      },
+      "data": {
+        "title": "データはどこから？",
+        "body": "待ち時間は各パークの公式システムから直接取得しています。それを収集・整形し、Walibi でも Disney でも Europa-Park でも Six Flags でも同じ色・同じ粒度で読めるように揃えています。"
+      },
+      "worker": {
+        "title": "舞台裏",
+        "body": "自動化されたサービスが休みなく稼働し、ほぼリアルタイムで各パークに問い合わせています。値を1つずつ検証し、各待ち列を正しいアトラクションに結び付け、その日の履歴を記録し、営業時間やショー情報も取得します。データ源に異常があれば、チームに自動で通知されます。"
+      },
+      "free": {
+        "title": "無料・広告なし",
+        "body": "Queue Park は完全無料、広告もありません。待ち時間を見るだけならアカウントは不要です。お気に入りの登録や通知の受け取りには、パスワード不要の無料アカウント（Google またはマジックリンク）だけで十分。設定は端末をまたいで同期されます。"
+      },
+      "independent": {
+        "title": "独立したプロジェクト",
+        "body": "Queue Park v2 は、テーマパーク好きの2人、Lilian と Gaspard が開発しています。公式アプリではなく、どのパークとも提携していません。ご意見・ご要望・追加してほしいパークがあれば contact@queue-park.com までどうぞ。"
+      },
+      "report": {
+        "title": "情報がおかしいときは",
+        "body": "データは各パーク側に依存するため、欠けていたり遅れたりすることがあります。各パークのページにある「問題を見つけたら教えてください」ボタンから異常を報告できます。信頼性向上に最も早くつながる方法です。"
+      },
+      "live": {
+        "title": "ライブ待ち時間",
+        "body": "各アトラクションが現在の待ち時間を表示し、およそ1分ごとに自動更新されます。ページを再読み込みする必要はなく、Queue Park が60秒ごとに更新します。色で状況がすぐわかります：緑は短い、オレンジは普通、赤は長い。"
+      },
+      "queues": {
+        "title": "待ち列の種類",
+        "body": "1つのアトラクションに複数の待ち列があることがあります：通常列（Standby）に加え、Fastlane（優先入場）、Single Rider（1人乗り）、Virtual Queue など。複数ある場合はアトラクションをタップすると、すべての待ち時間が展開されます。"
+      },
+      "favorites": {
+        "title": "お気に入り",
+        "body": "星をタップすると、パーク・アトラクション・ショーをお気に入りに追加できます。お気に入りのパークはホーム画面の先頭に固定表示。お気に入りのアトラクションとショーは、プロフィールから開くウィンドウにパークごとにまとめて表示されます。アカウントに保存され、すべての端末で同期されます。",
+        "parksLabel": "お気に入りのパーク",
+        "ridesLabel": "お気に入りのアトラクション（プロフィール）",
+        "hint": "星をタップすると、そのパークがホーム画面の先頭に移動します。"
+      },
+      "forecast": {
+        "title": "待ち時間予測",
+        "body": "アトラクションのページでは、実線が開園以降に実測した待ち時間を、破線が閉園までの残りの時間帯の推定を示します。曜日・学校休暇・天気・営業時間といった条件が似た過去の日を参考にしています。グラフの下には実際の誤差を明示しています。予測と実際の結果を毎日突き合わせているためです。"
+      },
+      "search": {
+        "title": "検索とランダム",
+        "body": "パーク名、グループ（Disney、Walibi など）、国名を入力すればどのパークも見つかります。冒険したい気分なら、サイコロボタンでランダムに選ばれたパークへ。国やグループでの絞り込み、閉園中のパークを隠す設定もできます。"
+      },
+      "shows": {
+        "title": "ショー",
+        "body": "対応するパークでは「ショー」タブにその日の公演スケジュールがタイムライン形式で表示されます。時刻は1時間ごとに更新されます。"
+      },
+      "status": {
+        "title": "状況をひと目で",
+        "body": "各パークが営業中か休園かを示し、各アトラクションも運営中・停止中・故障・メンテナンスといった状態を表示します。色付きのドットで、文字を読まなくても状況をつかめます。"
+      },
+      "preferences": {
+        "title": "あなた好みに",
+        "body": "Queue Park はあなたに合わせて調整できます：ライト・ダーク・自動（システム連動）のテーマ、12時間制／24時間制、℃／℉ の温度単位、そして14言語のインターフェース。設定は次回以降も引き継がれます。"
+      },
+      "alerts": {
+        "title": "待ち時間の通知",
+        "body": "アトラクションのページでしきい値を選ぶと、待ち時間がそれを下回った時点で通知が届きます。送信された通知は役目を終え、消えて履歴に移ります。新しく設定したいときは、またアトラクションのページから作成してください。アカウントと通知の許可が必要です。"
+      },
+      "reminders": {
+        "title": "ショーのリマインダー",
+        "body": "ショーのページでこれからの公演をタップし、何分前に知らせるかを選びます。開始直前に通知が届きます。アカウントと通知の許可が必要です。"
+      },
+      "detail": {
+        "title": "詳細ビュー",
+        "body": "各行の末尾にある目のアイコンから詳細ビューが開きます：画像、お気に入り、通知、そしてその日の待ち時間と予測のグラフ。"
+      },
+      "account": {
+        "title": "アカウント",
+        "body": "アカウントは任意です。待ち時間・営業時間・ショーはログインなしで見られます。役に立つのは、何かを保存しておきたくなったとき。ログインにパスワードは不要で、Google かメールで届くリンクを使います。お気に入り・通知・リマインダー・各種設定が端末をまたいで引き継がれます。"
+      },
+      "weather": {
+        "title": "パークの天気",
+        "body": "各パークのヘッダーに現在の気温と天気を表すアイコンが表示され、1時間ごとに更新されます。混雑の予想にも、帽子とレインコートのどちらを持っていくかの判断にも便利です。"
+      }
+    }
   },
   "metadata": {
-    "title": "Queue Park - テーマパークのリアルタイム待ち時間",
+    "title": "Queue Park - テーマパークのライブ待ち時間",
     "titleTemplate": "%s | Queue Park",
-    "description": "世界中の100以上のテーマパークのリアルタイム待ち時間。パークAPIから直接取得したライブデータで、アトラクションの待ち列を追跡し、訪問を計画し、楽しさを最大化しましょう。",
-    "keywords": "テーマパーク待ち時間, 遊園地待ち列, ジェットコースター待ち時間, テーマパークアプリ, リアルタイム待ち時間, アトラクション待ち列, ディズニー待ち時間, ユニバーサル待ち時間, シックスフラッグス待ち時間, テーマパーク計画",
-    "ogTitle": "Queue Park - テーマパークのリアルタイム待ち時間",
-    "ogDescription": "世界中の100以上のテーマパークのリアルタイム待ち時間。ライブデータで待ち列を追跡し、訪問を計画しましょう。",
-    "twitterTitle": "Queue Park - テーマパークのリアルタイム待ち時間",
-    "twitterDescription": "世界中の100以上のテーマパークのリアルタイム待ち時間。ライブデータで待ち列を追跡し、訪問を計画しましょう。",
-    "liveWaitTimes": "リアルタイム待ち時間"
+    "description": "世界100か所以上のテーマパークの待ち時間をリアルタイムで。アトラクションの待ち列を追いかけ、来園計画を立て、パーク公式APIのライブデータで一日を最大限に楽しみましょう。",
+    "keywords": "テーマパーク 待ち時間, 遊園地 待ち時間, ジェットコースター 待ち時間, テーマパーク アプリ, ライブ待ち時間, アトラクション 待ち列, ディズニー 待ち時間, ユニバーサル 待ち時間, Six Flags 待ち時間, テーマパーク 計画",
+    "ogTitle": "Queue Park - テーマパークのライブ待ち時間",
+    "ogDescription": "世界100か所以上のテーマパークの待ち時間をリアルタイムで。待ち列を追いかけ、ライブデータで来園計画を立てましょう。",
+    "twitterTitle": "Queue Park - テーマパークのライブ待ち時間",
+    "twitterDescription": "世界100か所以上のテーマパークの待ち時間をリアルタイムで。待ち列を追いかけ、来園計画を立てましょう。",
+    "liveWaitTimes": "ライブ待ち時間",
+    "rideDescription": "{park} の {ride} のライブ待ち時間：現在の待ち列、当日の推移、予測。待ち時間が下がったら通知を受け取るにはアラートを作成してください。"
   },
   "settings": {
-    "timeFormat": "時刻形式"
+    "timeFormat": "時刻表示",
+    "temperatureUnit": "温度の単位"
   },
   "welcome": {
     "welcomeTo": "ようこそ",
-    "title": "v2へようこそ！🕝",
-    "description": "より良い体験を提供するため、アプリを完全にリニューアルしました。新しいインターフェース、新機能、その他多くの改善をお楽しみください！",
+    "title": "v2 へようこそ！🕝",
+    "description": "より快適にお使いいただけるよう、アプリを全面的に刷新しました。新しいインターフェース、新機能、そしてさらに多くの改善をお試しください。",
     "button": "了解！",
     "features": {
-      "showsTimeline": "ショータイムライン",
+      "showsTimeline": "ショーのタイムライン",
       "newParks": "新しいパーク",
       "darkMode": "ダークモード",
-      "brandNewUI": "新しいUI",
-      "fastlaneWaitTimes": "ファストレーン待ち時間",
+      "brandNewUI": "刷新されたUI",
+      "fastlaneWaitTimes": "Fastlane の待ち時間",
       "autoRefresh": "自動更新",
-      "rotatingParkCovers": "ローテーションカバー",
-      "parkStatusIndicator": "パーク状況表示",
-      "singleRiderWaitTimes": "シングルライダー待ち時間",
+      "rotatingParkCovers": "切り替わるパーク画像",
+      "parkStatusIndicator": "パークの営業状況表示",
+      "singleRiderWaitTimes": "Single Rider の待ち時間",
       "multiLanguage": "多言語対応",
-      "improvedPerformance": "パフォーマンス改善",
-      "countryParkFiltering": "国別フィルター",
-      "groupParkFiltering": "グループ別フィルター"
+      "improvedPerformance": "パフォーマンス向上",
+      "countryParkFiltering": "国での絞り込み",
+      "groupParkFiltering": "グループでの絞り込み"
     }
   },
   "reportProblem": {
-    "trigger": "問題がありますか？報告してください",
-    "title": "問題を報告",
-    "description": "お気づきの問題を報告して、データ品質の向上にご協力ください。",
-    "categoryLabel": "問題の内容は何ですか？",
-    "categoryPlaceholder": "オプションを選択",
+    "trigger": "問題を見つけたら教えてください",
+    "title": "問題を報告する",
+    "description": "気づいた問題を報告して、データの品質向上にご協力ください。",
+    "categoryLabel": "どの情報に関する問題ですか？",
+    "categoryPlaceholder": "選択してください",
     "subcategoryLabel": "どのような問題ですか？",
-    "subcategoryPlaceholder": "オプションを選択",
-    "detailsLabel": "問題の詳細",
-    "detailsPlaceholder": "問題をできるだけ詳しく説明してください。分析と解決に役立ちます。",
+    "subcategoryPlaceholder": "選択してください",
+    "detailsLabel": "問題の内容",
+    "detailsPlaceholder": "効果的に調査・解決できるよう、できるだけ詳しく状況をご記入ください。",
     "emailLabel": "メールアドレス",
+    "emailDescription": "対応状況をお知らせするためにメールアドレスを利用します。",
+    "emailAccountNotice": "対応状況をお知らせできるよう、アカウントのメールアドレスがこの報告と一緒に送信されます。",
     "cancel": "キャンセル",
     "submit": "報告を送信",
-    "success": "ご報告ありがとうございます！確認いたします。",
+    "success": "ご報告ありがとうございます。確認いたします。",
     "error": "報告の送信中にエラーが発生しました。もう一度お試しください。",
-    "emailDescription": "お客様のメールアドレスを使用して、報告の解決状況をお知らせします。",
+    "rateLimited": "短時間に複数の報告が送信されています。少し時間をおいてからお試しください。",
     "validation": {
       "categoryRequired": "カテゴリを選択してください",
       "subcategoryRequired": "サブカテゴリを選択してください",
       "detailsRequired": "10文字以上入力してください",
       "emailRequired": "有効なメールアドレスを入力してください"
+    }
+  },
+  "userBlock": {
+    "loggedOutTitle": "ログインしていません",
+    "loggedOutSubtitle": "ログインするとお気に入りと通知が同期されます",
+    "signIn": "ログイン",
+    "signUp": "アカウント作成",
+    "account": "マイアカウント",
+    "welcomeBack": "おかえりなさい",
+    "profile": "プロフィール",
+    "signOut": "ログアウト"
+  },
+  "auth": {
+    "title": "ログイン",
+    "subtitle": "ログイン、またはアカウント作成 — パスワードは不要です。",
+    "continueWithGoogle": "Google で続ける",
+    "or": "または",
+    "emailPlaceholder": "you@example.com",
+    "emailInvalid": "有効なメールアドレスを入力してください",
+    "sendMagicLink": "ログインリンクを送る",
+    "sendError": "送信に失敗しました。もう一度お試しください。",
+    "emailSentTitle": "メールをご確認ください",
+    "emailSentDescription": "{email} にログインリンクを送信しました。",
+    "useAnotherEmail": "別のアドレスを使う",
+    "noPassword": "パスワードは不要です。"
+  },
+  "profile": {
+    "title": "プロフィール",
+    "back": "戻る",
+    "heroTitle": "プロフィール",
+    "heroSubtitle": "各種設定、待ち時間の通知とその履歴。",
+    "backHome": "ホームに戻る",
+    "tabs": {
+      "preferences": "設定",
+      "alerts": "通知"
+    },
+    "alertsDailyNote": "通知とリマインダーは当日のみ有効です。通知が送信された時点、遅くとも深夜0時には消えます。設定はすべてアトラクションまたはショーのページから行います。",
+    "favoritesCount": "お気に入り",
+    "favoritesParksCount": "{count, plural, other {お気に入りのパーク}}",
+    "favoritesRidesCount": "{count, plural, other {お気に入りのアトラクション}}",
+    "favoritesShowsCount": "{count, plural, other {お気に入りのショー}}",
+    "favoritesParksTitle": "お気に入りのパーク",
+    "favoritesRidesTitle": "お気に入りのアトラクション",
+    "favoritesShowsTitle": "お気に入りのショー",
+    "favoritesListEmpty": "お気に入りはまだありません。",
+    "favoritesRemove": "{name} をお気に入りから削除",
+    "activeAlertsCount": "{count, plural, other {有効な通知}}",
+    "preferencesTitle": "設定",
+    "language": "言語",
+    "theme": "テーマ",
+    "themeSystem": "システム",
+    "themeLight": "ライト",
+    "themeDark": "ダーク",
+    "timeFormat": "時刻表示",
+    "timeFormat24": "24時間制",
+    "timeFormat12": "12時間制",
+    "temperatureUnit": "温度の単位",
+    "temperatureCelsius": "摂氏",
+    "temperatureFahrenheit": "華氏",
+    "alertsTitle": "有効な通知",
+    "alertsEmpty": "通知はまだありません。アトラクションのページから作成できます。",
+    "threshold": "{minutes} 分未満",
+    "activate": "有効にする",
+    "deactivate": "無効にする",
+    "validate": "しきい値を保存",
+    "thresholdSaved": "しきい値を更新しました",
+    "delete": "削除",
+    "deleted": "通知を削除しました",
+    "historyTitle": "通知の履歴",
+    "historyEmpty": "まだ通知は送信されていません。",
+    "historyRetentionNote": "30日より前の通知は表示されません。",
+    "historyLine": "{actual} 分まで下がりました（≤ {threshold} 分）",
+    "loadError": "通知を読み込めませんでした。",
+    "updateError": "更新に失敗しました。",
+    "deleteError": "削除に失敗しました。",
+    "privacyTitle": "プライバシー",
+    "alertsHeading": "{count, plural, other {あなたの通知}}",
+    "historyHeading": "{count, plural, other {送信された通知}}",
+    "historyAttractions": "アトラクション",
+    "historyShows": "ショー",
+    "historyShowLine": "{time} の公演 · {lead} 分前",
+    "alertsEmptyRides": "通知は設定されていません。アトラクションのページから作成できます。",
+    "alertsEmptyShows": "リマインダーは設定されていません。ショーのページから作成できます。",
+    "historyEmptyRides": "アトラクションの通知はまだ送信されていません。",
+    "historyEmptyShows": "ショーの通知はまだ送信されていません。",
+    "edit": "しきい値を編集",
+    "subTabActive": "有効",
+    "subTabHistory": "履歴",
+    "filterAll": "すべて",
+    "activeEmptyAll": "本日、有効な通知やリマインダーはありません。",
+    "leadBadge": "{lead} 分前",
+    "leadSaved": "通知タイミングを更新しました",
+    "validateLead": "通知タイミングを保存",
+    "editLead": "通知タイミングを編集",
+    "leadTooLate": "公演の開始が近すぎるため、通知タイミングを変更できません。"
+  },
+  "privacy": {
+    "emailLabel": "メールアドレス",
+    "emailSave": "変更",
+    "emailNote": "変更するとログアウトされ、新しいアドレスで再度ログインする必要があります。",
+    "emailChangedSignOut": "メールアドレスを変更しました。ログアウトします…",
+    "emailTaken": "このメールアドレスはすでに使われています。",
+    "emailInvalid": "メールアドレスが正しくありません。",
+    "exportLabel": "マイデータ",
+    "exportButton": "ダウンロード",
+    "resetAlertsLabel": "通知をリセット",
+    "resetAlertsNote": "未送信の通知とリマインダー、および受信済み通知の履歴をすべて削除します。アカウントとお気に入りはそのまま残ります。",
+    "resetAlertsButton": "リセット",
+    "resetAlertsConfirmTitle": "すべてリセットしますか？",
+    "resetAlertsConfirmDescription": "待ち時間の通知、ショーのリマインダー、受信済み通知の履歴が削除されます。この操作は取り消せません。",
+    "resetAlertsConfirmButton": "リセット",
+    "resetAlertsDone": "通知・リマインダー・履歴を削除しました",
+    "deleteLabel": "アカウントを削除",
+    "deleteNote": "この操作は取り消せません。設定・お気に入り・通知・リマインダーがすべて削除されます。",
+    "deleteButton": "削除",
+    "deleteConfirmTitle": "アカウントを完全に削除しますか？",
+    "deleteConfirmDescription": "確認のためメールアドレス（{email}）を入力してください。この操作は取り消せません。",
+    "deleteConfirmButton": "完全に削除",
+    "cancel": "キャンセル",
+    "accountDeleted": "アカウントを削除しました。ログアウトします…",
+    "genericError": "問題が発生しました。もう一度お試しください。",
+    "exportNote": "アカウントのコピーをダウンロードできます：メールアドレス、設定、お気に入り、通知、ショーのリマインダー。"
+  },
+  "alerts": {
+    "createTitle": "通知を作成",
+    "createDescription": "{ride} の待ち時間がしきい値を下回ったら通知します。",
+    "createFor": "{ride} の通知を作成",
+    "thresholdLabel": "待ち時間が何分を下回ったら通知しますか？",
+    "thresholdOption": "{minutes} 分",
+    "thresholdHint": "待ち時間がこのしきい値を下回った時点でお知らせします。",
+    "cancel": "キャンセル",
+    "create": "作成",
+    "created": "{ride} の通知を作成しました",
+    "createError": "通知を作成できませんでした。"
+  },
+  "attractionDetail": {
+    "openFor": "{ride} の詳細を見る",
+    "thrillsLink": "Thrills でこのアトラクションを見る",
+    "alertsTitle": "通知",
+    "chartTitle": "本日の待ち時間",
+    "chartToday": "今日",
+    "chartActual": "待ち時間",
+    "chartForecast": "予測",
+    "chartNow": "現在",
+    "chartEmpty": "本日のデータはまだありません。",
+    "chartUnavailable": "アトラクションは現在利用できません。",
+    "chartUnavailablePermanent": "このアトラクションは待ち時間を公開していません（ライブも予測もありません）。",
+    "alertsUnavailable": "このアトラクションは待ち時間を公開していないため、監視する対象がなく通知も作成できません。",
+    "chartForecastNote": "本日の残り時間のおおよその見込みです。",
+    "chartForecastPreOpeningNote": "過去の日をもとにした推定です。開園後に更新されます。",
+    "estimateTooltip": "条件の近い過去の日から推定しています。実際とは異なる場合があります。",
+    "marginNote": "ここ数日、予測の誤差は平均 <v>{minutes} 分</v> でした。",
+    "marginNoteTooltip": "直近14日間における、予測と実測の待ち時間の平均的な差です。",
+    "installTitle": "Queue Park をインストール",
+    "installIntro": "通知を使うには、端末にアプリをインストールする必要があります。",
+    "installButton": "アプリをインストール",
+    "installAndroidSteps": "ブラウザの ⋮ メニューを開き、「ホーム画面に追加」を選びます。",
+    "installIosSteps": "共有ボタンをタップし、「ホーム画面に追加」を選びます。",
+    "installDesktopSteps": "ブラウザのアドレスバーにあるインストールアイコンを使います。",
+    "installAccountNote": "通知の作成にはアカウントも必要です。",
+    "signInTitle": "ログイン",
+    "signInIntro": "ログインすると、待ち時間が下がったときに通知を受け取れます。",
+    "notifActive": "通知が有効",
+    "save": "保存",
+    "update": "更新",
+    "delete": "削除",
+    "saved": "通知を保存しました",
+    "deleted": "通知を削除しました",
+    "pushBlocked": "通知を保存しましたが、この端末には届きません（通知が許可されていません）。",
+    "pushDenied": "このサイトの通知はブロックされています。この端末で受け取るには、ブラウザの設定で許可してください。",
+    "pushUnsupported": "このブラウザはプッシュ通知に対応していません。通知はプロフィールと履歴には表示されます。"
+  },
+  "legal": {
+    "backHome": "ホームに戻る",
+    "updated": "最終更新：2026年7月21日",
+    "privacy": {
+      "metaTitle": "プライバシーポリシー",
+      "title": "プライバシーポリシー",
+      "intro": "本ポリシーは、Queue Park が個人データをどのように取り扱うかを説明するものです。管理者：本サイトの運営者（<mentions>運営者情報</mentions>をご覧ください）、連絡先：<mail>contact@queue-park.com</mail>。",
+      "dataTitle": "取り扱うデータ、目的および法的根拠",
+      "data1": "<b>アカウント</b>（メールアドレス、および該当する場合は Google 経由の氏名とプロフィール画像）：アカウントの作成と管理 — <i>サービスの提供／お客様の同意</i>。",
+      "data2": "<b>設定</b>（言語、テーマ、時刻表示）と<b>お気に入り</b>（パーク、アトラクション、ショー）：体験のパーソナライズ — <i>サービスの提供</i>。",
+      "data3": "<b>待ち時間の通知</b>と<b>ショーのリマインダー</b>、および各端末の<b>通知購読情報</b>：ご希望の通知の送信 — <i>お客様の同意</i>。",
+      "data4": "<b>アクセス解析</b>（Google Analytics）：トラフィック統計 — <i>お客様の同意</i>（<cookies>クッキーポリシー</cookies>をご覧ください）。",
+      "recipientsTitle": "提供先および委託先",
+      "recipients1": "データを販売することはありません。当社の指示のもとで業務を行うサービス提供者が取り扱います：Google（認証およびアクセス解析）、Resend（ログインメールの送信）、IONOS（ホスティング、欧州連合）。",
+      "recipients2": "一部の提供者（Google、Resend）は米国に所在しています。移転が生じる場合は、GDPR が定める仕組み（Data Privacy Framework および／または標準契約条項）に従います。",
+      "retentionTitle": "保存期間",
+      "retention1": "アカウント情報：アカウント削除まで。",
+      "retention2": "通知：当日のみ有効。履歴は30日間保存。",
+      "retention3": "ショーのリマインダー：公演終了後に削除。",
+      "retention4": "ログインセッション：セッションの有効期間中。",
+      "rightsTitle": "お客様の権利",
+      "rights1": "アクセス、訂正、削除、データポータビリティ、異議、制限を求める権利があります。<profile>プロフィール</profile>（設定 → プライバシータブ）から、メールアドレスの変更、データ（JSON）のダウンロード、アカウントの削除を直接行えます。その他のご要望は <mail>contact@queue-park.com</mail> までご連絡ください。",
+      "rights2": "各国のデータ保護機関に苦情を申し立てることもできます（フランスでは CNIL — cnil.fr）。",
+      "securityTitle": "セキュリティと未成年者について",
+      "security1": "通信は暗号化されており（HTTPS）、認証はパスワードを使いません。収集するデータは必要最小限にとどめています。本サービスは、親権者の同意のない15歳未満の方を対象としていません。"
+    },
+    "cookies": {
+      "metaTitle": "クッキーポリシー",
+      "title": "クッキーポリシー",
+      "intro": "クッキーとは、サイトを訪問した際に端末に保存される小さなファイルです。Queue Park が使用するのは以下のごく限られたものだけです。",
+      "necessaryTitle": "必須クッキー",
+      "necessaryIntro": "サイトの動作に不可欠なもので、同意は不要です：",
+      "necessary1": "<b>認証セッション</b>：アカウントへのログイン状態を保持します。",
+      "necessary2": "<b>言語設定</b>：表示言語を記憶します。",
+      "audienceTitle": "アクセス解析クッキー",
+      "audience1": "サイトのトラフィックを把握し改善するために Google Analytics を利用しています。これらのクッキー（例：<c>_ga</c>、<c>_ga_*</c>）は<b>お客様の同意後にのみ</b>設定され、最長13か月間保存されます。",
+      "manageTitle": "選択の管理",
+      "manage1": "初回訪問時に表示されるバナーでこれらのクッキーに同意または拒否でき、ページ下部の<b>「クッキーの管理」</b>リンクからいつでも変更できます。ブラウザ側でクッキーをブロックする設定も可能です。"
+    },
+    "legalNotice": {
+      "metaTitle": "運営者情報",
+      "title": "運営者情報",
+      "editorTitle": "運営者",
+      "editor1": "Queue Park（queue-park.com）は Lilian G. と Gaspard D. が運営しています。",
+      "editor2": "発行責任者：Lilian G. 連絡先：<mail>contact@queue-park.com</mail>。",
+      "hostingTitle": "ホスティング",
+      "hosting1": "本サイトは IONOS SARL（7, place de la Gare, BP 70109, 57201 SARREGUEMINES Cedex, フランス、ionos.fr）がホスティングしています。",
+      "ipTitle": "知的財産",
+      "ip1": "本サイトの構成、文章、グラフィック要素は、別段の記載がない限り運営者に帰属します。無断複製を禁じます。パーク名、アトラクション名、ショー名は各権利者に帰属します。",
+      "liabilityTitle": "免責事項",
+      "liability1": "待ち時間および公演スケジュールは第三者の情報源に基づく参考情報であり、正確性や利用可能性を保証するものではありません。これらの利用によって生じた損害について、運営者は責任を負いかねます。"
     }
   }
 }

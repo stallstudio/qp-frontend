@@ -1,67 +1,134 @@
 {
   "home": {
     "title": "Queue Park",
-    "subtitle": "Cập nhật thời gian chờ tại các công viên giải trí yêu thích của bạn theo thời gian thực!"
+    "subtitle": "Thời gian chờ tại các công viên giải trí yêu thích của bạn, theo thời gian thực!"
   },
   "search": {
-    "placeholder": "Tìm kiếm công viên theo tên, tập đoàn hoặc quốc gia...",
-    "noResults": "Không tìm thấy công viên nào khớp với tìm kiếm của bạn. Thử lại nhé!",
-    "randomParkToast": "Xúc xắc đã dừng ở:"
+    "placeholder": "Tìm công viên theo tên, tập đoàn hoặc quốc gia...",
+    "noResults": "Không tìm thấy công viên nào phù hợp. Hãy thử lại!",
+    "randomParkToast": "Xúc xắc đã chọn:"
   },
   "parksList": {
-    "title": "Tất cả công viên chủ đề",
+    "title": "Tất cả công viên giải trí",
     "sortByGroup": "Theo tập đoàn",
     "sortByCountry": "Theo quốc gia",
-    "hideClosedParks": "Ẩn công viên đã đóng cửa"
+    "hideClosedParks": "Ẩn công viên đang đóng cửa",
+    "seeMoreParks": "Xem thêm {count} công viên",
+    "seeLess": "Thu gọn"
   },
   "popularParks": {
     "title": "Công viên phổ biến",
-    "trendingText": "Xu hướng trong vài giờ qua",
-    "visitsNote": "lượt tham quan"
+    "trendingText": "Được quan tâm trong vài giờ qua",
+    "visitsNote": "lượt xem"
+  },
+  "weather": {
+    "clear": "Trời quang",
+    "mainlyClear": "Phần lớn quang mây",
+    "partlyCloudy": "Có mây rải rác",
+    "overcast": "Nhiều mây",
+    "fog": "Sương mù",
+    "drizzle": "Mưa phùn",
+    "rain": "Mưa",
+    "snow": "Tuyết",
+    "thunderstorm": "Dông",
+    "unknown": "Không có dữ liệu thời tiết",
+    "min": "Thấp nhất",
+    "max": "Cao nhất"
   },
   "parkPage": {
-    "backHome": "Quay lại trang chủ",
+    "backHome": "Về trang chủ",
     "todayHours": "Giờ mở cửa hôm nay",
-    "extraOpeningHours": "Giờ mở cửa bổ sung",
-    "extendedHours": "Giờ kéo dài",
-    "closedToday": "Đóng cửa hôm nay",
-    "hoursUnavailable": "Hiện không có thông tin về giờ mở cửa",
-    "privateEvent": "Công viên được đặt riêng",
-    "privateEventNoHours": "Công viên được đặt riêng hôm nay"
+    "extraOpeningHours": "Vào cửa sớm",
+    "extendedHours": "Giờ mở cửa kéo dài",
+    "closedToday": "Hôm nay đóng cửa",
+    "hoursUnavailable": "Hiện chưa có thông tin giờ mở cửa",
+    "privateEvent": "Công viên được thuê riêng",
+    "privateEventNoHours": "Hôm nay công viên được thuê riêng"
   },
   "parkStatus": {
     "open": "Đang mở cửa",
-    "closed": "Đã đóng cửa"
+    "closed": "Đóng cửa"
   },
   "attractionStatus": {
     "open": "Đang hoạt động",
-    "closed": "Đã đóng",
-    "down": "Hỏng",
+    "closed": "Ngừng hoạt động",
+    "down": "Hỏng hóc",
     "maintenance": "Bảo trì",
-    "unavailable": "Không có thông tin"
+    "unavailable": "Không có dữ liệu",
+    "unavailableShort": "Không có"
   },
   "tabs": {
     "waitTimes": "Thời gian chờ",
-    "shows": "Chương trình biểu diễn"
+    "shows": "Chương trình"
   },
   "shows": {
     "show": "Chương trình",
-    "schedules": "Lịch trình",
-    "updateInfo": "Chương trình được cập nhật mỗi giờ",
-    "noMoreToday": "Không còn chương trình nào hôm nay"
+    "schedules": "Lịch diễn",
+    "updateInfo": "Thông tin chương trình được cập nhật mỗi giờ",
+    "noMoreToday": "Hôm nay không còn suất diễn nào",
+    "legendPast": "Đã kết thúc",
+    "legendOngoing": "Đang diễn ra",
+    "legendUpcoming": "Sắp diễn ra"
+  },
+  "showDetail": {
+    "openFor": "Xem chi tiết {show}",
+    "notifTitle": "Nhắc nhở",
+    "thrillsLink": "Xem chương trình trên Thrills",
+    "duration": "Thời lượng: {duration}",
+    "continuousAccess": "Vào cửa liên tục · {range}",
+    "signInIntro": "Đăng nhập để được nhắc trước khi một chương trình bắt đầu.",
+    "reminderIntro": "Chọn một suất diễn, sau đó chọn muốn được nhắc trước bao lâu.",
+    "leadLabel": "Bạn muốn được nhắc trước giờ diễn bao lâu?",
+    "leadOption": "Trước {minutes} phút",
+    "reminderActive": "Nhắc trước {minutes} phút",
+    "reminderScheduled": "Đã đặt nhắc nhở",
+    "save": "Đặt nhắc nhở",
+    "update": "Cập nhật",
+    "remove": "Xóa",
+    "reminderSaved": "Đã lưu nhắc nhở",
+    "reminderRemoved": "Đã xóa nhắc nhở",
+    "reminderError": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "pushBlocked": "Đã lưu nhắc nhở, nhưng thiết bị này sẽ không nhận được gì (thông báo chưa được cho phép).",
+    "noUpcoming": "Hôm nay không còn suất diễn nào.",
+    "leadTooLate": "Suất diễn này sắp bắt đầu, không kịp đặt nhắc nhở.",
+    "reminderActivate": "Bật nhắc nhở",
+    "reminderModify": "Sửa nhắc nhở"
   },
   "favorites": {
-    "myFavorites": "Mục yêu thích của tôi",
+    "myFavorites": "Yêu thích của tôi",
+    "yours": "Mục yêu thích của bạn",
     "add": "Thêm vào yêu thích",
-    "remove": "Xóa khỏi yêu thích",
+    "remove": "Bỏ khỏi yêu thích",
     "addPark": "Thêm công viên này vào yêu thích",
-    "removePark": "Xóa công viên này khỏi yêu thích"
+    "removePark": "Bỏ công viên này khỏi yêu thích",
+    "parkLimit": "Bạn có thể lưu tối đa {max} công viên yêu thích.",
+    "seeMore": "Xem thêm {count}",
+    "seeLess": "Thu gọn",
+    "needAccount": "Đăng nhập để thêm vào yêu thích."
+  },
+  "cookies": {
+    "message": "Chúng tôi dùng cookie phân tích để cải thiện trang web. Bạn có thể chấp nhận hoặc từ chối.",
+    "learnMore": "Tìm hiểu thêm",
+    "accept": "Chấp nhận",
+    "refuse": "Từ chối",
+    "manage": "Quản lý cookie",
+    "legalNotice": "Thông tin pháp lý",
+    "privacyPolicy": "Quyền riêng tư",
+    "cookiePolicy": "Cookie"
+  },
+  "manifest": {
+    "name": "Queue Park",
+    "description": "Thời gian chờ theo thời gian thực và lịch diễn tại các công viên giải trí yêu thích của bạn.",
+    "shortcutAllParks": "Tất cả công viên",
+    "shortcutParksShort": "Công viên"
   },
   "waitTimeTable": {
     "attraction": "Trò chơi",
     "waitTime": "Thời gian chờ",
     "status": "Trạng thái",
-    "noWaitTimes": "Hiện không có thông tin về thời gian chờ",
+    "noWaitTimes": "Hiện chưa có dữ liệu thời gian chờ",
+    "tableLabel": "Thời gian chờ — {park}",
+    "toggleQueues": "Hiển thị các hàng chờ khác của {ride}",
     "refreshingIn": "Làm mới sau",
     "second": "giây",
     "seconds": "giây",
@@ -74,71 +141,410 @@
   },
   "noData": {
     "title": "Rất tiếc!",
-    "message": "Hiện tại chúng tôi không có thông tin để hiển thị cho công viên này. Hãy quay lại sau nhé!"
+    "message": "Hiện chúng tôi chưa có thông tin nào để hiển thị cho công viên này. Hãy quay lại sau nhé!"
   },
   "errors": {
-    "configError": "Lỗi cấu hình. Vui lòng liên hệ hỗ trợ.",
-    "fetchError": "Không thể tải dữ liệu công viên:",
-    "parkNotFound": "Công viên bạn tìm kiếm không tồn tại",
+    "configError": "Lỗi cấu hình. Vui lòng liên hệ bộ phận hỗ trợ.",
+    "fetchError": "Không tải được danh sách công viên:",
+    "parkNotFound": "Công viên bạn tìm không tồn tại",
     "networkErrorRefresh": "Đã xảy ra lỗi mạng khi làm mới dữ liệu",
     "networkError": "Đã xảy ra lỗi mạng. Vui lòng kiểm tra kết nối và thử lại."
   },
+  "og": {
+    "subtitle": "Thời gian chờ trực tiếp",
+    "averageWait": "Thời gian chờ trung bình",
+    "openAttractions": "Trò chơi đang mở",
+    "busiest": "Đông nhất lúc này",
+    "noLiveData": "Hiện chưa có dữ liệu thời gian chờ trực tiếp",
+    "currentWait": "Thời gian chờ hiện tại",
+    "rideClosed": "Trò chơi hiện đang đóng"
+  },
+  "errorPages": {
+    "notFoundTitle": "Không tìm thấy trang",
+    "notFoundMessage": "Trang này không tồn tại hoặc đã được chuyển đi. Công viên bạn tìm có thể đã đổi địa chỉ.",
+    "errorTitle": "Đã xảy ra lỗi",
+    "errorMessage": "Chúng tôi không hiển thị được trang này. Hãy thử lại sau giây lát — nếu vẫn không được, hãy viết cho chúng tôi tại contact@queue-park.com.",
+    "retry": "Thử lại",
+    "backHome": "Về trang chủ"
+  },
+  "about": {
+    "metaTitle": "Giới thiệu",
+    "metaDescription": "Khám phá Queue Park: dữ liệu thời gian chờ đến từ đâu, cách hoạt động của mục yêu thích, dự báo thời gian chờ, thời tiết và toàn bộ tính năng.",
+    "backHome": "Về trang chủ",
+    "heroTitle": "Giới thiệu Queue Park",
+    "heroSubtitle": "Thời gian chờ tại các công viên yêu thích của bạn — trực tiếp và miễn phí cho mọi người.",
+    "tabs": {
+      "about": "Giới thiệu",
+      "guide": "Hướng dẫn"
+    },
+    "sectionAboutTitle": "Dự án của chúng tôi",
+    "sectionGuideTitle": "Cách hoạt động",
+    "demoLabel": "Ví dụ",
+    "cards": {
+      "intro": {
+        "title": "Queue Park là gì?",
+        "body": "Queue Park tập hợp về một nơi duy nhất thời gian chờ trực tiếp của hơn 100 công viên giải trí trên khắp thế giới. Mục tiêu của chúng tôi: giúp bạn nhìn một cái là biết nên chơi trò nào ngay lúc này và sắp xếp ngày vui tốt hơn, thay vì cứ dán mắt vào bản đồ công viên."
+      },
+      "data": {
+        "title": "Dữ liệu đến từ đâu?",
+        "body": "Thời gian chờ được lấy trực tiếp từ hệ thống chính thức của các công viên. Chúng tôi thu thập, làm sạch và chuẩn hóa để Walibi, Disney, Europa-Park hay Six Flags đều hiển thị giống nhau, cùng màu sắc và cùng mức độ chi tiết."
+      },
+      "worker": {
+        "title": "Phía sau hậu trường",
+        "body": "Một dịch vụ tự động chạy liên tục và truy vấn các công viên gần như theo thời gian thực. Nó kiểm tra từng giá trị, gắn mỗi hàng chờ với đúng trò chơi, ghi lại lịch sử trong ngày và cũng lấy cả giờ mở cửa lẫn lịch diễn. Nếu một nguồn dữ liệu hoạt động bất thường, đội ngũ sẽ được cảnh báo tự động."
+      },
+      "free": {
+        "title": "Miễn phí, không quảng cáo",
+        "body": "Queue Park hoàn toàn miễn phí và không có quảng cáo. Xem thời gian chờ không cần tài khoản. Để lưu mục yêu thích và nhận nhắc nhở, chỉ cần một tài khoản miễn phí không mật khẩu (Google hoặc liên kết đăng nhập) — và mọi thứ luôn được đồng bộ giữa các thiết bị của bạn."
+      },
+      "independent": {
+        "title": "Một dự án độc lập",
+        "body": "Queue Park v2 do hai người yêu công viên giải trí là Lilian và Gaspard xây dựng. Đây không phải ứng dụng chính thức, cũng không liên kết với bất kỳ công viên nào. Bạn có góp ý, ý tưởng hay muốn thêm một công viên? Hãy viết cho chúng tôi tại contact@queue-park.com."
+      },
+      "report": {
+        "title": "Thấy dữ liệu chưa đúng?",
+        "body": "Dữ liệu phụ thuộc vào các công viên nên đôi khi có thể thiếu hoặc bị chậm. Trên mỗi trang công viên, nút «Thấy vấn đề? Hãy báo cho chúng tôi» cho phép bạn báo một điểm bất thường: đó là cách nhanh nhất để giúp chúng tôi cải thiện độ tin cậy."
+      },
+      "live": {
+        "title": "Thời gian chờ trực tiếp",
+        "body": "Mỗi trò chơi hiển thị thời gian chờ hiện tại, tự động cập nhật khoảng mỗi phút một lần — bạn không cần tải lại trang, Queue Park làm việc đó mỗi 60 giây. Màu sắc nói lên tất cả: xanh là nhanh, cam là vừa, đỏ là lâu."
+      },
+      "queues": {
+        "title": "Các loại hàng chờ",
+        "body": "Cùng một trò chơi có thể có nhiều hàng chờ: hàng thường (Standby) cùng các lựa chọn như Fastlane (ưu tiên), Single Rider (ghế lẻ) hay Virtual Queue. Chạm vào trò chơi có nhiều hàng chờ để mở rộng toàn bộ thời gian."
+      },
+      "favorites": {
+        "title": "Yêu thích",
+        "body": "Chạm vào ngôi sao để thêm một công viên, trò chơi hoặc chương trình vào mục yêu thích. Công viên yêu thích được ghim lên đầu trang chủ; các trò chơi và chương trình yêu thích được nhóm theo công viên trong một cửa sổ mở từ hồ sơ của bạn. Tất cả được lưu vào tài khoản và đồng bộ trên mọi thiết bị.",
+        "parksLabel": "Công viên yêu thích",
+        "ridesLabel": "Trò chơi yêu thích (hồ sơ)",
+        "hint": "Chạm vào ngôi sao: công viên yêu thích sẽ nhảy lên đầu trang chủ."
+      },
+      "forecast": {
+        "title": "Dự báo thời gian chờ",
+        "body": "Trên trang của một trò chơi, đường liền nét thể hiện thời gian chờ đo được kể từ lúc mở cửa, còn đường nét đứt ước tính phần còn lại của ngày cho tới giờ đóng cửa. Dự báo dựa trên những ngày quá khứ tương đồng (thứ trong tuần, kỳ nghỉ học, thời tiết, giờ mở cửa). Bên dưới biểu đồ, chúng tôi nêu rõ sai số thực tế: mỗi ngày chúng tôi đều đối chiếu dự báo với những gì thật sự diễn ra."
+      },
+      "search": {
+        "title": "Tìm kiếm & công viên ngẫu nhiên",
+        "body": "Tìm bất kỳ công viên nào bằng cách nhập tên, tập đoàn (Disney, Walibi…) hoặc quốc gia. Muốn thử vận may? Nút xúc xắc sẽ đưa bạn đến một công viên được chọn ngẫu nhiên. Bạn cũng có thể lọc danh sách theo quốc gia hoặc tập đoàn và ẩn các công viên đang đóng cửa."
+      },
+      "shows": {
+        "title": "Chương trình",
+        "body": "Với các công viên có dữ liệu, tab «Chương trình» hiển thị các suất diễn trong ngày dưới dạng dòng thời gian. Các mốc giờ này được cập nhật mỗi giờ."
+      },
+      "status": {
+        "title": "Trạng thái trong nháy mắt",
+        "body": "Mỗi công viên cho biết đang mở hay đóng cửa, và mỗi trò chơi hiển thị trạng thái riêng: đang hoạt động, ngừng hoạt động, hỏng hóc hay bảo trì. Các chấm màu giúp bạn nắm tình hình mà không cần đọc một dòng nào."
+      },
+      "preferences": {
+        "title": "Theo cách của bạn",
+        "body": "Queue Park thích ứng với bạn: giao diện sáng, tối hoặc tự động (theo hệ thống), định dạng giờ 12 hoặc 24, đơn vị nhiệt độ °C hoặc °F, và giao diện có sẵn bằng 14 ngôn ngữ. Các lựa chọn của bạn sẽ được ghi nhớ cho những lần sau."
+      },
+      "alerts": {
+        "title": "Nhắc nhở thời gian chờ",
+        "body": "Từ trang của một trò chơi, hãy chọn một ngưỡng: bạn sẽ nhận được thông báo ngay khi thời gian chờ xuống dưới mức đó. Sau khi được gửi, nhắc nhở đã hoàn thành nhiệm vụ: nó biến mất và chuyển vào lịch sử. Bạn chỉ cần tạo một nhắc nhở mới từ trang của trò chơi. Cần có tài khoản và quyền nhận thông báo."
+      },
+      "reminders": {
+        "title": "Nhắc nhở chương trình",
+        "body": "Từ trang của một chương trình, hãy chạm vào một suất diễn sắp tới rồi chọn muốn được báo trước bao lâu. Bạn sẽ nhận được thông báo ngay trước giờ diễn. Cần có tài khoản và quyền nhận thông báo."
+      },
+      "detail": {
+        "title": "Xem chi tiết",
+        "body": "Biểu tượng con mắt ở cuối mỗi dòng sẽ mở phần chi tiết: hình ảnh, yêu thích, nhắc nhở, cùng biểu đồ thời gian chờ trong ngày kèm dự báo."
+      },
+      "account": {
+        "title": "Tài khoản của bạn",
+        "body": "Tài khoản là tùy chọn: thời gian chờ, giờ mở cửa và lịch diễn đều xem được mà không cần đăng nhập. Nó chỉ trở nên hữu ích khi bạn muốn lưu lại thứ gì đó. Đăng nhập không cần mật khẩu — dùng Google hoặc một liên kết gửi tới hộp thư của bạn. Khi đó mục yêu thích, nhắc nhở và tùy chọn sẽ theo bạn từ thiết bị này sang thiết bị khác."
+      },
+      "weather": {
+        "title": "Thời tiết tại công viên",
+        "body": "Phần đầu trang của mỗi công viên hiển thị nhiệt độ hiện tại và một biểu tượng tóm tắt thời tiết, cập nhật mỗi giờ. Rất tiện để đoán mức độ đông đúc — và để biết nên mang mũ hay áo mưa."
+      }
+    }
+  },
   "metadata": {
-    "title": "Queue Park - Thời Gian Chờ Công Viên Theo Thời Gian Thực",
+    "title": "Queue Park - Thời gian chờ trực tiếp tại các công viên giải trí",
     "titleTemplate": "%s | Queue Park",
-    "description": "Thời gian chờ theo thời gian thực cho hơn 100 công viên chủ đề trên toàn thế giới. Theo dõi hàng đợi trò chơi, lên kế hoạch chuyến thăm và tối đa hóa niềm vui với dữ liệu trực tiếp từ API của công viên.",
-    "keywords": "thời gian chờ công viên, hàng đợi công viên giải trí, thời gian chờ tàu lượn, ứng dụng công viên chủ đề, thời gian chờ trực tiếp, hàng đợi trò chơi, thời gian chờ Disney, thời gian chờ Universal, thời gian chờ Six Flags, kế hoạch công viên",
-    "ogTitle": "Queue Park - Thời Gian Chờ Công Viên Theo Thời Gian Thực",
-    "ogDescription": "Thời gian chờ theo thời gian thực cho hơn 100 công viên chủ đề trên toàn thế giới. Theo dõi hàng đợi và lên kế hoạch chuyến thăm với dữ liệu trực tiếp.",
-    "twitterTitle": "Queue Park - Thời Gian Chờ Công Viên Theo Thời Gian Thực",
-    "twitterDescription": "Thời gian chờ theo thời gian thực cho hơn 100 công viên chủ đề trên toàn thế giới. Theo dõi hàng đợi và lên kế hoạch chuyến thăm.",
-    "liveWaitTimes": "Thời gian chờ trực tiếp"
+    "description": "Thời gian chờ theo thời gian thực của hơn 100 công viên giải trí trên khắp thế giới. Theo dõi hàng chờ các trò chơi, lên kế hoạch cho chuyến đi và tận hưởng trọn vẹn ngày vui với dữ liệu trực tiếp từ API của các công viên.",
+    "keywords": "thời gian chờ công viên giải trí, hàng chờ công viên giải trí, thời gian chờ tàu lượn, ứng dụng công viên giải trí, thời gian chờ trực tiếp, hàng chờ trò chơi, thời gian chờ Disney, thời gian chờ Universal, thời gian chờ Six Flags, lên kế hoạch tham quan công viên",
+    "ogTitle": "Queue Park - Thời gian chờ trực tiếp tại các công viên giải trí",
+    "ogDescription": "Thời gian chờ theo thời gian thực của hơn 100 công viên giải trí trên khắp thế giới. Theo dõi hàng chờ và lên kế hoạch với dữ liệu trực tiếp.",
+    "twitterTitle": "Queue Park - Thời gian chờ trực tiếp tại các công viên giải trí",
+    "twitterDescription": "Thời gian chờ theo thời gian thực của hơn 100 công viên giải trí trên khắp thế giới. Theo dõi hàng chờ và lên kế hoạch cho chuyến đi.",
+    "liveWaitTimes": "Thời gian chờ trực tiếp",
+    "rideDescription": "Thời gian chờ trực tiếp của {ride} tại {park}: hàng chờ hiện tại, diễn biến trong ngày và dự báo. Tạo nhắc nhở để biết khi nào thời gian chờ giảm."
   },
   "settings": {
-    "timeFormat": "Định dạng giờ"
+    "timeFormat": "Định dạng giờ",
+    "temperatureUnit": "Đơn vị nhiệt độ"
   },
   "welcome": {
     "welcomeTo": "Chào mừng đến với",
-    "title": "Chào mừng đến v2! 🕝",
-    "description": "Chúng tôi đã hoàn toàn thiết kế lại ứng dụng để mang đến cho bạn trải nghiệm tốt hơn. Khám phá giao diện mới, tính năng mới và nhiều hơn nữa!",
-    "button": "Ok, tuyệt vời!",
+    "title": "Chào mừng đến với phiên bản 2! 🕝",
+    "description": "Chúng tôi đã thiết kế lại hoàn toàn ứng dụng để mang đến trải nghiệm tốt hơn. Hãy khám phá giao diện mới, tính năng mới và nhiều điều thú vị khác!",
+    "button": "Tuyệt, hiểu rồi!",
     "features": {
-      "showsTimeline": "Timeline chương trình",
+      "showsTimeline": "Dòng thời gian chương trình",
       "newParks": "Công viên mới",
       "darkMode": "Chế độ tối",
-      "brandNewUI": "Giao diện mới",
-      "fastlaneWaitTimes": "Thời gian Fastlane",
+      "brandNewUI": "Giao diện hoàn toàn mới",
+      "fastlaneWaitTimes": "Thời gian chờ Fastlane",
       "autoRefresh": "Tự động làm mới",
-      "rotatingParkCovers": "Ảnh bìa xoay",
-      "parkStatusIndicator": "Chỉ báo trạng thái",
-      "singleRiderWaitTimes": "Thời gian Single Rider",
+      "rotatingParkCovers": "Ảnh bìa công viên luân phiên",
+      "parkStatusIndicator": "Chỉ báo trạng thái công viên",
+      "singleRiderWaitTimes": "Thời gian chờ Single Rider",
       "multiLanguage": "Đa ngôn ngữ",
-      "improvedPerformance": "Hiệu suất cải thiện",
+      "improvedPerformance": "Hiệu năng tốt hơn",
       "countryParkFiltering": "Lọc theo quốc gia",
       "groupParkFiltering": "Lọc theo tập đoàn"
     }
   },
   "reportProblem": {
-    "trigger": "Có vấn đề? Báo cáo cho chúng tôi",
-    "title": "Báo Cáo Vấn Đề",
-    "description": "Giúp chúng tôi cải thiện chất lượng dữ liệu bằng cách báo cáo vấn đề bạn đã phát hiện.",
-    "categoryLabel": "Vấn đề liên quan đến gì?",
-    "categoryPlaceholder": "Chọn một tùy chọn",
-    "subcategoryLabel": "Vấn đề là gì?",
-    "subcategoryPlaceholder": "Chọn một tùy chọn",
-    "detailsLabel": "Mô tả chi tiết vấn đề",
-    "detailsPlaceholder": "Mô tả vấn đề càng chi tiết càng tốt để chúng tôi có thể phân tích và giải quyết hiệu quả nhất.",
+    "trigger": "Thấy vấn đề? Hãy báo cho chúng tôi",
+    "title": "Báo cáo vấn đề",
+    "description": "Hãy giúp chúng tôi nâng cao chất lượng dữ liệu bằng cách báo lại vấn đề bạn gặp phải.",
+    "categoryLabel": "Vấn đề liên quan đến điều gì?",
+    "categoryPlaceholder": "Chọn một mục",
+    "subcategoryLabel": "Vấn đề cụ thể là gì?",
+    "subcategoryPlaceholder": "Chọn một mục",
+    "detailsLabel": "Mô tả vấn đề",
+    "detailsPlaceholder": "Hãy mô tả càng chi tiết càng tốt để chúng tôi có thể phân tích và xử lý hiệu quả.",
     "emailLabel": "Địa chỉ email của bạn",
+    "emailDescription": "Chúng tôi sẽ dùng địa chỉ email của bạn để thông báo về tiến độ xử lý.",
+    "emailAccountNotice": "Địa chỉ email của tài khoản sẽ được gửi kèm báo cáo này để chúng tôi có thể thông báo cho bạn về tiến độ xử lý.",
     "cancel": "Hủy",
     "submit": "Gửi báo cáo",
     "success": "Cảm ơn bạn đã báo cáo! Chúng tôi sẽ xem xét.",
     "error": "Đã xảy ra lỗi khi gửi báo cáo. Vui lòng thử lại.",
-    "emailDescription": "Chúng tôi sẽ sử dụng địa chỉ email của bạn để thông báo về việc giải quyết báo cáo của bạn.",
+    "rateLimited": "Bạn vừa gửi nhiều báo cáo. Vui lòng đợi một lát trước khi gửi tiếp.",
     "validation": {
-      "categoryRequired": "Vui lòng chọn danh mục",
-      "subcategoryRequired": "Vui lòng chọn danh mục phụ",
-      "detailsRequired": "Vui lòng cung cấp ít nhất 10 ký tự",
+      "categoryRequired": "Vui lòng chọn một danh mục",
+      "subcategoryRequired": "Vui lòng chọn một danh mục con",
+      "detailsRequired": "Vui lòng nhập ít nhất 10 ký tự",
       "emailRequired": "Vui lòng nhập địa chỉ email hợp lệ"
+    }
+  },
+  "userBlock": {
+    "loggedOutTitle": "Bạn chưa đăng nhập",
+    "loggedOutSubtitle": "Đăng nhập để đồng bộ mục yêu thích và nhắc nhở",
+    "signIn": "Đăng nhập",
+    "signUp": "Tạo tài khoản",
+    "account": "Tài khoản của tôi",
+    "welcomeBack": "Chào mừng trở lại",
+    "profile": "Hồ sơ",
+    "signOut": "Đăng xuất"
+  },
+  "auth": {
+    "title": "Đăng nhập",
+    "subtitle": "Đăng nhập hoặc tạo tài khoản — không cần mật khẩu.",
+    "continueWithGoogle": "Tiếp tục với Google",
+    "or": "hoặc",
+    "emailPlaceholder": "ban@vidu.com",
+    "emailInvalid": "Vui lòng nhập địa chỉ email hợp lệ",
+    "sendMagicLink": "Gửi cho tôi liên kết đăng nhập",
+    "sendError": "Gửi không thành công. Vui lòng thử lại.",
+    "emailSentTitle": "Hãy kiểm tra hộp thư",
+    "emailSentDescription": "Chúng tôi đã gửi liên kết đăng nhập tới {email}.",
+    "useAnotherEmail": "Dùng địa chỉ khác",
+    "noPassword": "Không cần mật khẩu."
+  },
+  "profile": {
+    "title": "Hồ sơ",
+    "back": "Quay lại",
+    "heroTitle": "Hồ sơ của bạn",
+    "heroSubtitle": "Tùy chọn của bạn, các nhắc nhở thời gian chờ và lịch sử của chúng.",
+    "backHome": "Về trang chủ",
+    "tabs": {
+      "preferences": "Tùy chọn",
+      "alerts": "Nhắc nhở"
+    },
+    "alertsDailyNote": "Nhắc nhở chỉ có hiệu lực trong ngày: chúng biến mất ngay khi thông báo được gửi đi, và chậm nhất là vào nửa đêm. Mọi thiết lập đều thực hiện từ trang của trò chơi hoặc chương trình.",
+    "favoritesCount": "Yêu thích",
+    "favoritesParksCount": "{count, plural, other {Công viên yêu thích}}",
+    "favoritesRidesCount": "{count, plural, other {Trò chơi yêu thích}}",
+    "favoritesShowsCount": "{count, plural, other {Chương trình yêu thích}}",
+    "favoritesParksTitle": "Công viên yêu thích",
+    "favoritesRidesTitle": "Trò chơi yêu thích",
+    "favoritesShowsTitle": "Chương trình yêu thích",
+    "favoritesListEmpty": "Chưa có mục yêu thích nào.",
+    "favoritesRemove": "Bỏ {name} khỏi yêu thích",
+    "activeAlertsCount": "{count, plural, other {Nhắc nhở đang bật}}",
+    "preferencesTitle": "Tùy chọn",
+    "language": "Ngôn ngữ",
+    "theme": "Giao diện",
+    "themeSystem": "Theo hệ thống",
+    "themeLight": "Sáng",
+    "themeDark": "Tối",
+    "timeFormat": "Định dạng giờ",
+    "timeFormat24": "24 giờ",
+    "timeFormat12": "12 giờ",
+    "temperatureUnit": "Đơn vị nhiệt độ",
+    "temperatureCelsius": "Độ C",
+    "temperatureFahrenheit": "Độ F",
+    "alertsTitle": "Nhắc nhở đang bật",
+    "alertsEmpty": "Chưa có nhắc nhở nào. Hãy tạo từ trang của một trò chơi.",
+    "threshold": "Dưới {minutes} phút",
+    "activate": "Bật",
+    "deactivate": "Tắt",
+    "validate": "Lưu ngưỡng",
+    "thresholdSaved": "Đã cập nhật ngưỡng",
+    "delete": "Xóa",
+    "deleted": "Đã xóa nhắc nhở",
+    "historyTitle": "Lịch sử nhắc nhở",
+    "historyEmpty": "Chưa có thông báo nào được gửi.",
+    "historyRetentionNote": "Các nhắc nhở cũ hơn 30 ngày sẽ không hiển thị.",
+    "historyLine": "Đã giảm còn {actual} phút (≤ {threshold} phút)",
+    "loadError": "Không tải được nhắc nhở.",
+    "updateError": "Cập nhật không thành công.",
+    "deleteError": "Xóa không thành công.",
+    "privacyTitle": "Quyền riêng tư",
+    "alertsHeading": "{count, plural, other {Nhắc nhở của bạn}}",
+    "historyHeading": "{count, plural, other {Thông báo đã gửi}}",
+    "historyAttractions": "Trò chơi",
+    "historyShows": "Chương trình",
+    "historyShowLine": "suất {time} · trước {lead} phút",
+    "alertsEmptyRides": "Chưa thiết lập nhắc nhở nào. Hãy tạo từ trang của một trò chơi.",
+    "alertsEmptyShows": "Chưa thiết lập nhắc nhở nào. Hãy tạo từ trang của một chương trình.",
+    "historyEmptyRides": "Chưa có thông báo nào về trò chơi được gửi.",
+    "historyEmptyShows": "Chưa có thông báo nào về chương trình được gửi.",
+    "edit": "Sửa ngưỡng",
+    "subTabActive": "Đang bật",
+    "subTabHistory": "Lịch sử",
+    "filterAll": "Tất cả",
+    "activeEmptyAll": "Hôm nay không có nhắc nhở nào đang bật.",
+    "leadBadge": "trước {lead} phút",
+    "leadSaved": "Đã cập nhật thời gian báo trước",
+    "validateLead": "Lưu thời gian báo trước",
+    "editLead": "Sửa thời gian báo trước",
+    "leadTooLate": "Chương trình sắp bắt đầu, không kịp đổi thời gian báo trước."
+  },
+  "privacy": {
+    "emailLabel": "Địa chỉ email",
+    "emailSave": "Thay đổi",
+    "emailNote": "Sau khi thay đổi, bạn sẽ bị đăng xuất và cần đăng nhập lại bằng địa chỉ mới.",
+    "emailChangedSignOut": "Đã đổi email. Đang đăng xuất…",
+    "emailTaken": "Địa chỉ email này đã được sử dụng.",
+    "emailInvalid": "Địa chỉ email không hợp lệ.",
+    "exportLabel": "Dữ liệu của tôi",
+    "exportButton": "Tải xuống",
+    "resetAlertsLabel": "Đặt lại nhắc nhở của tôi",
+    "resetAlertsNote": "Xóa các nhắc nhở đang chờ cùng toàn bộ lịch sử thông báo đã nhận. Tài khoản và mục yêu thích của bạn vẫn được giữ nguyên.",
+    "resetAlertsButton": "Đặt lại",
+    "resetAlertsConfirmTitle": "Đặt lại tất cả?",
+    "resetAlertsConfirmDescription": "Các nhắc nhở thời gian chờ, nhắc nhở chương trình và lịch sử thông báo đã nhận sẽ bị xóa. Thao tác này không thể hoàn tác.",
+    "resetAlertsConfirmButton": "Đặt lại",
+    "resetAlertsDone": "Đã xóa nhắc nhở và lịch sử",
+    "deleteLabel": "Xóa tài khoản của tôi",
+    "deleteNote": "Thao tác này là vĩnh viễn: tùy chọn, mục yêu thích và nhắc nhở đều sẽ bị xóa.",
+    "deleteButton": "Xóa",
+    "deleteConfirmTitle": "Xóa vĩnh viễn tài khoản?",
+    "deleteConfirmDescription": "Nhập địa chỉ email của bạn ({email}) để xác nhận. Thao tác này không thể hoàn tác.",
+    "deleteConfirmButton": "Xóa vĩnh viễn",
+    "cancel": "Hủy",
+    "accountDeleted": "Đã xóa tài khoản. Đang đăng xuất…",
+    "genericError": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "exportNote": "Tải bản sao tài khoản của bạn: email, tùy chọn, mục yêu thích, nhắc nhở thời gian chờ và nhắc nhở chương trình."
+  },
+  "alerts": {
+    "createTitle": "Tạo nhắc nhở",
+    "createDescription": "Nhận thông báo khi thời gian chờ của {ride} xuống dưới một ngưỡng.",
+    "createFor": "Tạo nhắc nhở cho {ride}",
+    "thresholdLabel": "Bạn muốn được báo khi thời gian chờ xuống dưới bao nhiêu?",
+    "thresholdOption": "{minutes} phút",
+    "thresholdHint": "Chúng tôi sẽ báo cho bạn ngay khi thời gian chờ xuống dưới ngưỡng này.",
+    "cancel": "Hủy",
+    "create": "Tạo",
+    "created": "Đã tạo nhắc nhở cho {ride}",
+    "createError": "Không tạo được nhắc nhở."
+  },
+  "attractionDetail": {
+    "openFor": "Xem chi tiết {ride}",
+    "thrillsLink": "Xem trò chơi trên Thrills",
+    "alertsTitle": "Nhắc nhở",
+    "chartTitle": "Thời gian chờ hôm nay",
+    "chartToday": "Hôm nay",
+    "chartActual": "Thời gian chờ",
+    "chartForecast": "Dự báo",
+    "chartNow": "Bây giờ",
+    "chartEmpty": "Chưa có dữ liệu cho hôm nay.",
+    "chartUnavailable": "Trò chơi hiện không khả dụng.",
+    "chartUnavailablePermanent": "Trò chơi này không công bố thời gian chờ: không có dữ liệu trực tiếp, cũng không có dự báo.",
+    "alertsUnavailable": "Trò chơi này không công bố thời gian chờ nên không có gì để theo dõi và không thể tạo nhắc nhở.",
+    "chartForecastNote": "Ước tính sơ bộ cho phần còn lại của ngày.",
+    "chartForecastPreOpeningNote": "Ước tính dựa trên những ngày trước — sẽ được cập nhật khi công viên mở cửa.",
+    "estimateTooltip": "Ước tính từ những ngày quá khứ tương đồng. Thực tế có thể khác.",
+    "marginNote": "Vài ngày qua, dự báo của chúng tôi lệch trung bình <v>{minutes} phút</v>.",
+    "marginNoteTooltip": "Chênh lệch trung bình giữa dự báo của chúng tôi và thời gian chờ thực tế trong 14 ngày gần nhất.",
+    "installTitle": "Cài đặt Queue Park",
+    "installIntro": "Nhắc nhở yêu cầu ứng dụng được cài trên thiết bị của bạn.",
+    "installButton": "Cài đặt ứng dụng",
+    "installAndroidSteps": "Mở menu ⋮ của trình duyệt, rồi chọn «Thêm vào màn hình chính».",
+    "installIosSteps": "Chạm vào Chia sẻ, rồi chọn «Thêm vào MH chính».",
+    "installDesktopSteps": "Dùng biểu tượng cài đặt trên thanh địa chỉ của trình duyệt.",
+    "installAccountNote": "Bạn cũng cần một tài khoản để tạo nhắc nhở.",
+    "signInTitle": "Đăng nhập",
+    "signInIntro": "Đăng nhập để được báo khi thời gian chờ giảm xuống.",
+    "notifActive": "Nhắc nhở đang bật",
+    "save": "Lưu",
+    "update": "Cập nhật",
+    "delete": "Xóa",
+    "saved": "Đã lưu nhắc nhở",
+    "deleted": "Đã xóa nhắc nhở",
+    "pushBlocked": "Đã lưu nhắc nhở, nhưng thiết bị này sẽ không nhận được gì (thông báo chưa được cho phép).",
+    "pushDenied": "Thông báo của trang này đang bị chặn. Hãy cho phép trong cài đặt trình duyệt để nhận nhắc nhở trên thiết bị này.",
+    "pushUnsupported": "Trình duyệt này không hỗ trợ thông báo đẩy. Nhắc nhở vẫn sẽ xuất hiện trong hồ sơ và lịch sử của bạn."
+  },
+  "legal": {
+    "backHome": "Về trang chủ",
+    "updated": "Cập nhật lần cuối: 21 tháng 7 năm 2026",
+    "privacy": {
+      "metaTitle": "Chính sách quyền riêng tư",
+      "title": "Chính sách quyền riêng tư",
+      "intro": "Chính sách này mô tả cách Queue Park xử lý dữ liệu cá nhân của bạn. Bên kiểm soát dữ liệu: đơn vị vận hành trang web (xem <mentions>Thông tin pháp lý</mentions>), liên hệ: <mail>contact@queue-park.com</mail>.",
+      "dataTitle": "Dữ liệu được xử lý, mục đích và cơ sở pháp lý",
+      "data1": "<b>Tài khoản</b> (địa chỉ email và, nếu có, tên cùng ảnh đại diện qua Google): tạo và quản lý tài khoản của bạn — <i>thực hiện dịch vụ / sự đồng ý của bạn</i>.",
+      "data2": "<b>Tùy chọn</b> (ngôn ngữ, giao diện, định dạng giờ) và <b>mục yêu thích</b> (công viên, trò chơi, chương trình): cá nhân hóa trải nghiệm của bạn — <i>thực hiện dịch vụ</i>.",
+      "data3": "<b>Nhắc nhở thời gian chờ</b> và <b>nhắc nhở chương trình</b>, cùng <b>đăng ký thông báo</b> trên các thiết bị của bạn: gửi những thông báo bạn đã yêu cầu — <i>sự đồng ý của bạn</i>.",
+      "data4": "<b>Đo lường lượt truy cập</b> (Google Analytics): thống kê truy cập — <i>sự đồng ý của bạn</i> (xem <cookies>Chính sách cookie</cookies>).",
+      "recipientsTitle": "Bên nhận và bên xử lý",
+      "recipients1": "Dữ liệu của bạn không được bán. Dữ liệu được xử lý bởi các nhà cung cấp thay mặt chúng tôi: Google (xác thực và đo lường lượt truy cập), Resend (gửi email đăng nhập), IONOS (lưu trữ, Liên minh châu Âu).",
+      "recipients2": "Một số nhà cung cấp (Google, Resend) đặt tại Hoa Kỳ; mọi hoạt động chuyển dữ liệu đều tuân theo các cơ chế mà GDPR quy định (Data Privacy Framework và/hoặc điều khoản hợp đồng tiêu chuẩn).",
+      "retentionTitle": "Thời gian lưu trữ",
+      "retention1": "Dữ liệu tài khoản: cho đến khi tài khoản bị xóa.",
+      "retention2": "Nhắc nhở: có hiệu lực trong ngày; lịch sử được lưu 30 ngày.",
+      "retention3": "Nhắc nhở chương trình: xóa sau khi suất diễn kết thúc.",
+      "retention4": "Phiên đăng nhập: trong thời gian phiên còn hiệu lực.",
+      "rightsTitle": "Quyền của bạn",
+      "rights1": "Bạn có quyền truy cập, chỉnh sửa, xóa, di chuyển dữ liệu, phản đối và hạn chế xử lý. Từ <profile>hồ sơ</profile> của bạn (Tùy chọn → thẻ Quyền riêng tư), bạn có thể trực tiếp đổi email, tải dữ liệu (JSON) và xóa tài khoản. Với các yêu cầu khác, hãy viết tới <mail>contact@queue-park.com</mail>.",
+      "rights2": "Bạn cũng có thể khiếu nại tới cơ quan bảo vệ dữ liệu tại nơi bạn cư trú (tại Pháp là CNIL — cnil.fr).",
+      "securityTitle": "Bảo mật và người chưa thành niên",
+      "security1": "Mọi liên lạc đều được mã hóa (HTTPS) và việc xác thực không dùng mật khẩu. Chúng tôi chỉ thu thập dữ liệu thực sự cần thiết. Dịch vụ không dành cho người dưới 15 tuổi nếu không có sự đồng ý của người giám hộ."
+    },
+    "cookies": {
+      "metaTitle": "Chính sách cookie",
+      "title": "Chính sách cookie",
+      "intro": "Cookie là một tệp nhỏ được lưu trên thiết bị của bạn khi bạn truy cập một trang web. Queue Park chỉ dùng một số ít cookie, được mô tả dưới đây.",
+      "necessaryTitle": "Cookie thực sự cần thiết",
+      "necessaryIntro": "Chúng thiết yếu để trang web hoạt động và không cần sự đồng ý của bạn:",
+      "necessary1": "<b>Phiên xác thực</b>: giữ bạn ở trạng thái đã đăng nhập.",
+      "necessary2": "<b>Tùy chọn ngôn ngữ</b>: ghi nhớ ngôn ngữ hiển thị của bạn.",
+      "audienceTitle": "Cookie đo lường lượt truy cập",
+      "audience1": "Chúng tôi dùng Google Analytics để hiểu lưu lượng truy cập và cải thiện trang web. Các cookie này (ví dụ <c>_ga</c>, <c>_ga_*</c>) chỉ được đặt <b>sau khi bạn đồng ý</b> và được lưu tối đa 13 tháng.",
+      "manageTitle": "Quản lý lựa chọn của bạn",
+      "manage1": "Bạn có thể chấp nhận hoặc từ chối các cookie này qua thanh thông báo hiện ra trong lần truy cập đầu tiên, và thay đổi lựa chọn bất cứ lúc nào bằng liên kết <b>«Quản lý cookie»</b> ở cuối trang. Bạn cũng có thể thiết lập trình duyệt để chặn cookie."
+    },
+    "legalNotice": {
+      "metaTitle": "Thông tin pháp lý",
+      "title": "Thông tin pháp lý",
+      "editorTitle": "Đơn vị vận hành",
+      "editor1": "Trang Queue Park (queue-park.com) do Lilian G. và Gaspard D. vận hành.",
+      "editor2": "Người chịu trách nhiệm xuất bản: Lilian G. Liên hệ: <mail>contact@queue-park.com</mail>.",
+      "hostingTitle": "Lưu trữ",
+      "hosting1": "Trang web được lưu trữ bởi IONOS SARL, 7, place de la Gare, BP 70109, 57201 SARREGUEMINES Cedex, Pháp (ionos.fr).",
+      "ipTitle": "Sở hữu trí tuệ",
+      "ip1": "Cấu trúc, nội dung văn bản và các thành phần đồ họa của trang web thuộc quyền sở hữu của đơn vị vận hành, trừ khi có ghi chú khác. Nghiêm cấm mọi hành vi sao chép trái phép. Tên các công viên, trò chơi và chương trình thuộc về chủ sở hữu tương ứng.",
+      "liabilityTitle": "Trách nhiệm",
+      "liability1": "Thời gian chờ và lịch diễn chỉ mang tính tham khảo, được lấy từ nguồn của bên thứ ba, không có bất kỳ bảo đảm nào về độ chính xác hay tính khả dụng. Đơn vị vận hành không chịu trách nhiệm về thiệt hại phát sinh từ việc sử dụng các thông tin này."
     }
   }
 }

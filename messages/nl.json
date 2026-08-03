@@ -1,33 +1,49 @@
 {
   "home": {
     "title": "Queue Park",
-    "subtitle": "Wachttijden voor je favoriete attractieparken live!"
+    "subtitle": "De wachttijden van je favoriete pretparken, live!"
   },
   "search": {
     "placeholder": "Zoek een park op naam, groep of land...",
-    "noResults": "Geen parken gevonden die voldoen aan je zoekopdracht. Probeer het opnieuw!",
-    "randomParkToast": "Je hebt gegooid op:"
+    "noResults": "Geen parken gevonden voor je zoekopdracht. Probeer het opnieuw!",
+    "randomParkToast": "Je dobbelsteen viel op:"
   },
   "parksList": {
-    "title": "Alle Attractieparken",
-    "sortByGroup": "Op Groep",
-    "sortByCountry": "Op Land",
-    "hideClosedParks": "Verberg gesloten parken"
+    "title": "Alle pretparken",
+    "sortByGroup": "Op groep",
+    "sortByCountry": "Op land",
+    "hideClosedParks": "Gesloten parken verbergen",
+    "seeMoreParks": "Nog {count} parken tonen",
+    "seeLess": "Minder tonen"
   },
   "popularParks": {
-    "title": "Populaire Parken",
-    "trendingText": "Trending in de afgelopen uren",
+    "title": "Populaire parken",
+    "trendingText": "Populair in de afgelopen uren",
     "visitsNote": "bezoeken"
   },
+  "weather": {
+    "clear": "Onbewolkt",
+    "mainlyClear": "Overwegend helder",
+    "partlyCloudy": "Half bewolkt",
+    "overcast": "Zwaar bewolkt",
+    "fog": "Mist",
+    "drizzle": "Motregen",
+    "rain": "Regen",
+    "snow": "Sneeuw",
+    "thunderstorm": "Onweer",
+    "unknown": "Weer niet beschikbaar",
+    "min": "Min",
+    "max": "Max"
+  },
   "parkPage": {
-    "backHome": "Terug naar home",
-    "todayHours": "Openingstijden van vandaag",
+    "backHome": "Terug naar start",
+    "todayHours": "Openingstijden vandaag",
     "extraOpeningHours": "Extra openingstijden",
     "extendedHours": "Verlengde openingstijden",
     "closedToday": "Vandaag gesloten",
-    "hoursUnavailable": "Openingstijden zijn momenteel niet beschikbaar",
-    "privateEvent": "Park privé geboekt",
-    "privateEventNoHours": "Park privé geboekt vandaag"
+    "hoursUnavailable": "De openingstijden zijn momenteel niet beschikbaar",
+    "privateEvent": "Park privé afgehuurd",
+    "privateEventNoHours": "Park vandaag privé afgehuurd"
   },
   "parkStatus": {
     "open": "Open",
@@ -38,7 +54,8 @@
     "closed": "Gesloten",
     "down": "Storing",
     "maintenance": "Onderhoud",
-    "unavailable": "Niet beschikbaar"
+    "unavailable": "Niet beschikbaar",
+    "unavailableShort": "N.b."
   },
   "tabs": {
     "waitTimes": "Wachttijden",
@@ -46,27 +63,77 @@
   },
   "shows": {
     "show": "Show",
-    "schedules": "Tijden",
+    "schedules": "Speeltijden",
     "updateInfo": "Shows worden elk uur bijgewerkt",
-    "noMoreToday": "Geen shows meer vandaag"
+    "noMoreToday": "Vandaag geen shows meer",
+    "legendPast": "Afgelopen",
+    "legendOngoing": "Bezig",
+    "legendUpcoming": "Binnenkort"
+  },
+  "showDetail": {
+    "openFor": "Details van {show} bekijken",
+    "notifTitle": "Meldingen",
+    "thrillsLink": "Bekijk de show op Thrills",
+    "duration": "Duur: {duration}",
+    "continuousAccess": "Doorlopend · {range}",
+    "signInIntro": "Meld je aan om een herinnering te krijgen voordat een show begint.",
+    "reminderIntro": "Kies een voorstelling en daarna hoelang van tevoren je een herinnering wilt.",
+    "leadLabel": "Hoelang voor de show wil je een herinnering?",
+    "leadOption": "{minutes} min van tevoren",
+    "reminderActive": "Herinnering {minutes} min van tevoren",
+    "reminderScheduled": "Herinnering ingesteld",
+    "save": "Herinnering instellen",
+    "update": "Bijwerken",
+    "remove": "Verwijderen",
+    "reminderSaved": "Herinnering opgeslagen",
+    "reminderRemoved": "Herinnering verwijderd",
+    "reminderError": "Er is iets misgegaan. Probeer het opnieuw.",
+    "pushBlocked": "Herinnering opgeslagen, maar dit apparaat ontvangt niets (meldingen niet toegestaan).",
+    "noUpcoming": "Er staan vandaag geen shows meer op het programma.",
+    "leadTooLate": "Deze voorstelling begint te snel om nog een herinnering in te stellen.",
+    "reminderActivate": "Herinnering inschakelen",
+    "reminderModify": "Herinnering bewerken"
   },
   "favorites": {
     "myFavorites": "Mijn favorieten",
+    "yours": "Jouw favorieten",
     "add": "Toevoegen aan favorieten",
     "remove": "Verwijderen uit favorieten",
     "addPark": "Dit park aan favorieten toevoegen",
-    "removePark": "Dit park uit favorieten verwijderen"
+    "removePark": "Dit park uit favorieten verwijderen",
+    "parkLimit": "Je kunt maximaal {max} favoriete parken hebben.",
+    "seeMore": "Nog {count} tonen",
+    "seeLess": "Minder tonen",
+    "needAccount": "Meld je aan om favorieten toe te voegen."
+  },
+  "cookies": {
+    "message": "We gebruiken analytische cookies om de site te verbeteren. Je kunt ze accepteren of weigeren.",
+    "learnMore": "Meer weten",
+    "accept": "Accepteren",
+    "refuse": "Weigeren",
+    "manage": "Cookies beheren",
+    "legalNotice": "Colofon",
+    "privacyPolicy": "Privacy",
+    "cookiePolicy": "Cookies"
+  },
+  "manifest": {
+    "name": "Queue Park",
+    "description": "Live wachttijden en shows van je favoriete pretparken.",
+    "shortcutAllParks": "Alle parken",
+    "shortcutParksShort": "Parken"
   },
   "waitTimeTable": {
     "attraction": "Attractie",
     "waitTime": "Wachttijd",
     "status": "Status",
     "noWaitTimes": "Momenteel geen wachttijden beschikbaar",
-    "refreshingIn": "Verversen over",
+    "tableLabel": "Wachttijden — {park}",
+    "toggleQueues": "De andere wachtrijen van {ride} tonen",
+    "refreshingIn": "Vernieuwen over",
     "second": "seconde",
     "seconds": "seconden",
-    "nowRefreshing": "Nu aan het verversen...",
-    "lastUpdate": "Laatste Update"
+    "nowRefreshing": "Bezig met vernieuwen...",
+    "lastUpdate": "Laatste update"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Alle rechten voorbehouden.",
@@ -74,71 +141,410 @@
   },
   "noData": {
     "title": "Oeps, sorry!",
-    "message": "We hebben momenteel geen informatie om te tonen voor dit park. Kom later terug!"
+    "message": "We hebben op dit moment geen informatie om te tonen voor dit park. Kom later terug!"
   },
   "errors": {
-    "configError": "Configuratiefout. Neem contact op met de klantenservice.",
-    "fetchError": "Fout bij het ophalen van parken:",
+    "configError": "Configuratiefout. Neem contact op met de ondersteuning.",
+    "fetchError": "Parken konden niet worden geladen:",
     "parkNotFound": "Het park dat je zoekt bestaat niet",
     "networkErrorRefresh": "Er is een netwerkfout opgetreden bij het vernieuwen van de gegevens",
     "networkError": "Er is een netwerkfout opgetreden. Controleer je verbinding en probeer het opnieuw."
   },
+  "og": {
+    "subtitle": "Live wachttijden",
+    "averageWait": "Gemiddelde wachttijd",
+    "openAttractions": "Open attracties",
+    "busiest": "Nu het drukst",
+    "noLiveData": "Op dit moment geen live wachttijden",
+    "currentWait": "Huidige wachttijd",
+    "rideClosed": "Attractie momenteel gesloten"
+  },
+  "errorPages": {
+    "notFoundTitle": "Pagina niet gevonden",
+    "notFoundMessage": "Deze pagina bestaat niet of is verplaatst. Het park dat je zocht is mogelijk van adres veranderd.",
+    "errorTitle": "Er is iets misgegaan",
+    "errorMessage": "We konden deze pagina niet tonen. Probeer het zo meteen opnieuw — blijft het probleem bestaan, schrijf ons dan op contact@queue-park.com.",
+    "retry": "Opnieuw proberen",
+    "backHome": "Terug naar start"
+  },
+  "about": {
+    "metaTitle": "Over ons",
+    "metaDescription": "Ontdek Queue Park: waar de wachttijden vandaan komen, hoe favorieten werken, wachttijdvoorspellingen, het weer en alle functies.",
+    "backHome": "Terug naar de startpagina",
+    "heroTitle": "Over Queue Park",
+    "heroSubtitle": "De wachttijden van je favoriete parken, live en gratis voor iedereen.",
+    "tabs": {
+      "about": "Over ons",
+      "guide": "De gids"
+    },
+    "sectionAboutTitle": "Ons project",
+    "sectionGuideTitle": "Hoe het werkt",
+    "demoLabel": "Voorbeeld",
+    "cards": {
+      "intro": {
+        "title": "Wat is Queue Park?",
+        "body": "Queue Park brengt de live wachttijden van meer dan 100 pretparken wereldwijd op één plek samen. Ons doel: je in één oogopslag laten zien welke attracties je nú moet doen, zodat je je dag beter plant zonder met je neus op de plattegrond te zitten."
+      },
+      "data": {
+        "title": "Waar komen de gegevens vandaan?",
+        "body": "De wachttijden komen rechtstreeks uit de officiële systemen van de parken. We halen ze op, maken ze schoon en uniform, zodat Walibi, Disney, Europa-Park of Six Flags er hetzelfde uitzien, met dezelfde kleuren en hetzelfde detailniveau."
+      },
+      "worker": {
+        "title": "Achter de schermen",
+        "body": "Een geautomatiseerde dienst draait onafgebroken en bevraagt de parken vrijwel in realtime. Hij controleert elke waarde, koppelt elke wachtrij aan de juiste attractie, legt de geschiedenis van de dag vast en haalt ook openingstijden en shows op. Gedraagt een gegevensbron zich afwijkend, dan krijgt het team automatisch een melding."
+      },
+      "free": {
+        "title": "Gratis, zonder reclame",
+        "body": "Queue Park is volledig gratis en reclamevrij. Wachttijden bekijken vraagt geen account. Om favorieten vast te zetten en meldingen te krijgen volstaat een gratis account zonder wachtwoord (Google of magic link) — en alles blijft gesynchroniseerd tussen je apparaten."
+      },
+      "independent": {
+        "title": "Een onafhankelijk project",
+        "body": "Queue Park v2 wordt gebouwd door twee pretparkliefhebbers, Lilian en Gaspard. Het is geen officiële app en geen dienst die aan een park verbonden is. Een opmerking, een idee, een park dat ontbreekt? Schrijf ons op contact@queue-park.com."
+      },
+      "report": {
+        "title": "Klopt er iets niet?",
+        "body": "De gegevens hangen af van de parken en kunnen soms onvolledig zijn of vertraagd binnenkomen. Op elke parkpagina kun je met de knop «Een probleem gezien? Laat het ons weten» een afwijking melden: de snelste manier om ons te helpen de betrouwbaarheid te verbeteren."
+      },
+      "live": {
+        "title": "Live wachttijden",
+        "body": "Elke attractie toont haar actuele wachttijd, ongeveer één keer per minuut automatisch bijgewerkt — je hoeft de pagina niet te verversen, Queue Park doet dat elke 60 seconden voor je. De kleur zegt meteen genoeg: groen voor kort, oranje voor gemiddeld, rood voor lang."
+      },
+      "queues": {
+        "title": "Soorten wachtrijen",
+        "body": "Eén attractie kan meerdere wachtrijen hebben: de gewone rij (Standby) plus opties als Fastlane (voorrang), Single Rider (losse stoel) of Virtual Queue. Tik op een attractie met meerdere rijen om al haar tijden uit te klappen."
+      },
+      "favorites": {
+        "title": "Favorieten",
+        "body": "Tik op de ster om een park, attractie of show aan je favorieten toe te voegen. Favoriete parken staan bovenaan de startpagina; je favoriete attracties en shows staan per park gegroepeerd in een venster vanuit je profiel. Opgeslagen in je account en gesynchroniseerd op al je apparaten.",
+        "parksLabel": "Favoriete parken",
+        "ridesLabel": "Favoriete attracties (profiel)",
+        "hint": "Tik op een ster: het favoriete park springt naar boven op de startpagina."
+      },
+      "forecast": {
+        "title": "Wachttijdvoorspelling",
+        "body": "Op de pagina van een attractie tekent de doorlopende lijn de wachttijd zoals gemeten sinds de opening, en schat de stippellijn de rest van de dag tot sluitingstijd. Ze baseert zich op vergelijkbare dagen uit het verleden (weekdag, schoolvakanties, weer, openingstijden). Onder de grafiek noemen we onze werkelijke foutmarge: elke dag vergelijken we onze voorspellingen met wat er echt gebeurde."
+      },
+      "search": {
+        "title": "Zoeken & willekeurig park",
+        "body": "Vind elk park door de naam, de groep (Disney, Walibi…) of het land te typen. Zin in avontuur? De dobbelsteenknop brengt je naar een willekeurig gekozen park. Je kunt de lijst ook filteren op land of groep en gesloten parken verbergen."
+      },
+      "shows": {
+        "title": "Shows",
+        "body": "Bij de betreffende parken toont een tabblad «Shows» de speeltijden van de dag als tijdlijn. Deze tijden worden elk uur bijgewerkt."
+      },
+      "status": {
+        "title": "Statussen in één oogopslag",
+        "body": "Elk park geeft aan of het open of gesloten is, en elke attractie toont haar toestand: open, gesloten, storing of onderhoud. Met de gekleurde stippen zie je de situatie zonder één regel te lezen."
+      },
+      "preferences": {
+        "title": "Op jouw manier",
+        "body": "Queue Park past zich aan jou aan: licht, donker of automatisch thema (volgens je systeem), 12- of 24-uursnotatie, temperatuur in °C of °F, en een interface in 14 talen. Je keuzes worden onthouden voor je volgende bezoeken."
+      },
+      "alerts": {
+        "title": "Wachttijdmeldingen",
+        "body": "Kies op de pagina van een attractie een drempel: je krijgt een melding zodra de wachttijd daaronder zakt. Eenmaal verstuurd heeft de melding haar werk gedaan: ze verdwijnt en verhuist naar je geschiedenis. Stel gewoon een nieuwe in vanaf de pagina van de attractie. Vereist een account en toestemming voor meldingen."
+      },
+      "reminders": {
+        "title": "Showherinneringen",
+        "body": "Tik op de pagina van een show op een komende voorstelling en kies hoelang van tevoren je een seintje wilt. Je krijgt de melding net voor aanvang. Vereist een account en toestemming voor meldingen."
+      },
+      "detail": {
+        "title": "Detailweergave",
+        "body": "Het oog aan het einde van elke regel opent een detailweergave: afbeelding, favoriet, meldingen en een grafiek van de wachttijd van de dag met de voorspelling."
+      },
+      "account": {
+        "title": "Je account",
+        "body": "Een account is optioneel: wachttijden, openingstijden en shows zijn ook zonder aanmelden zichtbaar. Het wordt nuttig op het moment dat je iets wilt bewaren. Aanmelden vraagt geen wachtwoord — gebruik Google of een link die we naar je mailbox sturen. Je favorieten, meldingen, herinneringen en voorkeuren gaan dan met je mee van het ene apparaat naar het andere."
+      },
+      "weather": {
+        "title": "Weer in het park",
+        "body": "In de kop van elk park staan de huidige temperatuur en een icoon dat het weer samenvat, elk uur bijgewerkt. Handig om de drukte in te schatten — en om te weten of je een pet of een regenjas meeneemt."
+      }
+    }
+  },
   "metadata": {
-    "title": "Queue Park - Live Wachttijden voor Attractieparken",
+    "title": "Queue Park - Live wachttijden van pretparken",
     "titleTemplate": "%s | Queue Park",
-    "description": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen, plan je bezoek en maximaliseer je plezier met live data rechtstreeks van park-API's.",
-    "keywords": "attractiepark wachttijden, pretpark wachtrijen, achtbaan wachttijden, attractiepark app, live wachttijden, attractie wachtrijen, Disney wachttijden, Universal wachttijden, Six Flags wachttijden, attractiepark planning",
-    "ogTitle": "Queue Park - Live Wachttijden voor Attractieparken",
-    "ogDescription": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen en plan je bezoek met live data.",
-    "twitterTitle": "Queue Park - Live Wachttijden voor Attractieparken",
-    "twitterDescription": "Real-time wachttijden voor meer dan 100 attractieparken wereldwijd. Volg wachtrijen en plan je bezoek.",
-    "liveWaitTimes": "Live wachttijden"
+    "description": "Wachttijden in realtime voor meer dan 100 pretparken wereldwijd. Volg de rijen bij attracties, plan je bezoek en haal het meeste uit je dag met live gegevens rechtstreeks uit de API's van de parken.",
+    "keywords": "wachttijden pretpark, rijen pretpark, wachttijden achtbaan, pretpark app, live wachttijden, rijen attracties, wachttijden Disney, wachttijden Universal, wachttijden Six Flags, pretparkbezoek plannen",
+    "ogTitle": "Queue Park - Live wachttijden van pretparken",
+    "ogDescription": "Wachttijden in realtime voor meer dan 100 pretparken wereldwijd. Volg de rijen en plan je bezoek met live gegevens.",
+    "twitterTitle": "Queue Park - Live wachttijden van pretparken",
+    "twitterDescription": "Wachttijden in realtime voor meer dan 100 pretparken wereldwijd. Volg de rijen en plan je bezoek.",
+    "liveWaitTimes": "Live wachttijden",
+    "rideDescription": "Live wachttijd voor {ride} in {park}: huidige rij, verloop van de dag en voorspelling. Stel een melding in om te weten wanneer de wachttijd zakt."
   },
   "settings": {
-    "timeFormat": "Tijdformaat"
+    "timeFormat": "Tijdnotatie",
+    "temperatureUnit": "Temperatuureenheid"
   },
   "welcome": {
     "welcomeTo": "Welkom bij",
     "title": "Welkom bij v2! 🕝",
     "description": "We hebben de app volledig opnieuw ontworpen om je een betere ervaring te bieden. Ontdek een nieuwe interface, nieuwe functies en nog veel meer!",
-    "button": "Ok, geweldig!",
+    "button": "Oké, top!",
     "features": {
-      "showsTimeline": "Shows tijdlijn",
+      "showsTimeline": "Tijdlijn van shows",
       "newParks": "Nieuwe parken",
       "darkMode": "Donkere modus",
-      "brandNewUI": "Nieuwe interface",
-      "fastlaneWaitTimes": "Fastlane wachttijden",
-      "autoRefresh": "Auto-verversing",
-      "rotatingParkCovers": "Roterende park covers",
-      "parkStatusIndicator": "Park status indicator",
-      "singleRiderWaitTimes": "Single Rider wachttijden",
+      "brandNewUI": "Gloednieuwe interface",
+      "fastlaneWaitTimes": "Fastlane-wachttijden",
+      "autoRefresh": "Automatisch vernieuwen",
+      "rotatingParkCovers": "Wisselende parkafbeeldingen",
+      "parkStatusIndicator": "Statusindicator van het park",
+      "singleRiderWaitTimes": "Single Rider-wachttijden",
       "multiLanguage": "Meertalig",
-      "improvedPerformance": "Verbeterde prestaties",
-      "countryParkFiltering": "Landfilter",
-      "groupParkFiltering": "Groepsfilter"
+      "improvedPerformance": "Betere prestaties",
+      "countryParkFiltering": "Filteren op land",
+      "groupParkFiltering": "Filteren op groep"
     }
   },
   "reportProblem": {
-    "trigger": "Een probleem? Meld het ons",
-    "title": "Meld een Probleem",
-    "description": "Help ons de datakwaliteit te verbeteren door een probleem te melden dat je hebt opgemerkt.",
+    "trigger": "Een probleem gezien? Laat het ons weten",
+    "title": "Een probleem melden",
+    "description": "Help ons de kwaliteit van de gegevens te verbeteren door een probleem te melden dat je bent tegengekomen.",
     "categoryLabel": "Waar gaat het probleem over?",
-    "categoryPlaceholder": "Selecteer een optie",
+    "categoryPlaceholder": "Kies een optie",
     "subcategoryLabel": "Wat is het probleem?",
-    "subcategoryPlaceholder": "Selecteer een optie",
+    "subcategoryPlaceholder": "Kies een optie",
     "detailsLabel": "Beschrijf het probleem",
-    "detailsPlaceholder": "Beschrijf het probleem zo gedetailleerd mogelijk zodat we het goed kunnen analyseren en oplossen.",
+    "detailsPlaceholder": "Beschrijf het probleem zo gedetailleerd mogelijk, zodat we het doeltreffend kunnen analyseren en oplossen.",
     "emailLabel": "Je e-mailadres",
+    "emailDescription": "We gebruiken je e-mailadres om je op de hoogte te houden van de afhandeling van je melding.",
+    "emailAccountNotice": "Het e-mailadres van je account wordt met deze melding meegestuurd, zodat we je op de hoogte kunnen houden van de afhandeling.",
     "cancel": "Annuleren",
     "submit": "Melding versturen",
-    "success": "Bedankt voor je melding! We gaan het bekijken.",
+    "success": "Bedankt voor je melding! We bekijken hem.",
     "error": "Er is een fout opgetreden bij het versturen van de melding. Probeer het opnieuw.",
-    "emailDescription": "We gebruiken je e-mailadres om je op de hoogte te houden van de oplossing van je melding.",
+    "rateLimited": "Je hebt recent meerdere meldingen verstuurd. Wacht even voordat je er nog een verstuurt.",
     "validation": {
-      "categoryRequired": "Selecteer een categorie",
-      "subcategoryRequired": "Selecteer een subcategorie",
-      "detailsRequired": "Geef minimaal 10 tekens op",
+      "categoryRequired": "Kies een categorie",
+      "subcategoryRequired": "Kies een subcategorie",
+      "detailsRequired": "Voer minstens 10 tekens in",
       "emailRequired": "Voer een geldig e-mailadres in"
+    }
+  },
+  "userBlock": {
+    "loggedOutTitle": "Je bent niet aangemeld",
+    "loggedOutSubtitle": "Meld je aan om je favorieten en meldingen te synchroniseren",
+    "signIn": "Aanmelden",
+    "signUp": "Account aanmaken",
+    "account": "Mijn account",
+    "welcomeBack": "Welkom terug",
+    "profile": "Profiel",
+    "signOut": "Afmelden"
+  },
+  "auth": {
+    "title": "Aanmelden",
+    "subtitle": "Meld je aan of maak je account aan — zonder wachtwoord.",
+    "continueWithGoogle": "Doorgaan met Google",
+    "or": "of",
+    "emailPlaceholder": "jij@voorbeeld.com",
+    "emailInvalid": "Voer een geldig e-mailadres in",
+    "sendMagicLink": "Stuur me een aanmeldlink",
+    "sendError": "Versturen mislukt. Probeer het opnieuw.",
+    "emailSentTitle": "Kijk in je mailbox",
+    "emailSentDescription": "We hebben een aanmeldlink naar {email} gestuurd.",
+    "useAnotherEmail": "Een ander adres gebruiken",
+    "noPassword": "Geen wachtwoord nodig."
+  },
+  "profile": {
+    "title": "Profiel",
+    "back": "Terug",
+    "heroTitle": "Je profiel",
+    "heroSubtitle": "Je voorkeuren, je wachttijdmeldingen en hun geschiedenis.",
+    "backHome": "Terug naar de startpagina",
+    "tabs": {
+      "preferences": "Voorkeuren",
+      "alerts": "Meldingen"
+    },
+    "alertsDailyNote": "Meldingen en herinneringen gelden alleen voor de lopende dag: ze verdwijnen zodra de melding verstuurd is, en uiterlijk om middernacht. Alles stel je in op de pagina van de attractie of de show.",
+    "favoritesCount": "Favorieten",
+    "favoritesParksCount": "{count, plural, one {Favoriet park} other {Favoriete parken}}",
+    "favoritesRidesCount": "{count, plural, one {Favoriete attractie} other {Favoriete attracties}}",
+    "favoritesShowsCount": "{count, plural, one {Favoriete show} other {Favoriete shows}}",
+    "favoritesParksTitle": "Favoriete parken",
+    "favoritesRidesTitle": "Favoriete attracties",
+    "favoritesShowsTitle": "Favoriete shows",
+    "favoritesListEmpty": "Nog geen favorieten.",
+    "favoritesRemove": "{name} uit favorieten verwijderen",
+    "activeAlertsCount": "{count, plural, one {Actieve melding} other {Actieve meldingen}}",
+    "preferencesTitle": "Voorkeuren",
+    "language": "Taal",
+    "theme": "Thema",
+    "themeSystem": "Systeem",
+    "themeLight": "Licht",
+    "themeDark": "Donker",
+    "timeFormat": "Tijdnotatie",
+    "timeFormat24": "24 uur",
+    "timeFormat12": "12 uur",
+    "temperatureUnit": "Temperatuureenheid",
+    "temperatureCelsius": "Celsius",
+    "temperatureFahrenheit": "Fahrenheit",
+    "alertsTitle": "Actieve meldingen",
+    "alertsEmpty": "Nog geen meldingen. Maak er een aan vanaf een attractie.",
+    "threshold": "Onder {minutes} min",
+    "activate": "Inschakelen",
+    "deactivate": "Uitschakelen",
+    "validate": "Drempel opslaan",
+    "thresholdSaved": "Drempel bijgewerkt",
+    "delete": "Verwijderen",
+    "deleted": "Melding verwijderd",
+    "historyTitle": "Meldingsgeschiedenis",
+    "historyEmpty": "Er is nog geen melding verstuurd.",
+    "historyRetentionNote": "Meldingen ouder dan 30 dagen worden niet getoond.",
+    "historyLine": "Gezakt naar {actual} min (≤ {threshold} min)",
+    "loadError": "Meldingen konden niet worden geladen.",
+    "updateError": "Bijwerken mislukt.",
+    "deleteError": "Verwijderen mislukt.",
+    "privacyTitle": "Privacy",
+    "alertsHeading": "{count, plural, one {Je melding} other {Je meldingen}}",
+    "historyHeading": "{count, plural, one {Verstuurde melding} other {Verstuurde meldingen}}",
+    "historyAttractions": "Attracties",
+    "historyShows": "Shows",
+    "historyShowLine": "voorstelling van {time} · {lead} min van tevoren",
+    "alertsEmptyRides": "Geen melding ingesteld. Maak er een aan vanaf een attractie.",
+    "alertsEmptyShows": "Geen herinnering ingesteld. Maak er een aan vanaf een show.",
+    "historyEmptyRides": "Er is nog geen attractiemelding verstuurd.",
+    "historyEmptyShows": "Er is nog geen showmelding verstuurd.",
+    "edit": "Drempel bewerken",
+    "subTabActive": "Actief",
+    "subTabHistory": "Geschiedenis",
+    "filterAll": "Alles",
+    "activeEmptyAll": "Geen actieve melding of herinnering voor vandaag.",
+    "leadBadge": "{lead} min van tevoren",
+    "leadSaved": "Voorlooptijd bijgewerkt",
+    "validateLead": "Voorlooptijd opslaan",
+    "editLead": "Voorlooptijd bewerken",
+    "leadTooLate": "De show begint te snel om de voorlooptijd nog te wijzigen."
+  },
+  "privacy": {
+    "emailLabel": "E-mailadres",
+    "emailSave": "Wijzigen",
+    "emailNote": "Na de wijziging word je afgemeld en moet je opnieuw aanmelden met het nieuwe adres.",
+    "emailChangedSignOut": "E-mailadres gewijzigd. Bezig met afmelden…",
+    "emailTaken": "Dit e-mailadres is al in gebruik.",
+    "emailInvalid": "Ongeldig e-mailadres.",
+    "exportLabel": "Mijn gegevens",
+    "exportButton": "Downloaden",
+    "resetAlertsLabel": "Mijn meldingen opnieuw instellen",
+    "resetAlertsNote": "Wist je openstaande meldingen en herinneringen samen met de volledige geschiedenis van ontvangen meldingen. Je account en je favorieten blijven behouden.",
+    "resetAlertsButton": "Opnieuw instellen",
+    "resetAlertsConfirmTitle": "Alles opnieuw instellen?",
+    "resetAlertsConfirmDescription": "Je wachttijdmeldingen, showherinneringen en de geschiedenis van ontvangen meldingen worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    "resetAlertsConfirmButton": "Opnieuw instellen",
+    "resetAlertsDone": "Meldingen, herinneringen en geschiedenis verwijderd",
+    "deleteLabel": "Mijn account verwijderen",
+    "deleteNote": "Dit is definitief: voorkeuren, favorieten, meldingen en herinneringen worden gewist.",
+    "deleteButton": "Verwijderen",
+    "deleteConfirmTitle": "Account definitief verwijderen?",
+    "deleteConfirmDescription": "Typ je e-mailadres ({email}) ter bevestiging. Dit kan niet ongedaan worden gemaakt.",
+    "deleteConfirmButton": "Definitief verwijderen",
+    "cancel": "Annuleren",
+    "accountDeleted": "Account verwijderd. Bezig met afmelden…",
+    "genericError": "Er is iets misgegaan. Probeer het opnieuw.",
+    "exportNote": "Download een kopie van je account: e-mail, voorkeuren, favorieten, meldingen en showherinneringen."
+  },
+  "alerts": {
+    "createTitle": "Een melding aanmaken",
+    "createDescription": "Krijg een melding wanneer de wachttijd voor {ride} onder een drempel zakt.",
+    "createFor": "Een melding aanmaken voor {ride}",
+    "thresholdLabel": "Onder welke wachttijd wil je een melding krijgen?",
+    "thresholdOption": "{minutes} min",
+    "thresholdHint": "Je krijgt een melding zodra de wachttijd onder deze drempel zakt.",
+    "cancel": "Annuleren",
+    "create": "Aanmaken",
+    "created": "Melding aangemaakt voor {ride}",
+    "createError": "De melding kon niet worden aangemaakt."
+  },
+  "attractionDetail": {
+    "openFor": "Details van {ride} bekijken",
+    "thrillsLink": "Bekijk de attractie op Thrills",
+    "alertsTitle": "Meldingen",
+    "chartTitle": "Wachttijd vandaag",
+    "chartToday": "Vandaag",
+    "chartActual": "Wachttijd",
+    "chartForecast": "Voorspelling",
+    "chartNow": "Nu",
+    "chartEmpty": "Nog geen gegevens voor vandaag.",
+    "chartUnavailable": "Attractie momenteel niet beschikbaar.",
+    "chartUnavailablePermanent": "Deze attractie geeft geen wachttijd door: geen live weergave, geen voorspelling.",
+    "alertsUnavailable": "Deze attractie geeft geen wachttijd door, dus er valt niets te volgen en een melding is niet mogelijk.",
+    "chartForecastNote": "Ruwe schatting voor de rest van de dag.",
+    "chartForecastPreOpeningNote": "Schatting op basis van eerdere dagen — wordt bijgewerkt zodra het park opent.",
+    "estimateTooltip": "Geschat op basis van vergelijkbare dagen uit het verleden. De werkelijkheid kan afwijken.",
+    "marginNote": "De afgelopen dagen zaten onze voorspellingen er gemiddeld <v>{minutes} min</v> naast.",
+    "marginNoteTooltip": "Gemiddeld verschil tussen onze voorspellingen en de werkelijk gemeten wachttijd over de laatste 14 dagen.",
+    "installTitle": "Queue Park installeren",
+    "installIntro": "Voor meldingen moet de app op je apparaat geïnstalleerd zijn.",
+    "installButton": "De app installeren",
+    "installAndroidSteps": "Open het ⋮-menu van je browser en kies «Toevoegen aan startscherm».",
+    "installIosSteps": "Tik op Delen en daarna op «Zet op beginscherm».",
+    "installDesktopSteps": "Gebruik het installatie-icoon in de adresbalk van je browser.",
+    "installAccountNote": "Voor het aanmaken van meldingen is ook een account nodig.",
+    "signInTitle": "Aanmelden",
+    "signInIntro": "Meld je aan om een melding te krijgen wanneer de wachttijd zakt.",
+    "notifActive": "Melding actief",
+    "save": "Opslaan",
+    "update": "Bijwerken",
+    "delete": "Verwijderen",
+    "saved": "Melding opgeslagen",
+    "deleted": "Melding verwijderd",
+    "pushBlocked": "Melding opgeslagen, maar dit apparaat ontvangt niets (meldingen niet toegestaan).",
+    "pushDenied": "Meldingen zijn geblokkeerd voor deze site. Sta ze toe in je browserinstellingen om meldingen op dit apparaat te ontvangen.",
+    "pushUnsupported": "Deze browser ondersteunt geen pushmeldingen. De melding verschijnt wel in je profiel en in de geschiedenis."
+  },
+  "legal": {
+    "backHome": "Terug naar de startpagina",
+    "updated": "Laatst bijgewerkt: 21 juli 2026",
+    "privacy": {
+      "metaTitle": "Privacybeleid",
+      "title": "Privacybeleid",
+      "intro": "Dit beleid beschrijft hoe Queue Park je persoonsgegevens verwerkt. Verwerkingsverantwoordelijke: de uitgever van de site (zie <mentions>Colofon</mentions>), contact: <mail>contact@queue-park.com</mail>.",
+      "dataTitle": "Verwerkte gegevens, doeleinden en rechtsgronden",
+      "data1": "<b>Account</b> (e-mailadres en, in voorkomend geval, naam en profielfoto via Google): het aanmaken en beheren van je account — <i>uitvoering van de dienst / je toestemming</i>.",
+      "data2": "<b>Voorkeuren</b> (taal, thema, tijdnotatie) en <b>favorieten</b> (parken, attracties, shows): het personaliseren van je ervaring — <i>uitvoering van de dienst</i>.",
+      "data3": "<b>Wachttijdmeldingen</b> en <b>showherinneringen</b>, samen met de <b>meldingsabonnementen</b> van je apparaten: het versturen van de meldingen waar je om hebt gevraagd — <i>je toestemming</i>.",
+      "data4": "<b>Publieksmeting</b> (Google Analytics): bezoekstatistieken — <i>je toestemming</i> (zie het <cookies>Cookiebeleid</cookies>).",
+      "recipientsTitle": "Ontvangers en verwerkers",
+      "recipients1": "Je gegevens worden niet verkocht. Ze worden verwerkt door dienstverleners die namens ons handelen: Google (authenticatie en publieksmeting), Resend (versturen van aanmeld-e-mails), IONOS (hosting, Europese Unie).",
+      "recipients2": "Sommige dienstverleners (Google, Resend) zijn gevestigd in de Verenigde Staten; eventuele doorgiften vallen onder de mechanismen waarin de AVG voorziet (Data Privacy Framework en/of modelcontractbepalingen).",
+      "retentionTitle": "Bewaartermijnen",
+      "retention1": "Accountgegevens: tot het account wordt verwijderd.",
+      "retention2": "Meldingen: geldig voor de lopende dag; geschiedenis 30 dagen bewaard.",
+      "retention3": "Showherinneringen: verwijderd zodra de voorstelling voorbij is.",
+      "retention4": "Aanmeldsessies: voor de geldigheidsduur van de sessie.",
+      "rightsTitle": "Je rechten",
+      "rights1": "Je hebt recht op inzage, rectificatie, wissing, overdraagbaarheid, bezwaar en beperking. Vanuit je <profile>profiel</profile> (Voorkeuren → tabblad Privacy) kun je je e-mailadres rechtstreeks wijzigen, je gegevens (JSON) downloaden en je account verwijderen. Voor elk ander verzoek schrijf je naar <mail>contact@queue-park.com</mail>.",
+      "rights2": "Je kunt ook een klacht indienen bij je gegevensbeschermingsautoriteit (in Nederland de Autoriteit Persoonsgegevens — autoriteitpersoonsgegevens.nl).",
+      "securityTitle": "Beveiliging en minderjarigen",
+      "security1": "De communicatie is versleuteld (HTTPS) en de authenticatie verloopt zonder wachtwoord. We beperken de verzamelde gegevens tot het strikt noodzakelijke. De dienst is niet bedoeld voor minderjarigen onder de 15 jaar zonder toestemming van een gezagsdrager."
+    },
+    "cookies": {
+      "metaTitle": "Cookiebeleid",
+      "title": "Cookiebeleid",
+      "intro": "Een cookie is een klein bestand dat op je apparaat wordt geplaatst wanneer je een site bezoekt. Queue Park gebruikt er een minimale set van, hieronder beschreven.",
+      "necessaryTitle": "Strikt noodzakelijke cookies",
+      "necessaryIntro": "Ze zijn essentieel voor de werking van de site en vragen geen toestemming:",
+      "necessary1": "<b>Authenticatiesessie</b>: houdt je aangemeld bij je account.",
+      "necessary2": "<b>Taalvoorkeur</b>: onthoudt je weergavetaal.",
+      "audienceTitle": "Cookies voor publieksmeting",
+      "audience1": "We gebruiken Google Analytics om het verkeer op de site te begrijpen en te verbeteren. Deze cookies (bijvoorbeeld <c>_ga</c>, <c>_ga_*</c>) worden uitsluitend <b>na je toestemming</b> geplaatst en maximaal 13 maanden bewaard.",
+      "manageTitle": "Je keuze beheren",
+      "manage1": "Je kunt deze cookies accepteren of weigeren via de banner die bij je eerste bezoek verschijnt, en je keuze op elk moment wijzigen via de link <b>«Cookies beheren»</b> onderaan de pagina. Je kunt je browser ook zo instellen dat cookies worden geblokkeerd."
+    },
+    "legalNotice": {
+      "metaTitle": "Colofon",
+      "title": "Colofon",
+      "editorTitle": "Uitgever",
+      "editor1": "De website Queue Park (queue-park.com) wordt uitgegeven door Lilian G. en Gaspard D.",
+      "editor2": "Verantwoordelijk uitgever: Lilian G. Contact: <mail>contact@queue-park.com</mail>.",
+      "hostingTitle": "Hosting",
+      "hosting1": "De site wordt gehost door IONOS SARL, 7, place de la Gare, BP 70109, 57201 SARREGUEMINES Cedex, Frankrijk (ionos.fr).",
+      "ipTitle": "Intellectuele eigendom",
+      "ip1": "De structuur, teksten en grafische elementen van de site zijn eigendom van de uitgever, tenzij anders vermeld. Elke ongeoorloofde reproductie is verboden. Namen van parken, attracties en shows behoren toe aan hun respectieve eigenaars.",
+      "liabilityTitle": "Aansprakelijkheid",
+      "liability1": "Wachttijden en showtijden worden uitsluitend ter informatie verstrekt, op basis van bronnen van derden, zonder enige garantie op juistheid of beschikbaarheid. De uitgever kan niet aansprakelijk worden gesteld voor schade die voortvloeit uit het gebruik ervan."
     }
   }
 }
