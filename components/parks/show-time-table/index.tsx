@@ -96,22 +96,30 @@ export default function ParkShowTimeTable({
       a.showName.localeCompare(b.showName),
     );
 
-    return sorted.map((show, index) => {
-      const laneInfo = calculateScheduleLanes(
-        show.schedules,
-        show.duration,
-        parkHours[0],
-        timezone,
-        parkDate,
-      );
-      return {
-        show,
-        // Index de tri suffixé au nom : garantit une clé unique même si deux
-        // spectacles partagent le même nom (sinon React duplique/omet les lignes).
-        uid: `${index}::${show.showName}`,
-        ...laneInfo,
-      };
-    });
+    return sorted
+      .map((show, index) => {
+        const laneInfo = calculateScheduleLanes(
+          show.schedules,
+          show.duration,
+          parkHours[0],
+          timezone,
+          parkDate,
+        );
+        return {
+          show,
+          // Index de tri suffixé au nom : garantit une clé unique même si deux
+          // spectacles partagent le même nom (sinon React duplique/omet les lignes).
+          uid: `${index}::${show.showName}`,
+          ...laneInfo,
+        };
+      })
+      // Un spectacle dont AUCUN créneau ne tombe dans la journée du parc n'a
+      // rien à montrer : sa ligne s'affichait vide, sur toute la largeur de la
+      // timeline, sans qu'on puisse deviner pourquoi. Cas réel : une source qui
+      // range les représentations du soir sous la date du lendemain (elles sont
+      // alors écartées par le filtre « ≥ début du jour logique »). Mieux vaut
+      // une ligne en moins qu'une ligne muette.
+      .filter((item) => item.schedules.length > 0);
   }, [shows, parkHours, timezone, parkDate]);
 
   // Favoris épinglés en tête, sans recalculer les lanes (tri d'affichage léger).
