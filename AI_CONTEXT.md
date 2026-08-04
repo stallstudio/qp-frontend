@@ -104,10 +104,18 @@ sur 2 h). Deux règles, toutes deux corrigées le 2026-07-27 :
   après l'envoi de la réponse. Sans ça, seuls les rafraîchissements auraient été
   comptés et le classement se serait vidé de ses premières visites.
 - **`purgeOldRequestLogs()`** (appelée par le cron des alertes, au plus une fois
-  par heure, par lots de 10 000) applique une rétention de 7 jours
+  par heure, par lots de 10 000) applique une rétention de **30 jours**
   (`API_LOG_RETENTION_DAYS`). La table grossissait sans limite alors que le
   `groupBy` de l'accueil ne regarde que 2 h — c'est ce qui aurait fini par
   ralentir la page d'accueil.
+
+  ⚠️ **La rétention n'est pas qu'un réglage d'hygiène : c'est ce que l'ADMIN
+  peut afficher.** À 7 jours (valeur d'origine), la fenêtre « Last 30 days » de
+  sa page Requests ramenait exactement la même chose que « Last 7 days » —
+  mesuré le 2026-08-04 : 14 672 IPs contre 14 771, l'écart n'étant que le
+  reliquat pas encore purgé. Ça se lisait comme un bug de comptage. La valeur est
+  donc alignée sur la plus large fenêtre proposée par l'admin : la raccourcir à
+  nouveau y remettrait le même piège.
 
 ### Données structurées (`components/parks/park-json-ld.tsx`)
 
