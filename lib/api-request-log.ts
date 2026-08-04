@@ -35,12 +35,21 @@ export function logParkRequest(entry: ParkRequestLogEntry): void {
     });
 }
 
-// Rétention du journal. Le classement ne regarde que les 2 dernières heures :
-// au-delà de quelques jours, ces lignes ne servent plus qu'à ralentir le
-// `groupBy` de la page d'accueil (et la table grossit indéfiniment — de l'ordre
-// du million de lignes par mois avec quelques dizaines de visiteurs).
-// Ajustable par `API_LOG_RETENTION_DAYS` si tu veux garder plus d'historique.
-const DEFAULT_RETENTION_DAYS = 7;
+// Rétention du journal. Le classement des « parcs populaires » ne regarde que
+// les 2 dernières heures ; c'est l'ADMIN qui consomme l'historique long (page
+// Requests, dont les fenêtres vont jusqu'à 30 jours).
+//
+// ⚠️ 7 jours auparavant, et c'était trop court sans que rien ne le dise : la
+// fenêtre « Last 30 days » de l'admin ramenait exactement la même chose que
+// « Last 7 days » (mesuré : 14 672 IPs contre 14 771, l'écart n'étant que le
+// reliquat non encore purgé), ce qui se lisait comme un bug de comptage.
+// 30 jours aligne la rétention sur la plus large fenêtre proposée.
+//
+// Ordre de grandeur à la nouvelle valeur : ~19 000 lignes/jour observées, soit
+// ~570 000 lignes en régime stable. Le `groupBy` de l'accueil reste borné à 2 h
+// par l'index `createdAt`, il n'est donc pas affecté.
+// Ajustable par `API_LOG_RETENTION_DAYS`.
+const DEFAULT_RETENTION_DAYS = 30;
 
 export function getLogRetentionDays(): number {
   const raw = Number(process.env.API_LOG_RETENTION_DAYS);
