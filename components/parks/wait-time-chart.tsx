@@ -136,6 +136,43 @@ export default function WaitTimeChart({
       r.forecast = lastActual.waitTime;
     }
 
+    // ⚠️ **Les trous de la prévision doivent ROMPRE la courbe.** Le worker
+    // n'émet AUCUN point sur les créneaux où l'attraction est habituellement
+    // fermée — un trou, délibérément, plutôt qu'un 0 trompeur. Mais
+    // `connectNulls={false}` ne rompt que sur un `null` EXPLICITE, pas sur une
+    // ligne absente du tableau : recharts reliait donc les deux bords du trou
+    // par un segment franc, sur lequel aucun point ne répond au survol.
+    // Observé sur Aerophile (Disney Springs), 20 points au pas de 15 min avec
+    // un trou de 8 h 30 entre 13:00 et 21:30 : la courbe annonçait « 0 min »
+    // sans interruption de 10:00 à 23:00.
+    //
+    // Le pas de référence est le plus PETIT écart de la série, pas une
+    // constante : il varie d'une attraction à l'autre, et le déduire des
+    // données évite qu'un changement de cadence côté worker ne rouvre le trou.
+    const fcTimes = forecast
+      .map((p) => Date.parse(p.t))
+      .filter((t) => !Number.isNaN(t))
+      .sort((a, b) => a - b);
+    if (fcTimes.length > 1) {
+      const step = Math.min(
+        ...fcTimes.slice(1).map((t, i) => t - fcTimes[i]),
+      );
+      if (step > 0) {
+        for (let i = 1; i < fcTimes.length; i++) {
+          const from = fcTimes[i - 1];
+          const to = fcTimes[i];
+          if (to - from <= step * 1.5) continue;
+          // Une ligne déjà présente dans l'intervalle vient forcément de la
+          // courbe observée, donc sa prévision est nulle : la rupture existe
+          // déjà et en ajouter une couperait la courbe observée en deux.
+          const alreadyBroken = [...rows.keys()].some(
+            (t) => t > from && t < to,
+          );
+          if (!alreadyBroken) row(from + Math.floor((to - from) / 2));
+        }
+      }
+    }
+
     const data = [...rows.values()].sort((a, b) => a.t - b.t);
 
     const nowMs = Date.parse(now);
