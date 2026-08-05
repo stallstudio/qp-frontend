@@ -470,6 +470,22 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   prévision vivait encore ici en double du worker) ne porte plus que la
   reconstruction de la courbe observée — `sampleDaySeries` /
   `sliceIntervalsForWindow`.
+- ⚠️ **Un TROU de la prévision doit rompre la courbe** (2026-08-05). Le worker
+  n'émet aucun point sur les créneaux « habituellement fermés » — un trou
+  délibéré plutôt qu'un 0 trompeur. Mais `connectNulls={false}` ne rompt que sur
+  un `null` EXPLICITE, pas sur une ligne absente du tableau : recharts reliait
+  les deux bords du trou par un segment franc, sur lequel aucun point ne répond
+  au survol. Vu sur Aerophile (Disney Springs) : 20 points au pas de 15 min,
+  **un trou de 8 h 30 entre 13:00 et 21:30**, et une courbe qui annonçait
+  « 0 min » sans interruption de 10:00 à 23:00. `wait-time-chart.tsx` insère
+  donc une ligne vide au milieu de chaque écart supérieur à 1,5 pas.
+  ⚠️ Le pas de référence est le plus PETIT écart de la série, jamais une
+  constante : il varie d'une attraction à l'autre, et le déduire des données
+  évite qu'un changement de cadence côté worker ne rouvre le trou.
+  ⚠️ La rupture n'est ajoutée que si l'intervalle ne porte **aucune** ligne :
+  une ligne déjà présente vient de la courbe observée, sa prévision y est donc
+  nulle — la rupture existe, et en ajouter une couperait la courbe observée en
+  deux.
 - ⚠️ **La courbe observée doit atteindre la FERMETURE.** La grille de buckets
   s'arrête *avant* `close` : une journée terminée voyait donc sa courbe s'arrêter
   jusqu'à un pas complet trop tôt (fermeture 19:30 → dernier point 19:15) alors
@@ -625,11 +641,37 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   du runtime, et Node ≠ navigateur (`HK` → « Hong Kong SAR China » côté Node,
   « Hong Kong » côté Chrome). Depuis que l'accueil est rendu côté serveur, tout
   appel pendant le rendu d'un composant client provoque une erreur
-  d'hydratation. Le nom de pays est donc résolu **une seule fois côté serveur**
-  (`lib/parks-list.ts` → `ParkList.countryName`) ; `getCountryName` ne doit plus
-  être appelée depuis un composant client. Même piste pour
-  `toLocaleLowerCase()`/`toLocaleDateString()` sans locale explicite : ils
-  dépendent de la locale par défaut du runtime.
+  d'hydratation. Le nom de pays est donc résolu **côté serveur** ;
+  `getCountryName` ne doit jamais être appelée depuis un composant client. Même
+  piste pour `toLocaleLowerCase()`/`toLocaleDateString()` sans locale explicite :
+  ils dépendent de la locale par défaut du runtime.
+
+### Deux noms de pays, et il faut les distinguer (2026-08-05)
+
+- **`ParkList.countryName` est ANGLAIS et le reste**, quelle que soit la langue
+  du visiteur : ⚠️ ce n'est pas un libellé d'affichage, c'est la **clé du
+  drapeau** — `getCountryFlagClass` en tire `twa-flag-united-states`. Le
+  traduire effacerait tous les drapeaux d'un coup.
+- **`ParkList.countryLabel` est le libellé traduit**, et c'est lui qu'affiche le
+  regroupement « par pays » de `parks-list.tsx`. Avant, la liste sortait
+  « Germany » et « United States » dans les 14 langues.
+- ⚠️ **La traduction se fait HORS DU CACHE** (`localizeCountries`, appelée par
+  `app/[locale]/page.tsx`). La liste des parcs est mémorisée 5 min **pour tout
+  le monde** : y ranger un libellé traduit servirait la langue du premier
+  visiteur aux treize autres pendant cinq minutes. Le cache reste neutre, la
+  traduction se refait par requête — un `Intl.DisplayNames` et deux cents
+  lectures de Map.
+- ⚠️ `/api/parks` ne porte **pas** `countryLabel`, et c'est volontaire : elle est
+  servie derrière un `s-maxage=60` **partagé**, donc une réponse traduite y
+  serait distribuée à toutes les langues. Elle n'a plus d'appelant côté client
+  depuis le passage au rendu serveur ; si un besoin réapparaît, il faudra une
+  clé de cache par langue (`?locale=`), pas un simple champ de plus.
+- ⚠️ **Le tri des catégories n'utilise PAS `localeCompare`** : il passerait par
+  les données de collation du runtime, soit exactement l'écart Node ↔ navigateur
+  qui a déjà coûté des erreurs d'hydratation sur ces mêmes noms. La clé de tri
+  est un dépliage `NFD` sans diacritiques, déterministe partout — et qui range
+  au passage « Émirats arabes unis » à E, là où le tri par point de code le
+  renvoyait après Z.
 - **Accessibilité** : `wait-time-table.tsx` n'est pas un `<table>` (blocs animés)
   mais porte les rôles ARIA `table`/`rowgroup`/`row`/`columnheader`/`rowheader`/
   `cell` + `aria-sort`. Toute nouvelle ligne doit conserver cette structure.
