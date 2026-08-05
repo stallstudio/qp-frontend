@@ -103,7 +103,13 @@ export function TimelineRow({
 
         const getBadgeClasses = () => {
           if (isPast) {
-            return "bg-muted/50 text-muted-foreground/50";
+            // La bordure reprend celle de la pastille « terminé » de la légende :
+            // sans elle, un créneau passé se fondait dans la grille (le fond
+            // `muted/50` est presque celui des lignes d'heures) alors que les
+            // deux autres états, eux, sont cernés. C'est aussi ce qui garde les
+            // trois états à la MÊME taille intérieure — `border` compte dans la
+            // boîte, un seul état sans bordure serait 1 px plus haut.
+            return "bg-muted/50 text-muted-foreground/50 border border-border";
           }
           if (isOngoing) {
             return "bg-primary/10 text-primary border border-primary/30 border-dashed";
