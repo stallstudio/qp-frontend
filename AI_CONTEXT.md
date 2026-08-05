@@ -222,6 +222,52 @@ C'est donc un classement par **nombre de consultations récentes**.
   et replier en CSS (`max-height`/`overflow-hidden`), au prix de l'animation par
   ligne (l'`AnimatePresence` ne joue que sur ce qui entre/sort du DOM).
 
+### Badges de parc (`components/parks/park-card.tsx`)
+
+`ParkList.badge` vient de la colonne texte `Park.badge`, réglée dans l'admin.
+Trois valeurs historiques (`new`, `featured`, `updated`) rendues en dégradé fixe
+et affichées **telles quelles en base, non traduites** — c'est l'existant, pas
+un choix à reproduire.
+
+**`exclusive`** (ajout 2026-08-05) = le parc n'est suivi en direct que sur Queue
+Park. Affiché **« EXCLU »**, et traité **à part** des trois autres :
+
+- ⚠️ **Libellé NON traduit**, comme les trois autres — les badges sont
+  identiques dans les 14 langues. Une version traduite (namespace i18n
+  `parkBadge` + infobulle) a été écrite puis **retirée** : en faire l'exception
+  suffisait à casser la règle. Ne pas la réintroduire.
+- ⚠️ Le libellé ne peut pas non plus venir de la base comme les trois autres :
+  celle-ci stocke la clé `exclusive`, dont la mise en majuscules donnerait
+  « EXCLUSIVE ». D'où la constante `EXCLUSIVE_LABEL`.
+- c'est le **seul badge animé** : dégradé ambré qui défile, via le composant
+  déjà présent `components/ui/animated-gradient-text.tsx` (keyframes `gradient`
+  de `globals.css`). Dans une liste où deux cents lignes se ressemblent, seul le
+  MOUVEMENT accroche l'œil — une quatrième couleur fixe se serait fondue dans
+  les trois autres. ⚠️ `motion-reduce:animate-none` : le réglage système coupe
+  le défilement **sans effacer le badge**.
+- ⚠️ **La cadence se règle par `duration` (3 s), jamais par `speed`.** Les 8 s
+  par défaut des keyframes sont calées pour un titre de héros ; sur une
+  étiquette de cinq lettres dans une liste, un passage toutes les huit secondes
+  se rate simplement. `speed` élargit le dégradé — la bande claire va plus vite,
+  mais il y a toujours **un** balayage par cycle, `--bg-size` servant à la fois
+  de largeur de motif et de distance parcourue par les keyframes. `duration` a
+  été ajouté au composant pour ça.
+
+⚠️ **Un parc ne porte qu'UN badge** : `Park.badge` est une colonne texte, pas un
+jeu de drapeaux. « Nouveau » et « exclusif » s'excluent — arbitrage assumé pour
+ne pas migrer le schéma dans les trois dépôts.
+
+⚠️ **Un badge changé dans l'admin met jusqu'à 5 MINUTES à apparaître ici**, et
+ça se lit comme une écriture qui a échoué : `getParksWithHours()` mémorise la
+liste des parcs (`PARKS_CACHE_TTL_MS`, `lib/parks-list.ts`), et le badge en fait
+partie. Vu en vrai le 2026-08-05 — un parc passé en `exclusive` continuait
+d'afficher `NEW`. La base était juste, le cache non. Redémarrer le serveur vide
+le cache (il vit sur `globalThis`).
+
+⚠️ L'admin **recopie ce rendu** (`components/parks/park-badge.tsx` là-bas) pour
+qu'on voie ce qu'on règle : les couleurs, l'animation et les libellés doivent
+bouger des deux côtés à la fois.
+
 ### Temps d'attente & files
 
 - `types/waitTime.ts` : `WaitTime` a un tableau `queues: QueueTime[]`.
@@ -240,9 +286,17 @@ C'est donc un classement par **nombre de consultations récentes**.
 
 - `components/parks/show-time-table/` : timeline horizontale (colonne de noms +
   créneaux positionnés). États visuels d'un créneau (voir `timeline-row.tsx`) :
-  **terminé** = `bg-muted/50` grisé, **en cours** = `bg-primary/10` bordure
-  pointillée, **à venir** = `bg-primary/20` bordure pleine. Une **légende**
-  (namespace i18n `shows.legend*`) est rendue sous la timeline sur chaque page.
+  **terminé** = `bg-muted/50` grisé + `border-border`, **en cours** =
+  `bg-primary/10` bordure pointillée, **à venir** = `bg-primary/20` bordure
+  pleine. Une **légende** (namespace i18n `shows.legend*`) est rendue sous la
+  timeline sur chaque page.
+  ⚠️ **Les trois états portent une bordure, y compris « terminé »**
+  (2026-08-05). Le créneau passé n'en avait pas, alors que sa pastille de
+  légende, elle, en a une : sur la timeline il se fondait dans la grille (le
+  fond `muted/50` est presque celui des lignes d'heures) quand les deux autres
+  états étaient cernés. C'est aussi ce qui garde les trois états à la même
+  taille intérieure — `border` compte dans la boîte, un seul état sans bordure
+  serait 1 px plus haut que ses voisins.
 - **Même comportement que les attractions** (2026-07-28) : plus d'œil, un clic
   n'importe où sur la ligne ouvre `show-detail-dialog.tsx`, cloche `BellRing` en
   bout de nom si un rappel est programmé, survol qui allume les **deux moitiés**
