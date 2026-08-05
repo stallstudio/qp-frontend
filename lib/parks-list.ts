@@ -54,6 +54,10 @@ async function loadParks(): Promise<ParkList[]> {
     // Résolu ici, une seule fois : `Intl.DisplayNames` ne donne pas le même
     // libellé sous Node et dans le navigateur (voir `getCountryName`), et le
     // recalculer dans un composant client casserait l'hydratation.
+    //
+    // ⚠️ Celui-ci reste ANGLAIS quelle que soit la langue du visiteur : c'est
+    // lui qui compose la classe du drapeau (`twa-flag-united-states`). Le
+    // libellé affiché, lui, est `countryLabel` — voir `localizeCountries`.
     countryName: getCountryName(park.country ?? ""),
   })) as unknown as ParkList[];
 }
@@ -66,6 +70,35 @@ export async function getParksWithHours(): Promise<ParkList[]> {
   const parks = await loadParks();
   globalForParks.parksCache = { parks, fetchedAt: Date.now() };
   return parks;
+}
+
+/**
+ * Ajoute à chaque parc le nom de son pays DANS LA LANGUE DU VISITEUR.
+ *
+ * ⚠️ **En dehors du cache, et c'est tout l'intérêt.** La liste des parcs est
+ * mémorisée 5 minutes pour tout le monde ; y ranger un libellé traduit
+ * servirait la langue du premier visiteur aux treize autres pendant cinq
+ * minutes. Le cache reste donc neutre (anglais seulement) et la traduction se
+ * refait à chaque requête — un `Intl.DisplayNames` par langue et deux cents
+ * lectures de Map, de l'ordre de la fraction de milliseconde.
+ *
+ * ⚠️ Et côté SERVEUR, comme `countryName` : traduire dans le composant client
+ * rouvrirait l'écart CLDR entre Node et le navigateur.
+ */
+export function localizeCountries(
+  parks: ParkList[],
+  locale: string,
+): ParkList[] {
+  const cache = new Map<string, string>();
+  return parks.map((park) => {
+    const code = park.country ?? "";
+    let label = cache.get(code);
+    if (label === undefined) {
+      label = getCountryName(code, locale);
+      cache.set(code, label);
+    }
+    return { ...park, countryLabel: label };
+  });
 }
 
 /**

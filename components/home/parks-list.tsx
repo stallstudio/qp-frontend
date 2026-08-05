@@ -88,19 +88,29 @@ export default function ParksList({ parks }: ParksListProps) {
   const groupParksByCountry = () => {
     const grouped: Record<string, ParkList[]> = {};
     filteredParks.forEach((park) => {
-      // Nom résolu côté serveur (voir `ParkList.countryName`) : le recalculer
+      // ⚠️ `countryLabel` (traduit) et NON `countryName` (anglais, réservé à la
+      // classe du drapeau). Les deux sont résolus côté serveur : les recalculer
       // ici donnerait un libellé différent au SSR et à l'hydratation.
-      const countryName = park.countryName || "Unknown Country";
+      const countryName =
+        park.countryLabel || park.countryName || "Unknown Country";
       if (!grouped[countryName]) {
         grouped[countryName] = [];
       }
       grouped[countryName].push(park);
     });
 
-    // Sort groups alphabetically
+    // Ordre alphabétique, accents ignorés — « Émirats arabes unis » se range à
+    // E et non après Z, où le tri par point de code le renvoyait.
+    //
+    // ⚠️ Volontairement PAS `localeCompare` : la comparaison passerait par les
+    // données de collation du runtime, et c'est exactement l'écart Node ↔
+    // navigateur qui nous a déjà valu des erreurs d'hydratation sur ces mêmes
+    // noms de pays. Un dépliage NFD est déterministe partout.
+    const sortKey = (s: string) =>
+      s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
     const sortedGrouped: Record<string, ParkList[]> = {};
     Object.keys(grouped)
-      .sort()
+      .sort((a, b) => (sortKey(a) < sortKey(b) ? -1 : sortKey(a) > sortKey(b) ? 1 : 0))
       .forEach((key) => {
         sortedGrouped[key] = grouped[key];
       });

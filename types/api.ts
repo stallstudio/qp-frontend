@@ -43,10 +43,19 @@ export interface ParkList {
   cover: CoverImage[];
   badge?: string;
   country: string;
-  // Nom anglais du pays, résolu CÔTÉ SERVEUR (`lib/parks-list.ts`). Ne pas le
+  // Nom ANGLAIS du pays, résolu CÔTÉ SERVEUR (`lib/parks-list.ts`). Ne pas le
   // recalculer dans un composant client : `Intl.DisplayNames` ne donne pas le
   // même résultat sous Node et dans le navigateur (voir `getCountryName`).
+  //
+  // ⚠️ **Ce n'est pas un libellé d'affichage, c'est la clé du DRAPEAU** :
+  // `getCountryFlagClass` en tire `twa-flag-united-states`. Le traduire
+  // effacerait tous les drapeaux. Pour afficher, utiliser `countryLabel`.
   countryName: string;
+  // Le même pays dans la LANGUE DU VISITEUR, posé par `localizeCountries` en
+  // dehors du cache de la liste (qui, lui, est partagé par les 14 langues).
+  // Optionnel : les charges utiles qui ne passent pas par là — `/api/parks`,
+  // servie derrière un cache commun — n'en portent pas.
+  countryLabel?: string;
   group: Group;
   openingHours: OpeningHour[];
 }

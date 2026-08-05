@@ -1,6 +1,7 @@
+import { getLocale } from "next-intl/server";
 import HomePageClient from "@/components/home/home-page-client";
 import HomeSkeleton from "@/components/home/home-skeleton";
-import { getHomeData } from "@/lib/parks-list";
+import { getHomeData, localizeCountries } from "@/lib/parks-list";
 import type { ParkList } from "@/types/api";
 
 // Le classement des « parcs populaires » reflète les 2 dernières heures : la
@@ -18,10 +19,13 @@ export default async function Home() {
 
   try {
     const data = await getHomeData();
-    parks = data.parks;
+    // Les noms de pays sont traduits ICI, après le cache partagé de la liste :
+    // c'est la seule étape qui connaît la langue de la requête, et la seule qui
+    // ne doit surtout pas être mémorisée (voir `localizeCountries`).
+    parks = localizeCountries(data.parks, await getLocale());
     popularParks = data.popularParks
       .map((identifier) =>
-        data.parks.find((park) => park.identifier === identifier),
+        parks.find((park) => park.identifier === identifier),
       )
       .filter((park): park is ParkList => park !== undefined);
   } catch (error) {

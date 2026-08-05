@@ -55,7 +55,8 @@ export const getParkLink = (park: ParkList) => {
 };
 
 /**
- * Nom anglais d'un pays depuis son code ISO.
+ * Nom d'un pays depuis son code ISO, dans la langue demandée (anglais par
+ * défaut).
  *
  * ⚠️ **À N'APPELER QUE CÔTÉ SERVEUR.** `Intl.DisplayNames` s'appuie sur les
  * données ICU du runtime, et Node et les navigateurs n'embarquent pas la même
@@ -65,13 +66,14 @@ export const getParkLink = (park: ParkList) => {
  * l'hydratation), elle produit deux résultats différents et React signale une
  * erreur d'hydratation.
  *
- * Le nom est donc résolu UNE FOIS, dans `lib/parks-list.ts`, et transporté dans
- * `ParkList.countryName`.
+ * Les deux noms sont donc résolus CÔTÉ SERVEUR dans `lib/parks-list.ts` et
+ * transportés dans la charge utile : `ParkList.countryName` (anglais, qui sert
+ * de clé au drapeau) et `ParkList.countryLabel` (langue du visiteur, affiché).
  */
-export function getCountryName(code: string): string {
+export function getCountryName(code: string, locale = "en"): string {
   if (!code) return "";
 
-  const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+  const regionNames = new Intl.DisplayNames([locale], { type: "region" });
   return regionNames.of(code.toUpperCase()) ?? code;
 }
 
