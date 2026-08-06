@@ -32,6 +32,14 @@ model Park {
   city                  String?   @db.VarChar(255)
   latitude              Float?
   longitude             Float?
+  // Provider issu du registre code (parkRegistry.ts), resynchronisé au boot du
+  // worker. Le worker pourrait le déduire du registre, mais l'admin est un repo
+  // séparé qui n'y a pas accès : sans cette colonne, impossible d'afficher quels
+  // parcs un mapping `provider:x` affecte, ni de donner ce contexte à l'IA.
+  provider              String?   @db.VarChar(50)
+  // Langue principale du parc, ISO 639-1. Non dérivable de `country` (BE, CH,
+  // CA). Sert de repli quand StatusSource.languageHint n'est pas renseigné.
+  language              String?   @db.VarChar(10)
   currentTemp           Float? // °C, météo « live » écrasée à chaque passage horaire
   currentWeatherCode    Int? // Code WMO courant (voir DailyWeather.weatherCode)
   weatherUpdatedAt      DateTime? // Dernier rafraîchissement de currentTemp/currentWeatherCode
@@ -75,6 +83,7 @@ model Park {
   appVersions     AppVersion[]
   dailyWeather    DailyWeather[]
   rideForecasts   RideForecast[]
+  forecastAccuracy ForecastAccuracy[]
 
   @@index([groupId])
   @@map("parks")
@@ -98,8 +107,9 @@ model DailyWeather {
   @@map("daily_weather")
 }
 
-// Vacances scolaires et jours fériés, par pays (alimenté par le worker :
-// OpenHolidays + Nager.Date). Sert la pondération de la prévision d'affluence.
+// Vacances scolaires et jours fériés, par pays. Alimenté par le job
+// `fetchHolidays` (OpenHolidays pour l'Europe/scolaire, Nager.Date en fallback
+// jours fériés mondiaux). Sert la pondération de la prévision d'affluence.
 // `subdivisionCode = ""` = période nationale (couvre tout le pays).
 model Holiday {
   id              Int      @id @default(autoincrement())
@@ -118,8 +128,10 @@ model Holiday {
   @@map("holidays")
 }
 
-// Prévision de temps d'attente d'une attraction, précalculée par le worker et
-// lue par le front (le front ne calcule plus la prévision, il l'affiche).
+// Prévision de temps d'attente d'une attraction, PRÉCALCULÉE par le worker et
+// stockée (une ligne par attraction, écrasée). `baseProfile` = profil de base
+// pondéré (recalculé 1×/jour) ; `forecast` = série finale rafraîchie chaque
+// heure (base + échelle/tendance du jour). Le front lit, ne calcule plus.
 model RideForecast {
   id              Int       @id @default(autoincrement())
   rideId          Int       @unique
@@ -139,16 +151,55 @@ model RideForecast {
   computedAt      DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  // Écrits par le worker (voir tw-waittimes-worker/src/services/forecast/).
-  // Le front ne LIT que `marginMinutes`/`marginSamples` : la marge du tracé est
-  // portée par chaque point de `forecast`.
+  // ————— Mesure de justesse (voir modèle ForecastAccuracy) —————
+  // Prévision de RÉFÉRENCE du jour = celle du tout premier passage sur `date`,
+  // conservée telle quelle jusqu'au changement de jour (les passages suivants
+  // n'écrasent que `forecast`). Sans elle, on ne pourrait jamais mesurer que
+  // l'horizon « 10 minutes » : chaque passage remplaçant le précédent, un point
+  // à +6 h n'est jamais confronté à l'observé depuis la prévision qui l'a émis.
   referenceForecast   Json?
   referenceComputedAt DateTime?
-  marginMinutes       Float?
-  marginSamples       Int?      @default(0)
+  // Marge d'erreur agrégée (MAE récente toutes fenêtres confondues), en minutes.
+  // Redondante avec `margin` porté par chaque point de `forecast` — sert
+  // l'affichage admin et le tri, pas le rendu du graphique.
+  marginMinutes Float?
+  marginSamples Int?   @default(0)
 
   @@index([parkId])
   @@map("ride_forecast")
+}
+
+// Justesse mesurée de la prévision : agrégat QUOTIDIEN par attraction et par
+// fenêtre d'horizon. On n'archive PAS les prévisions point par point (à ~5 000
+// attractions × 40 points × 144 passages/jour, la table serait ingérable) : on
+// confronte chaque point à l'observé au moment où il devient passé, puis on
+// cumule les sommes ici. MAE = sumAbsError / samples, biais = sumSignedError /
+// samples (positif = on surestime l'attente).
+model ForecastAccuracy {
+  id     Int    @id @default(autoincrement())
+  rideId Int
+  ride   Ride   @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  parkId Int
+  park   Park   @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  date   String @db.VarChar(10) // jour local du parc (YYYY-MM-DD)
+
+  // Borne HAUTE de la fenêtre d'horizon, en minutes (30 = « prédit ≤ 30 min à
+  // l'avance »). Voir HORIZON_BUCKETS dans forecastAccuracy.ts.
+  horizonBucket Int
+
+  samples        Int   @default(0)
+  sumAbsError    Float @default(0) // Σ |prévu − observé|
+  sumSignedError Float @default(0) // Σ (prévu − observé)
+  sumActual      Float @default(0) // Σ observé (donne l'erreur RELATIVE)
+
+  method    String   @db.VarChar(40) // version du moteur ayant produit ces points
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([rideId, date, horizonBucket])
+  @@index([parkId, date])
+  @@index([date])
+  @@map("forecast_accuracy")
 }
 
 model Ride {
@@ -163,6 +214,7 @@ model Ride {
   updatedAt  DateTime   @updatedAt
   waitTimes  WaitTime[]
   forecast   RideForecast?
+  forecastAccuracy ForecastAccuracy[]
 
   @@unique([parkId, externalId])
   @@index([parkId])
@@ -257,6 +309,144 @@ model WaitTime {
   @@map("wait_times")
 }
 
+//
+// STATUS RESOLUTION
+//
+// Source de vérité du passage « valeur brute d'une API » → « statut normalisé ».
+// Auparavant en dur dans ~28 fetchers, ce qui imposait un commit + un
+// redéploiement (donc 1 à 2 crons de temps d'attente perdus) à chaque nouveau
+// statut découvert. Le worker charge ces deux tables une fois par run et résout
+// tout en mémoire (cf. statusResolver.ts).
+//
+// L'identifiant de source est canonique et partagé avec `unknown_statuses` :
+//   "provider:<name>" | "park:<identifier>" | "park:<identifier>#<channel>"
+
+enum StatusRuleKind {
+  status // la valeur brute est un token de statut
+  wait_value // la valeur brute est le champ numérique de temps d'attente
+}
+
+enum StatusMatchMode {
+  exact
+  includes
+  prefix
+  regex
+}
+
+enum StatusMappingOrigin {
+  seed // extrait des tables en dur lors de la migration
+  manual // saisi en admin
+  ai_auto // proposé par l'IA au-dessus du seuil, appliqué automatiquement
+  ai_human // proposé par l'IA, validé à la main en admin
+}
+
+enum AiStatusVerdict {
+  open
+  closed
+  down
+  maintenance
+  non_applicable // la valeur n'est pas un statut opérationnel
+}
+
+// Configuration de résolution d'UNE source de données. Porte ce qui est une
+// propriété de la source et non une règle de correspondance : absence de champ
+// statut, plage de temps plausible, unité, statut de repli.
+model StatusSource {
+  id       Int     @id @default(autoincrement())
+  sourceId String  @unique @db.VarChar(120)
+  label    String? @db.VarChar(255)
+
+  // Langue dans laquelle l'API émet ses statuts, ≠ langue du parc : Fuji-Q est
+  // appelé en `locale=EN_US` mais répond en japonais. C'est CE champ que
+  // consomme le prompt IA. ISO 639-1.
+  languageHint String? @db.VarChar(10)
+
+  // ————— Normalisation de la valeur brute —————
+  defaultMatchMode StatusMatchMode @default(exact)
+  caseInsensitive  Boolean         @default(true)
+  trimWhitespace   Boolean         @default(true)
+
+  // ————— Statut —————
+  // Retenu quand aucune règle ne matche (ex-argument `defaultStatus`).
+  defaultStatus  WaitTimeStatus @default(open)
+  // false = l'API ne renvoie aucun champ de statut (studio-100, attractions-io…)
+  hasStatusField Boolean        @default(true)
+
+  // ————— Temps d'attente —————
+  // true = la valeur numérique porte l'information de statut (tokyo-dome-city :
+  // le code image EST le temps ; studio-100 : 0 => fermé).
+  deriveStatusFromWait Boolean @default(false)
+  minPlausibleWait     Int     @default(0)
+  // Au-delà, la valeur n'est PAS un temps réel mais une sentinelle. Unifie les
+  // seuils jusqu'ici incohérents entre fetchers (>200, >900, >=999, <1000).
+  maxPlausibleWait     Int     @default(600)
+  waitUnit             String  @default("minutes") @db.VarChar(10)
+
+  // ————— IA —————
+  aiEnabled            Boolean @default(true)
+  aiAutoApplyThreshold Float   @default(0.9)
+
+  active Boolean @default(true)
+  notes  String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mappings StatusMapping[]
+
+  @@map("status_sources")
+}
+
+// Une règle de correspondance. Les sentinelles numériques (mack 666, codes
+// d'image de Tokyo Dome) vivent ici aussi, discriminées par `kind` : même cycle
+// de vie que les statuts textuels, même UI, même workflow IA.
+model StatusMapping {
+  id       Int          @id @default(autoincrement())
+  sourceId String       @db.VarChar(120)
+  source   StatusSource @relation(fields: [sourceId], references: [sourceId], onDelete: Cascade)
+
+  kind     StatusRuleKind @default(status)
+  rawValue String         @db.VarChar(255)
+  // null => hérite de StatusSource.defaultMatchMode
+  matchMode StatusMatchMode?
+
+  mappedStatus WaitTimeStatus
+  // Force le temps quand la règle matche, y compris sur un statut `open`.
+  // -1 = ouvert mais aucun temps communiqué (nigloland « Indéterminé », mack
+  // 666/777, universal NO_WAIT). C'est un troisième état, distinct de « ouvert
+  // avec un temps » et de « fermé » — d'où l'absence volontaire de toute
+  // assertion « open ⇒ waitTime ≥ 0 » dans le resolver.
+  // null = conserver la valeur renvoyée par l'API.
+  waitTimeOverride Int?
+
+  // Décroissant, la plus haute gagne. Départage stable : longueur de rawValue
+  // desc, puis id asc. Ne s'applique qu'aux modes non-exact, où « technical
+  // check » doit passer avant « check ».
+  priority Int @default(100)
+
+  origin     StatusMappingOrigin @default(manual)
+  confidence Float?
+  reasoning  String?             @db.Text
+  aiModel    String?             @db.VarChar(60)
+  createdBy  String?             @db.VarChar(100)
+
+  active Boolean @default(true)
+  // Mis à jour en batch en fin de run. Une règle censée être marginale qui
+  // capte des milliers de hits est le signal d'une saisie erronée.
+  hitCount      Int       @default(0)
+  lastMatchedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Rend structurellement impossibles les collisions du système précédent, où
+  // un même token pouvait figurer dans deux catégories (samsung-ct : PEND, PMCH)
+  // et où seul l'ordre d'évaluation tranchait.
+  @@unique([sourceId, kind, rawValue])
+  @@index([sourceId, active])
+  @@map("status_mappings")
+}
+
 model OpeningHours {
   id        Int       @id @default(autoincrement())
   parkId    Int
@@ -345,10 +535,37 @@ model UnmatchedAlert {
   @@map("unmatched_alerts")
 }
 
+// Valeur brute observée qu'aucune règle de `status_mappings` ne couvre. C'est
+// une OBSERVATION datée, là où StatusMapping est une DÉCISION — d'où deux
+// tables. C'est aussi le registre d'idempotence du workflow IA : `aiProcessedAt`
+// garantit qu'une valeur déjà arbitrée n'est jamais resoumise, même si elle
+// continue d'être observée à chaque passage.
 model UnknownStatus {
-  id         Int      @id @default(autoincrement())
-  parkId     String   @db.VarChar(100)
-  status     String   @db.VarChar(255)
+  id     Int    @id @default(autoincrement())
+  // Contient le sourceId canonique. Nom historique conservé : c'est la clé
+  // d'unicité en production, et `db push` traite un rename comme un drop.
+  parkId String @db.VarChar(100)
+  status String @db.VarChar(255)
+
+  kind        StatusRuleKind @default(status)
+  occurrences Int            @default(1)
+  // externalId des attractions ayant renvoyé cette valeur, en JSON. Sert à
+  // afficher de quelles attractions il s'agit, ce qu'un identifiant brut ne
+  // permet pas de deviner.
+  externalIds String?        @db.Text
+
+  // ————— Verdict IA —————
+  aiStatus      AiStatusVerdict?
+  aiConfidence  Float?
+  aiReasoning   String?          @db.Text
+  aiModel       String?          @db.VarChar(60)
+  aiProcessedAt DateTime?
+  aiAttempts    Int              @default(0)
+
+  // Rejeté explicitement en admin : jamais resoumis à l'IA, et jamais remis à
+  // resolved = false par le flux d'observation.
+  dismissedAt DateTime?
+
   resolved   Boolean  @default(false)
   createdAt  DateTime @default(now())
   lastSeenAt DateTime @updatedAt
@@ -357,6 +574,7 @@ model UnknownStatus {
   @@index([parkId])
   @@index([resolved])
   @@index([lastSeenAt])
+  @@index([aiProcessedAt])
   @@map("unknown_statuses")
 }
 
