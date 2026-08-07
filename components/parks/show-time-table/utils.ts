@@ -35,6 +35,34 @@ export function formatDuration(minutes: number, locale: string): string {
 const CONTINUOUS_MIN_SPAN_MIN = 120;
 const CONTINUOUS_SPAN_RATIO = 3;
 
+// ————————————————————— Deuxième porte d'entrée —————————————————————
+// ⚠️ Le test du ratio ci-dessus ne peut PAS voir le cas inverse, et c'est
+// structurel. Il suppose une durée de visite COURTE dans un créneau long
+// (Puy du Fou : 20 min dans 8 h, ratio 24). Miral fait l'inverse : il annonce
+// toute la plage d'accès comme durée. Yas Waterworld, mesuré le 2026-08-07 :
+//
+//   Yas Ladies Day   duration 540 min, créneau 09:00 → 18:00 (540 min)
+//   Yas Ladies Night duration 240 min, créneau 13:00 → 17:00 (240 min)
+//
+// L'amplitude vaut alors exactement la durée, donc `span >= 3 * duration` est
+// faux — et il l'est d'autant plus que le cas est évident. « Yas Ladies Day »
+// s'affichait « Durée : 9 heures », ce qui ne décrit aucun spectacle.
+//
+// La seconde règle prend le problème par l'autre bout : une durée ÉGALE à
+// l'amplitude, sur une plage assez longue, est une plage d'accès et non une
+// représentation. Aucun spectacle ne dure quatre heures.
+//
+// ⚠️ **Le seuil est à 240 min, pas à `CONTINUOUS_MIN_SPAN_MIN`**, sinon la
+// règle happerait de vraies représentations longues. Vérifié sur la base
+// entière : à 240 min elle ne retient QUE les deux créneaux de Yas Waterworld.
+// Les jeux Fantawild de Huaian (`duration` 265 min pour une amplitude moyenne
+// de 160) sont écartés par la tolérance ; 丝路盛景 (150 min, amplitude 150)
+// reste sous le seuil et garde son affichage en durée.
+const CONTINUOUS_LONG_SPAN_MIN = 240;
+// La durée annoncée et l'amplitude ne coïncident pas toujours à la minute :
+// arrondis de la source, fin de créneau décalée.
+const CONTINUOUS_SPAN_TOLERANCE_MIN = 15;
+
 export type ShowAccessInfo =
   | { kind: "duration"; minutes: number }
   | { kind: "continuous"; startTime: string; endTime: string };
@@ -51,8 +79,13 @@ function getSlotSpanMinutes(
   return diff > 0 ? Math.round(diff) : null;
 }
 
-// Créneau à accès continu = fin connue, amplitude longue ET très supérieure à la
-// durée de visite (quand celle-ci est connue).
+// Créneau à accès continu. Deux façons de le reconnaître, parce que les sources
+// se répartissent en deux familles (voir les constantes ci-dessus) :
+//
+//  1. amplitude longue ET très supérieure à la durée annoncée — la durée est
+//     celle de la VISITE (Puy du Fou) ;
+//  2. amplitude longue ET ÉGALE à la durée annoncée — la durée EST la plage
+//     d'accès (Miral / Yas Waterworld).
 export function isContinuousAccessSlot(
   schedule: ShowSchedule,
   showDuration: number,
@@ -60,10 +93,16 @@ export function isContinuousAccessSlot(
 ): boolean {
   const span = getSlotSpanMinutes(schedule, timezone);
   if (span === null || span < CONTINUOUS_MIN_SPAN_MIN) return false;
-  if (showDuration > 0 && span < CONTINUOUS_SPAN_RATIO * showDuration) {
-    return false;
-  }
-  return true;
+
+  // Sans durée annoncée, l'amplitude seule tranche : c'est le cas d'origine.
+  if (showDuration <= 0) return true;
+
+  if (span >= CONTINUOUS_SPAN_RATIO * showDuration) return true;
+
+  return (
+    span >= CONTINUOUS_LONG_SPAN_MIN &&
+    Math.abs(span - showDuration) <= CONTINUOUS_SPAN_TOLERANCE_MIN
+  );
 }
 
 // Info d'accès à afficher dans le popup : soit une plage horaire (accès continu),
