@@ -2,7 +2,7 @@
 
 > Fiche de contexte pour l'assistant IA. But : comprendre le projet sans relire
 > tout le code. À maintenir à jour quand l'architecture change.
-> Dernière mise à jour : 2026-07-30.
+> Dernière mise à jour : 2026-08-07.
 
 ## En un mot
 
@@ -283,6 +283,36 @@ bouger des deux côtés à la fois.
   de sauter. `motion` n'est utilisé QUE là et dans les démos À propos + border-beam.
 
 ### Spectacles
+
+#### Accès continu — DEUX règles, parce qu'il y a deux familles de sources
+
+`show-time-table/utils.ts`. Certaines « attractions-spectacles » ne sont pas des
+représentations à heure fixe mais des **accès continus** : le popup affiche alors
+`continuousAccess` (« En continu · 12:00 – 20:15 ») et non `duration`.
+
+⚠️ **La règle du ratio ne peut PAS voir le cas inverse, et c'est structurel.**
+Elle suppose une durée de visite COURTE dans un créneau long (Puy du Fou : 20 min
+dans 8 h, ratio 24) et exige `amplitude ≥ 3 × duration`. **Miral fait l'inverse :
+il annonce toute la plage d'accès comme `duration`.** Mesuré le 2026-08-07 :
+
+| | `duration` | créneau | amplitude |
+| --- | --- | --- | --- |
+| Yas Ladies Day | 540 min | 09:00 → 18:00 | 540 min |
+| Yas Ladies Night | 240 min | 13:00 → 17:00 | 240 min |
+
+L'amplitude vaut alors exactement la durée, donc le ratio est faux — et il l'est
+**d'autant plus que le cas est évident**. « Yas Ladies Day » s'affichait
+« Durée : 9 heures », ce qui ne décrit aucun spectacle.
+
+D'où une **seconde porte d'entrée** : `amplitude ≥ 240 min` **et**
+`|amplitude − duration| ≤ 15 min` ⇒ accès continu. Aucun spectacle ne dure quatre
+heures ; une plage d'accès de quatre heures, si.
+
+⚠️ **Le seuil est à 240 min et non aux 120 min de `CONTINUOUS_MIN_SPAN_MIN`**,
+sinon la règle happerait de vraies représentations longues. Vérifié sur toute la
+base : à 240 min elle ne retient **que** les deux créneaux de Yas Waterworld. Les
+jeux Fantawild de Huaian (`duration` 265 pour une amplitude de 160) sont écartés
+par la tolérance ; 丝路盛景 (150 / 150) reste sous le seuil.
 
 - `components/parks/show-time-table/` : timeline horizontale (colonne de noms +
   créneaux positionnés). États visuels d'un créneau (voir `timeline-row.tsx`) :
