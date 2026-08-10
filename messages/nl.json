@@ -183,7 +183,7 @@
     "cards": {
       "intro": {
         "title": "Wat is Queue Park?",
-        "body": "Queue Park brengt de live wachttijden van meer dan 100 pretparken wereldwijd op één plek samen. Ons doel: je in één oogopslag laten zien welke attracties je nú moet doen, zodat je je dag beter plant zonder met je neus op de plattegrond te zitten."
+        "body": "Queue Park brengt de live wachttijden van meer dan 200 pretparken wereldwijd op één plek samen. Ons doel: je in één oogopslag laten zien welke attracties je nú moet doen, zodat je je dag beter plant zonder met je neus op de plattegrond te zitten."
       },
       "data": {
         "title": "Waar komen de gegevens vandaan?",
@@ -265,12 +265,12 @@
   "metadata": {
     "title": "Queue Park - Live wachttijden van pretparken",
     "titleTemplate": "%s | Queue Park",
-    "description": "Wachttijden in realtime voor meer dan 100 pretparken wereldwijd. Volg de rijen bij attracties, plan je bezoek en haal het meeste uit je dag met live gegevens rechtstreeks uit de API's van de parken.",
+    "description": "Wachttijden in realtime voor meer dan 200 pretparken wereldwijd. Volg de rijen bij attracties, plan je bezoek en haal het meeste uit je dag met live gegevens rechtstreeks uit de API's van de parken.",
     "keywords": "wachttijden pretpark, rijen pretpark, wachttijden achtbaan, pretpark app, live wachttijden, rijen attracties, wachttijden Disney, wachttijden Universal, wachttijden Six Flags, pretparkbezoek plannen",
     "ogTitle": "Queue Park - Live wachttijden van pretparken",
-    "ogDescription": "Wachttijden in realtime voor meer dan 100 pretparken wereldwijd. Volg de rijen en plan je bezoek met live gegevens.",
+    "ogDescription": "Wachttijden in realtime voor meer dan 200 pretparken wereldwijd. Volg de rijen en plan je bezoek met live gegevens.",
     "twitterTitle": "Queue Park - Live wachttijden van pretparken",
-    "twitterDescription": "Wachttijden in realtime voor meer dan 100 pretparken wereldwijd. Volg de rijen en plan je bezoek.",
+    "twitterDescription": "Wachttijden in realtime voor meer dan 200 pretparken wereldwijd. Volg de rijen en plan je bezoek.",
     "liveWaitTimes": "Live wachttijden",
     "rideDescription": "Live wachttijd voor {ride} in {park}: huidige rij, verloop van de dag en voorspelling. Stel een melding in om te weten wanneer de wachttijd zakt."
   },

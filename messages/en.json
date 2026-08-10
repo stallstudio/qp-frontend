@@ -183,7 +183,7 @@
     "cards": {
       "intro": {
         "title": "What is Queue Park?",
-        "body": "Queue Park brings together, in one place, the live wait times of over 100 theme parks around the world. Our goal: help you spot at a glance which attractions to ride right now and plan your day better, without keeping your nose buried in a map."
+        "body": "Queue Park brings together, in one place, the live wait times of over 200 theme parks around the world. Our goal: help you spot at a glance which attractions to ride right now and plan your day better, without keeping your nose buried in a map."
       },
       "data": {
         "title": "Where does the data come from?",
@@ -265,12 +265,12 @@
   "metadata": {
     "title": "Queue Park - Live Theme Park Wait Times",
     "titleTemplate": "%s | Queue Park",
-    "description": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues, plan your visit, and maximize your fun with live data directly from park APIs.",
+    "description": "Real-time wait times for over 200 theme parks worldwide. Track attraction queues, plan your visit, and maximize your fun with live data directly from park APIs.",
     "keywords": "theme park wait times, amusement park queues, roller coaster wait times, theme park app, live wait times, attraction queues, Disney wait times, Universal wait times, Six Flags wait times, theme park planning",
     "ogTitle": "Queue Park - Live Theme Park Wait Times",
-    "ogDescription": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues and plan your visit with live data.",
+    "ogDescription": "Real-time wait times for over 200 theme parks worldwide. Track attraction queues and plan your visit with live data.",
     "twitterTitle": "Queue Park - Live Theme Park Wait Times",
-    "twitterDescription": "Real-time wait times for over 100 theme parks worldwide. Track attraction queues and plan your visit.",
+    "twitterDescription": "Real-time wait times for over 200 theme parks worldwide. Track attraction queues and plan your visit.",
     "liveWaitTimes": "Live Wait Times",
     "rideDescription": "Live wait time for {ride} at {park}: current queue, today's trend and forecast. Set an alert to be notified when the wait drops."
   },

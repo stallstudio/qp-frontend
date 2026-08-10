@@ -183,7 +183,7 @@
     "cards": {
       "intro": {
         "title": "¿Qué es Queue Park?",
-        "body": "Queue Park reúne en un solo sitio los tiempos de espera en directo de más de 100 parques de atracciones de todo el mundo. Nuestro objetivo: que veas de un vistazo a qué atracciones subir ahora mismo y planifiques mejor tu día, sin ir con la nariz pegada al plano."
+        "body": "Queue Park reúne en un solo sitio los tiempos de espera en directo de más de 200 parques de atracciones de todo el mundo. Nuestro objetivo: que veas de un vistazo a qué atracciones subir ahora mismo y planifiques mejor tu día, sin ir con la nariz pegada al plano."
       },
       "data": {
         "title": "¿De dónde vienen los datos?",
@@ -265,12 +265,12 @@
   "metadata": {
     "title": "Queue Park - Tiempos de espera en directo de parques de atracciones",
     "titleTemplate": "%s | Queue Park",
-    "description": "Tiempos de espera en tiempo real de más de 100 parques de atracciones de todo el mundo. Sigue las colas de las atracciones, planifica tu visita y aprovecha tu día al máximo con datos en directo de las API de los parques.",
+    "description": "Tiempos de espera en tiempo real de más de 200 parques de atracciones de todo el mundo. Sigue las colas de las atracciones, planifica tu visita y aprovecha tu día al máximo con datos en directo de las API de los parques.",
     "keywords": "tiempos de espera parque atracciones, colas parque atracciones, tiempos de espera montaña rusa, app parques de atracciones, tiempos de espera en directo, colas atracciones, tiempos de espera Disney, tiempos de espera Universal, tiempos de espera Six Flags, planificar visita parque",
     "ogTitle": "Queue Park - Tiempos de espera en directo de parques de atracciones",
-    "ogDescription": "Tiempos de espera en tiempo real de más de 100 parques de atracciones de todo el mundo. Sigue las colas y planifica tu visita con datos en directo.",
+    "ogDescription": "Tiempos de espera en tiempo real de más de 200 parques de atracciones de todo el mundo. Sigue las colas y planifica tu visita con datos en directo.",
     "twitterTitle": "Queue Park - Tiempos de espera en directo de parques de atracciones",
-    "twitterDescription": "Tiempos de espera en tiempo real de más de 100 parques de atracciones de todo el mundo. Sigue las colas y planifica tu visita.",
+    "twitterDescription": "Tiempos de espera en tiempo real de más de 200 parques de atracciones de todo el mundo. Sigue las colas y planifica tu visita.",
     "liveWaitTimes": "Tiempos de espera en directo",
     "rideDescription": "Tiempo de espera en directo de {ride} en {park}: cola actual, evolución del día y previsión. Crea un aviso para saber cuándo baja la espera."
   },

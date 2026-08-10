@@ -183,7 +183,7 @@
     "cards": {
       "intro": {
         "title": "Queue Park là gì?",
-        "body": "Queue Park tập hợp về một nơi duy nhất thời gian chờ trực tiếp của hơn 100 công viên giải trí trên khắp thế giới. Mục tiêu của chúng tôi: giúp bạn nhìn một cái là biết nên chơi trò nào ngay lúc này và sắp xếp ngày vui tốt hơn, thay vì cứ dán mắt vào bản đồ công viên."
+        "body": "Queue Park tập hợp về một nơi duy nhất thời gian chờ trực tiếp của hơn 200 công viên giải trí trên khắp thế giới. Mục tiêu của chúng tôi: giúp bạn nhìn một cái là biết nên chơi trò nào ngay lúc này và sắp xếp ngày vui tốt hơn, thay vì cứ dán mắt vào bản đồ công viên."
       },
       "data": {
         "title": "Dữ liệu đến từ đâu?",
@@ -265,12 +265,12 @@
   "metadata": {
     "title": "Queue Park - Thời gian chờ trực tiếp tại các công viên giải trí",
     "titleTemplate": "%s | Queue Park",
-    "description": "Thời gian chờ theo thời gian thực của hơn 100 công viên giải trí trên khắp thế giới. Theo dõi hàng chờ các trò chơi, lên kế hoạch cho chuyến đi và tận hưởng trọn vẹn ngày vui với dữ liệu trực tiếp từ API của các công viên.",
+    "description": "Thời gian chờ theo thời gian thực của hơn 200 công viên giải trí trên khắp thế giới. Theo dõi hàng chờ các trò chơi, lên kế hoạch cho chuyến đi và tận hưởng trọn vẹn ngày vui với dữ liệu trực tiếp từ API của các công viên.",
     "keywords": "thời gian chờ công viên giải trí, hàng chờ công viên giải trí, thời gian chờ tàu lượn, ứng dụng công viên giải trí, thời gian chờ trực tiếp, hàng chờ trò chơi, thời gian chờ Disney, thời gian chờ Universal, thời gian chờ Six Flags, lên kế hoạch tham quan công viên",
     "ogTitle": "Queue Park - Thời gian chờ trực tiếp tại các công viên giải trí",
-    "ogDescription": "Thời gian chờ theo thời gian thực của hơn 100 công viên giải trí trên khắp thế giới. Theo dõi hàng chờ và lên kế hoạch với dữ liệu trực tiếp.",
+    "ogDescription": "Thời gian chờ theo thời gian thực của hơn 200 công viên giải trí trên khắp thế giới. Theo dõi hàng chờ và lên kế hoạch với dữ liệu trực tiếp.",
     "twitterTitle": "Queue Park - Thời gian chờ trực tiếp tại các công viên giải trí",
-    "twitterDescription": "Thời gian chờ theo thời gian thực của hơn 100 công viên giải trí trên khắp thế giới. Theo dõi hàng chờ và lên kế hoạch cho chuyến đi.",
+    "twitterDescription": "Thời gian chờ theo thời gian thực của hơn 200 công viên giải trí trên khắp thế giới. Theo dõi hàng chờ và lên kế hoạch cho chuyến đi.",
     "liveWaitTimes": "Thời gian chờ trực tiếp",
     "rideDescription": "Thời gian chờ trực tiếp của {ride} tại {park}: hàng chờ hiện tại, diễn biến trong ngày và dự báo. Tạo nhắc nhở để biết khi nào thời gian chờ giảm."
   },

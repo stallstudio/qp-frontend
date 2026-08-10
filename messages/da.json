@@ -183,7 +183,7 @@
     "cards": {
       "intro": {
         "title": "Hvad er Queue Park?",
-        "body": "Queue Park samler live ventetider fra over 100 forlystelsesparker verden over ét sted. Vores mål: at du med et enkelt blik kan se, hvilke forlystelser du skal tage nu, og planlægge din dag bedre uden at have næsen begravet i parkkortet."
+        "body": "Queue Park samler live ventetider fra over 200 forlystelsesparker verden over ét sted. Vores mål: at du med et enkelt blik kan se, hvilke forlystelser du skal tage nu, og planlægge din dag bedre uden at have næsen begravet i parkkortet."
       },
       "data": {
         "title": "Hvor kommer dataene fra?",
@@ -265,12 +265,12 @@
   "metadata": {
     "title": "Queue Park - Live ventetider i forlystelsesparker",
     "titleTemplate": "%s | Queue Park",
-    "description": "Ventetider i realtid for over 100 forlystelsesparker verden over. Følg køerne ved forlystelserne, planlæg dit besøg, og få mest muligt ud af dagen med live data direkte fra parkernes API'er.",
+    "description": "Ventetider i realtid for over 200 forlystelsesparker verden over. Følg køerne ved forlystelserne, planlæg dit besøg, og få mest muligt ud af dagen med live data direkte fra parkernes API'er.",
     "keywords": "ventetider forlystelsespark, køer forlystelsespark, ventetider rutsjebane, forlystelsespark app, live ventetider, køer forlystelser, Disney ventetider, Universal ventetider, Six Flags ventetider, planlæg parkbesøg",
     "ogTitle": "Queue Park - Live ventetider i forlystelsesparker",
-    "ogDescription": "Ventetider i realtid for over 100 forlystelsesparker verden over. Følg køerne, og planlæg dit besøg med live data.",
+    "ogDescription": "Ventetider i realtid for over 200 forlystelsesparker verden over. Følg køerne, og planlæg dit besøg med live data.",
     "twitterTitle": "Queue Park - Live ventetider i forlystelsesparker",
-    "twitterDescription": "Ventetider i realtid for over 100 forlystelsesparker verden over. Følg køerne, og planlæg dit besøg.",
+    "twitterDescription": "Ventetider i realtid for over 200 forlystelsesparker verden over. Følg køerne, og planlæg dit besøg.",
     "liveWaitTimes": "Live ventetider",
     "rideDescription": "Live ventetid for {ride} i {park}: aktuel kø, dagens udvikling og prognose. Opret en notifikation for at få besked, når ventetiden falder."
   },

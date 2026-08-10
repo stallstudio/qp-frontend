@@ -183,7 +183,7 @@
     "cards": {
       "intro": {
         "title": "Czym jest Queue Park?",
-        "body": "Queue Park gromadzi w jednym miejscu czasy oczekiwania na żywo z ponad 100 parków rozrywki na całym świecie. Nasz cel: żebyś jednym spojrzeniem widział, na które atrakcje warto iść teraz, i lepiej planował dzień, bez wpatrywania się w plan parku."
+        "body": "Queue Park gromadzi w jednym miejscu czasy oczekiwania na żywo z ponad 200 parków rozrywki na całym świecie. Nasz cel: żebyś jednym spojrzeniem widział, na które atrakcje warto iść teraz, i lepiej planował dzień, bez wpatrywania się w plan parku."
       },
       "data": {
         "title": "Skąd pochodzą dane?",
@@ -265,12 +265,12 @@
   "metadata": {
     "title": "Queue Park - Czasy oczekiwania w parkach rozrywki na żywo",
     "titleTemplate": "%s | Queue Park",
-    "description": "Czasy oczekiwania w czasie rzeczywistym dla ponad 100 parków rozrywki na całym świecie. Śledź kolejki do atrakcji, planuj wizytę i wykorzystaj dzień w pełni dzięki danym na żywo prosto z API parków.",
+    "description": "Czasy oczekiwania w czasie rzeczywistym dla ponad 200 parków rozrywki na całym świecie. Śledź kolejki do atrakcji, planuj wizytę i wykorzystaj dzień w pełni dzięki danym na żywo prosto z API parków.",
     "keywords": "czasy oczekiwania park rozrywki, kolejki park rozrywki, czasy oczekiwania rollercoaster, aplikacja park rozrywki, czasy oczekiwania na żywo, kolejki do atrakcji, czasy oczekiwania Disney, czasy oczekiwania Universal, czasy oczekiwania Six Flags, planowanie wizyty w parku",
     "ogTitle": "Queue Park - Czasy oczekiwania w parkach rozrywki na żywo",
-    "ogDescription": "Czasy oczekiwania w czasie rzeczywistym dla ponad 100 parków rozrywki na całym świecie. Śledź kolejki i planuj wizytę dzięki danym na żywo.",
+    "ogDescription": "Czasy oczekiwania w czasie rzeczywistym dla ponad 200 parków rozrywki na całym świecie. Śledź kolejki i planuj wizytę dzięki danym na żywo.",
     "twitterTitle": "Queue Park - Czasy oczekiwania w parkach rozrywki na żywo",
-    "twitterDescription": "Czasy oczekiwania w czasie rzeczywistym dla ponad 100 parków rozrywki na całym świecie. Śledź kolejki i planuj wizytę.",
+    "twitterDescription": "Czasy oczekiwania w czasie rzeczywistym dla ponad 200 parków rozrywki na całym świecie. Śledź kolejki i planuj wizytę.",
     "liveWaitTimes": "Czasy oczekiwania na żywo",
     "rideDescription": "Czas oczekiwania na żywo dla {ride} w {park}: aktualna kolejka, przebieg dnia i prognoza. Utwórz powiadomienie, aby dowiedzieć się, kiedy kolejka się skróci."
   },

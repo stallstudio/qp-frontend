@@ -183,7 +183,7 @@
     "cards": {
       "intro": {
         "title": "Was ist Queue Park?",
-        "body": "Queue Park bündelt an einem Ort die Live-Wartezeiten von über 100 Freizeitparks weltweit. Unser Ziel: dir auf einen Blick zeigen, welche Attraktionen sich gerade lohnen, damit du deinen Tag besser planst – ohne ständig auf den Parkplan zu starren."
+        "body": "Queue Park bündelt an einem Ort die Live-Wartezeiten von über 200 Freizeitparks weltweit. Unser Ziel: dir auf einen Blick zeigen, welche Attraktionen sich gerade lohnen, damit du deinen Tag besser planst – ohne ständig auf den Parkplan zu starren."
       },
       "data": {
         "title": "Woher kommen die Daten?",
@@ -265,12 +265,12 @@
   "metadata": {
     "title": "Queue Park – Live-Wartezeiten für Freizeitparks",
     "titleTemplate": "%s | Queue Park",
-    "description": "Wartezeiten in Echtzeit für über 100 Freizeitparks weltweit. Verfolge die Warteschlangen der Attraktionen, plane deinen Besuch und hol das Beste aus deinem Tag heraus – mit Live-Daten direkt aus den Park-APIs.",
+    "description": "Wartezeiten in Echtzeit für über 200 Freizeitparks weltweit. Verfolge die Warteschlangen der Attraktionen, plane deinen Besuch und hol das Beste aus deinem Tag heraus – mit Live-Daten direkt aus den Park-APIs.",
     "keywords": "Freizeitpark Wartezeiten, Warteschlangen Freizeitpark, Achterbahn Wartezeiten, Freizeitpark App, Live-Wartezeiten, Attraktionen Warteschlangen, Disney Wartezeiten, Universal Wartezeiten, Six Flags Wartezeiten, Freizeitpark Planung",
     "ogTitle": "Queue Park – Live-Wartezeiten für Freizeitparks",
-    "ogDescription": "Wartezeiten in Echtzeit für über 100 Freizeitparks weltweit. Verfolge die Warteschlangen und plane deinen Besuch mit Live-Daten.",
+    "ogDescription": "Wartezeiten in Echtzeit für über 200 Freizeitparks weltweit. Verfolge die Warteschlangen und plane deinen Besuch mit Live-Daten.",
     "twitterTitle": "Queue Park – Live-Wartezeiten für Freizeitparks",
-    "twitterDescription": "Wartezeiten in Echtzeit für über 100 Freizeitparks weltweit. Verfolge die Warteschlangen und plane deinen Besuch.",
+    "twitterDescription": "Wartezeiten in Echtzeit für über 200 Freizeitparks weltweit. Verfolge die Warteschlangen und plane deinen Besuch.",
     "liveWaitTimes": "Live-Wartezeiten",
     "rideDescription": "Live-Wartezeit für {ride} im {park}: aktuelle Warteschlange, Tagesverlauf und Prognose. Richte eine Benachrichtigung ein, um zu erfahren, wann die Wartezeit sinkt."
   },

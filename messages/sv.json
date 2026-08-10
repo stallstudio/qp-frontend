@@ -183,7 +183,7 @@
     "cards": {
       "intro": {
         "title": "Vad är Queue Park?",
-        "body": "Queue Park samlar kötider live från över 100 nöjesparker världen över på ett och samma ställe. Vårt mål: att du med en blick ska se vilka attraktioner du ska åka nu och planera dagen bättre, utan att ha näsan i parkkartan."
+        "body": "Queue Park samlar kötider live från över 200 nöjesparker världen över på ett och samma ställe. Vårt mål: att du med en blick ska se vilka attraktioner du ska åka nu och planera dagen bättre, utan att ha näsan i parkkartan."
       },
       "data": {
         "title": "Varifrån kommer uppgifterna?",
@@ -265,12 +265,12 @@
   "metadata": {
     "title": "Queue Park - Kötider live i nöjesparker",
     "titleTemplate": "%s | Queue Park",
-    "description": "Kötider i realtid för över 100 nöjesparker världen över. Följ köerna till attraktionerna, planera ditt besök och få ut mesta möjliga av dagen med live-data direkt från parkernas API:er.",
+    "description": "Kötider i realtid för över 200 nöjesparker världen över. Följ köerna till attraktionerna, planera ditt besök och få ut mesta möjliga av dagen med live-data direkt från parkernas API:er.",
     "keywords": "kötider nöjespark, köer nöjespark, kötider berg-och-dalbana, nöjesparksapp, kötider live, köer attraktioner, Disney kötider, Universal kötider, Six Flags kötider, planera parkbesök",
     "ogTitle": "Queue Park - Kötider live i nöjesparker",
-    "ogDescription": "Kötider i realtid för över 100 nöjesparker världen över. Följ köerna och planera ditt besök med live-data.",
+    "ogDescription": "Kötider i realtid för över 200 nöjesparker världen över. Följ köerna och planera ditt besök med live-data.",
     "twitterTitle": "Queue Park - Kötider live i nöjesparker",
-    "twitterDescription": "Kötider i realtid för över 100 nöjesparker världen över. Följ köerna och planera ditt besök.",
+    "twitterDescription": "Kötider i realtid för över 200 nöjesparker världen över. Följ köerna och planera ditt besök.",
     "liveWaitTimes": "Kötider live",
     "rideDescription": "Kötid live för {ride} i {park}: aktuell kö, dagens utveckling och prognos. Skapa en avisering för att få veta när kötiden sjunker."
   },

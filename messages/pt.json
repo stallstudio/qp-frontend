@@ -183,7 +183,7 @@
     "cards": {
       "intro": {
         "title": "O que é o Queue Park?",
-        "body": "O Queue Park reúne num só sítio os tempos de espera em direto de mais de 100 parques de diversões em todo o mundo. O nosso objetivo: mostrar-te num relance em que atrações andar agora e planear melhor o teu dia, sem ficares agarrado ao mapa."
+        "body": "O Queue Park reúne num só sítio os tempos de espera em direto de mais de 200 parques de diversões em todo o mundo. O nosso objetivo: mostrar-te num relance em que atrações andar agora e planear melhor o teu dia, sem ficares agarrado ao mapa."
       },
       "data": {
         "title": "De onde vêm os dados?",
@@ -265,12 +265,12 @@
   "metadata": {
     "title": "Queue Park - Tempos de espera de parques em direto",
     "titleTemplate": "%s | Queue Park",
-    "description": "Tempos de espera em tempo real de mais de 100 parques de diversões em todo o mundo. Segue as filas das atrações, planeia a tua visita e aproveita ao máximo o teu dia com dados em direto das APIs dos parques.",
+    "description": "Tempos de espera em tempo real de mais de 200 parques de diversões em todo o mundo. Segue as filas das atrações, planeia a tua visita e aproveita ao máximo o teu dia com dados em direto das APIs dos parques.",
     "keywords": "tempos de espera parque diversões, filas parque diversões, tempos de espera montanha-russa, app parques de diversões, tempos de espera em direto, filas atrações, tempos de espera Disney, tempos de espera Universal, tempos de espera Six Flags, planear visita parque",
     "ogTitle": "Queue Park - Tempos de espera de parques em direto",
-    "ogDescription": "Tempos de espera em tempo real de mais de 100 parques de diversões em todo o mundo. Segue as filas e planeia a tua visita com dados em direto.",
+    "ogDescription": "Tempos de espera em tempo real de mais de 200 parques de diversões em todo o mundo. Segue as filas e planeia a tua visita com dados em direto.",
     "twitterTitle": "Queue Park - Tempos de espera de parques em direto",
-    "twitterDescription": "Tempos de espera em tempo real de mais de 100 parques de diversões em todo o mundo. Segue as filas e planeia a tua visita.",
+    "twitterDescription": "Tempos de espera em tempo real de mais de 200 parques de diversões em todo o mundo. Segue as filas e planeia a tua visita.",
     "liveWaitTimes": "Tempos de espera em direto",
     "rideDescription": "Tempo de espera em direto de {ride} em {park}: fila atual, evolução do dia e previsão. Cria um alerta para saberes quando a espera desce."
   },
