@@ -612,6 +612,47 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
 - i18n : namespace `weather` (fr+en, repli EN). Schema : modèle `DailyWeather`
   + `city`/`latitude`/`longitude` sur `Park` (⚠️ `prisma generate` requis).
 
+### Pastille d'état d'un parc — le trou de minuit (2026-08-10)
+
+`getParkStatus` (`lib/utils.ts`) rend `unknown` dès que la liste d'horaires est
+VIDE, et `unknown` **n'affiche rien du tout** : ni pastille dans les listes
+(`getParkStatusDot`), ni badge sur la page parc (`ParkStatusBadge`). Un parc
+sans donnée était donc indiscernable d'un bug de rendu.
+
+Or il y a un moment où la donnée manque, chaque nuit, pour chaque parc : les
+horaires du jour sont écrits par le passage horaire du worker qui **suit minuit
+LOCAL** (mesuré sur une semaine : entre 00:00 et 00:08 heure du parc), et
+`getParksWithHours()` mémorise la liste **5 min** de plus. Constaté en vrai à
+00:12 heure de Shanghai — parcs chinois sans pastille, pendant que le Japon,
+minuit passé depuis plus d'une heure, affichait bien les siennes en rouge.
+
+`fetchOpeningHoursForParks` **retombe donc sur la veille** quand la journée
+résolue n'a aucune ligne — sous TROIS verrous :
+
+1. `now.hour < SAFE_AFTER_CLOSE_HOUR`, testé **explicitement** dans le repli et
+   pas seulement déduit d'`orFilters` (qui ne charge la veille que dans cette
+   tranche). Élargir un jour le chargement ne doit pas élargir le repli par
+   effet de bord ;
+2. `resolvedDate !== yesterday` — un parc encore ouvert après minuit a DÉJÀ la
+   veille comme journée logique, il n'y a rien à replier ;
+3. conséquence des deux : la veille a forcément fermé avant minuit, donc le
+   repli **ne peut produire que « fermé »**. Il ne peut pas allumer une
+   pastille verte à tort.
+
+⚠️ **Le point 1 est le garde-fou qui compte.** Un parc dont les horaires
+manquent à MIDI ne doit surtout pas hériter de ceux de la veille : à cette
+heure-là ils affirmeraient un état sans rien savoir de la journée en cours, et
+un parc qui a changé ses horaires afficherait ceux d'hier. Hors de la nuit, pas
+de donnée = pas de pastille, comme avant.
+
+⚠️ **Le repli ne vaut QUE pour `ParkList`** (accueil, recherche), où
+`openingHours` ne sert qu'à calculer la pastille et n'est jamais affiché en
+clair. La page parc passe par `buildParkLiveData`, qui **affiche** ses horaires
+(`components/parks/opening-hours.tsx`, JSON-LD) : y replier sur la veille
+publierait de faux horaires. Elle garde donc son trou de quelques minutes —
+c'est délibéré, la corriger demanderait de séparer « horaires pour l'état » et
+« horaires à afficher ».
+
 ## Robustesse & SEO (2026-07-27)
 
 - **Fichiers spéciaux Next** : `app/robots.ts`, `app/[locale]/not-found.tsx`,
