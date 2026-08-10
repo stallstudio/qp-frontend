@@ -100,8 +100,18 @@ const STATUS_ORDER = { open: 0, down: 1, closed: 2, maintenance: 3 } as const;
 // - mobile : Temps (4rem) et État (6rem, « Maintenance ») resserrés pour laisser
 //   le MAXIMUM de largeur au nom ;
 // - ≥ sm : proportions 4/1/1 comme l'ancienne table.
+//
+// ⚠️ `gap-x-2` : sans gouttière, « Indispo » et « Maintenance » se TOUCHAIENT
+// sur mobile, et les deux pastilles se lisaient comme une seule. Le cas n'est
+// pas anodin — ce sont les deux libellés les plus longs de leurs colonnes
+// respectives, donc chacun occupe la sienne entièrement : « Indispo » finit à
+// 4 px du bord de ses 4rem, « Maintenance » commence pile au début de ses 6rem
+// (la cellule est en `justify-end`, la pastille remplit tout).
+// La gouttière coûte 8 px au nom sur mobile ; la pastille d'état en rend
+// autant (voir son `px-1.5 sm:px-2` dans `lib/badge.tsx`), d'où un écart
+// visible d'une quinzaine de pixels pour une largeur de nom inchangée.
 const GRID_COLS =
-  "grid items-center grid-cols-[minmax(0,1fr)_4rem_6rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)]";
+  "grid items-center gap-x-2 grid-cols-[minmax(0,1fr)_4rem_6rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)]";
 
 function getPrimaryQueue(wt: WaitTime): QueueTime | undefined {
   return wt.queues.find((q) => q.type === "standby") || wt.queues[0];
@@ -484,7 +494,7 @@ export default function ParkWaitTimeTable({
                       role="cell"
                       className="flex justify-end py-2 pe-0 sm:block"
                     >
-                      {getStatusBadge(standbyQueue.status, statusLabels)}
+                      {getStatusBadge(standbyQueue.status, statusLabels, true)}
                     </div>
                   </div>
                 )}
@@ -550,7 +560,7 @@ export default function ParkWaitTimeTable({
                         role="cell"
                         className="flex justify-end py-2 pe-0 sm:block"
                       >
-                        {getStatusBadge(queue.status, statusLabels)}
+                        {getStatusBadge(queue.status, statusLabels, true)}
                       </div>
                     </div>
                     );
