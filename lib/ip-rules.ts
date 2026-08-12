@@ -9,6 +9,27 @@ interface IpRulesCache {
 
 const CACHE_TTL_MS = 60_000; // 60 seconds
 
+/**
+ * Valeur de repli quand la requête n'expose aucune IP (en-têtes de proxy
+ * absents). Ce n'est PAS une adresse : c'est un « je ne sais pas ».
+ */
+export const UNKNOWN_IP = "unknown";
+
+/**
+ * L'IP du client, telle que la pose le reverse proxy.
+ *
+ * Centralisée pour que la valeur de repli soit la MÊME chaîne que celle
+ * qu'écartent les règles ci-dessous — elle était recopiée en littéral dans
+ * chaque route, si bien qu'un jour on l'aurait écrite autrement d'un côté.
+ */
+export function getClientIp(request: Request): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0] ??
+    request.headers.get("x-real-ip") ??
+    UNKNOWN_IP
+  );
+}
+
 const globalForIpRules = globalThis as unknown as {
   ipRulesCache: IpRulesCache | undefined;
 };
@@ -21,6 +42,15 @@ async function refreshCache(): Promise<Map<string, IpRuleType>> {
 
   const map = new Map<string, IpRuleType>();
   for (const rule of rules) {
+    // ⚠️ **Une règle posée sur `"unknown"` est ignorée, et c'est délibéré.**
+    // Ce n'est pas l'adresse de quelqu'un mais le repli de TOUTES les requêtes
+    // dont le proxy n'a pas transmis l'IP : la blacklister bannirait ce trafic
+    // en bloc, la whitelister le sortirait en bloc du classement des parcs
+    // populaires. Or elle apparaît dans la page Requests de l'admin comme
+    // n'importe quelle autre ligne — souvent en tête, puisqu'elle agrège — donc
+    // rien n'empêche de la bloquer par mégarde. Le garde-fou est ici, au seul
+    // endroit que les trois fonctions traversent.
+    if (rule.ipAddress === UNKNOWN_IP) continue;
     map.set(rule.ipAddress, rule.type);
   }
 

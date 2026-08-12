@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
-import { isBlacklisted } from "@/lib/ip-rules";
+import { getClientIp, isBlacklisted } from "@/lib/ip-rules";
+import { logParkRequest } from "@/lib/api-request-log";
+import { BLOCKED_ERROR, BLOCKED_MESSAGE } from "@/lib/api-disclaimer";
 import { buildRideHistory } from "@/lib/wait-times-history";
 import { sampleDaySeries, type TimedPoint } from "@/lib/wait-times-series";
 import type { ConfidenceLevel, RideHistoryResponse } from "@/types/rideHistory";
@@ -29,10 +31,7 @@ export async function GET(
 ) {
   const { parkId, rideId } = await params;
 
-  const ipAddress =
-    request.headers.get("x-forwarded-for")?.split(",")[0] ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
+  const ipAddress = getClientIp(request);
 
   const emptyData = (timezone: string): RideHistoryResponse => ({
     timezone,
@@ -57,7 +56,31 @@ export async function GET(
     const prisma = getPrisma();
 
     if (await isBlacklisted(ipAddress)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      // ⚠️ **Cette route ne journalise QUE le 403, jamais ses réponses
+      // normales**, et l'asymétrie est voulue. `api_request_logs` alimente le
+      // classement des parcs populaires (`getPopularParkIdentifiers`), qui ne
+      // compte que les `statusCode: 200` : un 403 ne peut donc pas le fausser,
+      // alors que journaliser les succès d'ici l'aurait faussé aussitôt — le
+      // popup d'attraction se rouvre bien plus souvent qu'on ne change de parc,
+      // et ce trafic serait venu s'ajouter à celui de la route parc.
+      //
+      // Ce qu'on veut voir, c'est une IP bloquée qui CONTINUE de cogner : sans
+      // cette ligne elle disparaissait du journal au moment même où elle
+      // devenait intéressante, et rien ne disait si un blocage avait servi.
+      // `parkId` est renseigné, donc la ventilation par parc de la page
+      // Requests continue de fonctionner comme avant.
+      logParkRequest({
+        endpoint: `/api/park/${parkId}/ride/${rideId}/history`,
+        parkId,
+        ipAddress,
+        userAgent: request.headers.get("user-agent"),
+        referer: request.headers.get("referer"),
+        statusCode: 403,
+      });
+      return NextResponse.json(
+        { error: BLOCKED_ERROR, message: BLOCKED_MESSAGE },
+        { status: 403 },
+      );
     }
 
     const park = await prisma.park.findUnique({

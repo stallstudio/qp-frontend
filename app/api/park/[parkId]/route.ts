@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { buildParkLiveData } from "@/lib/park-live-data";
-import { isBlacklisted } from "@/lib/ip-rules";
+import { getClientIp, isBlacklisted } from "@/lib/ip-rules";
 import { logParkRequest } from "@/lib/api-request-log";
-import { DATA_DISCLAIMER } from "@/lib/api-disclaimer";
+import {
+  BLOCKED_ERROR,
+  BLOCKED_MESSAGE,
+  DATA_DISCLAIMER,
+} from "@/lib/api-disclaimer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,10 +26,7 @@ export async function GET(
 ) {
   const { parkId } = await params;
 
-  const ipAddress =
-    request.headers.get("x-forwarded-for")?.split(",")[0] ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
+  const ipAddress = getClientIp(request);
   const userAgent = request.headers.get("user-agent");
   const referer = request.headers.get("referer");
   const endpoint = `/api/park/${parkId}`;
@@ -46,11 +47,7 @@ export async function GET(
     if (await isBlacklisted(ipAddress)) {
       log(403);
       return NextResponse.json(
-        {
-          error: "Forbidden",
-          message:
-            "Your IP address has been blocked. If you believe this is an error, contact contact@queue-park.com.",
-        },
+        { error: BLOCKED_ERROR, message: BLOCKED_MESSAGE },
         { status: 403 },
       );
     }
