@@ -51,9 +51,9 @@ export async function GET(
 
       return NextResponse.json(
         {
-          error: "Forbidden",
+          error: "Access denied",
           message:
-            "Your IP address has been blocked. If you believe this is an error, contact contact@queue-park.com.",
+            "Your IP address has been blocked due to unauthorized use of this data. This data is authorized exclusively for thrills.world and queue-park.com. Any other use, reproduction, redistribution, or integration requires prior written permission. To request access or contest this block, please contact us at contact@queue-park.com.",
         },
         { status: 403 },
       );
