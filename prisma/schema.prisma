@@ -829,3 +829,40 @@ model ProxyTarget {
   @@index([target, ok])
   @@map("proxy_targets")
 }
+
+// Instantané QUOTIDIEN des huit compteurs d'alerte du dashboard.
+//
+// Sert UNIQUEMENT à afficher une tendance : « 9 parcs figés » ne dit pas si
+// c'est mieux ou pire qu'hier, et c'est pourtant la première question qu'on se
+// pose devant le chiffre.
+//
+// ⚠️ Écrit à l'OUVERTURE du dashboard, pas par un cron. Un jour sans visite n'a
+// donc pas de ligne, et c'est assumé : la tendance ne sert qu'à celui qui
+// regarde la page. Le delta se compare au dernier jour CONNU — dont la date est
+// affichée — et jamais à « hier » supposé, qui pourrait ne pas exister.
+//
+// Une ligne par jour, huit entiers : ~36 Ko par an.
+model HealthSnapshot {
+  id Int @id @default(autoincrement())
+
+  // Jour local dans le fuseau EUROPE/PARIS, comme l'horodatage affiché en
+  // en-tête du dashboard.
+  date String @unique @db.VarChar(10)
+
+  // Les quatre pannes (rangée 1 des vignettes)…
+  frozenParks      Int @default(0)
+  parksWithoutData Int @default(0)
+  errorLogs24h     Int @default(0)
+  jobsFailed24h    Int @default(0)
+
+  // …puis les quatre choses à traiter (rangée 2).
+  frozenRides       Int @default(0)
+  parksWithoutShows Int @default(0)
+  unknownStatuses   Int @default(0)
+  unmatchedAlerts   Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("health_snapshots")
+}
