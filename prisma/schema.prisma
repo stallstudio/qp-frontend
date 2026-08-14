@@ -7,6 +7,25 @@ datasource db {
 }
 
 //
+// ⚠️ **Un index préfixe strict d'un autre n'est jamais choisi.** MariaDB sert
+// `WHERE parkId = ?` avec `(parkId, date)` aussi bien qu'avec `(parkId)` : le
+// second ne fait que doubler le coût de chaque écriture et occuper le cache.
+// Quatorze déclarations de ce genre s'étaient accumulées ici. Huit ont été
+// retirées le 2026-08-14, dont `wait_times(parkId, endTime)` — 277 Mo à elle
+// seule, et une écriture sur neuf en moins sur la table la plus écrite.
+//
+// ⚠️ Les six autres SONT CONSERVÉES, et il ne faut pas les retirer : ce sont
+// des `@@index([parkId])` posés sur une colonne portant une clé étrangère.
+// Prisma les tient pour ce qui autorise la contrainte, et les supprimer du
+// schéma lui fait émettre un `DROP FOREIGN KEY` SANS `AddForeignKey` en face —
+// vérifié par `migrate diff` : `daily_weather`, `opening_hours` et `wait_times`
+// y perdaient leur intégrité référentielle en silence. Le gain aurait été de
+// quelques mégaoctets ; le prix, trois contraintes disparues.
+//
+// Avant d'ajouter un `@@index`, vérifiez qu'aucun index ni contrainte
+// d'unicité de ce modèle ne commence déjà par les mêmes colonnes.
+//
+//
 // OUR DATA
 //
 
@@ -93,6 +112,13 @@ model Park {
   forecastAccuracy ForecastAccuracy[]
 
   @@index([groupId])
+  // ⚠️ Manquait ici jusqu'au 2026-08-14, alors que l'admin et le worker le
+  // déclaraient : ce schéma décrivait donc une base légèrement différente des
+  // deux autres, et un `prisma db push` lancé depuis le frontend aurait tenté
+  // de supprimer `parks_appId_idx` — l'index de tête de la clé étrangère
+  // `parks_appId_fkey`, que MariaDB exige. Trouvé en comparant les index des
+  // trois schémas modèle à modèle, pas à l'œil.
+  @@index([appId])
   @@map("parks")
 }
 
@@ -110,7 +136,6 @@ model DailyWeather {
   @@unique([parkId, date])
   @@index([parkId])
   @@index([date])
-  @@index([parkId, date])
   @@map("daily_weather")
 }
 
@@ -302,7 +327,6 @@ model WaitTime {
   updatedAt  DateTime       @updatedAt
 
   @@index([rideId, endTime])
-  @@index([parkId, endTime])
   @@index([externalId, endTime])
   @@index([rideId, startTime])
   @@index([stateHash, rideId])
@@ -492,7 +516,6 @@ model OpeningHours {
   @@unique([parkId, date, type])
   @@index([parkId])
   @@index([date])
-  @@index([parkId, date])
   @@map("opening_hours")
 }
 
@@ -542,8 +565,6 @@ model ApiRequestLog {
   statusCode Int
   createdAt  DateTime @default(now())
 
-  @@index([parkId])
-  @@index([ipAddress])
   @@index([createdAt])
   @@index([parkId, createdAt])
   @@index([ipAddress, createdAt])
@@ -602,7 +623,6 @@ model UnknownStatus {
   lastSeenAt DateTime @updatedAt
 
   @@unique([parkId, status])
-  @@index([parkId])
   @@index([resolved])
   @@index([lastSeenAt])
   @@index([aiProcessedAt])
@@ -626,7 +646,6 @@ model JobExecution {
   metadata     String?   @db.Text
   createdAt    DateTime  @default(now())
 
-  @@index([jobName])
   @@index([startedAt])
   @@index([status])
   @@index([jobName, startedAt])
@@ -709,7 +728,6 @@ model Article {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([slug])
   @@map("articles")
 }
 
