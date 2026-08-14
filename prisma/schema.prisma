@@ -61,13 +61,21 @@ model Park {
   // fetchParkWaitTimes et vaut « le fetch a réussi », même à vide.
   // Les horaires n'en ont pas besoin : openingHoursService réécrit chaque ligne
   // sans condition, donc `opening_hours.updatedAt` fait déjà foi.
+  waitTimesSeenAt       DateTime?
   showTimesSeenAt       DateTime?
   poisSeenAt            DateTime?
   wait_times_fetcher    Boolean   @default(false)
   opening_hours_fetcher Boolean   @default(false)
   pois_fetcher          Boolean   @default(false)
   show_times_fetcher    Boolean   @default(false)
-  playStoreId           String?   @db.VarChar(255)
+  // ⚠️ Remplace `playStoreId`, colonne SUPPRIMÉE de la base par la migration
+  // `apps` du 2026-08-06 : une app couvre souvent PLUSIEURS parcs d'un même
+  // resort, et l'identifiant devait alors être posé sur l'un d'eux, choisi
+  // arbitrairement. Ce schéma la déclarait encore le 2026-08-14 — sans
+  // conséquence tant qu'aucun code du frontend ne la lisait, mais un
+  // `prisma db push` d'ici l'aurait recréée.
+  appId                 Int?
+  app                   App?      @relation(fields: [appId], references: [id], onDelete: SetNull)
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
@@ -80,7 +88,6 @@ model Park {
   shows           Show[]
   showTimes       ShowTime[]
   poiChanges      PoiChange[]
-  appVersions     AppVersion[]
   dailyWeather    DailyWeather[]
   rideForecasts   RideForecast[]
   forecastAccuracy ForecastAccuracy[]
@@ -164,6 +171,24 @@ model RideForecast {
   // l'affichage admin et le tri, pas le rendu du graphique.
   marginMinutes Float?
   marginSamples Int?   @default(0)
+
+
+  // ————— Shadow : une seconde variante mesurée en parallèle —————
+  //
+  // ⚠️ Ces colonnes ne sont JAMAIS servies au front. Elles existent pour que
+  // deux réglages du moteur soient mesurés sur les MÊMES journées — la seule
+  // façon d'attribuer un écart au moteur plutôt qu'à la saison. Nulles tant que
+  // `FORECAST_SHADOW_VARIANT` n'est pas posé, et seulement renseignées pour les
+  // parcs listés par `FORECAST_SHADOW_PARKS` (voir `forecastVariants.ts`).
+  //
+  // ⚠️ Elles sont écrites par le WORKER seul, mais doivent figurer dans les
+  // trois schémas : un `prisma db push` lancé depuis un dépôt qui les ignore
+  // les SUPPRIMERAIT de la base. C'est la raison d'être de l'alignement du
+  // 2026-08-14.
+  shadowMethod            String? @db.VarChar(60)
+  shadowBaseProfile       Json?
+  shadowForecast          Json?
+  shadowReferenceForecast Json?
 
   @@index([parkId])
   @@map("ride_forecast")
@@ -621,10 +646,27 @@ model PoiChange {
   @@map("poi_changes")
 }
 
+model App {
+  id          Int      @id @default(autoincrement())
+  // Package Android. C'est l'identité de l'app : le scraper Play Store et
+  // Watchtower ne connaissent qu'elle.
+  playStoreId String   @unique @db.VarChar(255)
+  // Le nom que porte l'app, pas celui d'un parc : « Yas Island »,
+  // « Alton Towers ». Semé automatiquement depuis le titre Play Store.
+  name        String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parks    Park[]
+  versions AppVersion[]
+
+  @@map("apps")
+}
+
 model AppVersion {
   id                Int      @id @default(autoincrement())
-  parkId            Int
-  park              Park     @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  appId             Int
+  app               App      @relation(fields: [appId], references: [id], onDelete: Cascade)
   version           String   @db.VarChar(50)
   updated           BigInt
   recentChanges     String?  @db.Text
@@ -632,8 +674,8 @@ model AppVersion {
   detectedLang      String?  @db.VarChar(10)
   createdAt         DateTime @default(now())
 
-  @@unique([parkId, version])
-  @@index([parkId])
+  @@unique([appId, version])
+  @@index([appId])
   @@index([createdAt])
   @@map("app_versions")
 }
@@ -702,4 +744,82 @@ model Report {
   @@index([createdAt])
   @@index([resolved])
   @@map("reports")
+}
+
+//
+// POOL DE PROXIES
+//
+// ⚠️ Le frontend ne lit AUCUN de ces modèles. Ils figurent ici pour que les
+// trois dépôts décrivent la même base : un `prisma db push` lancé depuis un
+// schéma qui les ignore supprimerait leurs tables.
+
+enum ProxyStatus {
+  untested
+  active
+  quarantine
+  dead
+}
+
+model Proxy {
+  id       Int     @id @default(autoincrement())
+  protocol String  @default("http") @db.VarChar(10)
+  host     String  @db.VarChar(45)
+  port     Int
+  // Proxies authentifiés (payants). Jamais renseignés par le harvester.
+  username String? @db.VarChar(255)
+  password String? @db.VarChar(255)
+
+  // ISO-2 de l'IP du proxy. Annoncé par la source ; c'est le seul discriminant
+  // qui compte pour une cible géo-bloquée (Happy Valley exige CN).
+  country String? @db.VarChar(2)
+  // "proxyscrape" | "geonode" | "monosans" | "manual"
+  source  String  @db.VarChar(30)
+  label   String? @db.VarChar(255)
+
+  status ProxyStatus @default(untested)
+  // Retiré du pool à la main depuis l'admin : ni testé, ni servi. Distinct de
+  // `dead`, que le checker peut réhabiliter tout seul au prochain passage.
+  enabled Boolean @default(true)
+
+  latencyMs Int?
+  failCount Int  @default(0)
+  lastError String? @db.VarChar(255)
+
+  // Posé par l'admin (bouton « Test proxies ») pour réclamer une vérification
+  // immédiate ; le checker le remet à null quand il a fini. C'est ce qui rend
+  // un proxy ajouté à la main utilisable en une minute au lieu d'une heure.
+  checkRequestedAt DateTime?
+
+  lastCheckedAt DateTime?
+  lastOkAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  targets ProxyTarget[]
+
+  @@unique([host, port])
+  @@index([country, status])
+  @@index([status, enabled])
+  @@index([checkRequestedAt])
+  @@map("proxies")
+}
+
+model ProxyTarget {
+  id      Int    @id @default(autoincrement())
+  proxyId Int
+  proxy   Proxy  @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+  // Identifiant du registre `src/services/proxy/targets.ts` : un provider
+  // ("happy-valley", "puy-du-fou") ou un parc custom ("beto-carrero-world").
+  target  String @db.VarChar(60)
+
+  ok        Boolean
+  latencyMs Int?
+  // Ce qui a fait échouer le test (code HTTP, code réseau) — sinon un `ok=false`
+  // ne dit pas si le proxy est mort ou si la cible l'a refusé.
+  error     String?  @db.VarChar(255)
+  checkedAt DateTime @default(now())
+
+  @@unique([proxyId, target])
+  @@index([target, ok])
+  @@map("proxy_targets")
 }
