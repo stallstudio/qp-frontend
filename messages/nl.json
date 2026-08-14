@@ -499,7 +499,7 @@
     "reopenSave": "Waarschuw me bij heropening",
     "reopenActive": "Heropeningsmelding actief",
     "reopenSaved": "Heropeningsmelding opgeslagen",
-    "reopenTooLate": "Te laat op de dag voor een heropeningsmelding: wat nu stilvalt, gaat pas morgen weer open. Je krijgt hem opnieuw aangeboden bij de volgende opening van het park.",
+    "reopenTooLate": "Het park is gesloten, meldingen zijn niet beschikbaar. Kom terug bij de volgende opening van het park.",
     "statusChanged": "De status van de attractie is zojuist gewijzigd. Open de pagina opnieuw om de juiste melding te maken."
   },
   "legal": {

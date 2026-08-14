@@ -499,7 +499,7 @@
     "reopenSave": "Notify me when it reopens",
     "reopenActive": "Reopening alert active",
     "reopenSaved": "Reopening alert saved",
-    "reopenTooLate": "Too late in the day for a reopening alert: whatever stops now will reopen tomorrow. It will be offered again when the park next opens.",
+    "reopenTooLate": "The park is closed, alerts are unavailable. Come back when the park next opens.",
     "statusChanged": "The ride's status just changed. Reopen the page to create the right alert."
   },
   "legal": {

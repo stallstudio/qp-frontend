@@ -499,7 +499,7 @@
     "reopenSave": "Giv mig besked ved genåbning",
     "reopenActive": "Genåbningsalarm aktiv",
     "reopenSaved": "Genåbningsalarm gemt",
-    "reopenTooLate": "For sent på dagen til en genåbningsalarm: det, der stopper nu, åbner først igen i morgen. Den bliver tilbudt igen, når parken åbner næste gang.",
+    "reopenTooLate": "Parken er lukket, alarmer er ikke tilgængelige. Kom tilbage ved parkens næste åbning.",
     "statusChanged": "Forlystelsens status er lige ændret. Åbn siden igen for at oprette den rigtige alarm."
   },
   "legal": {

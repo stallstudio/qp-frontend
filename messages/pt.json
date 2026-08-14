@@ -499,7 +499,7 @@
     "reopenSave": "Avisar-me na reabertura",
     "reopenActive": "Alerta de reabertura ativo",
     "reopenSaved": "Alerta de reabertura guardado",
-    "reopenTooLate": "Demasiado tarde para um alerta de reabertura: o que para agora só reabre amanhã. Será proposto de novo na próxima abertura do parque.",
+    "reopenTooLate": "O parque está fechado, os alertas não estão disponíveis. Volta na próxima abertura do parque.",
     "statusChanged": "O estado da atração acabou de mudar. Volta a abrir a ficha para criar o alerta certo."
   },
   "legal": {

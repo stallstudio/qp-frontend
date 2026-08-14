@@ -499,7 +499,7 @@
     "reopenSave": "Powiadom mnie o ponownym otwarciu",
     "reopenActive": "Alert o ponownym otwarciu aktywny",
     "reopenSaved": "Alert o ponownym otwarciu zapisany",
-    "reopenTooLate": "Za późno na alert o ponownym otwarciu: to, co zatrzymuje się teraz, otworzy się dopiero jutro. Zaproponujemy go ponownie przy następnym otwarciu parku.",
+    "reopenTooLate": "Park jest zamknięty, alerty są niedostępne. Wróć przy następnym otwarciu parku.",
     "statusChanged": "Status atrakcji właśnie się zmienił. Otwórz kartę ponownie, aby utworzyć właściwy alert."
   },
   "legal": {

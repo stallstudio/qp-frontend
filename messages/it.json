@@ -499,7 +499,7 @@
     "reopenSave": "Avvisami alla riapertura",
     "reopenActive": "Avviso di riapertura attivo",
     "reopenSaved": "Avviso di riapertura salvato",
-    "reopenTooLate": "Troppo tardi per un avviso di riapertura: ciò che si ferma ora riaprirà domani. Sarà proposto di nuovo alla prossima apertura del parco.",
+    "reopenTooLate": "Il parco è chiuso, gli avvisi non sono disponibili. Torna alla prossima apertura del parco.",
     "statusChanged": "Lo stato dell'attrazione è appena cambiato. Riapri la scheda per creare l'avviso giusto."
   },
   "legal": {

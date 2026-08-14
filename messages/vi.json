@@ -499,7 +499,7 @@
     "reopenSave": "Báo cho tôi khi mở lại",
     "reopenActive": "Cảnh báo mở lại đang bật",
     "reopenSaved": "Đã lưu cảnh báo mở lại",
-    "reopenTooLate": "Đã quá muộn trong ngày để đặt cảnh báo mở lại: những gì dừng lúc này sẽ mở lại vào ngày mai. Cảnh báo sẽ được đề xuất lại vào lần mở cửa tới.",
+    "reopenTooLate": "Công viên đã đóng cửa, cảnh báo không khả dụng. Hãy quay lại vào lần mở cửa tới.",
     "statusChanged": "Trạng thái của trò chơi vừa thay đổi. Hãy mở lại trang để tạo đúng loại cảnh báo."
   },
   "legal": {

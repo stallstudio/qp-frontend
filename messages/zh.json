@@ -499,7 +499,7 @@
     "reopenSave": "恢复运营时通知我",
     "reopenActive": "重开提醒已启用",
     "reopenSaved": "重开提醒已保存",
-    "reopenTooLate": "现在设置重开提醒已太晚：此刻停运的项目要到明天才会恢复。下次开园时会再次提供。",
+    "reopenTooLate": "乐园已闭园，提醒功能不可用。请在下次开园时再来。",
     "statusChanged": "该项目的状态刚刚发生变化。请重新打开页面以创建合适的提醒。"
   },
   "legal": {
