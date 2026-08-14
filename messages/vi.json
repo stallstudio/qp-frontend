@@ -416,7 +416,9 @@
     "leadSaved": "Đã cập nhật thời gian báo trước",
     "validateLead": "Lưu thời gian báo trước",
     "editLead": "Sửa thời gian báo trước",
-    "leadTooLate": "Chương trình sắp bắt đầu, không kịp đổi thời gian báo trước."
+    "leadTooLate": "Chương trình sắp bắt đầu, không kịp đổi thời gian báo trước.",
+    "reopenBadge": "Mở lại",
+    "historyReopenLine": "Đã mở lại"
   },
   "privacy": {
     "emailLabel": "Địa chỉ email",
@@ -492,7 +494,13 @@
     "deleted": "Đã xóa nhắc nhở",
     "pushBlocked": "Đã lưu nhắc nhở, nhưng thiết bị này sẽ không nhận được gì (thông báo chưa được cho phép).",
     "pushDenied": "Thông báo của trang này đang bị chặn. Hãy cho phép trong cài đặt trình duyệt để nhận nhắc nhở trên thiết bị này.",
-    "pushUnsupported": "Trình duyệt này không hỗ trợ thông báo đẩy. Nhắc nhở vẫn sẽ xuất hiện trong hồ sơ và lịch sử của bạn."
+    "pushUnsupported": "Trình duyệt này không hỗ trợ thông báo đẩy. Nhắc nhở vẫn sẽ xuất hiện trong hồ sơ và lịch sử của bạn.",
+    "reopenLabel": "Trò chơi này đang tạm dừng. Chúng tôi sẽ báo cho bạn ngay khi mở lại.",
+    "reopenSave": "Báo cho tôi khi mở lại",
+    "reopenActive": "Cảnh báo mở lại đang bật",
+    "reopenSaved": "Đã lưu cảnh báo mở lại",
+    "reopenTooLate": "Đã quá muộn trong ngày để đặt cảnh báo mở lại: những gì dừng lúc này sẽ mở lại vào ngày mai. Cảnh báo sẽ được đề xuất lại vào lần mở cửa tới.",
+    "statusChanged": "Trạng thái của trò chơi vừa thay đổi. Hãy mở lại trang để tạo đúng loại cảnh báo."
   },
   "legal": {
     "backHome": "Về trang chủ",

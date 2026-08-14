@@ -9,6 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ParkLiveData } from "@/types/api";
+import {
+  parkOpenWindowFrom,
+  reopenAllowedForWindow,
+  REOPEN_CREATE_CLOSING_MARGIN_MS,
+} from "@/lib/park-closing";
 import ParkShowTimeTable from "./show-time-table";
 
 type MainCardProps = {
@@ -58,6 +63,35 @@ export default function MainCard({
   const hasShows = park.shows && park.shows.length > 0;
   const showTabs = hasWaitTimes && hasShows;
   const parkDate = park.openingHours?.[0]?.date ?? null;
+
+  // Le parc est-il fermé, ou sur le point de l'être ? Sert au formulaire
+  // d'alerte : une alerte de RÉOUVERTURE n'a de sens qu'avec assez de journée
+  // devant elle. Parc fermé, elle expirerait à minuit (heure du parc) sans avoir
+  // pu se déclencher ; à une heure de la fermeture, une attraction qui s'arrête
+  // s'arrête pour la nuit, pas pour une panne.
+  //
+  // MÊME règle que le serveur (`lib/park-closing.ts`), appelée ici avec les
+  // horaires déjà chargés — sans quoi l'UI proposerait un bouton que la route de
+  // création refuserait ensuite en 409.
+  //
+  // Recalculé à chaque rendu — et ce composant se re-rend chaque seconde pour le
+  // décompte : le formulaire se referme donc tout seul quand l'heure limite
+  // arrive, popup ouvert, sans qu'on ait à câbler quoi que ce soit.
+  //
+  // `mounted` pour la même raison que `dataIsStale` ci-dessus : l'heure courante
+  // diffère entre le rendu Node et l'hydratation. Avant montage on autorise,
+  // valeur que le serveur produit dans la quasi-totalité des cas ; l'ajustement
+  // éventuel se fait ensuite par un simple re-rendu.
+  const reopenAllowed =
+    !mounted ||
+    (() => {
+      const at = new Date();
+      return reopenAllowedForWindow(
+        parkOpenWindowFrom(park.openingHours ?? [], at),
+        at,
+        REOPEN_CREATE_CLOSING_MARGIN_MS,
+      );
+    })();
 
   // `?tab=shows` : utilisé par les rappels de spectacles, qui doivent ouvrir la
   // page directement sur l'onglet concerné et non sur les temps d'attente.
@@ -122,6 +156,7 @@ export default function MainCard({
               queueTypeLabels={park.queueTypeLabels}
               parkIdentifier={park.identifier}
               parkName={park.name}
+              reopenAllowed={reopenAllowed}
               initialRideId={initialRideId}
             />
           </TabsContent>
@@ -141,6 +176,7 @@ export default function MainCard({
           queueTypeLabels={park.queueTypeLabels}
           parkIdentifier={park.identifier}
           parkName={park.name}
+          reopenAllowed={reopenAllowed}
           initialRideId={initialRideId}
         />
       ) : hasShows ? (

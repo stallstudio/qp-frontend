@@ -416,7 +416,9 @@
     "leadSaved": "提前时间已更新",
     "validateLead": "保存提前时间",
     "editLead": "修改提前时间",
-    "leadTooLate": "演出即将开始，来不及修改提前时间了。"
+    "leadTooLate": "演出即将开始，来不及修改提前时间了。",
+    "reopenBadge": "重新开放",
+    "historyReopenLine": "已恢复运营"
   },
   "privacy": {
     "emailLabel": "邮箱地址",
@@ -492,7 +494,13 @@
     "deleted": "提醒已删除",
     "pushBlocked": "提醒已保存，但此设备不会收到通知（未允许通知）。",
     "pushDenied": "本站的通知已被阻止。请在浏览器设置中允许通知，才能在此设备上收到提醒。",
-    "pushUnsupported": "此浏览器不支持推送通知。提醒仍会显示在你的个人资料和历史记录中。"
+    "pushUnsupported": "此浏览器不支持推送通知。提醒仍会显示在你的个人资料和历史记录中。",
+    "reopenLabel": "该项目目前暂停运营。恢复运营后我们会立即通知你。",
+    "reopenSave": "恢复运营时通知我",
+    "reopenActive": "重开提醒已启用",
+    "reopenSaved": "重开提醒已保存",
+    "reopenTooLate": "现在设置重开提醒已太晚：此刻停运的项目要到明天才会恢复。下次开园时会再次提供。",
+    "statusChanged": "该项目的状态刚刚发生变化。请重新打开页面以创建合适的提醒。"
   },
   "legal": {
     "backHome": "返回首页",

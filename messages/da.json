@@ -416,7 +416,9 @@
     "leadSaved": "Varslingstiden er opdateret",
     "validateLead": "Gem varslingstid",
     "editLead": "Rediger varslingstid",
-    "leadTooLate": "Showet begynder for snart til at ændre varslingstiden."
+    "leadTooLate": "Showet begynder for snart til at ændre varslingstiden.",
+    "reopenBadge": "Genåbning",
+    "historyReopenLine": "Genåbnede"
   },
   "privacy": {
     "emailLabel": "E-mailadresse",
@@ -492,7 +494,13 @@
     "deleted": "Notifikationen er slettet",
     "pushBlocked": "Notifikationen er gemt, men denne enhed modtager ikke noget (notifikationer er ikke tilladt).",
     "pushDenied": "Notifikationer er blokeret for dette websted. Tillad dem i browserens indstillinger for at modtage dem på denne enhed.",
-    "pushUnsupported": "Denne browser understøtter ikke push-notifikationer. Notifikationen vises stadig i din profil og i historikken."
+    "pushUnsupported": "Denne browser understøtter ikke push-notifikationer. Notifikationen vises stadig i din profil og i historikken.",
+    "reopenLabel": "Denne forlystelse står stille. Få besked, så snart den åbner igen.",
+    "reopenSave": "Giv mig besked ved genåbning",
+    "reopenActive": "Genåbningsalarm aktiv",
+    "reopenSaved": "Genåbningsalarm gemt",
+    "reopenTooLate": "For sent på dagen til en genåbningsalarm: det, der stopper nu, åbner først igen i morgen. Den bliver tilbudt igen, når parken åbner næste gang.",
+    "statusChanged": "Forlystelsens status er lige ændret. Åbn siden igen for at oprette den rigtige alarm."
   },
   "legal": {
     "backHome": "Tilbage til forsiden",

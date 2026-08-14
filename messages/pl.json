@@ -416,7 +416,9 @@
     "leadSaved": "Wyprzedzenie zaktualizowane",
     "validateLead": "Zapisz wyprzedzenie",
     "editLead": "Edytuj wyprzedzenie",
-    "leadTooLate": "Pokaz zaczyna się zbyt szybko, aby zmienić wyprzedzenie."
+    "leadTooLate": "Pokaz zaczyna się zbyt szybko, aby zmienić wyprzedzenie.",
+    "reopenBadge": "Ponowne otwarcie",
+    "historyReopenLine": "Ponownie otwarta"
   },
   "privacy": {
     "emailLabel": "Adres e-mail",
@@ -492,7 +494,13 @@
     "deleted": "Powiadomienie usunięte",
     "pushBlocked": "Powiadomienie zapisane, ale to urządzenie nic nie otrzyma (powiadomienia są zablokowane).",
     "pushDenied": "Powiadomienia są zablokowane dla tej witryny. Zezwól na nie w ustawieniach przeglądarki, aby otrzymywać je na tym urządzeniu.",
-    "pushUnsupported": "Ta przeglądarka nie obsługuje powiadomień push. Powiadomienie i tak pojawi się w Twoim profilu oraz w historii."
+    "pushUnsupported": "Ta przeglądarka nie obsługuje powiadomień push. Powiadomienie i tak pojawi się w Twoim profilu oraz w historii.",
+    "reopenLabel": "Ta atrakcja jest wyłączona. Powiadomimy Cię, gdy tylko zostanie ponownie otwarta.",
+    "reopenSave": "Powiadom mnie o ponownym otwarciu",
+    "reopenActive": "Alert o ponownym otwarciu aktywny",
+    "reopenSaved": "Alert o ponownym otwarciu zapisany",
+    "reopenTooLate": "Za późno na alert o ponownym otwarciu: to, co zatrzymuje się teraz, otworzy się dopiero jutro. Zaproponujemy go ponownie przy następnym otwarciu parku.",
+    "statusChanged": "Status atrakcji właśnie się zmienił. Otwórz kartę ponownie, aby utworzyć właściwy alert."
   },
   "legal": {
     "backHome": "Powrót na stronę główną",

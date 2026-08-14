@@ -416,7 +416,9 @@
     "leadSaved": "Voorlooptijd bijgewerkt",
     "validateLead": "Voorlooptijd opslaan",
     "editLead": "Voorlooptijd bewerken",
-    "leadTooLate": "De show begint te snel om de voorlooptijd nog te wijzigen."
+    "leadTooLate": "De show begint te snel om de voorlooptijd nog te wijzigen.",
+    "reopenBadge": "Heropening",
+    "historyReopenLine": "Weer open"
   },
   "privacy": {
     "emailLabel": "E-mailadres",
@@ -492,7 +494,13 @@
     "deleted": "Melding verwijderd",
     "pushBlocked": "Melding opgeslagen, maar dit apparaat ontvangt niets (meldingen niet toegestaan).",
     "pushDenied": "Meldingen zijn geblokkeerd voor deze site. Sta ze toe in je browserinstellingen om meldingen op dit apparaat te ontvangen.",
-    "pushUnsupported": "Deze browser ondersteunt geen pushmeldingen. De melding verschijnt wel in je profiel en in de geschiedenis."
+    "pushUnsupported": "Deze browser ondersteunt geen pushmeldingen. De melding verschijnt wel in je profiel en in de geschiedenis.",
+    "reopenLabel": "Deze attractie ligt stil. Laat je waarschuwen zodra ze weer opengaat.",
+    "reopenSave": "Waarschuw me bij heropening",
+    "reopenActive": "Heropeningsmelding actief",
+    "reopenSaved": "Heropeningsmelding opgeslagen",
+    "reopenTooLate": "Te laat op de dag voor een heropeningsmelding: wat nu stilvalt, gaat pas morgen weer open. Je krijgt hem opnieuw aangeboden bij de volgende opening van het park.",
+    "statusChanged": "De status van de attractie is zojuist gewijzigd. Open de pagina opnieuw om de juiste melding te maken."
   },
   "legal": {
     "backHome": "Terug naar de startpagina",

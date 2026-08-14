@@ -4,8 +4,17 @@ import { getPrisma } from "@/lib/prisma";
 import { getUserPrisma } from "@/lib/user-prisma";
 import { purgeOldRequestLogs } from "@/lib/api-request-log";
 import { isPushConfigured, sendPush, type PushPayload } from "@/lib/web-push";
-import { buildAlertMessage } from "@/lib/alert-messages";
+import {
+  buildAlertMessage,
+  buildReopenMessage,
+  buildReopenRearmMessage,
+} from "@/lib/alert-messages";
 import { rideSlug } from "@/lib/slug";
+import {
+  reopenAllowedForWindow,
+  REOPEN_REARM_CLOSING_MARGIN_MS,
+} from "@/lib/park-closing";
+import { loadParkOpenWindows } from "@/lib/park-closing-db";
 import {
   buildShowReminderMessage,
   type ReminderShow,
@@ -16,9 +25,12 @@ export const dynamic = "force-dynamic";
 
 // ————————————————————————————————————————————————————————————————————————
 // MOTEUR D'ALERTES (déclenché ~toutes les 1-2 min par une Dokploy Schedule, comme
-// le fetch des temps du worker). Il compare le temps d'attente RÉEL de chaque
-// attraction surveillée à son seuil et envoie un push quand le temps DESCEND à
-// ≤ seuil.
+// le fetch des temps du worker). Il traite DEUX natures d'alerte, selon l'état de
+// l'attraction au moment où l'utilisateur l'a posée :
+//   • SEUIL (`threshold`, attraction ouverte) — compare le temps d'attente RÉEL
+//     au seuil et envoie un push quand il DESCEND à ≤ seuil ;
+//   • RÉOUVERTURE (`reopen`, attraction à l'arrêt) — envoie un push dès que
+//     l'attraction repasse à `open`. Voir REOPEN_REARM_WINDOW_MS plus bas.
 //
 // Anti-spam : déclenchement sur FRONT (pas sur niveau). Chaque alerte porte un
 // drapeau `armed` (voir schéma) :
@@ -30,6 +42,38 @@ export const dynamic = "force-dynamic";
 // Marge de réarmement au-dessus du seuil : évite le « flapping » (alertes en
 // rafale) quand le temps oscille juste autour du seuil.
 const REARM_MARGIN = 5;
+
+// ————————————————————————— Alertes de RÉOUVERTURE —————————————————————————
+// Seconde nature d'alerte (voir l'enum AlertType du schéma) : l'attraction est à
+// l'arrêt, il n'y a aucun temps d'attente à surveiller, et la seule nouvelle
+// utile est sa remise en service.
+//
+// Cycle de vie, volontairement différent de celui d'une alerte de seuil :
+//   • une alerte de seuil qui notifie est SUPPRIMÉE (son objectif est atteint) ;
+//   • une alerte de réouverture qui notifie est seulement DÉSACTIVÉE, et sa ligne
+//     survit jusqu'à la fin de la journée. Sans cette ligne, le réarmement
+//     automatique ci-dessous n'aurait plus rien à réarmer.
+//
+// Réarmement automatique : une attraction tout juste réparée peut retomber en
+// panne dans la foulée. Dans ce cas on remet l'alerte en veille TOUT SEUL et on
+// le dit à l'utilisateur — sinon il croit son attraction ouverte alors qu'elle
+// ne l'est plus, et devrait recréer son alerte sans même savoir qu'il le doit.
+// Au-delà de cette fenêtre, on ne touche à rien : une panne survenue une heure
+// après la réouverture est un ÉVÉNEMENT NOUVEAU, pas la suite du précédent, et
+// c'est à l'utilisateur de décider s'il attend encore cette attraction.
+const REOPEN_REARM_WINDOW_MS = 60 * 60_000;
+
+// Statuts qui déclenchent le réarmement automatique. `closed` en est
+// délibérément ABSENT : à la fermeture du parc, TOUTES les attractions y
+// passent. Sans cette exclusion, quiconque a reçu une notification de
+// réouverture dans la dernière heure d'ouverture recevrait, chaque soir, un
+// « c'est de nouveau à l'arrêt » qui ne décrit aucune panne.
+//
+// ⚠️ Cette liste NE SUFFIT PAS. Selon les parcs, une attraction qui s'arrête
+// pour la nuit reste en `down` ou en `maintenance` — donc dans cette liste. Le
+// statut seul ne permet pas de séparer la panne de la fin de journée : c'est
+// l'HORAIRE DU PARC qui tranche, via `lib/park-closing.ts` (voir plus bas).
+const REOPEN_REARM_STATUSES = new Set(["down", "maintenance"]);
 
 // ——————————————————————— Verrou anti-chevauchement ———————————————————————
 // La Schedule déclenche cette route toutes les 1-2 min, mais un passage peut
@@ -274,10 +318,13 @@ async function runAlertsPass(): Promise<NextResponse> {
   // aucune alerte active.
   const reminderSummary = await processShowReminders(userPrisma, prisma);
 
-  // 1. Toutes les alertes actives (tous utilisateurs confondus).
-  const alerts = await userPrisma.alert.findMany({
-    where: { active: true },
-  });
+  // 1. Toutes les alertes, ACTIVES ET NON ACTIVES (tous utilisateurs confondus).
+  //
+  // ⚠️ On ne filtre PLUS sur `active: true`. Une alerte de réouverture déjà
+  // notifiée reste en base jusqu'au soir (voir REOPEN_REARM_WINDOW_MS) : c'est
+  // précisément une ligne inactive, et il faut la relire à chaque passage pour
+  // pouvoir la réarmer — et pour l'expirer en fin de journée comme les autres.
+  const alerts = await userPrisma.alert.findMany();
   if (alerts.length === 0) {
     return NextResponse.json({
       checked: 0,
@@ -294,31 +341,71 @@ async function runAlertsPass(): Promise<NextResponse> {
   const [waitRows, rides] = await Promise.all([
     prisma.waitTime.findMany({
       where: { rideId: { in: rideIds }, endTime: null, type: "standby" },
-      select: { rideId: true, waitTime: true, status: true },
+      // `startTime` : la table est une table d'INTERVALLES et le statut fait
+      // partie de la signature d'un intervalle (stateHash côté worker). Le
+      // `startTime` de l'intervalle ouvert est donc l'instant EXACT où
+      // l'attraction est entrée dans son état courant — c'est ce qui permet de
+      // dater une panne sans conserver d'historique de notre côté.
+      select: { rideId: true, waitTime: true, status: true, startTime: true },
     }),
-    // Fuseau du parc de chaque attraction : sert à évaluer « aujourd'hui » pour
-    // l'expiration quotidienne des alertes (voir plus bas).
+    // Parc de chaque attraction : son FUSEAU sert à évaluer « aujourd'hui » pour
+    // l'expiration quotidienne, et son IDENTIFIANT à retrouver son horaire de
+    // fermeture (réarmement des alertes de réouverture).
     prisma.ride.findMany({
       where: { id: { in: rideIds } },
-      select: { id: true, park: { select: { timezone: true } } },
+      select: { id: true, park: { select: { id: true, timezone: true } } },
     }),
   ]);
-  const waitByRide = new Map<number, { waitTime: number; status: string }>();
+  const waitByRide = new Map<
+    number,
+    { waitTime: number; status: string; startTime: Date }
+  >();
   for (const row of waitRows) {
     if (row.rideId != null) {
       waitByRide.set(row.rideId, {
         waitTime: row.waitTime,
         status: String(row.status),
+        startTime: row.startTime,
       });
     }
   }
   const tzByRide = new Map<number, string>();
-  for (const r of rides) tzByRide.set(r.id, r.park?.timezone ?? "Europe/Paris");
+  const parkIdByRide = new Map<number, number>();
+  for (const r of rides) {
+    tzByRide.set(r.id, r.park?.timezone ?? "Europe/Paris");
+    if (r.park) parkIdByRide.set(r.id, r.park.id);
+  }
+
+  // Horaires d'ouverture des parcs concernés, UNIQUEMENT si des alertes de
+  // réouverture déjà notifiées attendent un éventuel réarmement. Aucune alerte
+  // de ce type en attente = aucune requête (le cas courant : ce cron tourne
+  // toutes les 1-2 min, pour rien la plupart du temps).
+  const rearmCandidateParkIds = [
+    ...new Set(
+      alerts
+        .filter((a) => a.type === "reopen" && !a.active)
+        .map((a) => parkIdByRide.get(a.rideId))
+        .filter((id): id is number => id != null),
+    ),
+  ];
+  const parkWindows =
+    rearmCandidateParkIds.length > 0
+      ? await loadParkOpenWindows(rearmCandidateParkIds, now)
+      : new Map();
 
   // 3. Décision par alerte : à expirer (jour passé), à envoyer, à réarmer.
+  //
+  // Cinq issues possibles, jamais cumulables sur un même passage :
+  //   toExpire       — la journée du parc est passée : suppression, tous types.
+  //   toFire         — alerte de SEUIL : le temps est descendu à ≤ seuil.
+  //   toRearm        — alerte de SEUIL : le temps est remonté, on réarme.
+  //   toReopen       — alerte de RÉOUVERTURE : l'attraction vient de rouvrir.
+  //   toReopenRearm  — alerte de RÉOUVERTURE déjà notifiée : rechute dans l'heure.
   const toFire: typeof alerts = [];
   const toRearm: string[] = [];
   const toExpire: string[] = [];
+  const toReopen: typeof alerts = [];
+  const toReopenRearm: typeof alerts = [];
   for (const a of alerts) {
     // Expiration quotidienne : une alerte ne vaut que pour la journée où elle a
     // été activée. Passé MINUIT DANS LE FUSEAU DU PARC (pas celui du serveur ni
@@ -326,6 +413,9 @@ async function runAlertsPass(): Promise<NextResponse> {
     // SUPPRIMÉE — l'utilisateur a quitté le parc, et le profil ne propose plus de
     // la réactiver. Une alerte qui traîne n'aurait donc plus qu'un seul effet
     // possible : notifier pour une visite qui n'a pas lieu.
+    //
+    // S'applique AUSSI aux alertes déjà consommées (une réouverture notifiée
+    // reste en base jusqu'au soir), d'où le test avant tout aiguillage par type.
     if (a.activeDate) {
       const tz = tzByRide.get(a.rideId) ?? "Europe/Paris";
       const activeDay = DateTime.fromJSDate(a.activeDate).setZone(tz).toISODate();
@@ -337,6 +427,51 @@ async function runAlertsPass(): Promise<NextResponse> {
     }
 
     const entry = waitByRide.get(a.rideId);
+
+    // ————————————————————————— Alertes de RÉOUVERTURE —————————————————————————
+    if (a.type === "reopen") {
+      if (!entry) continue;
+
+      if (a.active && a.armed) {
+        // Tout `open` observé EST la réouverture attendue : la route de création
+        // refuse de poser ce type d'alerte sur une attraction déjà ouverte, donc
+        // l'alerte n'a pu naître que sur un état à l'arrêt. Pas besoin d'exiger
+        // un temps d'attente exploitable ici — une attraction qui rouvre sans
+        // publier d'attente (waitTime -1) a quand même rouvert.
+        if (entry.status === "open") toReopen.push(a);
+        continue;
+      }
+
+      // Déjà notifiée (inactive) : rechute dans l'heure -> on réarme seul.
+      // La panne doit être POSTÉRIEURE à notre notification (sinon on relirait
+      // l'état d'avant la réouverture) et tomber dans la fenêtre.
+      if (!a.active && a.lastAlertedAt && REOPEN_REARM_STATUSES.has(entry.status)) {
+        const since = entry.startTime.getTime() - a.lastAlertedAt.getTime();
+        if (since <= 0 || since > REOPEN_REARM_WINDOW_MS) continue;
+
+        // …et le parc ne doit pas être sur le point de fermer : à cette heure-là,
+        // un `down` / `maintenance` est une mise en sommeil, pas une panne.
+        const parkId = parkIdByRide.get(a.rideId);
+        if (
+          !reopenAllowedForWindow(
+            parkId != null ? parkWindows.get(parkId) : undefined,
+            now,
+            REOPEN_REARM_CLOSING_MARGIN_MS,
+          )
+        ) {
+          continue;
+        }
+
+        toReopenRearm.push(a);
+      }
+      continue;
+    }
+
+    // ————————————————————————————— Alertes de SEUIL —————————————————————————————
+    // Une alerte de seuil qui notifie est supprimée : seules les actives peuvent
+    // encore se déclencher, et `threshold` est renseigné pour ce type.
+    if (!a.active || a.threshold == null) continue;
+
     const available = !!entry && entry.status === "open" && entry.waitTime >= 0;
     const inFireZone = available && entry!.waitTime <= a.threshold;
     const inRearmZone =
@@ -350,9 +485,9 @@ async function runAlertsPass(): Promise<NextResponse> {
   }
 
   // 4a. Expiration : suppression des alertes dont la journée est passée dans le
-  //     parc. L'historique des notifications déjà envoyées n'en dépend pas
-  //     (relation en `onDelete: SetNull`) ; ces alertes-là, elles, n'ont jamais
-  //     notifié — il n'y a donc rien à journaliser.
+  //     parc, ACTIVES OU NON. Rien à journaliser au passage : soit l'alerte n'a
+  //     jamais notifié, soit elle l'a déjà fait et son entrée d'historique
+  //     existe — celle-ci survit à la suppression (`onDelete: SetNull`).
   if (toExpire.length > 0) {
     await userPrisma.alert.deleteMany({
       where: { id: { in: toExpire } },
@@ -367,7 +502,11 @@ async function runAlertsPass(): Promise<NextResponse> {
     });
   }
 
-  if (toFire.length === 0) {
+  if (
+    toFire.length === 0 &&
+    toReopen.length === 0 &&
+    toReopenRearm.length === 0
+  ) {
     return NextResponse.json({
       checked: alerts.length,
       sent: 0,
@@ -380,7 +519,13 @@ async function runAlertsPass(): Promise<NextResponse> {
   }
 
   // 5. Abonnements push + locale des utilisateurs concernés (une requête chacune).
-  const userIds = [...new Set(toFire.map((a) => a.userId))];
+  //    Chargés pour les TROIS familles d'envoi d'un coup : un même utilisateur
+  //    peut très bien être concerné par plusieurs dans le même passage.
+  const userIds = [
+    ...new Set(
+      [...toFire, ...toReopen, ...toReopenRearm].map((a) => a.userId),
+    ),
+  ];
   const [subs, prefs] = await Promise.all([
     userPrisma.pushSubscription.findMany({ where: { userId: { in: userIds } } }),
     userPrisma.userPreferences.findMany({
@@ -406,15 +551,38 @@ async function runAlertsPass(): Promise<NextResponse> {
   const deadEndpoints: string[] = [];
   let sent = 0;
 
-  const fireByUser = new Map<string, typeof toFire>();
-  for (const a of toFire) {
-    const list = fireByUser.get(a.userId) ?? [];
-    list.push(a);
-    fireByUser.set(a.userId, list);
-  }
+  // Les trois familles d'envoi partagent le même regroupement par utilisateur et
+  // le même acheminement ; seul le message diffère. Deux petites aides évitent de
+  // recopier trois fois la boucle d'abonnements (et d'oublier, dans l'une d'elles,
+  // la collecte des endpoints morts).
+  const groupByUser = <T extends { userId: string }>(items: T[]) => {
+    const map = new Map<string, T[]>();
+    for (const it of items) {
+      const list = map.get(it.userId) ?? [];
+      list.push(it);
+      map.set(it.userId, list);
+    }
+    return map;
+  };
+
+  // Envoie à TOUS les appareils de l'utilisateur. Renvoie true si au moins un
+  // appareil a reçu la notification (sert au compteur `sent`).
+  const deliver = async (userId: string, payload: PushPayload) => {
+    let delivered = false;
+    for (const s of subsByUser.get(userId) ?? []) {
+      const res = await sendPush(
+        { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
+        payload,
+      );
+      if (res.ok) delivered = true;
+      else if (res.gone) deadEndpoints.push(s.endpoint);
+    }
+    return delivered;
+  };
+
+  const fireByUser = groupByUser(toFire);
 
   for (const [userId, userAlerts] of fireByUser) {
-    const userSubs = subsByUser.get(userId) ?? [];
     const locale = localeByUser.get(userId) ?? DEFAULT_LOCALE;
 
     const msg = buildAlertMessage(
@@ -422,7 +590,9 @@ async function runAlertsPass(): Promise<NextResponse> {
       userAlerts.map((a) => ({
         ride: a.rideName,
         wait: waitByRide.get(a.rideId)!.waitTime,
-        threshold: a.threshold,
+        // Non nul par construction : la boucle de décision écarte les alertes de
+        // seuil sans seuil (ce sont les alertes de réouverture).
+        threshold: a.threshold!,
       })),
     );
     // Une seule attraction -> lien profond vers SA page (l'utilisateur voit
@@ -443,15 +613,7 @@ async function runAlertsPass(): Promise<NextResponse> {
       tag: single ? `ride-${single.rideId}` : "qp-alerts-digest",
     };
 
-    let delivered = false;
-    for (const s of userSubs) {
-      const res = await sendPush(
-        { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
-        payload,
-      );
-      if (res.ok) delivered = true;
-      else if (res.gone) deadEndpoints.push(s.endpoint);
-    }
+    const delivered = await deliver(userId, payload);
 
     // Journal PERMANENT puis SUPPRESSION de l'alerte consommée, même si
     // l'utilisateur n'a AUCUN abonnement valide (il verra l'historique ; on
@@ -470,6 +632,7 @@ async function runAlertsPass(): Promise<NextResponse> {
           rideId: a.rideId,
           rideName: a.rideName,
           parkIdentifier: a.parkIdentifier,
+          type: "threshold",
           threshold: a.threshold,
           actualWaitTime: entry.waitTime,
         },
@@ -477,6 +640,99 @@ async function runAlertsPass(): Promise<NextResponse> {
       await userPrisma.alert.delete({ where: { id: a.id } });
     }
     if (delivered) sent++;
+  }
+
+  // 6b. RÉOUVERTURES : « ton attraction vient de rouvrir ».
+  //
+  // Différence essentielle avec une alerte de seuil : la ligne n'est PAS
+  // supprimée, seulement désactivée. Elle doit survivre pour que la rechute
+  // éventuelle (bloc 6c) trouve encore quelque chose à réarmer. C'est
+  // l'expiration quotidienne (bloc 4a) qui la balaiera le soir venu, exactement
+  // comme les autres.
+  let reopenSent = 0;
+  for (const [userId, userAlerts] of groupByUser(toReopen)) {
+    const locale = localeByUser.get(userId) ?? DEFAULT_LOCALE;
+    const msg = buildReopenMessage(
+      locale,
+      userAlerts.map((a) => a.rideName),
+    );
+    const single = userAlerts.length === 1 ? userAlerts[0] : null;
+    const payload: PushPayload = {
+      title: msg.title,
+      body: msg.body,
+      url: single
+        ? `/${locale}/park/${single.parkIdentifier}/ride/${rideSlug(
+            single.rideId,
+            single.rideName,
+          )}`
+        : `/${locale}/park/${userAlerts[0].parkIdentifier}`,
+      // Tag distinct de celui des alertes de seuil : les deux natures ne peuvent
+      // pas coexister sur une attraction, mais elles se SUCCÈDENT dans la même
+      // journée (une réouverture peut être suivie d'une alerte de seuil posée
+      // dans la foulée). Un tag commun ferait disparaître la première.
+      tag: single ? `reopen-${single.rideId}` : "qp-reopen-digest",
+    };
+
+    const delivered = await deliver(userId, payload);
+
+    for (const a of userAlerts) {
+      const entry = waitByRide.get(a.rideId)!;
+      await userPrisma.alertHistory.create({
+        data: {
+          userId: a.userId,
+          alertId: a.id,
+          rideId: a.rideId,
+          rideName: a.rideName,
+          parkIdentifier: a.parkIdentifier,
+          type: "reopen",
+          threshold: null,
+          // Le temps publié à la réouverture, tel quel : -1 (« pas d'attente
+          // communiquée ») est une information honnête, pas une valeur à masquer.
+          actualWaitTime: entry.waitTime,
+        },
+      });
+      await userPrisma.alert.update({
+        where: { id: a.id },
+        data: { active: false, armed: false, lastAlertedAt: now },
+      });
+    }
+    if (delivered) reopenSent++;
+  }
+
+  // 6c. RECHUTES : l'attraction est retombée à l'arrêt dans l'heure suivant sa
+  //     réouverture. On réarme l'alerte SANS que l'utilisateur ait à y penser, et
+  //     on le lui dit — la notification précédente lui annonçait l'inverse.
+  let reopenRearmed = 0;
+  for (const [userId, userAlerts] of groupByUser(toReopenRearm)) {
+    const locale = localeByUser.get(userId) ?? DEFAULT_LOCALE;
+    const msg = buildReopenRearmMessage(
+      locale,
+      userAlerts.map((a) => a.rideName),
+    );
+    const single = userAlerts.length === 1 ? userAlerts[0] : null;
+    const payload: PushPayload = {
+      title: msg.title,
+      body: msg.body,
+      url: single
+        ? `/${locale}/park/${single.parkIdentifier}/ride/${rideSlug(
+            single.rideId,
+            single.rideName,
+          )}`
+        : `/${locale}/park/${userAlerts[0].parkIdentifier}`,
+      tag: single ? `reopen-${single.rideId}` : "qp-reopen-digest",
+    };
+
+    await deliver(userId, payload);
+
+    // Pas d'entrée d'historique ici : le journal recense les alertes REMPLIES,
+    // et celle-ci ne l'est pas — elle repart en veille. `activeDate` n'est pas
+    // recalé non plus : la réactivation est automatique, elle ne doit pas
+    // prolonger la validité de l'alerte au-delà de la journée d'origine.
+    await userPrisma.alert.updateMany({
+      where: { id: { in: userAlerts.map((a) => a.id) } },
+      data: { active: true, armed: true },
+    });
+    reopenRearmed += userAlerts.length;
   }
 
   // 7. Purge des abonnements morts.
@@ -492,6 +748,9 @@ async function runAlertsPass(): Promise<NextResponse> {
     sent,
     rearmed: toRearm.length,
     expired: toExpire.length,
+    reopened: toReopen.length,
+    reopenSent,
+    reopenRearmed,
     purgedAlerts: purgedAlerts.count,
     purgedRequestLogs,
     prunedSubscriptions: deadEndpoints.length,

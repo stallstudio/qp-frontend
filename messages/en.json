@@ -416,7 +416,9 @@
     "leadSaved": "Lead time updated",
     "validateLead": "Save lead time",
     "editLead": "Edit lead time",
-    "leadTooLate": "The show is too soon to change the lead time."
+    "leadTooLate": "The show is too soon to change the lead time.",
+    "reopenBadge": "Reopening",
+    "historyReopenLine": "Reopened"
   },
   "privacy": {
     "emailLabel": "Email address",
@@ -492,7 +494,13 @@
     "deleted": "Alert deleted",
     "pushBlocked": "Alert saved, but this device won't receive anything (notifications aren't allowed).",
     "pushDenied": "Notifications are blocked for this site. Allow them in your browser settings to receive alerts on this device.",
-    "pushUnsupported": "This browser doesn't support push notifications. The alert will still appear in your profile and history."
+    "pushUnsupported": "This browser doesn't support push notifications. The alert will still appear in your profile and history.",
+    "reopenLabel": "This ride is currently stopped. Get notified as soon as it reopens.",
+    "reopenSave": "Notify me when it reopens",
+    "reopenActive": "Reopening alert active",
+    "reopenSaved": "Reopening alert saved",
+    "reopenTooLate": "Too late in the day for a reopening alert: whatever stops now will reopen tomorrow. It will be offered again when the park next opens.",
+    "statusChanged": "The ride's status just changed. Reopen the page to create the right alert."
   },
   "legal": {
     "backHome": "Back to home",

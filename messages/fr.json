@@ -416,7 +416,9 @@
     "leadSaved": "Délai mis à jour",
     "validateLead": "Valider le délai",
     "editLead": "Modifier le délai",
-    "leadTooLate": "Le spectacle est trop proche pour modifier le délai."
+    "leadTooLate": "Le spectacle est trop proche pour modifier le délai.",
+    "reopenBadge": "Réouverture",
+    "historyReopenLine": "A rouvert"
   },
   "privacy": {
     "emailLabel": "Adresse e-mail",
@@ -492,7 +494,13 @@
     "deleted": "Alerte supprimée",
     "pushBlocked": "Alerte enregistrée, mais cet appareil ne recevra rien (notifications non autorisées).",
     "pushDenied": "Notifications bloquées pour ce site. Autorisez-les dans les réglages de votre navigateur pour recevoir les alertes sur cet appareil.",
-    "pushUnsupported": "Ce navigateur ne prend pas en charge les notifications push. L'alerte sera visible dans votre profil et l'historique."
+    "pushUnsupported": "Ce navigateur ne prend pas en charge les notifications push. L'alerte sera visible dans votre profil et l'historique.",
+    "reopenLabel": "Cette attraction est à l'arrêt. Sois prévenu dès qu'elle rouvre.",
+    "reopenSave": "Me prévenir à la réouverture",
+    "reopenActive": "Alerte de réouverture active",
+    "reopenSaved": "Alerte de réouverture enregistrée",
+    "reopenTooLate": "Trop tard dans la journée pour une alerte de réouverture : ce qui s'arrête maintenant rouvrira demain. Elle sera de nouveau proposée à la prochaine ouverture du parc.",
+    "statusChanged": "L'état de l'attraction vient de changer. Rouvre la fiche pour créer la bonne alerte."
   },
   "legal": {
     "backHome": "Retour à l’accueil",

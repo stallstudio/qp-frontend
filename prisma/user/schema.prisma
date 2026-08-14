@@ -158,13 +158,28 @@ model Favorite {
 }
 
 //
-// ALERTES (temps d'attente)
+// ALERTES (temps d'attente ET réouverture)
 //
 // Référence l'attraction par `rideId` (base principale). Les champs *Name /
 // parkIdentifier sont des instantanés d'affichage : le profil et l'historique
 // restent lisibles sans jointure inter-bases, même si l'attraction disparaît.
 // Le moteur de vérification des temps d'attente (/api/cron/alerts) lit les
 // alertes `active = true` par rideId et écrit dans l'historique.
+
+// DEUX natures d'alerte, mutuellement exclusives sur une même attraction (voir
+// la contrainte @@unique plus bas) — c'est l'ÉTAT COURANT de l'attraction qui
+// détermine laquelle a un sens, et l'UI ne propose donc jamais les deux :
+//   - `threshold` : l'attraction est OUVERTE, on surveille son temps d'attente
+//     et on prévient quand il descend à ≤ seuil.
+//   - `reopen`    : l'attraction est en panne / maintenance / fermée, il n'y a
+//     aucun temps d'attente à surveiller — la seule nouvelle utile est sa
+//     RÉOUVERTURE. Proposer un seuil ici n'aurait aucun sens (on ne peut pas
+//     descendre sous un seuil quand rien n'est publié), d'où le refus de créer
+//     une alerte `reopen` sur une attraction déjà ouverte (et inversement).
+enum AlertType {
+  threshold
+  reopen
+}
 
 model Alert {
   id             String   @id @default(cuid())
@@ -173,7 +188,12 @@ model Alert {
   parkIdentifier String   @db.VarChar(100)
   rideName       String   @db.VarChar(255)
   parkName       String   @db.VarChar(255)
-  threshold      Int
+  type           AlertType @default(threshold)
+  // NULL pour une alerte `reopen` : elle n'a pas de seuil. Volontairement
+  // NULLABLE plutôt que « 0 par convention » — un 0 s'afficherait « ≤ 0 min »
+  // partout où l'on oublierait de traiter le cas, alors que `null` force le
+  // compilateur à trancher à chaque point d'affichage.
+  threshold      Int?
   active         Boolean  @default(true)
   // État anti-spam du moteur (déclenchement sur FRONT, pas sur niveau) : `armed`
   // = true tant que le temps est resté au-dessus du seuil, donc prêt à alerter
@@ -181,13 +201,23 @@ model Alert {
   // réarme quand le temps repasse nettement au-dessus (seuil + hystérésis) ou que
   // l'attraction n'est plus ouverte. Sans ça, on ré-alerterait à chaque passage
   // du cron tant que la file reste courte.
+  // Pour une alerte `reopen`, `armed` n'a pas de rôle d'hystérésis : le
+  // déclenchement est déjà un FRONT par construction (l'alerte ne peut naître
+  // que sur une attraction non ouverte, donc tout `open` observé EST la
+  // réouverture attendue).
   armed          Boolean   @default(true)
+  // Instant du dernier envoi. Pour une alerte `reopen`, il sert AUSSI de borne
+  // à la fenêtre de réarmement automatique : si l'attraction retombe en panne
+  // dans l'heure qui suit, le moteur la réarme seul (voir /api/cron/alerts).
   lastAlertedAt  DateTime?
   // Jour de validité de l'alerte. Une alerte ne vaut QUE pour la journée où elle
   // a été (ré)activée : on considère qu'on quitte le parc le soir. Le moteur
-  // désactive (`active=false`) toute alerte dont ce jour — évalué dans le FUSEAU
-  // DU PARC — est antérieur à aujourd'hui. Rempli à la création et à chaque
-  // réactivation. Null (anciennes lignes) = pas d'expiration.
+  // SUPPRIME toute alerte dont ce jour — évalué dans le FUSEAU DU PARC — est
+  // antérieur à aujourd'hui, qu'elle soit encore active ou déjà consommée (une
+  // alerte `reopen` survit à son envoi, cf. plus haut : sans ce balayage sur les
+  // lignes inactives, elle traînerait jusqu'à la purge de rétention à 7 jours).
+  // Rempli à la création et à chaque réactivation. Null (anciennes lignes) =
+  // pas d'expiration.
   activeDate     DateTime? @default(now())
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -208,7 +238,14 @@ model AlertHistory {
   rideId         Int
   rideName       String   @db.VarChar(255)
   parkIdentifier String   @db.VarChar(100)
-  threshold      Int
+  // Nature de la notification envoyée, recopiée de l'alerte : le fil du profil
+  // ne peut pas la déduire de `threshold` seul (voir AlertType).
+  type           AlertType @default(threshold)
+  // NULL pour une notification de réouverture (pas de seuil), comme sur Alert.
+  threshold      Int?
+  // Temps d'attente au moment de l'envoi. Pour une réouverture, c'est celui
+  // publié à la réouverture (souvent 0) : l'information utile est l'événement,
+  // pas la valeur.
   actualWaitTime Int
   sentAt         DateTime @default(now())
 

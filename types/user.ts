@@ -3,13 +3,22 @@ import type { UserPreferences } from "@/lib/user-preferences";
 // Types du domaine utilisateur exposés par les routes /api/user/* et consommés
 // par le UserProvider et la page Profil.
 
+// Nature d'une alerte — voir l'enum `AlertType` du schéma utilisateurs.
+// `threshold` : prévenir quand l'attente descend sous un seuil (attraction
+// ouverte). `reopen` : prévenir quand l'attraction rouvre (attraction en panne,
+// en maintenance ou fermée). L'état courant de l'attraction décide de celle qui
+// est proposée ; les deux ne coexistent jamais sur une même attraction.
+export type AlertType = "threshold" | "reopen";
+
 export interface AlertDTO {
   id: string;
   rideId: number;
   parkIdentifier: string;
   rideName: string;
   parkName: string;
-  threshold: number;
+  type: AlertType;
+  // null pour une alerte de réouverture (elle n'a pas de seuil).
+  threshold: number | null;
   active: boolean;
   createdAt: string;
 }
@@ -22,7 +31,9 @@ export interface AlertHistoryDTO {
   // Nom lisible du parc, résolu depuis la base principale au moment de la lecture
   // (l'historique ne stocke que l'identifiant). Repli sur l'identifiant si absent.
   parkName: string;
-  threshold: number;
+  type: AlertType;
+  // null pour une notification de réouverture.
+  threshold: number | null;
   actualWaitTime: number;
   sentAt: string;
 }

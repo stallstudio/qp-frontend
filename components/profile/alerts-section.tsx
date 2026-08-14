@@ -366,14 +366,23 @@ export default function AlertsSection() {
                     title={item.alert.rideName}
                     subtitle={item.alert.parkName}
                     trailing={
-                      <ValueBadge kind="ride">
-                        <span className="relative top-px text-[0.8em] leading-none text-muted-foreground">
-                          ≤
-                        </span>{" "}
-                        {tAlert("thresholdOption", {
-                          minutes: item.alert.threshold,
-                        })}
-                      </ValueBadge>
+                      // Une alerte de réouverture n'a pas de seuil : la pastille
+                      // annonce l'événement attendu au lieu d'une valeur.
+                      item.alert.type === "reopen" ||
+                      item.alert.threshold == null ? (
+                        <ValueBadge kind="ride">
+                          {t("reopenBadge")}
+                        </ValueBadge>
+                      ) : (
+                        <ValueBadge kind="ride">
+                          <span className="relative top-px text-[0.8em] leading-none text-muted-foreground">
+                            ≤
+                          </span>{" "}
+                          {tAlert("thresholdOption", {
+                            minutes: item.alert.threshold,
+                          })}
+                        </ValueBadge>
+                      )
                     }
                   />
                 ) : (

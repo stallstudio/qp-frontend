@@ -151,10 +151,16 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
             kind: "ride",
             sentAt: h.sentAt,
             title: h.rideName,
-            subtitle: `${h.parkName} · ${t("historyLine", {
-              actual: h.actualWaitTime,
-              threshold: h.threshold,
-            })}`,
+            // Une notification de réouverture n'a ni seuil ni temps franchi :
+            // la ligne dit l'événement, pas une valeur qui n'existe pas.
+            subtitle: `${h.parkName} · ${
+              h.type === "reopen" || h.threshold == null
+                ? t("historyReopenLine")
+                : t("historyLine", {
+                    actual: h.actualWaitTime,
+                    threshold: h.threshold,
+                  })
+            }`,
           }));
     const showItems: HistoryItem[] =
       filter === "rides"

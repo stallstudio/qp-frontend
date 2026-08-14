@@ -416,7 +416,9 @@
     "leadSaved": "Vorlaufzeit aktualisiert",
     "validateLead": "Vorlaufzeit speichern",
     "editLead": "Vorlaufzeit bearbeiten",
-    "leadTooLate": "Die Show beginnt zu bald, um die Vorlaufzeit noch zu ändern."
+    "leadTooLate": "Die Show beginnt zu bald, um die Vorlaufzeit noch zu ändern.",
+    "reopenBadge": "Wiedereröffnung",
+    "historyReopenLine": "Wieder geöffnet"
   },
   "privacy": {
     "emailLabel": "E-Mail-Adresse",
@@ -492,7 +494,13 @@
     "deleted": "Benachrichtigung gelöscht",
     "pushBlocked": "Benachrichtigung gespeichert, aber dieses Gerät erhält nichts (Benachrichtigungen nicht erlaubt).",
     "pushDenied": "Benachrichtigungen sind für diese Website blockiert. Erlaube sie in deinen Browser-Einstellungen, um sie auf diesem Gerät zu erhalten.",
-    "pushUnsupported": "Dieser Browser unterstützt keine Push-Benachrichtigungen. Die Benachrichtigung erscheint trotzdem in deinem Profil und Verlauf."
+    "pushUnsupported": "Dieser Browser unterstützt keine Push-Benachrichtigungen. Die Benachrichtigung erscheint trotzdem in deinem Profil und Verlauf.",
+    "reopenLabel": "Diese Attraktion steht still. Lass dich benachrichtigen, sobald sie wieder öffnet.",
+    "reopenSave": "Bei Wiedereröffnung benachrichtigen",
+    "reopenActive": "Wiedereröffnungs-Alarm aktiv",
+    "reopenSaved": "Wiedereröffnungs-Alarm gespeichert",
+    "reopenTooLate": "Zu spät am Tag für einen Wiedereröffnungs-Alarm: Was jetzt stehen bleibt, öffnet erst morgen wieder. Er wird bei der nächsten Öffnung des Parks erneut angeboten.",
+    "statusChanged": "Der Status der Attraktion hat sich gerade geändert. Öffne die Seite erneut, um den passenden Alarm zu erstellen."
   },
   "legal": {
     "backHome": "Zurück zur Startseite",

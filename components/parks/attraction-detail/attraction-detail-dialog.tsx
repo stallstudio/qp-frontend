@@ -19,6 +19,9 @@ type AttractionDetailDialogProps = {
   target: WaitTime | null;
   parkIdentifier: string;
   parkName: string;
+  // Le parc laisse-t-il encore le temps à une alerte de réouverture de servir ?
+  // Voir `AlertSection`. Non fourni = on autorise.
+  reopenAllowed?: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
@@ -48,6 +51,7 @@ export default function AttractionDetailDialog({
   target,
   parkIdentifier,
   parkName,
+  reopenAllowed = true,
   onOpenChange,
 }: AttractionDetailDialogProps) {
   const t = useTranslations("attractionDetail");
@@ -70,6 +74,10 @@ export default function AttractionDetailDialog({
     standby && standby.status === "open" && standby.waitTime >= 0
       ? standby.waitTime
       : undefined;
+  // État de la file standby : c'est lui qui décide de la NATURE de l'alerte
+  // proposée (seuil si ouverte, réouverture sinon). Sans file standby, on laisse
+  // le formulaire à son comportement d'origine (alerte de seuil).
+  const currentStatus = standby?.status ?? null;
 
   return (
     <Dialog open={target !== null} onOpenChange={onOpenChange}>
@@ -130,6 +138,8 @@ export default function AttractionDetailDialog({
                     chronicallyUnavailable && currentWaitTime === undefined
                   }
                   currentWaitTime={currentWaitTime}
+                  currentStatus={currentStatus}
+                  reopenAllowed={reopenAllowed}
                 />
                 </div>
               </Section>

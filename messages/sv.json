@@ -416,7 +416,9 @@
     "leadSaved": "Framförhållningen är uppdaterad",
     "validateLead": "Spara framförhållning",
     "editLead": "Redigera framförhållning",
-    "leadTooLate": "Showen börjar för snart för att ändra framförhållningen."
+    "leadTooLate": "Showen börjar för snart för att ändra framförhållningen.",
+    "reopenBadge": "Återöppning",
+    "historyReopenLine": "Öppnade igen"
   },
   "privacy": {
     "emailLabel": "E-postadress",
@@ -492,7 +494,13 @@
     "deleted": "Aviseringen är borttagen",
     "pushBlocked": "Aviseringen är sparad, men den här enheten får inget (aviseringar är inte tillåtna).",
     "pushDenied": "Aviseringar är blockerade för den här webbplatsen. Tillåt dem i webbläsarens inställningar för att få dem på den här enheten.",
-    "pushUnsupported": "Den här webbläsaren stöder inte push-aviseringar. Aviseringen syns ändå i din profil och i historiken."
+    "pushUnsupported": "Den här webbläsaren stöder inte push-aviseringar. Aviseringen syns ändå i din profil och i historiken.",
+    "reopenLabel": "Den här attraktionen står stilla. Få besked så snart den öppnar igen.",
+    "reopenSave": "Meddela mig när den öppnar igen",
+    "reopenActive": "Återöppningsavisering aktiv",
+    "reopenSaved": "Återöppningsavisering sparad",
+    "reopenTooLate": "För sent på dagen för en återöppningsavisering: det som stannar nu öppnar först i morgon. Den erbjuds igen när parken öppnar nästa gång.",
+    "statusChanged": "Attraktionens status har just ändrats. Öppna sidan igen för att skapa rätt avisering."
   },
   "legal": {
     "backHome": "Tillbaka till startsidan",

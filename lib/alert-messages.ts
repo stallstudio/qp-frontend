@@ -28,6 +28,21 @@ type AlertStrings = {
   // profil ». ⚠️ PLUS UTILISÉE : les appels sont commentés dans
   // `buildAlertMessage` — on garde les textes pour pouvoir la rétablir.
   deactivatedNote: (count: number) => string;
+
+  // —————————————————— Réouverture (alertes de type `reopen`) ——————————————————
+  // Titres « une attraction rouvre » : même principe que `singleTitles` (tirage
+  // aléatoire + emoji) pour ne pas répéter la même phrase d'une fois sur l'autre.
+  reopenTitles: string[];
+  reopenBody: (ride: string) => string;
+  reopenDigestTitle: (count: number) => string;
+  reopenDigestLine: (ride: string) => string;
+  // Réarmement automatique : l'attraction est retombée en panne dans l'heure
+  // suivant sa réouverture, on a donc remis l'alerte en veille tout seul. Le
+  // corps doit le DIRE explicitement — sans ça, l'utilisateur croit avoir reçu
+  // une bonne nouvelle alors que c'est l'inverse.
+  rearmTitle: string;
+  rearmBody: (ride: string) => string;
+  rearmDigestTitle: (count: number) => string;
 };
 
 const DICT: Record<string, AlertStrings> = {
@@ -51,6 +66,21 @@ const DICT: Record<string, AlertStrings> = {
       count > 1
         ? "💡 Alertes en pause — réactive-les dans ton profil."
         : "💡 Alerte en pause — réactive-la dans ton profil.",
+    reopenTitles: [
+      "C'est reparti ! 🎢",
+      "Elle rouvre ! 🔧",
+      "De nouveau en service ✅",
+      "Bonne nouvelle ! 🎉",
+      "Réparée ! 🛠️",
+    ],
+    reopenBody: (ride) => `${ride} vient de rouvrir`,
+    reopenDigestTitle: (count) => `✅ ${count} attractions ont rouvert !`,
+    reopenDigestLine: (ride) => `• ${ride}`,
+    rearmTitle: "Fausse joie 😕",
+    rearmBody: (ride) =>
+      `${ride} est de nouveau à l'arrêt — on a réactivé ton alerte de réouverture.`,
+    rearmDigestTitle: (count) =>
+      `😕 ${count} attractions de nouveau à l'arrêt`,
   },
   en: {
     singleTitles: [
@@ -72,6 +102,20 @@ const DICT: Record<string, AlertStrings> = {
       count > 1
         ? "💡 Alerts paused — re-enable them in your profile."
         : "💡 Alert paused — re-enable it in your profile.",
+    reopenTitles: [
+      "It's back! 🎢",
+      "Reopening! 🔧",
+      "Up and running ✅",
+      "Great news! 🎉",
+      "Fixed! 🛠️",
+    ],
+    reopenBody: (ride) => `${ride} has just reopened`,
+    reopenDigestTitle: (count) => `✅ ${count} rides have reopened!`,
+    reopenDigestLine: (ride) => `• ${ride}`,
+    rearmTitle: "Spoke too soon 😕",
+    rearmBody: (ride) =>
+      `${ride} is down again — we've re-enabled your reopening alert.`,
+    rearmDigestTitle: (count) => `😕 ${count} rides are down again`,
   },
 };
 
@@ -114,4 +158,47 @@ export function buildAlertMessage(
   // lines.push("", d.deactivatedNote(rides.length));
 
   return { title: d.digestTitle(rides.length), body: lines.join("\n") };
+}
+
+// Message « ton attraction a rouvert » (alertes de type `reopen`). Même
+// regroupement par utilisateur que les seuils : une seule attraction -> titre
+// convivial aléatoire, plusieurs -> digest listé.
+export function buildReopenMessage(
+  locale: string | null | undefined,
+  rides: string[],
+): { title: string; body: string } {
+  const lang = locale && DICT[locale] ? locale : "en";
+  const d = DICT[lang];
+
+  if (rides.length === 1) {
+    return { title: pick(d.reopenTitles), body: d.reopenBody(rides[0]) };
+  }
+
+  const shown = rides.slice(0, DIGEST_MAX_LINES);
+  const lines = shown.map((r) => d.reopenDigestLine(r));
+  const rest = rides.length - shown.length;
+  if (rest > 0) lines.push(d.more(rest));
+  return { title: d.reopenDigestTitle(rides.length), body: lines.join("\n") };
+}
+
+// Message « c'est retombé en panne, on a remis ton alerte en veille ». Envoyé
+// UNIQUEMENT lors d'un réarmement automatique, et donc toujours à quelqu'un qui
+// vient de recevoir une notification de réouverture : le ton corrige la bonne
+// nouvelle précédente au lieu d'annoncer une panne dans le vide.
+export function buildReopenRearmMessage(
+  locale: string | null | undefined,
+  rides: string[],
+): { title: string; body: string } {
+  const lang = locale && DICT[locale] ? locale : "en";
+  const d = DICT[lang];
+
+  if (rides.length === 1) {
+    return { title: d.rearmTitle, body: d.rearmBody(rides[0]) };
+  }
+
+  const shown = rides.slice(0, DIGEST_MAX_LINES);
+  const lines = shown.map((r) => d.reopenDigestLine(r));
+  const rest = rides.length - shown.length;
+  if (rest > 0) lines.push(d.more(rest));
+  return { title: d.rearmDigestTitle(rides.length), body: lines.join("\n") };
 }

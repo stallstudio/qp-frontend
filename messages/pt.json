@@ -416,7 +416,9 @@
     "leadSaved": "Antecedência atualizada",
     "validateLead": "Guardar antecedência",
     "editLead": "Editar antecedência",
-    "leadTooLate": "O espetáculo começa demasiado cedo para alterar a antecedência."
+    "leadTooLate": "O espetáculo começa demasiado cedo para alterar a antecedência.",
+    "reopenBadge": "Reabertura",
+    "historyReopenLine": "Reabriu"
   },
   "privacy": {
     "emailLabel": "Endereço de e-mail",
@@ -492,7 +494,13 @@
     "deleted": "Alerta eliminado",
     "pushBlocked": "Alerta guardado, mas este dispositivo não vai receber nada (notificações não permitidas).",
     "pushDenied": "As notificações estão bloqueadas para este site. Permite-as nas definições do teu navegador para receberes alertas neste dispositivo.",
-    "pushUnsupported": "Este navegador não suporta notificações push. O alerta continuará a aparecer no teu perfil e no histórico."
+    "pushUnsupported": "Este navegador não suporta notificações push. O alerta continuará a aparecer no teu perfil e no histórico.",
+    "reopenLabel": "Esta atração está parada. Avisamos-te assim que reabrir.",
+    "reopenSave": "Avisar-me na reabertura",
+    "reopenActive": "Alerta de reabertura ativo",
+    "reopenSaved": "Alerta de reabertura guardado",
+    "reopenTooLate": "Demasiado tarde para um alerta de reabertura: o que para agora só reabre amanhã. Será proposto de novo na próxima abertura do parque.",
+    "statusChanged": "O estado da atração acabou de mudar. Volta a abrir a ficha para criar o alerta certo."
   },
   "legal": {
     "backHome": "Voltar ao início",

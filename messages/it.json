@@ -416,7 +416,9 @@
     "leadSaved": "Anticipo aggiornato",
     "validateLead": "Salva anticipo",
     "editLead": "Modifica anticipo",
-    "leadTooLate": "Lo spettacolo è troppo vicino per cambiare l'anticipo."
+    "leadTooLate": "Lo spettacolo è troppo vicino per cambiare l'anticipo.",
+    "reopenBadge": "Riapertura",
+    "historyReopenLine": "Ha riaperto"
   },
   "privacy": {
     "emailLabel": "Indirizzo email",
@@ -492,7 +494,13 @@
     "deleted": "Avviso eliminato",
     "pushBlocked": "Avviso salvato, ma questo dispositivo non riceverà nulla (notifiche non consentite).",
     "pushDenied": "Le notifiche sono bloccate per questo sito. Consentile nelle impostazioni del browser per riceverle su questo dispositivo.",
-    "pushUnsupported": "Questo browser non supporta le notifiche push. L'avviso comparirà comunque nel tuo profilo e nella cronologia."
+    "pushUnsupported": "Questo browser non supporta le notifiche push. L'avviso comparirà comunque nel tuo profilo e nella cronologia.",
+    "reopenLabel": "Questa attrazione è ferma. Ti avvisiamo appena riapre.",
+    "reopenSave": "Avvisami alla riapertura",
+    "reopenActive": "Avviso di riapertura attivo",
+    "reopenSaved": "Avviso di riapertura salvato",
+    "reopenTooLate": "Troppo tardi per un avviso di riapertura: ciò che si ferma ora riaprirà domani. Sarà proposto di nuovo alla prossima apertura del parco.",
+    "statusChanged": "Lo stato dell'attrazione è appena cambiato. Riapri la scheda per creare l'avviso giusto."
   },
   "legal": {
     "backHome": "Torna alla home",
