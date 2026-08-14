@@ -221,7 +221,13 @@ model ForecastAccuracy {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([rideId, date, horizonBucket])
+  // ⚠️ `method` FAIT PARTIE DE LA CLÉ, et c'est ce qui rend deux versions du
+  // moteur mesurables en parallèle. Sans lui, deux méthodes tournant sur les
+  // mêmes journées se retrouvaient sur la MÊME ligne : leurs sommes
+  // s'additionnaient et `ON DUPLICATE KEY UPDATE ... method = VALUES(method)`
+  // réétiquetait le tout au nom de la dernière arrivée. La table censée
+  // départager les versions les aurait mélangées en silence.
+  @@unique([rideId, date, horizonBucket, method])
   @@index([parkId, date])
   @@index([date])
   @@map("forecast_accuracy")
