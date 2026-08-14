@@ -87,6 +87,10 @@ type WaitTimeTableProps = {
   queueTypeLabels?: Record<string, string> | null;
   parkIdentifier: string;
   parkName: string;
+  // Le parc laisse-t-il encore le temps à une alerte de réouverture de servir ?
+  // Calculé depuis ses horaires par la carte parente, simplement transmis au
+  // popup. Non fourni = on autorise.
+  reopenAllowed?: boolean;
   // Lien profond `/park/{parc}/ride/{slug}` : attraction dont le popup doit
   // s'ouvrir dès l'arrivée sur la page.
   initialRideId?: number | null;
@@ -122,6 +126,7 @@ export default function ParkWaitTimeTable({
   queueTypeLabels,
   parkIdentifier,
   parkName,
+  reopenAllowed = true,
   initialRideId = null,
 }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
@@ -129,7 +134,16 @@ export default function ParkWaitTimeTable({
   const tDetail = useTranslations("attractionDetail");
   const tFav = useTranslations("favorites");
   const { is12Hour } = useTimeFormat();
-  const [detailTarget, setDetailTarget] = useState<WaitTime | null>(null);
+  // Popup « détail » : on retient l'IDENTIFIANT de l'attraction, pas son objet.
+  //
+  // ⚠️ Stocker l'objet en faisait une PHOTO prise au clic, que le
+  // rafraîchissement 60 s ne mettait jamais à jour. Le popup pouvait donc
+  // afficher « En panne » alors que l'attraction avait rouvert entre-temps — et
+  // surtout proposer l'alerte correspondant à cet état périmé (voir
+  // `AlertSection` : la nature de l'alerte se déduit du statut). En repartant de
+  // l'identifiant, le contenu du popup suit le direct, y compris le formulaire
+  // d'alerte qui bascule tout seul de « réouverture » à « seuil ».
+  const [detailRideId, setDetailRideId] = useState<number | null>(null);
   const [expandedRides, setExpandedRides] = useState<Set<number>>(new Set());
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -169,9 +183,32 @@ export default function ParkWaitTimeTable({
     const target = waitTimes.find((wt) => wt.rideId === initialRideId);
     // Attraction absente du flux du moment (fermée pour la saison, retirée par
     // le fournisseur) : on reste simplement sur la page du parc.
-    if (target) setDetailTarget(target);
+    if (target) setDetailRideId(initialRideId);
     deepLinkHandled.current = true;
   }, [initialRideId, waitTimes]);
+
+  // Données VIVES de l'attraction ouverte dans le popup, relues à chaque
+  // rafraîchissement de la liste.
+  const foundDetailTarget =
+    detailRideId != null
+      ? (waitTimes.find((wt) => wt.rideId === detailRideId) ?? null)
+      : null;
+
+  // Dernière version connue, mémorisée APRÈS le rendu (jamais pendant : écrire
+  // une ref en plein rendu n'est pas sûr en mode concurrent). Elle sert de filet
+  // si l'attraction disparaît du flux — l'API du parc cesse de la renvoyer, ou
+  // le fetch échoue : le popup garde alors ce qu'on avait au lieu de se vider
+  // brutalement sous les doigts de l'utilisateur.
+  const lastDetailTarget = useRef<WaitTime | null>(null);
+  useEffect(() => {
+    if (foundDetailTarget) lastDetailTarget.current = foundDetailTarget;
+    else if (detailRideId == null) lastDetailTarget.current = null;
+  }, [foundDetailTarget, detailRideId]);
+
+  const liveDetailTarget =
+    detailRideId != null
+      ? (foundDetailTarget ?? lastDetailTarget.current)
+      : null;
 
   const getQueueLabel = (queueType: string): string => {
     if (queueTypeLabels && queueTypeLabels[queueType]) {
@@ -384,7 +421,7 @@ export default function ParkWaitTimeTable({
                     )}
                     // Toute la ligne ouvre le popup de détail ; seul le chevron
                     // (qui stoppe la propagation) déplie les files secondaires.
-                    onClick={() => setDetailTarget(waitTime)}
+                    onClick={() => setDetailRideId(waitTime.rideId)}
                     // La ligne remplace l'ancienne icône « œil » : elle doit
                     // rester atteignable au clavier, d'où le tabIndex et la
                     // gestion d'Entrée / Espace.
@@ -392,7 +429,7 @@ export default function ParkWaitTimeTable({
                     onKeyDown={(e) => {
                       if (e.key !== "Enter" && e.key !== " ") return;
                       e.preventDefault();
-                      setDetailTarget(waitTime);
+                      setDetailRideId(waitTime.rideId);
                     }}
                   >
                     {/* Nom + chevron d'expand (si files multiples) accolé À LA
@@ -518,12 +555,12 @@ export default function ParkWaitTimeTable({
                       )}
                       // Les files secondaires appartiennent à la même attraction :
                       // elles ouvrent le même popup que la ligne standby.
-                      onClick={() => setDetailTarget(waitTime)}
+                      onClick={() => setDetailRideId(waitTime.rideId)}
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key !== "Enter" && e.key !== " ") return;
                         e.preventDefault();
-                        setDetailTarget(waitTime);
+                        setDetailRideId(waitTime.rideId);
                       }}
                     >
                       {/* Rendu EN FLUX INLINE, comme la ligne standby au-dessus,
@@ -581,11 +618,12 @@ export default function ParkWaitTimeTable({
 
       {/* Popup « détail attraction », ouvert par un clic sur une ligne. */}
       <AttractionDetailDialog
-        target={detailTarget}
+        target={liveDetailTarget}
         parkIdentifier={parkIdentifier}
         parkName={parkName}
+        reopenAllowed={reopenAllowed}
         onOpenChange={(open) => {
-          if (!open) setDetailTarget(null);
+          if (!open) setDetailRideId(null);
         }}
       />
     </div>
