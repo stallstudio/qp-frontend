@@ -689,6 +689,93 @@ c'est délibéré, la corriger demanderait de séparer « horaires pour l'état 
 - **Cron alertes** : verrou en mémoire anti-chevauchement (`acquireRunLock`,
   abandon après 5 min). Sans lui, un passage lent chevauchait le suivant et la
   même alerte partait deux fois (on envoie AVANT de désarmer / supprimer).
+
+#### Deux natures d'alerte : seuil et réouverture (2026-08-14)
+
+`Alert.type` (`threshold` | `reopen`) — **l'état de l'attraction décide**, jamais
+l'utilisateur. Ouverte → seuil de temps d'attente. En panne / maintenance /
+fermée → réouverture. Les deux ne coexistent pas (`@@unique userId+rideId`), et
+c'est le point : chacune est **muette** dans le cas de l'autre. Une alerte de
+seuil sur une attraction arrêtée attend un temps qui n'est pas publié ; une
+alerte de réouverture sur une attraction ouverte attend une transition déjà
+passée. `alertModeFor()` (`alert-section.tsx`) choisit, et `POST /api/user/alerts`
+**revérifie l'état réel en base** et répond 409 si l'attraction a changé entre
+l'ouverture du popup et l'envoi — sinon on enregistrerait une alerte morte-née.
+
+⚠️ **Cycle de vie différent, et c'est voulu.** Une alerte de seuil qui notifie est
+SUPPRIMÉE ; une alerte de réouverture est seulement DÉSACTIVÉE et sa ligne
+survit jusqu'au soir. Sans cette ligne, le **réarmement automatique** n'aurait
+plus rien à réarmer : si l'attraction retombe à l'arrêt dans l'heure
+(`REOPEN_REARM_WINDOW_MS`), le moteur remet l'alerte en veille tout seul et
+**envoie un push qui le dit** — la notification précédente annonçait l'inverse,
+la taire laisserait l'utilisateur croire son attraction ouverte. Au-delà d'une
+heure on ne touche à rien : c'est un événement nouveau, pas la suite du précédent.
+
+Conséquence sur le moteur : `runAlertsPass` lit désormais **toutes** les alertes,
+plus seulement `active: true`. L'expiration quotidienne (fuseau du parc) est
+évaluée AVANT l'aiguillage par type, donc elle balaie aussi les réouvertures
+consommées — sans quoi elles traîneraient jusqu'à la purge de rétention à 7 jours.
+
+##### La fin de journée est indiscernable d'une panne (`lib/park-closing.ts`)
+
+Le piège central de cette fonctionnalité. `closed` est exclu de
+`REOPEN_REARM_STATUSES` (= `down` + `maintenance`) parce qu'à la fermeture,
+TOUTES les attractions y passent — mais **ça ne suffit pas** : selon les parcs,
+une attraction qui s'arrête pour la nuit reste en `down` ou en `maintenance`,
+donc DANS la liste. Le statut ne peut pas trancher.
+
+C'est l'**horaire du parc** qui tranche. `lib/park-closing.ts` porte la règle
+(module PUR, donc importable côté client) ; `lib/park-closing-db.ts` charge les
+horaires quand l'appelant ne les a pas déjà. Trois états, et la distinction
+compte : `unknown` (aucun horaire publié) **autorise**, il ne vaut surtout pas
+`closed` — beaucoup de parcs ne publient pas leurs horaires, les traiter comme
+fermés supprimerait la fonctionnalité chez eux sans qu'aucun signal ne l'indique.
+
+Deux marges, **volontairement différentes** :
+
+| | Marge avant fermeture | Coût d'une erreur |
+|---|---|---|
+| Création (`REOPEN_CREATE_CLOSING_MARGIN_MS`) | 1 h | une alerte simplement muette |
+| Réarmement (`REOPEN_REARM_CLOSING_MARGIN_MS`) | 2 h | **un push** annonçant une panne qui n'en est pas une |
+
+L'asymétrie ouvre une zone (1 h–2 h avant la fermeture) où l'alerte peut être
+créée mais plus réarmée automatiquement. C'est assumé : elle peut toujours
+NOTIFIER une vraie réouverture jusqu'à la fermeture, et c'est là l'essentiel.
+
+⚠️ Les trois appelants doivent rester d'accord, d'où la règle partagée : le
+formulaire (`main-card.tsx` → prop `reopenAllowed` → `AlertSection`), la route de
+création (409 `Park is closing`) et le moteur. Si l'UI proposait un bouton que la
+route refuse ensuite, l'utilisateur ne verrait qu'un échec inexplicable.
+
+Le réarmement automatique **ne recale pas `activeDate`** : il ne doit pas
+prolonger la validité de l'alerte au-delà de la journée d'origine. Et il n'écrit
+**pas** dans `AlertHistory` — ce journal recense les alertes REMPLIES, celle-ci
+repart en veille.
+
+`Alert.threshold` et `AlertHistory.threshold` sont passés **nullables** plutôt que
+« 0 par convention » : un 0 s'afficherait « ≤ 0 min » partout où l'on oublierait
+le cas, là où `null` force le compilateur à trancher à chaque point d'affichage.
+
+##### Le popup suit le direct (`wait-time-table.tsx`)
+
+`ParkWaitTimeTable` retient l'**identifiant** de l'attraction ouverte
+(`detailRideId`), plus son objet. Auparavant `detailTarget` était une PHOTO prise
+au clic, que le rafraîchissement 60 s ne mettait jamais à jour : le popup pouvait
+afficher « En panne » alors que l'attraction avait rouvert — et surtout proposer
+l'alerte correspondant à cet état périmé, que la route aurait ensuite refusée en
+409. En repartant de l'identifiant, `liveDetailTarget` est relu à chaque
+rafraîchissement et **le formulaire bascule tout seul** de « réouverture » à
+« seuil » sous les yeux de l'utilisateur (`AlertSection` re-sème alors le
+sélecteur avec le temps d'attente qui vient d'apparaître, via un effet dépendant
+du seul `mode` — suivre `defaultThreshold` écraserait le choix manuel chaque
+minute).
+
+`lastDetailTarget` (ref, écrite dans un effet et **jamais pendant le rendu**) sert
+de filet si l'attraction disparaît du flux : le popup garde ce qu'on avait au
+lieu de se vider sous les doigts. Le graphique, lui, était déjà vivant —
+`useRideHistory` interroge `/history` toutes les 60 s (`force-dynamic`, aucun
+cache), et ses dépendances sont des primitives (`rideId`, `parkIdentifier`), donc
+la nouvelle référence d'objet à chaque rafraîchissement ne le relance pas.
 - **Auto-refresh** : `hooks/useAutoRefresh.ts` gère lui-même la visibilité de
   l'onglet (un seul intervalle 1 s, arrêté quand l'onglet est caché, rattrapage
   au retour). `usePageVisibility` a été supprimé.
