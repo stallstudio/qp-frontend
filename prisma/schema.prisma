@@ -921,17 +921,23 @@ model HealthSnapshot {
   // en-tête du dashboard.
   date String @unique @db.VarChar(10)
 
-  // Les quatre pannes (rangée 1 des vignettes)…
-  frozenParks      Int @default(0)
+  // Rangée 1 des vignettes — LA COLLECTE : ce que la machine signale.
   parksWithoutData Int @default(0)
-  errorLogs24h     Int @default(0)
+  frozenParks      Int @default(0)
   jobsFailed24h    Int @default(0)
+  frozenRides      Int @default(0)
 
-  // …puis les quatre choses à traiter (rangée 2).
-  frozenRides       Int @default(0)
-  parksWithoutShows Int @default(0)
+  // Rangée 2 — LA FILE DE TRAVAIL : ce qui attend une main humaine.
+  openReports       Int @default(0)
   unknownStatuses   Int @default(0)
   unmatchedAlerts   Int @default(0)
+  parksWithoutShows Int @default(0)
+
+  // ⚠️ CONSERVÉE alors que sa vignette a quitté la grille d'alertes le
+  // 2026-08-18 (descendue dans la vue d'ensemble, remplacée par
+  // `openReports`). L'historique déjà collecté a de la valeur et la colonne
+  // coûte un entier par jour : la supprimer détruirait la série pour rien.
+  errorLogs24h Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
