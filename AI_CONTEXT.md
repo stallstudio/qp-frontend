@@ -51,6 +51,12 @@ hooks/               # useFavorites, useAutoRefresh, usePageVisibility, useTimeF
 i18n/                # routing.ts (locales), request.ts (chargement messages + fallback EN)
 lib/                 # badge.tsx (pastilles temps/statut), prisma.ts, wait-times.ts,
                      # show-times.ts, opening-hours.ts, ip-rules.ts, utils.ts, report-config.ts
+                     # ⚠️ report-config.ts ne décrit QUE les catégories du
+                     # formulaire de signalement (+ libellés Discord). Les
+                     # RÉPONSES de résolution en ont été retirées le 2026-08-18 :
+                     # elles vivent dans l'admin (table `report_templates`), le
+                     # frontend n'en lisait aucune et sa copie ne pouvait que
+                     # diverger du texte réellement envoyé aux utilisateurs.
 messages/            # <locale>.json (fr et en = sources complètes ; autres langues)
 types/               # api.ts, waitTime.ts, show.ts, openingHour.ts, park.ts, group.ts
 ```
