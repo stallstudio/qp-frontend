@@ -763,11 +763,65 @@ model Report {
   resolvedAt     DateTime?
   createdAt      DateTime  @default(now())
 
+  // ⚠️ TRACE DE LA RÉPONSE (ajout 2026-08-18). `resolution` ne dit que la
+  // CATÉGORIE du verdict ; le texte réellement envoyé à l'utilisateur était
+  // saisi dans l'admin, expédié par Resend, puis perdu. Mesuré à l'ajout :
+  // 66 réponses envoyées, 0 conservée. Conséquences concrètes : impossible de
+  // savoir ce qu'on avait répondu à quelqu'un, impossible d'être cohérent d'un
+  // signalement au suivant, et une résolution « Doublon » qui ne pouvait
+  // renvoyer vers rien.
+  responseLabel   String?   @db.VarChar(255)
+  responseMessage String?   @db.Text
+  // E-mail de l'admin qui a tranché (session NextAuth), pas un identifiant.
+  resolvedBy      String?   @db.VarChar(255)
+  // Réception de l'e-mail. ⚠️ `emailSentAt` n'est posé QUE si Resend a accepté
+  // l'envoi : l'échec était auparavant avalé par un `catch` qui n'écrivait
+  // qu'en console, si bien que le signalement passait `resolved` alors que
+  // l'utilisateur n'avait jamais rien reçu — et rien ne permettait de le voir.
+  emailSentAt     DateTime?
+  emailError      String?   @db.Text
+  // Renseigné quand `resolution = "duplicate"` : le signalement d'origine.
+  // Volontairement PAS une relation Prisma — une auto-relation imposerait un
+  // champ inverse et une cascade à décider pour un simple renvoi humain.
+  duplicateOfId   Int?
+
   @@index([parkIdentifier])
   @@index([category])
   @@index([createdAt])
   @@index([resolved])
   @@map("reports")
+}
+
+// Catalogue des réponses proposées à l'admin au moment de clore un signalement.
+// EN BASE et non plus en dur dans `lib/report-config.ts` : les textes se
+// retouchent depuis /report-templates sans redéployer deux dépôts.
+//
+// ⚠️ `value` est la valeur écrite dans `Report.resolution`. La RENOMMER
+// orpheline l'historique — 30 signalements portent déjà `not-our-side`, qui a
+// été relibellé sans changer de valeur pour cette raison exacte. Ajouter une
+// entrée : oui. Renommer une entrée existante : jamais.
+//
+// ⚠️ Le code reste la SOURCE DE SECOURS : `DEFAULT_RESOLUTION_OPTIONS` sert de
+// graine et de repli tant que la table est vide, pour qu'un déploiement sans
+// seed n'affiche pas un sélecteur vide.
+model ReportTemplate {
+  id        Int      @id @default(autoincrement())
+  value     String   @unique @db.VarChar(50)
+  labelFr   String   @db.VarChar(255)
+  labelEn   String   @db.VarChar(255)
+  messageFr String   @db.Text
+  messageEn String   @db.Text
+  // Classes Tailwind de la pastille, mêmes conventions que le reste de l'admin.
+  color     String   @db.VarChar(160)
+  sortOrder Int      @default(0)
+  // Retirée du sélecteur sans être supprimée : les anciens signalements qui la
+  // portent continuent de s'afficher avec leur libellé.
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, sortOrder])
+  @@map("report_templates")
 }
 
 //
