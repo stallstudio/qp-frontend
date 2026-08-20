@@ -110,6 +110,7 @@ model Park {
   dailyWeather    DailyWeather[]
   rideForecasts   RideForecast[]
   forecastAccuracy ForecastAccuracy[]
+  events          ParkEvent[]
 
   @@index([groupId])
   // ⚠️ Manquait ici jusqu'au 2026-08-14, alors que l'admin et le worker le
@@ -272,9 +273,30 @@ model Ride {
   forecast   RideForecast?
   forecastAccuracy ForecastAccuracy[]
 
+  // Événement saisonnier auquel cette attraction appartient (un maze de Peur sur
+  // le Parc, une maison de HHN). `null` = attraction ordinaire, soit la quasi-
+  // totalité du catalogue.
+  //
+  // ⚠️ **Une attraction taguée n'apparaît QUE dans la carte de son événement**,
+  // jamais dans la liste principale des temps d'attente — y compris hors
+  // période, où elle disparaît donc complètement de la page. C'est voulu : un
+  // maze qui publie encore « fermé » en juin au milieu des coasters n'apprend
+  // rien à personne. C'est exactement ce que faisait déjà, en dur, le fetcher de
+  // Mirabilandia avant que ce champ n'existe.
+  //
+  // ⚠️ `SetNull` et non `Cascade` : supprimer un événement ne doit pas emporter
+  // les attractions, seulement les détacher. Elles reviennent alors dans la
+  // liste principale.
+  //
+  // ⚠️ Le worker ne l'écrit QU'À LA CRÉATION du POI : un rattachement corrigé à
+  // la main dans l'admin n'est jamais réécrit par la collecte.
+  eventId Int?
+  event   ParkEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
   @@unique([parkId, externalId])
   @@index([parkId])
   @@index([thrillsId])
+  @@index([eventId])
   @@map("rides")
 }
 
@@ -291,8 +313,14 @@ model Show {
   updatedAt  DateTime   @updatedAt
   showTimes  ShowTime[]
 
+  // Même règle que `Ride.eventId` : un spectacle tagué n'apparaît que dans la
+  // carte de son événement.
+  eventId Int?
+  event   ParkEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
   @@unique([parkId, externalId])
   @@index([parkId])
+  @@index([eventId])
   @@map("shows")
 }
 
@@ -510,15 +538,146 @@ model OpeningHours {
   type      String    @db.VarChar(20)
   openTime  DateTime?
   closeTime DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+
+  // ————— Session d'événement (Halloween, Noël…) —————
+  //
+  // ⚠️ **Il n'y a PAS de table d'horaires d'événement séparée, et c'est
+  // délibéré.** Une nocturne est une session d'exploitation du parc comme une
+  // autre : même date locale, même fuseau, mêmes lecteurs (pastille
+  // ouvert/fermé, fenêtre de prévision, axe du graphique du jour). La dupliquer
+  // dans `park_events.openTime/closeTime` aurait produit deux sources de vérité
+  // pour la même question — « le parc est-il ouvert à 21 h ? » — que rien
+  // n'aurait tenues d'accord.
+  //
+  // La ligne d'événement est donc une ligne d'horaires ordinaire, distinguée
+  // par son `type` (`event` à billet séparé, `extension` sur le même billet) et
+  // rattachée par `eventId`. La clé unique `(parkId, date, type)` fait coexister
+  // la journée et la soirée au lieu de les superposer — c'est exactement ce qui
+  // corrige l'écrasement décrit dans docs/HALLOWEEN.md §3.
+  //
+  // ⚠️ CONSÉQUENCE : `park_events` ne porte AUCUN horaire. Les soirées d'un
+  // événement, ce sont ses lignes ici.
+  eventId Int?
+  event   ParkEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  // Nom à afficher à la place du libellé générique du `type`.
+  //
+  // Sans lui, la nocturne de Traumatica s'annoncerait « Horaires étendus » dans
+  // l'en-tête du parc, alors que le visiteur cherche « Traumatica ». Le nom vient
+  // de la source (ou de l'admin), donc NON TRADUIT — comme les noms
+  // d'attractions. Vide = on retombe sur le libellé traduit du `type`, qui reste
+  // le cas de 100 % des lignes existantes.
+  label String? @db.VarChar(120)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([parkId, date, type])
   @@index([parkId])
   @@index([date])
+  @@index([eventId])
   @@map("opening_hours")
 }
 
+// Un événement saisonnier greffé sur l'exploitation normale d'un parc : Peur
+// sur le Parc, Traumatica, Halloween Horror Nights, Knott's Merry Farm…
+//
+// ⚠️ **CRITÈRE D'EXISTENCE** (docs/HALLOWEEN.md §0) : une ligne ici n'a de sens
+// que si le parc publie des POI SPÉCIFIQUES à l'événement — des mazes avec de
+// vrais temps d'attente, des spectacles dédiés. Pas la période, pas les horaires
+// décalés, pas l'ambiance : les POI. Un événement sans aucune attraction
+// rattachée est une erreur de saisie, pas un état valide — il afficherait une
+// carte vide sur la page du parc.
+//
+// ⚠️ **POURQUOI UNE TABLE, et pas un booléen `Ride.halloween`** : c'est la
+// FENÊTRE DE DATES qui rend la chose temporaire sans surveillance. On marque en
+// septembre, la carte apparaît et disparaît toute seule — rien à éteindre en
+// novembre. Elle porte aussi le nom à afficher (« Peur sur le Parc », pas
+// « Halloween »), et resservira telle quelle pour Noël sans une ligne de code de
+// plus.
+model ParkEvent {
+  id     Int  @id @default(autoincrement())
+  parkId Int
+  park   Park @relation(fields: [parkId], references: [id], onDelete: Cascade)
+
+  slug String @db.VarChar(120) // "peur-sur-le-parc-2026"
+  name String @db.VarChar(255) // "Peur sur le Parc" — non traduit, il vient de la source
+
+  // Période de l'événement, en dates LOCALES du parc (YYYY-MM-DD), même
+  // convention que `opening_hours.date`.
+  //
+  // ⚠️ Ce n'est PAS l'horaire de l'événement (voir `OpeningHours.eventId`), mais
+  // sa PÉRIODE — et son rôle est d'être le FILET quand le parc ne publie pas ses
+  // nocturnes. Sans elle, un événement dont la source reste muette sur les
+  // horaires n'aurait aucune ligne d'horaires, donc jamais de fenêtre, donc
+  // jamais de carte : il serait invisible alors que ses mazes tournent.
+  //
+  // ⚠️ **NULLABLES, et c'est ce qui remplace l'ancien drapeau `active`.**
+  // `null` veut dire « période inconnue » : l'événement a été DÉTECTÉ (ses POI
+  // sont identifiés et rattachés) mais personne — ni la source, ni un humain —
+  // n'a encore dit quand il tourne. En visibilité `auto`, il ne s'affiche donc
+  // pas. C'est ce qui empêche les huit maisons de Halloween Horror Nights,
+  // publiées six semaines à l'avance, de faire surgir une carte en plein août.
+  //
+  // Écrire une fenêtre bidon (aujourd'hui → aujourd'hui) à la place serait pire :
+  // elle serait indiscernable d'un vrai événement d'un jour.
+  startDate String? @db.VarChar(10)
+  endDate   String? @db.VarChar(10)
+
+
+  // Billet distinct de l'entrée du parc (Traumatica, HHN) ou non (Peur sur le
+  // Parc, Walibi — même billet, journée prolongée).
+  //
+  // ⚠️ Ça ne change PAS la pastille du parc : elle reste VERTE pendant
+  // l'événement, y compris à billet séparé. Elle répond à « puis-je y aller
+  // maintenant ? », pas à « l'exploitation de jour est-elle en cours ? ».
+  // Ce drapeau sert aux lecteurs qui, eux, doivent exclure la nocturne :
+  // notamment le JSON-LD `AmusementPark`, où publier 19 h – 1 h serait faux
+  // quand l'accès exige un autre billet.
+  separateTicket Boolean @default(false)
+
+  // Famille visuelle : "halloween" | "christmas". Une seule teinte par famille,
+  // jamais une couleur par événement — les sources en publient, mais les empiler
+  // produirait un dégradé arbitraire au lieu d'une liste.
+  accent String? @db.VarChar(30)
+
+  // "auto" (le worker a créé/daté l'événement depuis la source) | "manual"
+  // (saisi dans l'admin). ⚠️ L'admin est l'AUTORITÉ : la collecte ne réécrit
+  // jamais une ligne passée à "manual".
+  source String @default("manual") @db.VarChar(30)
+
+  // Politique d'affichage de la carte sur la page du parc. TROIS états, et pas
+  // un booléen : « ne s'affiche pas » recouvrait deux situations qui n'ont rien
+  // à voir — « pas encore daté » et « je ne veux pas le voir ».
+  //
+  //   - `auto`   (défaut) : la carte suit la règle automatique — visible si la
+  //                période couvre aujourd'hui, dépliée pendant la session,
+  //                repliée autour. Période inconnue (`startDate = null`) = rien
+  //                ne s'affiche, ce qui est l'état d'un événement fraîchement
+  //                détecté.
+  //   - `forced` : la carte s'affiche TOUJOURS, même hors période et même sans
+  //                dates connues. Sert à montrer un événement dont la source ne
+  //                dira jamais rien, et à vérifier le rendu hors saison.
+  //   - `hidden` : la carte ne s'affiche JAMAIS. Sert à taire un faux positif
+  //                sans supprimer la ligne — la collecte la recréerait.
+  //
+  // ⚠️ Les attractions rattachées sont retirées de la liste principale DANS LES
+  // TROIS CAS. `hidden` masque donc l'événement ET ses mazes ; c'est cohérent
+  // avec la règle « une attraction taguée n'apparaît que dans la carte de son
+  // événement », mais il faut le savoir avant de s'en servir.
+  visibility String @default("auto") @db.VarChar(10)
+
+  rides        Ride[]
+  shows        Show[]
+  openingHours OpeningHours[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([parkId, slug])
+  @@index([parkId, startDate, endDate])
+  @@map("park_events")
+}
 model ShowTime {
   id         Int       @id @default(autoincrement())
   showId     Int?
