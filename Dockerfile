@@ -14,6 +14,12 @@ RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Inlinée dans le bundle NAVIGATEUR au moment du `next build`. Dokploy la
+# fournissait via le .env qu'il écrivait dans le contexte de build ; le build
+# tournant désormais sur GitHub Actions, il faut un build-arg explicite — sans
+# lui, Google Analytics sortirait vide, silencieusement.
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
 RUN npx prisma generate
 RUN npm run build
 

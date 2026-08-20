@@ -4,3 +4,13 @@ node_modules
 .gitignore
 Dockerfile
 npm-debug.log
+
+# Le build tourne sur GitHub Actions et publie l'image sur GHCR : un .env qui
+# entrerait dans le contexte finirait dans une couche d'image publiée.
+.env
+.env.*
+
+.github
+*.tsbuildinfo
+.DS_Store
+.claude
