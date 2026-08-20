@@ -14,17 +14,7 @@ export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteUrl();
-  const prisma = getPrisma();
-
-  const parks = await prisma.park.findMany({
-    where: {
-      display: true,
-    },
-    select: {
-      identifier: true,
-      updatedAt: true,
-    },
-  });
+  const parks = await fetchParks();
 
   const locales = routing.locales;
 
@@ -66,4 +56,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   return routes;
+}
+
+// Le sitemap est prérendu au build (cf. `revalidate`), or l'image est désormais
+// compilée par GitHub Actions, sans accès à la base : `getPrisma()` lève sur
+// DATABASE_URL absent. On sort alors les seules routes de locales, et la première
+// revalidation (au plus une heure) rétablit la liste complète des parcs.
+async function fetchParks() {
+  try {
+    return await getPrisma().park.findMany({
+      where: {
+        display: true,
+      },
+      select: {
+        identifier: true,
+        updatedAt: true,
+      },
+    });
+  } catch {
+    return [];
+  }
 }
