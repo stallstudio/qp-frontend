@@ -1138,3 +1138,136 @@ model HealthSnapshot {
 
   @@map("health_snapshots")
 }
+
+//
+// CAPTURE DES RÉPONSES BRUTES DES APIS DE PARCS
+//
+// Deux tables et un principe : la collecte enregistre EN PERMANENCE la dernière
+// réponse de chaque appel (`raw_api_latest`, écrasée à chaque passage), et un
+// déclencheur — statut inconnu, signalement — en fige une copie
+// (`raw_api_captures`, jamais écrasée).
+//
+// ⚠️ **Pourquoi enregistrer tout le temps plutôt qu'au moment du besoin.** La
+// première version rappelait les endpoints du parc quand un signalement
+// arrivait. C'était faux : la réponse d'il y a quarante minutes n'est pas une
+// version dégradée de la réponse fraîche, c'est CELLE QUI A PRODUIT ce que le
+// visiteur avait sous les yeux. Rappeler l'API va chercher un autre état que
+// celui qu'on cherche à comprendre — et coûte en plus des appels
+// supplémentaires aux parcs, une désactivation du cache disque et un
+// garde-fou contre le martèlement. Enregistrer en continu supprime les trois.
+//
+// ⚠️ **Le corps est toujours compressé** (gzip niveau 1). Du JSON de parc se
+// compresse d'un facteur 10 à 20 : c'est ce qui rend le débit d'écriture de la
+// photo — réécrite chaque minute pour les temps d'attente — supportable sur une
+// base qui encaisse déjà `wait_times`.
+//
+
+// La DERNIÈRE réponse connue de chaque appel d'API, par parc.
+//
+// ⚠️ **Table à taille FIXE**, et c'est sa propriété essentielle : ~230 parcs ×
+// quelques appels ≈ 1 000 à 1 500 lignes, écrasées à chaque passage. Elle ne
+// grossit jamais, donc elle n'a pas besoin de purge.
+//
+// ⚠️ **Un parc dont le passage n'a émis AUCUN appel garde sa photo précédente**
+// plutôt que de la perdre. Ça arrive vraiment : les huit parcs Disney d'une même
+// région se partagent une réponse mise en cache 30 s, si bien qu'un seul émet
+// l'appel HTTP et que les sept autres n'ont rien à enregistrer ce tour-ci. Leur
+// photo a alors quelques minutes, ce qui vaut infiniment mieux que rien.
+model RawApiLatest {
+  id Int @id @default(autoincrement())
+
+  /// `parks.identifier`, tel qu'utilisé partout ailleurs.
+  parkId  String @db.VarChar(100)
+  /// `waitTimes` | `openingHours` | `shows` | `poi`.
+  fetcher String @db.VarChar(20)
+  /// Rang de l'appel DANS le passage de ce fetcher, à partir de 0.
+  ///
+  /// ⚠️ C'est la granularité demandée : un service peut émettre plusieurs
+  /// appels (authentification puis données, une requête par mois), et deux
+  /// services peuvent taper la même URL. Une ligne = un appel, pas un service.
+  seq     Int
+
+  method String  @db.VarChar(10)
+  /// Tronquée à 1 000 caractères. Jamais indexée : on ne cherche pas par URL.
+  url    String  @db.VarChar(1000)
+
+  /// `null` quand aucune réponse n'est parvenue (timeout, DNS, refus de
+  /// connexion). La ligne est écrite quand même : un échec est souvent
+  /// l'explication du signalement qu'on est en train de lire.
+  statusCode  Int?
+  contentType String? @db.VarChar(120)
+  durationMs  Int?
+  /// Message d'échec (code HTTP, code réseau), quand il y en a un.
+  error       String? @db.VarChar(255)
+
+  /// Taille du corps AVANT compression, en octets. Affichée telle quelle par
+  /// l'admin — `LENGTH(bodyGzip)` ne dirait rien de lisible.
+  bodySize  Int
+  /// Corps gzippé, ou `null` quand il n'y a rien d'exploitable à garder :
+  /// réponse binaire (ZIP, images) ou flux consommé par le fetcher. Les
+  /// métadonnées de la ligne, elles, sont conservées dans tous les cas.
+  bodyGzip  Bytes?  @db.MediumBlob
+  /// Vrai si le corps dépassait le plafond et n'a été gardé que partiellement.
+  truncated Boolean @default(false)
+
+  fetchedAt DateTime
+
+  @@unique([parkId, fetcher, seq])
+  @@index([parkId])
+  @@map("raw_api_latest")
+}
+
+// Copie FIGÉE d'une photo, prise au moment d'un statut inconnu ou d'un
+// signalement.
+//
+// ⚠️ **Le corps est recopié, jamais référencé.** Pointer vers `raw_api_latest`
+// serait plus économe pendant une minute et vide de sens ensuite : la photo est
+// écrasée au passage suivant. Une capture doit se suffire à elle-même.
+//
+// ⚠️ **Aucune purge.** Le volume est piloté par le nombre de statuts inconnus et
+// de signalements — quelques-uns par jour, à quelques kilo-octets compressés la
+// ligne. L'historique complet coûte moins cher que la logique de rétention qu'il
+// faudrait écrire pour l'éviter.
+model RawApiCapture {
+  id Int @id @default(autoincrement())
+
+  /// `unknown_status` | `report` | `manual`.
+  ///
+  /// ⚠️ Nommée `triggerType` et pas `trigger` : `TRIGGER` est un mot réservé
+  /// MySQL, et une colonne qui l'est oblige à l'échapper dans le moindre SQL
+  /// écrit à la main — dont la recopie de `raw_api_latest`.
+  triggerType String @db.VarChar(20)
+  /// `unknown_statuses.id` ou `reports.id` selon `trigger`.
+  ///
+  /// Volontairement PAS une relation Prisma : la cible dépend du déclencheur,
+  /// et une capture doit survivre à la suppression de ce qui l'a déclenchée —
+  /// c'est justement le moment où on la relit.
+  unknownStatusId Int?
+  reportId        Int?
+
+  parkId  String @db.VarChar(100)
+  fetcher String @db.VarChar(20)
+  seq     Int
+
+  method String @db.VarChar(10)
+  url    String @db.VarChar(1000)
+
+  statusCode  Int?
+  contentType String? @db.VarChar(120)
+  durationMs  Int?
+  error       String? @db.VarChar(255)
+
+  bodySize  Int
+  bodyGzip  Bytes?  @db.MediumBlob
+  truncated Boolean @default(false)
+
+  /// Horodatage de l'APPEL, repris de la photo — pas celui de la capture. C'est
+  /// lui qui dit à quel point la réponse était fraîche au moment du
+  /// déclenchement.
+  fetchedAt  DateTime
+  capturedAt DateTime @default(now())
+
+  @@index([reportId])
+  @@index([unknownStatusId])
+  @@map("raw_api_captures")
+}

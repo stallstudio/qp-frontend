@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { getCategoryLabel, getSubcategoryLabel } from "@/lib/report-config";
+import { captureRawSnapshotForReport } from "@/lib/raw-capture";
 
 interface DiscordEmbed {
   title: string;
@@ -182,7 +183,7 @@ export async function POST(request: Request) {
     const normalizedEmail = effectiveEmail.toLowerCase();
     const normalizedLocale = locale || "en";
 
-    await prisma.report.create({
+    const report = await prisma.report.create({
       data: {
         parkIdentifier,
         category,
@@ -194,6 +195,12 @@ export async function POST(request: Request) {
         userAgent,
       },
     });
+
+    // Fige la dernière réponse connue de chaque API du parc, avant que le
+    // passage suivant ne l'écrase. C'est ce qui permettra, en admin, de
+    // comparer ce que la source publiait à ce que le visiteur a vu — voir
+    // `lib/raw-capture.ts`.
+    await captureRawSnapshotForReport(prisma, report.id, parkIdentifier);
 
     await sendReportDiscordNotification({
       parkIdentifier,
