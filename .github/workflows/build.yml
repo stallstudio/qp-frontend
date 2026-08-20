@@ -76,9 +76,14 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # Inlinés dans le bundle navigateur → valeurs publiques uniquement.
+          # Lues en `vars.` ou en `secrets.` : ces valeurs n'ont rien de secret
+          # (elles finissent dans le JS servi), mais elles vivent aujourd'hui en
+          # secrets d'environnement. Le fallback évite qu'un déplacement vers
+          # Variables ne les vide en silence — un build-arg absent ne casse rien
+          # de visible, il désactive juste GA et le Web Push.
           build-args: |
-            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
-            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ vars.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID || secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ vars.NEXT_PUBLIC_VAPID_PUBLIC_KEY || secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
           cache-from: type=gha,scope=qp-frontend-${{ steps.target.outputs.tag }}
           cache-to: type=gha,scope=qp-frontend-${{ steps.target.outputs.tag }},mode=max
 
