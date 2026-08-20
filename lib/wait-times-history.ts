@@ -16,7 +16,11 @@ const DEFAULT_HISTORY_DAYS = 7;
 
 // Types d'horaires ignorés pour délimiter la fenêtre d'exploitation (ils ne
 // reflètent pas l'ouverture « normale » du parc au public).
-const EXCLUDED_HOUR_TYPES = new Set(["private_event", "sold_out"]);
+// ⚠️ `event` en fait partie : une nocturne à billet séparé qui court jusqu'à 1 h
+// du matin étirerait l'axe du graphique du jour de ~10 h à ~15 h d'amplitude, et
+// écraserait toute la courbe d'une attraction de JOUR pour une session à
+// laquelle elle ne participe même pas.
+const EXCLUDED_HOUR_TYPES = new Set(["private_event", "sold_out", "event"]);
 
 export type RideHistory = {
   timezone: string;

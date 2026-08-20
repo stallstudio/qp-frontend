@@ -29,6 +29,19 @@ export async function loadParkOpenWindows(
     where: {
       parkId: { in: parkIds },
       closeTime: { gte: new Date(now.getTime() - LOOKBACK_MS) },
+      // ⚠️ **Les sessions d'événement sont exclues, et c'est indispensable.**
+      // Cette requête sert à décider si une alerte de RÉOUVERTURE a encore un
+      // sens. Une nocturne qui court jusqu'à 1 h du matin rendrait le parc
+      // « ouvert » toute la soirée et rouvrirait ce droit sur TOUTES ses
+      // attractions — y compris celles de jour, arrêtées pour la nuit. Chaque
+      // soir d'octobre partirait alors une salve de « c'est de nouveau à
+      // l'arrêt » qui ne décrit aucun incident.
+      //
+      // ⚠️ `private_event` et `sold_out` ne sont volontairement PAS exclus ici :
+      // ils le sont côté frontend, pas côté serveur, et l'écart est
+      // antérieur à cette fonctionnalité. Le corriger changerait le
+      // comportement des alertes sur des parcs sans rapport — à traiter à part.
+      type: { not: "event" },
     },
     select: { parkId: true, openTime: true, closeTime: true },
   });

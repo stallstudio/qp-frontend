@@ -4,7 +4,15 @@ import type { ParkLiveData } from "@/types/api";
 
 // Types d'horaires qui ne décrivent pas une ouverture normale au public : les
 // annoncer comme telles à Google serait trompeur.
-const EXCLUDED_HOUR_TYPES = new Set(["private_event", "sold_out"]);
+//
+// ⚠️ `event` en fait partie : publier « 19:00 – 01:00 » comme horaires
+// d'ouverture d'un `AmusementPark` serait FAUX quand l'accès exige un autre
+// billet — et c'est le cas de la majorité des événements (Traumatica, Halloween
+// Horror Nights). L'exclusion est systématique plutôt que conditionnée à
+// `separateTicket` : un moteur de recherche n'a pas de moyen de nuancer, et
+// annoncer une ouverture inaccessible est une erreur plus coûteuse que taire une
+// session accessible.
+const EXCLUDED_HOUR_TYPES = new Set(["private_event", "sold_out", "event"]);
 
 type ParkJsonLdProps = {
   park: ParkLiveData;
