@@ -17,7 +17,6 @@
  */
 export type ParkEventDto = {
   id: number;
-  slug: string;
   /**
    * Nom affiché, NON TRADUIT : il vient de la source, comme un nom
    * d'attraction. « Traumatica », pas « Événement Halloween ».

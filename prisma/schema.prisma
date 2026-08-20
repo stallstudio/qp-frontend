@@ -620,9 +620,15 @@ model ParkEvent {
   //
   // ⚠️ Les saisons passées ne sont JAMAIS supprimées : c'est l'historique, et
   // c'est ce qui permettra de comparer une année à la précédente.
+  // ⚠️ Il n'y a PAS de colonne `slug`. Elle a existé, valait
+  // `${sourceKey}-${season}` — donc entièrement dérivée — et cette redondance a
+  // immédiatement produit un bug : les fetchers d'horaires cherchaient
+  // l'événement par « traumatica » pendant que la base stockait
+  // « traumatica-2026 », si bien qu'aucune nocturne ne se rattachait jamais.
+  // L'identité d'une édition, c'est `(parkId, sourceKey, season)`, et rien
+  // d'autre. Un libellé lisible se recompose à l'affichage.
   sourceKey String @db.VarChar(120) // "traumatica"
   season    Int // 2026
-  slug      String @db.VarChar(120) // "traumatica-2026"
 
   // Nom AFFICHÉ, non traduit — il vient de la source.
   //
@@ -702,8 +708,7 @@ model ParkEvent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([parkId, slug])
-  // La clé de rapprochement de la collecte : « la saison N de cet événement ».
+  // La seule identité : « la saison N de cet événement, dans ce parc ».
   @@unique([parkId, sourceKey, season])
   @@index([parkId, startDate, endDate])
   @@map("park_events")

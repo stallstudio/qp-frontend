@@ -48,7 +48,6 @@ export async function getParkEventsByDate(
       },
       select: {
         id: true,
-        slug: true,
         name: true,
         accent: true,
         separateTicket: true,
@@ -68,7 +67,6 @@ export async function getParkEventsByDate(
 
       return {
         id: event.id,
-        slug: event.slug,
         name: event.name,
         accent: event.accent,
         separateTicket: event.separateTicket,
