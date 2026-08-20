@@ -127,6 +127,8 @@ export async function fetchOpeningHoursForParks(
       type: true,
       openTime: true,
       closeTime: true,
+      label: true,
+      eventId: true,
     },
     orderBy: { type: "asc" },
   });
@@ -212,6 +214,8 @@ export async function fetchOpeningHoursForParks(
         type: entry.type,
         openTime: entry.openTime ? entry.openTime.toISOString() : null,
         closeTime: entry.closeTime ? entry.closeTime.toISOString() : null,
+        label: entry.label,
+        eventId: entry.eventId,
       })),
     );
   }
@@ -235,14 +239,11 @@ export async function getOpeningHoursByParkAndDate(
 
     return entries.map((entry) => ({
       date: entry.date,
-      type: entry.type as
-        | "standard"
-        | "early_access"
-        | "extension"
-        | "private_event"
-        | "sold_out",
+      type: entry.type,
       openTime: entry.openTime ? entry.openTime.toISOString() : null,
       closeTime: entry.closeTime ? entry.closeTime.toISOString() : null,
+      label: entry.label,
+      eventId: entry.eventId,
     }));
   } catch (error) {
     return [];

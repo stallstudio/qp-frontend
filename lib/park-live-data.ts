@@ -7,6 +7,7 @@ import {
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDate } from "@/lib/show-times";
 import { getWeatherByParkAndDate } from "@/lib/weather";
+import { getParkEventsByDate } from "@/lib/park-events-db";
 import type { CoverImage, ParkLiveData, ParkWeather } from "@/types/api";
 
 // Construction des données « live » d'un parc (temps d'attente, spectacles,
@@ -118,6 +119,11 @@ export const buildParkLiveData = cache(
       getWeatherByParkAndDate(park.id, today),
     ]);
 
+    // ⚠️ EN SÉRIE, à dessein : les horaires portent l'`eventId` de chaque
+    // session, donc la fenêtre du jour de chaque événement. Les charger d'abord
+    // évite une seconde requête sur `opening_hours`.
+    const events = await getParkEventsByDate(park.id, today, openingHours ?? []);
+
     // Fusion météo « live » (courant, ligne Park) + prévision du jour (daily).
     // `null` seulement si on n'a NI courant NI prévision.
     const hasWeather =
@@ -144,6 +150,7 @@ export const buildParkLiveData = cache(
         waitTimes,
         shows: showTimes ?? [],
         weather,
+        events,
         lastUpdate:
           park.lastUpdatedAt?.toISOString() ?? new Date().toISOString(),
       },

@@ -1,5 +1,6 @@
 import { Group } from "./group";
 import { OpeningHour } from "./openingHour";
+import { ParkEventDto } from "./parkEvent";
 import { ShowTime } from "./show";
 import { WaitTime } from "./waitTime";
 
@@ -28,6 +29,12 @@ export type ParkLiveData = {
   waitTimes: WaitTime[];
   shows: ShowTime[];
   weather: ParkWeather | null;
+  /**
+   * Événements saisonniers du parc (Halloween, Noël). Tableau VIDE onze mois par
+   * an — et dans ce cas le comportement de la page est strictement celui
+   * d'avant leur introduction.
+   */
+  events: ParkEventDto[];
   lastUpdate: string;
 };
 

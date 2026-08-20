@@ -70,6 +70,9 @@ export async function getLatestWaitTimesByPark(
         rideMap.set(rideId, {
           rideId,
           rideName,
+          // Sans requête supplémentaire : `include: { ride: true }` ci-dessus
+          // ramène déjà la ligne complète de l'attraction.
+          eventId: wt.ride?.eventId ?? null,
           queues: [],
         });
       }
