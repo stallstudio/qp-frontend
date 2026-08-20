@@ -43,7 +43,9 @@
     "closedToday": "Fermé aujourd'hui",
     "hoursUnavailable": "Les horaires d'ouverture sont actuellement indisponibles",
     "privateEvent": "Parc privatisé",
-    "privateEventNoHours": "Parc privatisé aujourd'hui"
+    "privateEventNoHours": "Parc privatisé aujourd'hui",
+    "eventHours": "Événement",
+    "hoursOther": "Horaires"
   },
   "parkStatus": {
     "open": "Ouvert",
@@ -554,5 +556,13 @@
       "liabilityTitle": "Responsabilité",
       "liability1": "Les temps d’attente et horaires de spectacles sont fournis à titre indicatif, à partir de sources tierces, sans garantie d’exactitude ou de disponibilité. L’éditeur ne saurait être tenu responsable d’un préjudice lié à leur utilisation."
     }
+  },
+  "events": {
+    "opensAt": "Ouvre à {time}",
+    "closesAt": "Ferme à {time}",
+    "running": "En cours",
+    "scheduled": "Prochainement",
+    "separateTicket": "Billet séparé",
+    "noAttractions": "Aucune attraction ne communique de temps d’attente pour le moment"
   }
 }

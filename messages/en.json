@@ -43,7 +43,9 @@
     "closedToday": "Closed today",
     "hoursUnavailable": "Opening hours are currently unavailable",
     "privateEvent": "Park privately booked",
-    "privateEventNoHours": "Park privately booked today"
+    "privateEventNoHours": "Park privately booked today",
+    "eventHours": "Event",
+    "hoursOther": "Opening hours"
   },
   "parkStatus": {
     "open": "Open",
@@ -554,5 +556,13 @@
       "liabilityTitle": "Liability",
       "liability1": "Wait times and show schedules are provided for information only, from third-party sources, without any guarantee of accuracy or availability. The publisher cannot be held liable for any harm arising from their use."
     }
+  },
+  "events": {
+    "opensAt": "Opens at {time}",
+    "closesAt": "Closes at {time}",
+    "running": "Running now",
+    "scheduled": "Coming up",
+    "separateTicket": "Separate ticket",
+    "noAttractions": "No attraction is reporting a wait time right now"
   }
 }
