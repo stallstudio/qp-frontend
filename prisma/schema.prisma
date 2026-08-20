@@ -1231,7 +1231,13 @@ model RawApiLatest {
 model RawApiCapture {
   id Int @id @default(autoincrement())
 
-  /// `unknown_status` | `report` | `manual`.
+  /// `unknown_status` | `report`.
+  ///
+  /// ⚠️ **Pas de valeur « manuelle », et ce n'est pas un oubli.** Une capture
+  /// ne vaut que parce qu'elle contient l'état qui a PRODUIT l'incident ; une
+  /// copie rattachée après coup contiendrait l'état de maintenant et se lirait
+  /// exactement pareil. Pour voir ce qu'une source publie à l'instant, c'est
+  /// `raw_api_latest` qu'on ouvre, depuis la liste des parcs de l'admin.
   ///
   /// ⚠️ Nommée `triggerType` et pas `trigger` : `TRIGGER` est un mot réservé
   /// MySQL, et une colonne qui l'est oblige à l'échapper dans le moindre SQL
