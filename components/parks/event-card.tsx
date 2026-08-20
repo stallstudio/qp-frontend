@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { cn, getLuxonFormat } from "@/lib/utils";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import type { ParkEventView } from "@/lib/park-events";
-import { ChevronDown, Ghost, Gift, Sparkles } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { accentStyle } from "./event-accents";
 import { DateTime } from "luxon";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -26,35 +27,6 @@ type EventCardProps = {
   /** Rien à montrer : on le dit, au lieu d'un encadré vide. */
   isEmpty?: boolean;
   emptyLabel?: string;
-};
-
-/**
- * Icône de la FAMILLE d'événement, pas de l'événement.
- *
- * ⚠️ Une icône par famille et non par événement — même raisonnement que pour la
- * teinte : les sources publient bien une couleur et un visuel par opération,
- * mais les empiler produirait un patchwork au lieu d'une famille lisible. Une
- * famille inconnue retombe sur une icône neutre plutôt que de faire planter le
- * rendu, piège déjà rencontré sur `typeIconMap` des horaires.
- */
-const ACCENT_ICONS: Record<string, typeof Ghost> = {
-  halloween: Ghost,
-  christmas: Gift,
-};
-
-// Teintes de famille. Volontairement DÉSATURÉES et distinctes du corail de
-// marque (`--primary`) comme de l'ambre des favoris : la carte doit se
-// distinguer sans concurrencer l'identité du site ni les repères existants.
-const ACCENT_CLASSES: Record<string, string> = {
-  halloween:
-    "border-orange-300/60 bg-orange-50/70 dark:border-orange-900/50 dark:bg-orange-950/20",
-  christmas:
-    "border-emerald-300/60 bg-emerald-50/70 dark:border-emerald-900/50 dark:bg-emerald-950/20",
-};
-
-const ACCENT_TEXT: Record<string, string> = {
-  halloween: "text-orange-700 dark:text-orange-300",
-  christmas: "text-emerald-700 dark:text-emerald-300",
 };
 
 export default function EventCard({
@@ -80,9 +52,9 @@ export default function EventCard({
     setManual(null);
   }, [state]);
 
-  const Icon = ACCENT_ICONS[event.accent ?? ""] ?? Sparkles;
-  const accentClass = ACCENT_CLASSES[event.accent ?? ""] ?? "";
-  const accentText = ACCENT_TEXT[event.accent ?? ""] ?? "text-muted-foreground";
+  const { icon: Icon, card: accentClass, iconClass, decor } = accentStyle(
+    event.accent,
+  );
 
   // ⚠️ **Le sous-titre ne porte QU'UNE heure : celle qui compte à cet instant.**
   // La plage complète (« 19:00 – 23:30 ») est déjà affichée dans l'en-tête du
@@ -106,10 +78,17 @@ export default function EventCard({
   return (
     <Card
       className={cn(
-        "w-full gap-0 rounded-4xl border p-2.5 py-0 sm:p-4 sm:py-0",
+        // `relative` + `overflow-hidden` : le décor est posé en absolu et doit
+        // être découpé par les coins arrondis, sinon les dégradés débordent aux
+        // quatre angles.
+        "relative w-full gap-0 overflow-hidden rounded-4xl border p-2.5 py-0 sm:p-4 sm:py-0",
         accentClass,
       )}
     >
+      {/* Décor de famille (braise, givre). SOUS le contenu et sans interaction :
+          il ne doit ni intercepter un clic, ni être annoncé par un lecteur
+          d'écran. */}
+      {decor}
       {/* En-tête cliquable. UN SEUL CONTENANT qui s'ouvre : replié on ne voit
           que cette ligne, déplié le contenu apparaît dessous, dans le
           même encadré. Une seule chose à comprendre, et seul le chevron change
@@ -118,9 +97,10 @@ export default function EventCard({
         type="button"
         onClick={() => setManual(!open)}
         aria-expanded={open}
-        className="flex w-full items-center gap-2.5 py-3 text-left"
+        // `relative z-10` : au-dessus du décor, qui est en absolu derrière.
+        className="relative z-10 flex w-full items-center gap-2.5 py-3 text-left"
       >
-        <Icon className={cn("size-5 shrink-0", accentText)} />
+        <Icon className={cn("size-5 shrink-0", iconClass)} />
         <span className="min-w-0 flex-1">
           {/* Non traduit : le nom vient de la source, comme un nom d'attraction. */}
           <span className="block truncate font-semibold">{event.name}</span>
@@ -143,7 +123,11 @@ export default function EventCard({
       </button>
 
       {open && (
-        <div className="border-t pb-2">
+        // ⚠️ Fond opaque une fois DÉPLIÉ : le décor traverse toute la carte, et
+        // une table de temps d'attente lue par-dessus un dégradé animé est
+        // pénible. L'effet reste donc cantonné à l'en-tête, qui est ce qu'on
+        // voit onze mois par an.
+        <div className="relative z-10 border-t bg-card/85 pb-2 backdrop-blur-[2px]">
           {isEmpty ? (
             // Un événement confirmé dont rien ne remonte encore : ça arrive
             // avant l'ouverture des portes. On le dit, plutôt que de laisser un
