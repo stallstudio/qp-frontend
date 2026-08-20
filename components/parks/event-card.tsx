@@ -4,8 +4,6 @@ import { Card } from "@/components/ui/card";
 import { cn, getLuxonFormat } from "@/lib/utils";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import type { ParkEventView } from "@/lib/park-events";
-import type { WaitTime } from "@/types/waitTime";
-import ParkWaitTimeTable from "./wait-time-table";
 import { ChevronDown, Ghost, Gift, Sparkles } from "lucide-react";
 import { DateTime } from "luxon";
 import { useTranslations } from "next-intl";
@@ -13,13 +11,21 @@ import { useEffect, useState } from "react";
 
 type EventCardProps = {
   view: ParkEventView;
-  waitTimes: WaitTime[];
-  queueTypeLabels?: Record<string, string> | null;
-  parkIdentifier: string;
-  parkName: string;
   timezone: string;
-  reopenAllowed?: boolean;
-  initialRideId?: number | null;
+  /**
+   * Le contenu : la table des temps d'attente de l'événement, ou sa grille de
+   * spectacles.
+   *
+   * ⚠️ **La carte ignore ce qu'elle contient, et c'est le but.** Elle porte
+   * l'en-tête, l'état replié/déplié et la teinte de famille ; ce qu'on y range
+   * regarde l'appelant. Sans ça, ajouter les spectacles aurait demandé une
+   * seconde carte quasi identique — deux comportements de repli à garder
+   * d'accord, pour un seul motif visuel.
+   */
+  children: React.ReactNode;
+  /** Rien à montrer : on le dit, au lieu d'un encadré vide. */
+  isEmpty?: boolean;
+  emptyLabel?: string;
 };
 
 /**
@@ -53,13 +59,10 @@ const ACCENT_TEXT: Record<string, string> = {
 
 export default function EventCard({
   view,
-  waitTimes,
-  queueTypeLabels,
-  parkIdentifier,
-  parkName,
   timezone,
-  reopenAllowed = true,
-  initialRideId = null,
+  children,
+  isEmpty = false,
+  emptyLabel,
 }: EventCardProps) {
   const t = useTranslations("events");
   const { is12Hour } = useTimeFormat();
@@ -108,7 +111,7 @@ export default function EventCard({
       )}
     >
       {/* En-tête cliquable. UN SEUL CONTENANT qui s'ouvre : replié on ne voit
-          que cette ligne, déplié les attractions apparaissent dessous, dans le
+          que cette ligne, déplié le contenu apparaît dessous, dans le
           même encadré. Une seule chose à comprendre, et seul le chevron change
           entre les deux états. */}
       <button
@@ -141,22 +144,15 @@ export default function EventCard({
 
       {open && (
         <div className="border-t pb-2">
-          {waitTimes.length > 0 ? (
-            <ParkWaitTimeTable
-              waitTimes={waitTimes}
-              queueTypeLabels={queueTypeLabels}
-              parkIdentifier={parkIdentifier}
-              parkName={parkName}
-              reopenAllowed={reopenAllowed}
-              initialRideId={initialRideId}
-            />
-          ) : (
-            // Un événement confirmé dont aucune attraction ne publie encore de
-            // temps d'attente : ça arrive avant l'ouverture des portes. On le
-            // dit, plutôt que de laisser un encadré vide.
+          {isEmpty ? (
+            // Un événement confirmé dont rien ne remonte encore : ça arrive
+            // avant l'ouverture des portes. On le dit, plutôt que de laisser un
+            // encadré vide.
             <p className="py-4 text-center text-sm text-muted-foreground">
-              {t("noAttractions")}
+              {emptyLabel ?? t("noAttractions")}
             </p>
+          ) : (
+            children
           )}
         </div>
       )}

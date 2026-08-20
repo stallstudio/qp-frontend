@@ -34,6 +34,9 @@ export async function getShowTimesByParkAndDate(
         showsMap.set(externalId, {
           showName: st.show?.name ?? "Unknown",
           duration: st.show?.duration ?? 0,
+          // Sans requête supplémentaire : `include: { show: true }` ci-dessus
+          // ramène déjà la ligne complète du spectacle.
+          eventId: st.show?.eventId ?? null,
           schedules: [],
         });
       }

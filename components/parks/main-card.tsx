@@ -127,8 +127,17 @@ export default function MainCard({
     [park.waitTimes],
   );
 
+  // Même partition pour les spectacles — mais ici la raison n'est pas seulement
+  // le rangement : mélanger des représentations NOCTURNES dans la timeline du
+  // jour étire l'axe de ~10 h à ~15 h d'amplitude et écrase toutes les
+  // représentations de journée. Deux grilles, deux axes.
+  const mainShows = useMemo(
+    () => (park.shows ?? []).filter((s) => s.eventId == null),
+    [park.shows],
+  );
+
   const hasWaitTimes = mainWaitTimes.length > 0;
-  const hasShows = park.shows && park.shows.length > 0;
+  const hasShows = mainShows.length > 0;
   const showTabs = hasWaitTimes && hasShows;
   const parkDate = park.openingHours?.[0]?.date ?? null;
 
@@ -197,19 +206,48 @@ export default function MainCard({
   // plus un réordonnancement à l'horloge, ce serait deux mécanismes pour un seul
   // besoin — et le seul remaniement de la page que l'utilisateur verrait bouger
   // sans avoir rien fait.
-  const eventCards = eventViews.map((view) => (
-    <EventCard
-      key={view.event.id}
-      view={view}
-      waitTimes={park.waitTimes.filter((wt) => wt.eventId === view.event.id)}
-      queueTypeLabels={park.queueTypeLabels}
-      parkIdentifier={park.identifier}
-      parkName={park.name}
-      timezone={park.timezone}
-      reopenAllowed={reopenAllowed}
-      initialRideId={initialRideId}
-    />
-  ));
+  // ⚠️ Une carte d'événement par ONGLET, pas une pour les deux. Un même
+  // événement peut n'avoir que des mazes (Mirabilandia), que des spectacles, ou
+  // les deux : sa carte n'apparaît donc que dans l'onglet où il a quelque chose
+  // à montrer. C'est aussi pour ça que la carte ne se rend pas quand sa liste
+  // est vide — sinon un parc sans spectacle d'événement afficherait un encadré
+  // vide dans l'onglet Spectacles onze soirs sur dix.
+  const eventWaitTimeCards = eventViews
+    .map((view) => ({
+      view,
+      items: park.waitTimes.filter((wt) => wt.eventId === view.event.id),
+    }))
+    .filter(({ items }) => items.length > 0)
+    .map(({ view, items }) => (
+      <EventCard key={view.event.id} view={view} timezone={park.timezone}>
+        <ParkWaitTimeTable
+          waitTimes={items}
+          queueTypeLabels={park.queueTypeLabels}
+          parkIdentifier={park.identifier}
+          parkName={park.name}
+          reopenAllowed={reopenAllowed}
+          initialRideId={initialRideId}
+        />
+      </EventCard>
+    ));
+
+  const eventShowCards = eventViews
+    .map((view) => ({
+      view,
+      items: (park.shows ?? []).filter((s) => s.eventId === view.event.id),
+    }))
+    .filter(({ items }) => items.length > 0)
+    .map(({ view, items }) => (
+      <EventCard key={view.event.id} view={view} timezone={park.timezone}>
+        <ParkShowTimeTable
+          shows={items}
+          timezone={park.timezone}
+          parkDate={parkDate}
+          parkIdentifier={park.identifier}
+          parkName={park.name}
+        />
+      </EventCard>
+    ));
 
   const waitTimesCard = hasWaitTimes ? (
     <Card className="w-full gap-0 rounded-4xl p-2.5 py-2 sm:p-4 sm:py-2">
@@ -227,7 +265,7 @@ export default function MainCard({
   const showsCard = hasShows ? (
     <Card className="w-full gap-0 rounded-4xl p-2.5 py-2 sm:p-4 sm:py-2">
       <ParkShowTimeTable
-        shows={park.shows}
+        shows={mainShows}
         timezone={park.timezone}
         parkDate={parkDate}
         parkIdentifier={park.identifier}
@@ -293,8 +331,9 @@ export default function MainCard({
   if (!showTabs) {
     return (
       <div className={CARD_STACK}>
-        {eventCards}
+        {eventWaitTimeCards}
         {waitTimesCard}
+        {eventShowCards}
         {showsCard}
         {footer}
       </div>
@@ -346,10 +385,11 @@ export default function MainCard({
       </Card>
 
       <TabsContent value="wait-times" className={CARD_STACK}>
-        {eventCards}
+        {eventWaitTimeCards}
         {waitTimesCard}
       </TabsContent>
       <TabsContent value="show-times" className={CARD_STACK}>
+        {eventShowCards}
         {showsCard}
       </TabsContent>
 
