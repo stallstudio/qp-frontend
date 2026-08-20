@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import ParkWaitTimeTable from "./wait-time-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ParkLiveData } from "@/types/api";
 import {
@@ -14,7 +14,9 @@ import {
   reopenAllowedForWindow,
   REOPEN_CREATE_CLOSING_MARGIN_MS,
 } from "@/lib/park-closing";
+import { dayOpeningHours, visibleParkEvents } from "@/lib/park-events";
 import ParkShowTimeTable from "./show-time-table";
+import EventCard from "./event-card";
 
 type MainCardProps = {
   park: ParkLiveData;
@@ -28,6 +30,29 @@ type MainCardProps = {
 // données plutôt que le décompte (voir `dataIsStale`).
 const STALE_DATA_MS = 10 * 60_000;
 
+// Espacement entre les cartes de la colonne. Aligné sur le `gap-1` de la page
+// (`park-page-client.tsx`), qui sépare déjà l'en-tête du parc du contenu.
+const CARD_STACK = "flex w-full flex-col gap-1";
+
+/**
+ * Contenu principal de la page d'un parc.
+ *
+ * ⚠️ **Ce n'est plus UNE carte, malgré son nom** : c'est une COLONNE de cartes.
+ * Le sélecteur d'onglets a la sienne, et chaque bloc de données la sienne —
+ * événement, temps d'attente, et demain restaurants ou files virtuelles.
+ *
+ * Le regroupement d'origine (tout dans un seul encadré) empêchait précisément
+ * ça : ajouter un bloc, c'était l'empiler à l'intérieur du même contenant, sans
+ * frontière visible avec ce qui le précède. La séparation en cartes rend chaque
+ * source de données INDÉPENDANTE — elle peut apparaître, disparaître ou changer
+ * d'ordre sans toucher aux autres.
+ *
+ * Les deux onglets se partagent la colonne selon la NATURE de la donnée :
+ *   - « Temps d'attente » : tout ce qui donne un état à l'instant T (événement,
+ *     attractions, plus tard restaurants et files virtuelles) ;
+ *   - « Spectacles » : tout ce qui donne un HORAIRE (représentations, plus tard
+ *     ouvertures/fermetures d'attractions, de boutiques, de restaurants).
+ */
 export default function MainCard({
   park,
   onRefresh,
@@ -59,7 +84,50 @@ export default function MainCard({
   const dataIsStale =
     mounted && Date.now() - new Date(park.lastUpdate).getTime() > STALE_DATA_MS;
 
-  const hasWaitTimes = park.waitTimes && park.waitTimes.length > 0;
+  // ————— Événements saisonniers —————
+  //
+  // ⚠️ Évalués APRÈS MONTAGE, pour la même raison que `dataIsStale` : « sommes-
+  // nous dans la fenêtre ? » dépend de l'heure courante, qui diffère entre le
+  // rendu Node et l'hydratation navigateur. Avant montage, aucune carte
+  // d'événement n'est rendue — c'est l'état correct dans la quasi-totalité des
+  // cas, et l'ajustement se fait ensuite par un simple re-rendu.
+  //
+  // Ce composant se re-rend chaque seconde pour le décompte : la carte s'ouvre
+  // donc d'elle-même à l'heure d'ouverture, sans rien câbler.
+  const eventViews = useMemo(
+    () =>
+      mounted
+        ? visibleParkEvents(park.events ?? [], new Date())
+        : // AVANT MONTAGE : on rend quand même les cartes des événements dont la
+          // PÉRIODE couvre aujourd'hui, repliées. `inPeriod` est calculé côté
+          // serveur à partir de la date locale du parc, pas de l'heure : les deux
+          // rendus produisent donc le même HTML, sans risque d'hydratation.
+          //
+          // Sans ça, la page d'un parc en pleine saison se peignait sans sa carte
+          // d'événement, qui apparaissait ensuite d'un coup — et avec elle des
+          // attractions absentes de la première image.
+          (park.events ?? [])
+            .filter((event) => event.inPeriod || event.visibility === "forced")
+            .map((event) => ({
+              event,
+              state: "collapsed" as const,
+              boundary: null,
+            })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [park.events, mounted, timeSinceLastUpdate],
+  );
+
+  // ⚠️ **Une attraction taguée n'apparaît QUE dans la carte de son événement.**
+  // Hors période, sa carte n'est pas rendue et l'attraction disparaît donc de la
+  // page — c'est voulu : un maze qui affiche « fermé » en juin entre deux
+  // coasters n'apprend rien à personne, et c'est exactement ce que faisait déjà,
+  // en dur, le fetcher de Mirabilandia.
+  const mainWaitTimes = useMemo(
+    () => park.waitTimes.filter((wt) => wt.eventId == null),
+    [park.waitTimes],
+  );
+
+  const hasWaitTimes = mainWaitTimes.length > 0;
   const hasShows = park.shows && park.shows.length > 0;
   const showTabs = hasWaitTimes && hasShows;
   const parkDate = park.openingHours?.[0]?.date ?? null;
@@ -74,6 +142,11 @@ export default function MainCard({
   // horaires déjà chargés — sans quoi l'UI proposerait un bouton que la route de
   // création refuserait ensuite en 409.
   //
+  // ⚠️ **`dayOpeningHours` exclut les sessions d'ÉVÉNEMENT.** Une nocturne qui
+  // court jusqu'à 1 h du matin rouvrirait sinon ce droit sur TOUTES les
+  // attractions, y compris celles de jour arrêtées pour la nuit — soit
+  // exactement le piège « la fin de journée est indiscernable d'une panne ».
+  //
   // Recalculé à chaque rendu — et ce composant se re-rend chaque seconde pour le
   // décompte : le formulaire se referme donc tout seul quand l'heure limite
   // arrive, popup ouvert, sans qu'on ait à câbler quoi que ce soit.
@@ -87,7 +160,7 @@ export default function MainCard({
     (() => {
       const at = new Date();
       return reopenAllowedForWindow(
-        parkOpenWindowFrom(park.openingHours ?? [], at),
+        parkOpenWindowFrom(dayOpeningHours(park.openingHours ?? []), at),
         at,
         REOPEN_CREATE_CLOSING_MARGIN_MS,
       );
@@ -114,118 +187,173 @@ export default function MainCard({
     // écrasé par un rendu ultérieur.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return (
-    <Card className="w-full rounded-4xl p-2.5 sm:p-4 gap-0 pb-0">
-      {showTabs ? (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="relative w-full rounded-3xl overflow-hidden">
-            {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
-                Deux onglets de largeur égale -> largeur 50% (moins le padding),
-                translation 0% / 100%. Courbe d'accélération type iOS. */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] rounded-3xl bg-background shadow-sm dark:bg-input/30 dark:border dark:border-input"
-              style={{
-                transform:
-                  activeTab === "show-times"
-                    ? "translateX(100%)"
-                    : "translateX(0%)",
-                transitionProperty: "transform",
-                transitionDuration: "1000ms",
-                transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
-              }}
-            />
-            <TabsTrigger
-              value="wait-times"
-              className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent dark:data-[state=active]:border-transparent"
-            >
-              <Clock />
-              {tTabs("waitTimes")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="show-times"
-              className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent dark:data-[state=active]:border-transparent"
-            >
-              <Drama />
-              {tTabs("shows")}
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="wait-times">
-            <ParkWaitTimeTable
-              waitTimes={park.waitTimes}
-              queueTypeLabels={park.queueTypeLabels}
-              parkIdentifier={park.identifier}
-              parkName={park.name}
-              reopenAllowed={reopenAllowed}
-              initialRideId={initialRideId}
-            />
-          </TabsContent>
-          <TabsContent value="show-times">
-            <ParkShowTimeTable
-              shows={park.shows}
-              timezone={park.timezone}
-              parkDate={parkDate}
-              parkIdentifier={park.identifier}
-              parkName={park.name}
-            />
-          </TabsContent>
-        </Tabs>
-      ) : hasWaitTimes ? (
-        <ParkWaitTimeTable
-          waitTimes={park.waitTimes}
-          queueTypeLabels={park.queueTypeLabels}
-          parkIdentifier={park.identifier}
-          parkName={park.name}
-          reopenAllowed={reopenAllowed}
-          initialRideId={initialRideId}
-        />
-      ) : hasShows ? (
-        <ParkShowTimeTable
-          shows={park.shows}
-          timezone={park.timezone}
-          parkDate={parkDate}
-          parkIdentifier={park.identifier}
-          parkName={park.name}
-        />
-      ) : null}
-      {park.shows.length === 0 && park.waitTimes.length === 0 && (
-        <div className="flex items-center justify-center flex-col gap-y-0.5 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <AlertCircle className="size-3.5" />
-            <h3 className="font-medium tracking-tight text-center">
-              {tNoData("title")}
-            </h3>
-          </div>
-          <p className="text-center">{tNoData("message")}</p>
-        </div>
-      )}
-      <div className="flex justify-center text-sm text-muted-foreground my-4 flex-col items-center">
-        {/* Trois états, dans cet ordre : rafraîchissement en cours, données du
-            worker périmées, décompte normal.
 
-            ⚠️ « Dernière mise à jour » n'est plus l'état d'échec du décompte
-            (celui-ci ne peut plus se bloquer) mais une information sur la
-            DONNÉE : le worker n'a rien écrit depuis 10 min. Le décompte, lui,
-            continue de tourner derrière — on réessaie bel et bien. */}
-        {isRefreshing ? (
-          <div className="flex text-muted-foreground items-center gap-1">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {t("nowRefreshing")}
-          </div>
-        ) : dataIsStale ? (
-          <p>
-            {t("lastUpdate")}: {new Date(park.lastUpdate).toLocaleString()}
-          </p>
-        ) : (
-          <p>
-            {t("refreshingIn")} {timeSinceLastUpdate}{" "}
-            {timeSinceLastUpdate < 2 ? t("second") : t("seconds")}
-          </p>
-        )}
-        {park.shows.length > 0 && activeTab === "show-times" && (
-          <p>{tShows("updateInfo")}</p>
-        )}
-      </div>
+  // ————— Les cartes —————
+  //
+  // ⚠️ ORDRE FIXE : événement, puis temps d'attente. La carte d'événement est
+  // TOUJOURS en tête, quelle que soit l'heure — c'est le REPLI qui règle le
+  // problème de l'après-midi (mazes fermés), pas un déplacement. Hors fenêtre
+  // elle ne pèse qu'une ligne d'en-tête et ne repousse donc rien. Ajouter en
+  // plus un réordonnancement à l'horloge, ce serait deux mécanismes pour un seul
+  // besoin — et le seul remaniement de la page que l'utilisateur verrait bouger
+  // sans avoir rien fait.
+  const eventCards = eventViews.map((view) => (
+    <EventCard
+      key={view.event.id}
+      view={view}
+      waitTimes={park.waitTimes.filter((wt) => wt.eventId === view.event.id)}
+      queueTypeLabels={park.queueTypeLabels}
+      parkIdentifier={park.identifier}
+      parkName={park.name}
+      timezone={park.timezone}
+      reopenAllowed={reopenAllowed}
+      initialRideId={initialRideId}
+    />
+  ));
+
+  const waitTimesCard = hasWaitTimes ? (
+    <Card className="w-full gap-0 rounded-4xl p-2.5 py-2 sm:p-4 sm:py-2">
+      <ParkWaitTimeTable
+        waitTimes={mainWaitTimes}
+        queueTypeLabels={park.queueTypeLabels}
+        parkIdentifier={park.identifier}
+        parkName={park.name}
+        reopenAllowed={reopenAllowed}
+        initialRideId={initialRideId}
+      />
     </Card>
+  ) : null;
+
+  const showsCard = hasShows ? (
+    <Card className="w-full gap-0 rounded-4xl p-2.5 py-2 sm:p-4 sm:py-2">
+      <ParkShowTimeTable
+        shows={park.shows}
+        timezone={park.timezone}
+        parkDate={parkDate}
+        parkIdentifier={park.identifier}
+        parkName={park.name}
+      />
+    </Card>
+  ) : null;
+
+  // Pied de colonne : décompte de rafraîchissement. Posé SOUS les cartes, en
+  // texte libre — il décrit la fraîcheur de l'ensemble, pas d'un bloc en
+  // particulier, et l'enfermer dans l'une des cartes le rattacherait à tort à
+  // celle-là.
+  const footer = (
+    <div className="my-4 flex flex-col items-center justify-center text-sm text-muted-foreground">
+      {/* Trois états, dans cet ordre : rafraîchissement en cours, données du
+          worker périmées, décompte normal.
+
+          ⚠️ « Dernière mise à jour » n'est plus l'état d'échec du décompte
+          (celui-ci ne peut plus se bloquer) mais une information sur la
+          DONNÉE : le worker n'a rien écrit depuis 10 min. Le décompte, lui,
+          continue de tourner derrière — on réessaie bel et bien. */}
+      {isRefreshing ? (
+        <div className="flex items-center gap-1 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {t("nowRefreshing")}
+        </div>
+      ) : dataIsStale ? (
+        <p>
+          {t("lastUpdate")}: {new Date(park.lastUpdate).toLocaleString()}
+        </p>
+      ) : (
+        <p>
+          {t("refreshingIn")} {timeSinceLastUpdate}{" "}
+          {timeSinceLastUpdate < 2 ? t("second") : t("seconds")}
+        </p>
+      )}
+      {park.shows.length > 0 && activeTab === "show-times" && (
+        <p>{tShows("updateInfo")}</p>
+      )}
+    </div>
+  );
+
+  if (park.shows.length === 0 && park.waitTimes.length === 0) {
+    return (
+      <div className={CARD_STACK}>
+        <Card className="w-full gap-0 rounded-4xl p-2.5 py-6 sm:p-4 sm:py-6">
+          <div className="flex flex-col items-center justify-center gap-y-0.5 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <AlertCircle className="size-3.5" />
+              <h3 className="text-center font-medium tracking-tight">
+                {tNoData("title")}
+              </h3>
+            </div>
+            <p className="text-center">{tNoData("message")}</p>
+          </div>
+        </Card>
+        {footer}
+      </div>
+    );
+  }
+
+  // Un seul type de données : pas de sélecteur d'onglets, juste les cartes.
+  if (!showTabs) {
+    return (
+      <div className={CARD_STACK}>
+        {eventCards}
+        {waitTimesCard}
+        {showsCard}
+        {footer}
+      </div>
+    );
+  }
+
+  return (
+    <Tabs
+      value={activeTab}
+      onValueChange={setActiveTab}
+      className={CARD_STACK}
+    >
+      {/* Le sélecteur d'onglets a sa PROPRE carte : c'est de la navigation, pas
+          de la donnée. Le mélanger au contenu, c'était faire de l'un des deux
+          blocs le « propriétaire » visuel des onglets. */}
+      <Card className="w-full rounded-4xl p-1.5 sm:p-2">
+        <TabsList className="relative w-full overflow-hidden rounded-3xl">
+          {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
+              Deux onglets de largeur égale -> largeur 50% (moins le padding),
+              translation 0% / 100%. Courbe d'accélération type iOS. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] rounded-3xl bg-background shadow-sm dark:border dark:border-input dark:bg-input/30"
+            style={{
+              transform:
+                activeTab === "show-times"
+                  ? "translateX(100%)"
+                  : "translateX(0%)",
+              transitionProperty: "transform",
+              transitionDuration: "1000ms",
+              transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
+            }}
+          />
+          <TabsTrigger
+            value="wait-times"
+            className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+          >
+            <Clock />
+            {tTabs("waitTimes")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="show-times"
+            className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+          >
+            <Drama />
+            {tTabs("shows")}
+          </TabsTrigger>
+        </TabsList>
+      </Card>
+
+      <TabsContent value="wait-times" className={CARD_STACK}>
+        {eventCards}
+        {waitTimesCard}
+      </TabsContent>
+      <TabsContent value="show-times" className={CARD_STACK}>
+        {showsCard}
+      </TabsContent>
+
+      {footer}
+    </Tabs>
   );
 }
