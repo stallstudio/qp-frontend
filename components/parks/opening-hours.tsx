@@ -2,6 +2,7 @@ import { OpeningHour } from "@/types/openingHour";
 import {
   CalendarClock,
   CalendarX2,
+  Ghost,
   Lock,
   LucideIcon,
   Maximize2,
@@ -17,21 +18,36 @@ type ParkOpeningHoursProps = {
   timezone: string;
 };
 
-const typeIconMap: Record<OpeningHour["type"], LucideIcon> = {
+// ⚠️ **`Record<string, …>` et un REPLI, pas un `Record` exhaustif.**
+//
+// Ces tables étaient indexées par un `type` de type `string` (ouvert) tout en
+// prétendant couvrir toutes les valeurs. Un type absent donnait donc
+// `Icon === undefined`, et rendre `<undefined />` FAIT PLANTER React — pas un
+// libellé manquant, un écran blanc. Le bug ne demandait qu'un sixième type pour
+// se déclencher ; `event` est ce sixième type.
+const typeIconMap: Record<string, LucideIcon> = {
   standard: CalendarClock,
   early_access: Sunrise,
   extension: Maximize2,
   private_event: Lock,
   sold_out: CalendarClock,
+  event: Ghost,
 };
 
-const typeOrder: Record<OpeningHour["type"], number> = {
+const FALLBACK_ICON = CalendarClock;
+
+const typeOrder: Record<string, number> = {
   standard: 0,
   early_access: 1,
   extension: 2,
-  private_event: 3,
-  sold_out: 4,
+  // La session d'événement se lit APRÈS la journée du parc : c'est ce qui se
+  // passe ensuite, dans l'ordre de la journée.
+  event: 3,
+  private_event: 4,
+  sold_out: 5,
 };
+
+const FALLBACK_ORDER = 99;
 
 const formatTime = (
   timeString: string,
@@ -51,27 +67,28 @@ export default function ParkOpeningHours({
   const t = useTranslations("parkPage");
   const { is12Hour } = useTimeFormat();
 
-  const typeLabelMap: Record<OpeningHour["type"], string> = {
+  const typeLabelMap: Record<string, string> = {
     standard: t("todayHours"),
     early_access: t("extraOpeningHours"),
     extension: t("extendedHours"),
     private_event: t("privateEvent"),
     sold_out: t("hoursUnavailable"),
+    event: t("eventHours"),
   };
 
   const sortedOpeningHours = [...openingHours].sort(
-    (a, b) => typeOrder[a.type] - typeOrder[b.type],
+    (a, b) =>
+      (typeOrder[a.type] ?? FALLBACK_ORDER) -
+      (typeOrder[b.type] ?? FALLBACK_ORDER),
   );
 
   // Check if there's a private event without hours
   const hasPrivateEventNoHours = sortedOpeningHours.some(
-    (hour) => hour.type === "private_event" && !hour.openTime && !hour.closeTime
+    (hour) => hour.type === "private_event" && !hour.openTime && !hour.closeTime,
   );
 
   // Check if there's a sold-out day (park is open but tickets are sold out)
-  const hasSoldOut = sortedOpeningHours.some(
-    (hour) => hour.type === "sold_out"
-  );
+  const hasSoldOut = sortedOpeningHours.some((hour) => hour.type === "sold_out");
 
   // Check if all opening hours have null openTime and closeTime (truly closed)
   const allTimesNull =
@@ -99,8 +116,16 @@ export default function ParkOpeningHours({
         sortedOpeningHours
           .filter((hour) => hour.openTime && hour.closeTime)
           .map((openingHour, index) => {
-            const Icon = typeIconMap[openingHour.type];
-            const label = typeLabelMap[openingHour.type];
+            const Icon = typeIconMap[openingHour.type] ?? FALLBACK_ICON;
+            // ⚠️ `label` L'EMPORTE sur le libellé traduit du type. C'est ce qui
+            // fait dire « Traumatica : 19:00 – 01:00 » plutôt que
+            // « Horaires étendus » — le visiteur cherche le nom de l'événement,
+            // pas la catégorie sous laquelle on l'a rangé. Non traduit, comme
+            // les noms d'attractions : il vient de la source.
+            const label =
+              openingHour.label ||
+              typeLabelMap[openingHour.type] ||
+              t("hoursOther");
 
             return (
               <div key={index} className="flex items-center gap-2 text-white">
