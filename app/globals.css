@@ -73,40 +73,6 @@
       background-position: 0% 0%;
     }
   }
-  /* ————— Cartes d'événement saisonnier (Halloween, Noël) —————
-     Deux animations très lentes et de faible amplitude. Elles doivent se
-     remarquer du coin de l'œil sans jamais réclamer l'attention : la carte est
-     REPLIÉE la plupart du temps, posée au-dessus d'une liste qu'on vient lire.
-     Un effet qui bouge vite y deviendrait une gêne au bout de dix secondes.
-     Les deux sont désactivables par `motion-reduce:animate-none`. */
-
-  /* Halloween : une braise qui respire. Opacité seulement — pas de
-     transformation, donc aucun recalcul de mise en page. */
-  --animate-ember: ember 7s ease-in-out infinite;
-  @keyframes ember {
-    0%,
-    100% {
-      opacity: 0.45;
-    }
-    50% {
-      opacity: 0.85;
-    }
-  }
-
-  /* Noël : un reflet qui glisse sur la glace, une fois toutes les neuf
-     secondes. `background-position` uniquement, même raison. */
-  --animate-frost: frost 9s ease-in-out infinite;
-  @keyframes frost {
-    0%,
-    100% {
-      background-position: -30% 0;
-    }
-    55%,
-    70% {
-      background-position: 130% 0;
-    }
-  }
-
   --animate-marquee: marquee 20s linear infinite;
   @keyframes marquee {
     0% {

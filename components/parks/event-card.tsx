@@ -52,9 +52,7 @@ export default function EventCard({
     setManual(null);
   }, [state]);
 
-  const { icon: Icon, card: accentClass, iconClass, decor } = accentStyle(
-    event.accent,
-  );
+  const { icon: Icon, card: accentClass, iconClass } = accentStyle(event.accent);
 
   // ⚠️ **Le sous-titre ne porte QU'UNE heure : celle qui compte à cet instant.**
   // La plage complète (« 19:00 – 23:30 ») est déjà affichée dans l'en-tête du
@@ -78,17 +76,10 @@ export default function EventCard({
   return (
     <Card
       className={cn(
-        // `relative` + `overflow-hidden` : le décor est posé en absolu et doit
-        // être découpé par les coins arrondis, sinon les dégradés débordent aux
-        // quatre angles.
-        "relative w-full gap-0 overflow-hidden rounded-4xl border p-2.5 py-0 sm:p-4 sm:py-0",
+        "w-full gap-0 rounded-4xl border p-2.5 py-0 sm:p-4 sm:py-0",
         accentClass,
       )}
     >
-      {/* Décor de famille (braise, givre). SOUS le contenu et sans interaction :
-          il ne doit ni intercepter un clic, ni être annoncé par un lecteur
-          d'écran. */}
-      {decor}
       {/* En-tête cliquable. UN SEUL CONTENANT qui s'ouvre : replié on ne voit
           que cette ligne, déplié le contenu apparaît dessous, dans le
           même encadré. Une seule chose à comprendre, et seul le chevron change
@@ -97,8 +88,7 @@ export default function EventCard({
         type="button"
         onClick={() => setManual(!open)}
         aria-expanded={open}
-        // `relative z-10` : au-dessus du décor, qui est en absolu derrière.
-        className="relative z-10 flex w-full items-center gap-2.5 py-3 text-left"
+        className="flex w-full items-center gap-2.5 py-3 text-left"
       >
         <Icon className={cn("size-5 shrink-0", iconClass)} />
         <span className="min-w-0 flex-1">
@@ -123,11 +113,7 @@ export default function EventCard({
       </button>
 
       {open && (
-        // ⚠️ Fond opaque une fois DÉPLIÉ : le décor traverse toute la carte, et
-        // une table de temps d'attente lue par-dessus un dégradé animé est
-        // pénible. L'effet reste donc cantonné à l'en-tête, qui est ce qu'on
-        // voit onze mois par an.
-        <div className="relative z-10 border-t bg-card/85 pb-2 backdrop-blur-[2px]">
+        <div className="border-t pb-2">
           {isEmpty ? (
             // Un événement confirmé dont rien ne remonte encore : ça arrive
             // avant l'ouverture des portes. On le dit, plutôt que de laisser un
