@@ -600,8 +600,36 @@ model ParkEvent {
   parkId Int
   park   Park @relation(fields: [parkId], references: [id], onDelete: Cascade)
 
-  slug String @db.VarChar(120) // "peur-sur-le-parc-2026"
-  name String @db.VarChar(255) // "Peur sur le Parc" — non traduit, il vient de la source
+  // ————— Identité : une clé STABLE, une ligne par SAISON —————
+  //
+  // ⚠️ **Un événement est une SAISON, pas une opération éternelle.** Sans ça,
+  // le mécanisme d'apprentissage des dates produisait une période absurde :
+  // arrivé en septembre 2027, il repoussait simplement `endDate` de la ligne de
+  // 2026, donnant « 23/09/2026 → 23/09/2027 » — soit une carte affichée TOUTE
+  // L'ANNÉE, y compris en février.
+  //
+  // D'où la séparation en deux champs :
+  //
+  //   - `sourceKey` — ce que la SOURCE déclare, et qui ne bouge pas d'une année
+  //     sur l'autre : le scope `traumatica` chez Mack, la description chez
+  //     Universal. C'est la clé de rapprochement de la collecte.
+  //   - `season` — l'année de la saison. Une nouvelle ligne naît dès qu'un
+  //     signal arrive loin après la fin de la précédente.
+  //
+  // `slug` en découle (`traumatica-2026`) et reste l'identifiant lisible.
+  //
+  // ⚠️ Les saisons passées ne sont JAMAIS supprimées : c'est l'historique, et
+  // c'est ce qui permettra de comparer une année à la précédente.
+  sourceKey String @db.VarChar(120) // "traumatica"
+  season    Int // 2026
+  slug      String @db.VarChar(120) // "traumatica-2026"
+
+  // Nom AFFICHÉ, non traduit — il vient de la source.
+  //
+  // ⚠️ Porté par la SAISON, pas par la clé : un parc qui rebaptise son
+  // opération (« Peur sur le Parc » devenant autre chose) garde son historique
+  // sous l'ancien nom au lieu de le réécrire rétroactivement.
+  name String @db.VarChar(255)
 
   // Période de l'événement, en dates LOCALES du parc (YYYY-MM-DD), même
   // convention que `opening_hours.date`.
@@ -675,6 +703,8 @@ model ParkEvent {
   updatedAt DateTime @updatedAt
 
   @@unique([parkId, slug])
+  // La clé de rapprochement de la collecte : « la saison N de cet événement ».
+  @@unique([parkId, sourceKey, season])
   @@index([parkId, startDate, endDate])
   @@map("park_events")
 }
