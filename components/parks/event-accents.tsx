@@ -12,8 +12,19 @@ import { Ghost, Gift, Sparkles, type LucideIcon } from "lucide-react";
 // braises pulsantes pour Halloween, givre et fissures pour Noël. Écarté après
 // essai : la carte est repliée la plupart du temps, posée au-dessus d'une liste
 // de temps d'attente qu'on vient lire, et un décor chargé y devient une gêne
-// avant de devenir un repère. Il reste un simple dégradé, qui suffit à
-// distinguer la carte de celles qui l'entourent.
+// avant de devenir un repère. Il reste un simple APLAT teinté, qui suffit à
+// distinguer la carte de celles qui l'entourent. Le dégradé lui-même (fond puis
+// liseré) a été essayé et retiré : sur une carte large et peu haute, il se lit
+// comme une inégalité d'éclairage, pas comme une intention.
+//
+// ⚠️ **En thème sombre, on remonte la RAMPE au lieu de la descendre.** Le
+// réflexe `orange-50` clair / `orange-950` sombre donnait une carte ROUGE :
+// aux deux extrémités de la rampe, Tailwind vire au brun-rouge (`orange-950` =
+// #431407), et un brun posé sur un fond sombre ne se lit plus comme de l'orange.
+// Le sombre prend donc une teinte CLAIRE (400), franchement orange, et c'est
+// l'OPACITÉ qui la rend discrète — deux réglages indépendants, là où descendre
+// la rampe mélangeait « plus sombre » et « moins présent » dans un seul chiffre.
+// Même logique pour le vert.
 //
 // ⚠️ Contrat partagé avec `tw-waittimes-admin/components/parks/event-accent.tsx`,
 // qui recopie les teintes pour que le réglage se voie avant d'être enregistré.
@@ -32,12 +43,12 @@ export type AccentStyle = {
 const ACCENT_STYLES: Record<string, AccentStyle> = {
   halloween: {
     icon: Ghost,
-    card: "border-orange-300/60 bg-gradient-to-br from-orange-50/80 to-orange-100/50 dark:border-orange-900/50 dark:from-orange-950/25 dark:to-orange-900/10",
+    card: "border-orange-300/60 bg-orange-50/70 dark:border-orange-400/40 dark:bg-orange-400/12",
     iconClass: "text-orange-700 dark:text-orange-300",
   },
   christmas: {
     icon: Gift,
-    card: "border-emerald-300/60 bg-gradient-to-br from-emerald-50/80 to-emerald-100/50 dark:border-emerald-900/50 dark:from-emerald-950/25 dark:to-emerald-900/10",
+    card: "border-emerald-300/60 bg-emerald-50/70 dark:border-emerald-400/40 dark:bg-emerald-400/12",
     iconClass: "text-emerald-700 dark:text-emerald-300",
   },
 };
