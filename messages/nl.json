@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Shows",
-        "body": "Bij de betreffende parken toont een tabblad «Shows» de speeltijden van de dag als tijdlijn. Deze tijden worden elk uur bijgewerkt."
+        "body": "Bij de betreffende parken toont het tabblad «Openingstijden» de speeltijden van de dag als tijdlijn. Deze tijden worden elk uur bijgewerkt."
+      },
+      "events": {
+        "title": "Seizoensevenementen",
+        "body": "Tijdens Halloween of Kerst krijgen de attracties en shows van het evenement een eigen kaart, in de kleuren van het seizoen: die klapt open zodra het evenement begint en blijft de rest van de tijd dicht. De vermelding «Apart ticket» laat zien wanneer toegang niet bij het parkticket is inbegrepen."
       },
       "status": {
         "title": "Statussen in één oogopslag",

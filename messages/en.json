@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Shows",
-        "body": "For the relevant parks, a \"Shows\" tab displays the day's showtimes as a timeline. These schedules are updated every hour."
+        "body": "For the relevant parks, the \"Today's hours\" tab displays the day's showtimes as a timeline. These schedules are updated every hour."
+      },
+      "events": {
+        "title": "Seasonal events",
+        "body": "During Halloween or Christmas, the attractions and shows that belong to the event get a card of their own, in the colours of the season: it unfolds when the event opens and stays collapsed the rest of the time. A \"Separate ticket\" note tells you when access is not included with park admission."
       },
       "status": {
         "title": "Statuses at a glance",

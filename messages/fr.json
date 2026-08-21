@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Les spectacles",
-        "body": "Pour les parcs concernés, un onglet « Spectacles » affiche les horaires des représentations de la journée sous forme de timeline. Ces horaires sont mis à jour toutes les heures."
+        "body": "Pour les parcs concernés, l'onglet « Horaires du jour » affiche les horaires des représentations de la journée sous forme de timeline. Ces horaires sont mis à jour toutes les heures."
+      },
+      "events": {
+        "title": "Les événements saisonniers",
+        "body": "Pendant Halloween ou Noël, les attractions et spectacles propres à l'événement ont leur propre carte, aux couleurs de la saison : elle se déplie à l'heure d'ouverture de l'événement et reste repliée en dehors. La mention « Billet séparé » vous prévient quand l'accès n'est pas compris dans l'entrée du parc."
       },
       "status": {
         "title": "Statuts en un coup d'œil",

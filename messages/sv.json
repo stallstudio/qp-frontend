@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Shower",
-        "body": "För berörda parker visar fliken »Shower« dagens föreställningar som en tidslinje. Dessa tider uppdateras varje timme."
+        "body": "För berörda parker visar fliken »Öppettider« dagens föreställningar som en tidslinje. Dessa tider uppdateras varje timme."
+      },
+      "events": {
+        "title": "Säsongens event",
+        "body": "Under Halloween eller julen får eventets attraktioner och shower ett eget kort i säsongens färger: det fälls ut när eventet börjar och hålls ihopfällt resten av tiden. Texten »Separat biljett« visar när inträdet inte ingår i parkbiljetten."
       },
       "status": {
         "title": "Status med en blick",

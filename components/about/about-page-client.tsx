@@ -14,6 +14,7 @@ import {
   Star,
   Search,
   Drama,
+  Sparkles,
   Activity,
   SlidersHorizontal,
   Bell,
@@ -169,6 +170,15 @@ export default function AboutPageClient() {
                   body={tCards("shows.body")}
                   demoLabel={demoLabel}
                   demo={<ShowsDemo />}
+                />
+                {/* Pas de démo : la carte d'événement se raconte en deux
+                    phrases, et la mimer demanderait de rejouer une saison
+                    entière (repli hors fenêtre, teinte de famille) pour montrer
+                    ce que le texte dit déjà. */}
+                <Vignette
+                  icon={Sparkles}
+                  title={tCards("events.title")}
+                  body={tCards("events.body")}
                 />
                 <Vignette
                   icon={Bell}

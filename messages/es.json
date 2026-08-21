@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Espectáculos",
-        "body": "En los parques correspondientes, una pestaña «Espectáculos» muestra los pases del día en forma de línea de tiempo. Estos horarios se actualizan cada hora."
+        "body": "En los parques correspondientes, la pestaña «Horario de hoy» muestra los pases del día en forma de línea de tiempo. Estos horarios se actualizan cada hora."
+      },
+      "events": {
+        "title": "Eventos de temporada",
+        "body": "En Halloween o Navidad, las atracciones y espectáculos propios del evento tienen su propia tarjeta, con los colores de la temporada: se despliega a la hora de apertura del evento y permanece plegada el resto del tiempo. La mención «Entrada aparte» te avisa cuando el acceso no está incluido en la entrada del parque."
       },
       "status": {
         "title": "Estados de un vistazo",

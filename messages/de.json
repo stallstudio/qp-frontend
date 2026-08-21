@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Shows",
-        "body": "Bei den entsprechenden Parks zeigt ein Tab „Shows“ die Spielzeiten des Tages als Zeitleiste. Diese Zeiten werden stündlich aktualisiert."
+        "body": "Bei den entsprechenden Parks zeigt der Tab „Öffnungszeiten“ die Spielzeiten des Tages als Zeitleiste. Diese Zeiten werden stündlich aktualisiert."
+      },
+      "events": {
+        "title": "Saisonale Events",
+        "body": "Zu Halloween oder Weihnachten bekommen die Attraktionen und Shows des Events eine eigene Karte in den Farben der Saison: Sie klappt zum Beginn des Events auf und bleibt sonst zugeklappt. Der Hinweis „Separates Ticket“ zeigt dir, wenn der Zugang nicht im Parkeintritt enthalten ist."
       },
       "status": {
         "title": "Status auf einen Blick",

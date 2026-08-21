@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Shows",
-        "body": "For de relevante parker viser fanen »Shows« dagens forestillinger som en tidslinje. Disse tider opdateres hver time."
+        "body": "For de relevante parker viser fanen »Åbningstider« dagens forestillinger som en tidslinje. Disse tider opdateres hver time."
+      },
+      "events": {
+        "title": "Sæsonens events",
+        "body": "Til Halloween og jul får eventets forlystelser og shows deres eget kort i sæsonens farver: det folder sig ud, når eventet åbner, og forbliver foldet sammen resten af tiden. Teksten »Separat billet« fortæller dig, når adgangen ikke er inkluderet i parkens entré."
       },
       "status": {
         "title": "Status med ét blik",

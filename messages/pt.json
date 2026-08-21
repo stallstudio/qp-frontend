@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Espetáculos",
-        "body": "Nos parques em causa, um separador «Espetáculos» mostra as sessões do dia numa linha temporal. Estes horários são atualizados de hora a hora."
+        "body": "Nos parques em causa, o separador «Horário de hoje» mostra as sessões do dia numa linha temporal. Estes horários são atualizados de hora a hora."
+      },
+      "events": {
+        "title": "Eventos sazonais",
+        "body": "No Halloween ou no Natal, as atrações e os espetáculos do evento têm um cartão próprio, com as cores da época: abre à hora de início do evento e fica recolhido o resto do tempo. A menção «Bilhete separado» avisa-te quando o acesso não está incluído na entrada do parque."
       },
       "status": {
         "title": "Estados num relance",

@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Spettacoli",
-        "body": "Nei parchi interessati, una scheda «Spettacoli» mostra le repliche della giornata sotto forma di linea del tempo. Questi orari vengono aggiornati ogni ora."
+        "body": "Nei parchi interessati, la scheda «Orari di oggi» mostra le repliche della giornata sotto forma di linea del tempo. Questi orari vengono aggiornati ogni ora."
+      },
+      "events": {
+        "title": "Eventi stagionali",
+        "body": "Ad Halloween o a Natale, le attrazioni e gli spettacoli dell'evento hanno una scheda dedicata, nei colori della stagione: si apre all'orario di inizio dell'evento e resta chiusa il resto del tempo. La dicitura «Biglietto separato» ti avvisa quando l'accesso non è incluso nell'ingresso del parco."
       },
       "status": {
         "title": "Stati a colpo d'occhio",

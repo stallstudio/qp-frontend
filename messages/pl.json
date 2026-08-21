@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Pokazy",
-        "body": "W odpowiednich parkach zakładka «Pokazy» przedstawia dzisiejsze seanse w formie osi czasu. Te godziny są aktualizowane co godzinę."
+        "body": "W odpowiednich parkach zakładka «Godziny otwarcia» przedstawia dzisiejsze seanse w formie osi czasu. Te godziny są aktualizowane co godzinę."
+      },
+      "events": {
+        "title": "Wydarzenia sezonowe",
+        "body": "Podczas Halloween czy świąt atrakcje i pokazy należące do wydarzenia mają własną kartę w barwach sezonu: rozwija się o godzinie rozpoczęcia wydarzenia, a poza nim pozostaje zwinięta. Adnotacja «Osobny bilet» informuje, kiedy wstęp nie jest wliczony w bilet do parku."
       },
       "status": {
         "title": "Statusy na pierwszy rzut oka",

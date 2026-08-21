@@ -236,7 +236,11 @@
       },
       "shows": {
         "title": "Chương trình",
-        "body": "Với các công viên có dữ liệu, tab «Chương trình» hiển thị các suất diễn trong ngày dưới dạng dòng thời gian. Các mốc giờ này được cập nhật mỗi giờ."
+        "body": "Với các công viên có dữ liệu, tab «Giờ hôm nay» hiển thị các suất diễn trong ngày dưới dạng dòng thời gian. Các mốc giờ này được cập nhật mỗi giờ."
+      },
+      "events": {
+        "title": "Sự kiện theo mùa",
+        "body": "Vào Halloween hay Giáng sinh, các trò chơi và suất diễn thuộc sự kiện có thẻ riêng mang màu của mùa lễ: thẻ mở ra vào giờ bắt đầu sự kiện và thu gọn lại ngoài khung giờ đó. Dòng «Vé riêng» cho biết khi vé vào cửa công viên không bao gồm sự kiện."
       },
       "status": {
         "title": "Trạng thái trong nháy mắt",
