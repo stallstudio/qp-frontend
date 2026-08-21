@@ -111,6 +111,8 @@ export default function AttractionDetailDialog({
                 favNamespace="rides"
                 favKey={`${parkIdentifier}:${target.rideId}`}
                 link={{ url: "https://thrills.world", label: t("thrillsLink") }}
+                banner={target.banner}
+                credit={parkName}
               />
             </div>
 

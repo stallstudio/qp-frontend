@@ -28,4 +28,20 @@ export type WaitTime = {
    * fait déjà `include: { ride: true }`.
    */
   eventId: number | null;
+  /**
+   * Image publiée par la SOURCE du parc pour cette attraction. `null` pour la
+   * quasi-totalité du catalogue : seules les sources qui en publient une la
+   * remplissent (les parcs Compagnie des Alpes aujourd'hui).
+   *
+   * ⚠️ **C'est un chemin LOCAL signé** (`/api/image?...`), pas l'URL du parc :
+   * elle transite par notre domaine pour ne pas avoir à déclarer l'hôte de
+   * chaque parc dans `next.config.ts`. Voir `lib/image-proxy.ts`.
+   *
+   * ⚠️ L'image vient du parc, jamais de nous — d'où le crédit affiché
+   * par-dessus, à son nom.
+   *
+   * ⚠️ Aucune requête supplémentaire pour l'obtenir : `getLatestWaitTimesByPark`
+   * fait déjà `include: { poi: true }`.
+   */
+  banner: string | null;
 };
