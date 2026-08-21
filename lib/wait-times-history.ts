@@ -76,7 +76,7 @@ export async function getRideStandbyIntervals(
   const rows = await getPrisma().waitTime.findMany({
     where: {
       parkId,
-      rideId,
+      poiId: rideId,
       type: "standby",
       startTime: { lt: toUtc },
       OR: [{ endTime: null }, { endTime: { gte: fromUtc } }],

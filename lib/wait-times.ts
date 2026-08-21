@@ -50,29 +50,29 @@ export async function getLatestWaitTimesByPark(
       where: {
         parkId,
         endTime: null,
-        rideId: {
+        poiId: {
           not: null,
         },
         lastSeenAt: { gte: freshSince },
       },
-      include: { ride: true },
-      orderBy: [{ rideId: "asc" }, { type: "asc" }],
+      include: { poi: true },
+      orderBy: [{ poiId: "asc" }, { type: "asc" }],
     });
 
     // Grouper les wait times par ride
     const rideMap = new Map<number, WaitTime>();
 
     activeWaitTimes.forEach((wt) => {
-      const rideId = wt.rideId!;
-      const rideName = wt.ride?.name || "Unknown";
+      const rideId = wt.poiId!;
+      const rideName = wt.poi?.name || "Unknown";
 
       if (!rideMap.has(rideId)) {
         rideMap.set(rideId, {
           rideId,
           rideName,
-          // Sans requête supplémentaire : `include: { ride: true }` ci-dessus
+          // Sans requête supplémentaire : `include: { poi: true }` ci-dessus
           // ramène déjà la ligne complète de l'attraction.
-          eventId: wt.ride?.eventId ?? null,
+          eventId: wt.poi?.eventId ?? null,
           queues: [],
         });
       }

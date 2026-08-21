@@ -97,8 +97,12 @@ export async function GET(
     }
 
     // Vérifie l'appartenance de l'attraction au parc (anti-fuite cross-parc).
-    const ride = await prisma.ride.findFirst({
-      where: { id: rideIdNum, parkId: park.id },
+    //
+    // ⚠️ `kind: "ride"` fait partie du contrôle depuis que les spectacles
+    // partagent la table : sans lui, l'identifiant d'un spectacle ouvrirait la
+    // page « historique d'attraction » d'une entité qui n'a pas de file.
+    const ride = await prisma.poi.findFirst({
+      where: { kind: "ride", id: rideIdNum, parkId: park.id },
       select: { id: true },
     });
     if (!ride) {
@@ -125,7 +129,7 @@ export async function GET(
     // Prévision stockée : on ne l'utilise que si elle vise bien le jour logique
     // courant (sinon elle est périmée -> on n'affiche pas de prévision).
     const forecastRow = await prisma.rideForecast.findUnique({
-      where: { rideId: rideIdNum },
+      where: { poiId: rideIdNum },
       select: {
         date: true,
         forecast: true,

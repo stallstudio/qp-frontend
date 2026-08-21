@@ -66,18 +66,24 @@ model Park {
   display               Boolean   @default(false)
   queueTypeLabels       Json?
   lastUpdatedAt         DateTime?
-  // Dernière RÉCEPTION de données par fetcher — « l'API a répondu quelque
-  // chose », distinct de « le contenu a bougé ».
+  // Dernière RÉCEPTION de données par fetcher — « l'API a répondu », distinct
+  // de « le contenu a bougé ». Écrites par fetchReceiptService.
   //
-  // Ces deux colonnes existent parce que rien d'autre ne permet de le savoir :
+  // Ces colonnes existent parce que rien d'autre ne permet de le savoir :
   // showService ne fait qu'un `createMany` des nouveautés et poiService ne
   // journalise que les changements, si bien qu'une API répondant « rien de
   // neuf » ne laissait aucune trace. Une API figée — l'ancienne version restée
   // en ligne après une migration, par exemple — était donc indiscernable d'une
   // API morte.
   //
-  // ⚠️ Ne pas les confondre avec `lastUpdatedAt`, qui n'est écrit que par
-  // fetchParkWaitTimes et vaut « le fetch a réussi », même à vide.
+  // ⚠️ `waitTimesSeenAt` (ajoutée le 2026-08-13) ne fait pas doublon avec
+  // `wait_times.lastSeenAt` : ce dernier n'avance que s'il y a des LIGNES à
+  // rafraîchir. Un parc fermé dont l'API renvoie une liste vide ne laissait donc
+  // aucune trace de réception et virait à l'ambre au bout de 24 h, puis au rouge
+  // au bout de 7 jours — le faux positif saisonnier.
+  //
+  // ⚠️ Ne pas les confondre avec `lastUpdatedAt`, qui vaut « le fetch des temps
+  // d'attente a réussi » et reste écrit pour la compatibilité de l'existant.
   // Les horaires n'en ont pas besoin : openingHoursService réécrit chaque ligne
   // sans condition, donc `opening_hours.updatedAt` fait déjà foi.
   waitTimesSeenAt       DateTime?
@@ -87,40 +93,75 @@ model Park {
   opening_hours_fetcher Boolean   @default(false)
   pois_fetcher          Boolean   @default(false)
   show_times_fetcher    Boolean   @default(false)
-  // ⚠️ Remplace `playStoreId`, colonne SUPPRIMÉE de la base par la migration
-  // `apps` du 2026-08-06 : une app couvre souvent PLUSIEURS parcs d'un même
-  // resort, et l'identifiant devait alors être posé sur l'un d'eux, choisi
-  // arbitrairement. Ce schéma la déclarait encore le 2026-08-14 — sans
-  // conséquence tant qu'aucun code du frontend ne la lisait, mais un
-  // `prisma db push` d'ici l'aurait recréée.
+  // L'app mobile qui couvre ce parc. Remplace l'ancienne colonne `playStoreId`
+  // (supprimée le 2026-08-06). Voir le modèle `App` pour pourquoi ce n'est ni
+  // une colonne du parc, ni un attribut du provider ou du groupe.
   appId                 Int?
-  app                   App?      @relation(fields: [appId], references: [id], onDelete: SetNull)
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  // `SetNull` : supprimer une app ne doit pas emporter les parcs qu'elle
+  // couvrait — ils redeviennent simplement « sans app », ce qui est un état
+  // parfaitement valide (131 parcs sur 215 y sont).
+  app   App?   @relation(fields: [appId], references: [id], onDelete: SetNull)
 
-  openingHours    OpeningHours[]
-  rides           Ride[]
-  waitTimes       WaitTime[]
-  unmatchedAlerts UnmatchedAlert[]
-  shows           Show[]
-  showTimes       ShowTime[]
-  poiChanges      PoiChange[]
-  dailyWeather    DailyWeather[]
-  rideForecasts   RideForecast[]
+  openingHours     OpeningHours[]
+  pois             Poi[]
+  waitTimes        WaitTime[]
+  unmatchedAlerts  UnmatchedAlert[]
+  showTimes        ShowTime[]
+  poiChanges       PoiChange[]
+  dailyWeather     DailyWeather[]
+  rideForecasts    RideForecast[]
   forecastAccuracy ForecastAccuracy[]
-  events          ParkEvent[]
+  events           ParkEvent[]
 
   @@index([groupId])
-  // ⚠️ Manquait ici jusqu'au 2026-08-14, alors que l'admin et le worker le
-  // déclaraient : ce schéma décrivait donc une base légèrement différente des
-  // deux autres, et un `prisma db push` lancé depuis le frontend aurait tenté
-  // de supprimer `parks_appId_idx` — l'index de tête de la clé étrangère
-  // `parks_appId_fkey`, que MariaDB exige. Trouvé en comparant les index des
-  // trois schémas modèle à modèle, pas à l'œil.
   @@index([appId])
   @@map("parks")
+}
+
+// L'app mobile d'un ou plusieurs parcs.
+//
+// ⚠️ POURQUOI UNE TABLE, et pas la colonne `parks.playStoreId` qu'elle
+// remplace : une app couvre un RESORT, pas un parc. `com.yas.app` couvre les
+// quatre parcs de Yas Island, `com.sixflags.android` la trentaine de parcs Six
+// Flags / Cedar Fair. Sur une colonne du parc, il fallait choisir
+// ARBITRAIREMENT sur lequel des quatre poser `com.yas.app` — et les trois
+// autres s'affichaient « sans app » alors qu'ils en ont une.
+//
+// ⚠️ **Ni le provider, ni le groupe ne conviennent**, et ce n'est pas une
+// question de goût : les deux axes sont disqualifiés par un contre-exemple
+// mesuré sur les données (2026-08-05).
+//   - provider `attractions-io` : 1 provider, 20 parcs, 19 apps DISTINCTES —
+//     le provider dit quelle API on scrape, pas quelle app le visiteur
+//     installe ;
+//   - groupe `Walt Disney Company` : 1 groupe, 13 parcs, 6 apps, 3 providers —
+//     le groupe est une ombrelle commerciale, un resort en est une découpe.
+// Le resort est donc un TROISIÈME axe, et il lui faut sa propre table.
+//
+// ⚠️ **Un-à-plusieurs, surtout PAS du N-à-N.** Vérifié : aucune app n'est posée
+// sur deux parcs, aucun parc n'en réclame deux. Le N-à-N rendrait « quelle app
+// pour ce parc ? » ambigu — soit exactement ce qu'on corrige ici. Si un parc
+// devait un jour porter son app ET celle de son resort, ce serait alors une
+// table de liaison ; rien ne le demande.
+model App {
+  id          Int      @id @default(autoincrement())
+  // Package Android. C'est l'identité de l'app : le scraper Play Store et
+  // Watchtower ne connaissent qu'elle.
+  playStoreId String   @unique @db.VarChar(255)
+  // Le nom que porte l'app, pas celui d'un parc : « Yas Island »,
+  // « Alton Towers ». Semé automatiquement depuis le titre Play Store
+  // (`appInfo.title`), pas de nommage manuel.
+  name        String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parks    Park[]
+  versions AppVersion[]
+
+  @@map("apps")
 }
 
 model DailyWeather {
@@ -167,8 +208,8 @@ model Holiday {
 // heure (base + échelle/tendance du jour). Le front lit, ne calcule plus.
 model RideForecast {
   id              Int       @id @default(autoincrement())
-  rideId          Int       @unique
-  ride            Ride      @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  poiId           Int       @unique
+  poi             Poi       @relation(fields: [poiId], references: [id], onDelete: Cascade)
   parkId          Int
   park            Park      @relation(fields: [parkId], references: [id], onDelete: Cascade)
   date            String    @db.VarChar(10) // jour local visé (YYYY-MM-DD)
@@ -195,9 +236,8 @@ model RideForecast {
   // Marge d'erreur agrégée (MAE récente toutes fenêtres confondues), en minutes.
   // Redondante avec `margin` porté par chaque point de `forecast` — sert
   // l'affichage admin et le tri, pas le rendu du graphique.
-  marginMinutes Float?
-  marginSamples Int?   @default(0)
-
+  marginMinutes       Float?
+  marginSamples       Int?      @default(0)
 
   // ————— Shadow : une seconde variante mesurée en parallèle —————
   //
@@ -207,10 +247,9 @@ model RideForecast {
   // `FORECAST_SHADOW_VARIANT` n'est pas posé, et seulement renseignées pour les
   // parcs listés par `FORECAST_SHADOW_PARKS` (voir `forecastVariants.ts`).
   //
-  // ⚠️ Elles sont écrites par le WORKER seul, mais doivent figurer dans les
-  // trois schémas : un `prisma db push` lancé depuis un dépôt qui les ignore
-  // les SUPPRIMERAIT de la base. C'est la raison d'être de l'alignement du
-  // 2026-08-14.
+  // Le profil shadow est STOCKÉ, et pas recalculé à chaque passage : le
+  // reconstruire demanderait de relire 56 jours d'intervalles toutes les
+  // 10 minutes, soit très exactement ce que l'étage 1 existe pour éviter.
   shadowMethod            String? @db.VarChar(60)
   shadowBaseProfile       Json?
   shadowForecast          Json?
@@ -228,8 +267,8 @@ model RideForecast {
 // samples (positif = on surestime l'attente).
 model ForecastAccuracy {
   id     Int    @id @default(autoincrement())
-  rideId Int
-  ride   Ride   @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  poiId  Int
+  poi    Poi    @relation(fields: [poiId], references: [id], onDelete: Cascade)
   parkId Int
   park   Park   @relation(fields: [parkId], references: [id], onDelete: Cascade)
   date   String @db.VarChar(10) // jour local du parc (YYYY-MM-DD)
@@ -253,75 +292,112 @@ model ForecastAccuracy {
   // s'additionnaient et `ON DUPLICATE KEY UPDATE ... method = VALUES(method)`
   // réétiquetait le tout au nom de la dernière arrivée. La table censée
   // départager les versions les aurait mélangées en silence.
-  @@unique([rideId, date, horizonBucket, method])
+  @@unique([poiId, date, horizonBucket, method])
   @@index([parkId, date])
   @@index([date])
   @@map("forecast_accuracy")
 }
 
-model Ride {
-  id         Int        @id @default(autoincrement())
-  name       String     @db.VarChar(255)
+// UN point d'intérêt d'un parc, quel qu'il soit — attraction, spectacle, et
+// demain restaurant, boutique, hôtel, service.
+//
+// ⚠️ **Cette table REMPLACE `rides` et `shows`** (migration du 2026-08-21). Ce
+// n'était pas cosmétique : les deux tables portaient les mêmes colonnes à
+// `duration` près, et chacune imposait sa propre table d'états (`wait_times`
+// pour l'une, `show_times` pour l'autre). Étendre le modèle aux restaurants et
+// aux boutiques — qui publient eux aussi des statuts, des files et des horaires
+// — aurait demandé une table d'états PAR type, ou un polymorphisme sans clé
+// étrangère. Trois tables le faisaient déjà faute de cible unique
+// (`poi_changes`, `unmatched_alerts`, `unknown_statuses` désignent un POI par
+// `(parkId, externalId, type)`, sans relation).
+//
+// ⚠️ **Les `id` des anciennes `rides` ont été CONSERVÉS tels quels**, ceux des
+// `shows` décalés de +1 000 000. Ce n'est pas un détail d'implémentation : la
+// base UTILISATEURS de `qp-frontend` (alertes, favoris, historiques) référence
+// les attractions par `rideId` **sans clé étrangère inter-bases**. Décaler les
+// attractions aurait fait pointer chaque alerte sur un autre POI, en silence.
+// Corollaire de lecture : tout `id` supérieur à 1 000 000 est un ancien
+// spectacle.
+model Poi {
+  id Int @id @default(autoincrement())
+
+  // `ride` | `show` — et demain `restaurant`, `shop`, `hotel`, `service`…
+  //
+  // ⚠️ VarChar et non enum : ajouter un type ne doit pas coûter un `ALTER` sur
+  // la table ni une migration dans les TROIS dépôts qui dupliquent ce schéma.
+  // Les valeurs admises sont tenues côté code (`POI_KINDS`), comme le fait déjà
+  // `poi_changes.type`.
+  //
+  // ⚠️ Pas de valeur par défaut, volontairement : un `create()` qui oublie le
+  // kind doit ÉCHOUER, pas créer une attraction fantôme.
+  kind String @db.VarChar(20)
+
+  name       String  @db.VarChar(255)
   parkId     Int
-  park       Park       @relation(fields: [parkId], references: [id], onDelete: Cascade)
-  externalId String     @db.VarChar(255)
-  thrillsId  String?    @db.VarChar(255)
-  active     Boolean    @default(true)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  waitTimes  WaitTime[]
-  forecast   RideForecast?
+  park       Park    @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  externalId String  @db.VarChar(255)
+  thrillsId  String? @db.VarChar(255)
+
+  // Durée en minutes. Renseignée par les seuls spectacles aujourd'hui.
+  duration Int?
+
+  // Tout ce qu'une source publie en plus et qui n'a pas de colonne : bannière,
+  // logo, carte de restaurant, description… Vide (`null`) sur la totalité des
+  // lignes à la migration — la colonne est créée MAINTENANT pour éviter un
+  // second `ALTER` sur cette table le jour où on l'exploitera.
+  //
+  // ⚠️ Rien de ce qui doit être FILTRÉ ou TRIÉ n'a sa place ici : MariaDB
+  // n'indexe pas ce contenu. Une donnée qu'on interroge est une colonne.
+  additionalData Json?
+
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  waitTimes        WaitTime[]
+  showTimes        ShowTime[]
+  forecast         RideForecast?
   forecastAccuracy ForecastAccuracy[]
 
-  // Événement saisonnier auquel cette attraction appartient (un maze de Peur sur
-  // le Parc, une maison de HHN). `null` = attraction ordinaire, soit la quasi-
-  // totalité du catalogue.
+  // Événement saisonnier auquel ce POI appartient (un maze de Peur sur le Parc,
+  // une maison de HHN). `null` = POI ordinaire, soit la quasi-totalité du
+  // catalogue.
   //
-  // ⚠️ **Une attraction taguée n'apparaît QUE dans la carte de son événement**,
-  // jamais dans la liste principale des temps d'attente — y compris hors
-  // période, où elle disparaît donc complètement de la page. C'est voulu : un
-  // maze qui publie encore « fermé » en juin au milieu des coasters n'apprend
-  // rien à personne. C'est exactement ce que faisait déjà, en dur, le fetcher de
-  // Mirabilandia avant que ce champ n'existe.
+  // ⚠️ **Un POI tagué n'apparaît QUE dans la carte de son événement**, jamais
+  // dans la liste principale des temps d'attente — y compris hors période, où il
+  // disparaît donc complètement de la page. C'est voulu : un maze qui publie
+  // encore « fermé » en juin au milieu des coasters n'apprend rien à personne.
+  // C'est exactement ce que faisait déjà, en dur, le fetcher de Mirabilandia
+  // avant que ce champ n'existe.
   //
   // ⚠️ `SetNull` et non `Cascade` : supprimer un événement ne doit pas emporter
-  // les attractions, seulement les détacher. Elles reviennent alors dans la
-  // liste principale.
+  // les POI, seulement les détacher. Ils reviennent alors dans la liste
+  // principale.
   //
   // ⚠️ Le worker ne l'écrit QU'À LA CRÉATION du POI : un rattachement corrigé à
   // la main dans l'admin n'est jamais réécrit par la collecte.
   eventId Int?
   event   ParkEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
 
-  @@unique([parkId, externalId])
+  // ⚠️ **`kind` fait partie de la clé, et ce n'est PAS par excès de prudence.**
+  // Mesuré sur la production le 2026-08-21 : 40 `externalId` désignaient DEUX
+  // entités différentes selon qu'on lisait le flux des attractions ou celui des
+  // spectacles — l'API de Paultons Park en aligne 23 (`2` = « Raven » côté
+  // attractions, « ALIVE! Dinosaur Encounter » côté spectacles), Nigloland 7,
+  // Toverland 4, Hershey Park 3. Les deux flux ont des espaces d'identifiants
+  // DISJOINTS. Sans `kind` dans la clé, la migration elle-même était impossible.
+  //
+  // Corollaire pour le code : toute résolution `externalId` → POI doit être
+  // qualifiée par `kind`, sinon le temps d'attente des « Bumper Cars » de
+  // Nigloland atterrit sur le spectacle « Niglo Show ».
+  //
+  // Cette clé commençant par `parkId`, elle sert aussi d'index pour « les POI
+  // d'un parc » et « les POI d'un parc pour un kind ».
+  @@unique([parkId, kind, externalId])
   @@index([parkId])
   @@index([thrillsId])
   @@index([eventId])
-  @@map("rides")
-}
-
-model Show {
-  id         Int        @id @default(autoincrement())
-  name       String     @db.VarChar(255)
-  parkId     Int
-  park       Park       @relation(fields: [parkId], references: [id], onDelete: Cascade)
-  externalId String     @db.VarChar(255)
-  thrillsId  String?    @db.VarChar(255)
-  duration   Int?
-  active     Boolean    @default(true)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  showTimes  ShowTime[]
-
-  // Même règle que `Ride.eventId` : un spectacle tagué n'apparaît que dans la
-  // carte de son événement.
-  eventId Int?
-  event   ParkEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
-
-  @@unique([parkId, externalId])
-  @@index([parkId])
-  @@index([eventId])
-  @@map("shows")
+  @@map("pois")
 }
 
 //
@@ -337,8 +413,8 @@ enum WaitTimeStatus {
 
 model WaitTime {
   id         Int            @id @default(autoincrement())
-  rideId     Int?
-  ride       Ride?          @relation(fields: [rideId], references: [id], onDelete: SetNull)
+  poiId      Int?
+  poi        Poi?           @relation(fields: [poiId], references: [id], onDelete: SetNull)
   parkId     Int
   park       Park           @relation(fields: [parkId], references: [id], onDelete: Cascade)
   externalId String         @db.VarChar(255)
@@ -354,14 +430,14 @@ model WaitTime {
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
-  @@index([rideId, endTime])
+  @@index([poiId, endTime])
   @@index([externalId, endTime])
-  @@index([rideId, startTime])
-  @@index([stateHash, rideId])
-  @@index([rideId, type, endTime])
+  @@index([poiId, startTime])
+  @@index([stateHash, poiId])
+  @@index([poiId, type, endTime])
   @@index([parkId, endTime, lastSeenAt])
   // Index COUVRANT des agrégats par fenêtre temporelle (dashboard admin,
-  // forecast accuracy). Les sept autres index commencent tous par `rideId` ou
+  // forecast accuracy). Les sept autres index commencent tous par `poiId` ou
   // `parkId` : un index composite n'étant trié que par sa PREMIÈRE colonne,
   // aucun ne sait répondre à « les lignes des dernières 24 h ». MariaDB
   // balayait donc les 6,9 M de lignes pour en agréger 69 k (EXPLAIN :
@@ -488,12 +564,12 @@ model StatusMapping {
   sourceId String       @db.VarChar(120)
   source   StatusSource @relation(fields: [sourceId], references: [sourceId], onDelete: Cascade)
 
-  kind     StatusRuleKind @default(status)
-  rawValue String         @db.VarChar(255)
+  kind      StatusRuleKind   @default(status)
+  rawValue  String           @db.VarChar(255)
   // null => hérite de StatusSource.defaultMatchMode
   matchMode StatusMatchMode?
 
-  mappedStatus WaitTimeStatus
+  mappedStatus     WaitTimeStatus
   // Force le temps quand la règle matche, y compris sur un statut `open`.
   // -1 = ouvert mais aucun temps communiqué (nigloland « Indéterminé », mack
   // 666/777, universal NO_WAIT). C'est un troisième état, distinct de « ouvert
@@ -513,7 +589,7 @@ model StatusMapping {
   aiModel    String?             @db.VarChar(60)
   createdBy  String?             @db.VarChar(100)
 
-  active Boolean @default(true)
+  active        Boolean   @default(true)
   // Mis à jour en batch en fin de run. Une règle censée être marginale qui
   // capte des milliers de hits est le signal d'une saisie erronée.
   hitCount      Int       @default(0)
@@ -589,7 +665,7 @@ model OpeningHours {
 // rattachée est une erreur de saisie, pas un état valide — il afficherait une
 // carte vide sur la page du parc.
 //
-// ⚠️ **POURQUOI UNE TABLE, et pas un booléen `Ride.halloween`** : c'est la
+// ⚠️ **POURQUOI UNE TABLE, et pas un booléen `Poi.halloween`** : c'est la
 // FENÊTRE DE DATES qui rend la chose temporaire sans surveillance. On marque en
 // septembre, la carte apparaît et disparaît toute seule — rien à éteindre en
 // novembre. Elle porte aussi le nom à afficher (« Peur sur le Parc », pas
@@ -658,7 +734,6 @@ model ParkEvent {
   startDate String? @db.VarChar(10)
   endDate   String? @db.VarChar(10)
 
-
   // Billet distinct de l'entrée du parc (Traumatica, HHN) ou non (Peur sur le
   // Parc, Walibi — même billet, journée prolongée).
   //
@@ -701,8 +776,7 @@ model ParkEvent {
   // événement », mais il faut le savoir avant de s'en servir.
   visibility String @default("auto") @db.VarChar(10)
 
-  rides        Ride[]
-  shows        Show[]
+  pois         Poi[]
   openingHours OpeningHours[]
 
   createdAt DateTime @default(now())
@@ -713,10 +787,11 @@ model ParkEvent {
   @@index([parkId, startDate, endDate])
   @@map("park_events")
 }
+
 model ShowTime {
   id         Int       @id @default(autoincrement())
-  showId     Int?
-  show       Show?     @relation(fields: [showId], references: [id], onDelete: SetNull)
+  poiId      Int?
+  poi        Poi?      @relation(fields: [poiId], references: [id], onDelete: SetNull)
   parkId     Int
   park       Park      @relation(fields: [parkId], references: [id], onDelete: Cascade)
   externalId String    @db.VarChar(255)
@@ -726,7 +801,7 @@ model ShowTime {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  @@index([showId, date])
+  @@index([poiId, date])
   @@index([parkId, date])
   @@index([externalId, date])
   @@index([date])
@@ -765,14 +840,39 @@ model ApiRequestLog {
   @@map("api_request_logs")
 }
 
+// Un identifiant publié par une source sans POI en face.
+//
+// ⚠️ **`waitTimeSeenAt` est une colonne parce que la question ne se recalcule
+// PAS à la lecture.** C'est l'inverse du choix fait pour la clôture pour
+// abandon, où `checkUnmatchedAlerts` explique qu'on s'est passé d'un troisième
+// état : là, l'admin retrouve le verdict d'une jointure sur la ligne OUVERTE de
+// `wait_times`, gratuite. Ici non — « cet identifiant publie-t-il un temps
+// d'attente ou seulement un statut ? » porte sur l'HISTORIQUE, et aucun index
+// ne porte `waitTime` avec `externalId`. Mesuré le 2026-08-20 sur les 356
+// alertes ride ouvertes : **51 s** pour un `MAX(waitTime)` sur tout
+// l'historique, **14 s** borné à 30 jours. Une page qui répond en 190 ms ne
+// peut pas payer ça.
+//
+// ⚠️ **Et la ligne ouverte NE RÉPOND PAS à la question**, ce qui interdit la
+// solution gratuite. Même mesure : 147 des 356 identifiants ont déjà publié un
+// temps réel, la ligne ouverte n'en désigne que **39** (26 %) — un parc fermé,
+// la nuit ou l'intersaison sert `-1` pour une attraction qui affiche des files
+// en pleine journée. Sur les 67 identifiants dont la ligne ouverte dit
+// `-1 / open`, **45 publient pourtant des temps**. Un filtre bâti là-dessus
+// mentirait la moitié du temps.
 model UnmatchedAlert {
-  id         Int      @id @default(autoincrement())
-  parkId     Int
-  park       Park     @relation(fields: [parkId], references: [id], onDelete: Cascade)
-  externalId String   @db.VarChar(255)
-  type       String   @db.VarChar(10)
-  fixed      Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  id             Int       @id @default(autoincrement())
+  parkId         Int
+  park           Park      @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  externalId     String    @db.VarChar(255)
+  type           String    @db.VarChar(10)
+  fixed          Boolean   @default(false)
+  /// Dernière fois qu'un temps d'attente NUMÉRIQUE (`waitTime >= 0`) a été
+  /// observé pour cet identifiant. `NULL` = jamais : la source ne publie qu'un
+  /// statut. Marqueur MONOTONE, alimenté par `checkUnmatchedAlerts` — il ne
+  /// repasse jamais à `NULL`, sinon la nuit effacerait ce que le jour a appris.
+  waitTimeSeenAt DateTime?
+  createdAt      DateTime  @default(now())
 
   @@unique([parkId, externalId, type])
   @@index([parkId])
@@ -793,12 +893,22 @@ model UnknownStatus {
   parkId String @db.VarChar(100)
   status String @db.VarChar(255)
 
-  kind        StatusRuleKind @default(status)
-  occurrences Int            @default(1)
+  kind            StatusRuleKind @default(status)
+  occurrences     Int            @default(1)
   // externalId des attractions ayant renvoyé cette valeur, en JSON. Sert à
   // afficher de quelles attractions il s'agit, ce qu'un identifiant brut ne
   // permet pas de deviner.
-  externalIds String?        @db.Text
+  // ⚠️ C'est une UNION qui ne se vide JAMAIS : une attraction ayant renvoyé la
+  // valeur une seule fois en mars y figure encore aujourd'hui.
+  externalIds     String?        @db.Text
+  // Les attractions du DERNIER relevé ayant porté la valeur, même format.
+  // `externalIds` cumulant tout depuis toujours, l'admin annonçait
+  // « 7 attractions » là où une seule renvoyait encore la valeur — on cherchait
+  // les six autres dans l'app du parc sans pouvoir les y trouver. NULL sur les
+  // lignes antérieures à cette colonne et sur les valeurs signalées sans
+  // attraction : l'admin affiche alors la liste sans distinction, plutôt que de
+  // faire passer « on ne sait pas » pour « ça n'arrive plus ».
+  lastExternalIds String?        @db.Text
 
   // ————— Verdict IA —————
   aiStatus      AiStatusVerdict?
@@ -865,26 +975,21 @@ model PoiChange {
   @@map("poi_changes")
 }
 
-model App {
-  id          Int      @id @default(autoincrement())
-  // Package Android. C'est l'identité de l'app : le scraper Play Store et
-  // Watchtower ne connaissent qu'elle.
-  playStoreId String   @unique @db.VarChar(255)
-  // Le nom que porte l'app, pas celui d'un parc : « Yas Island »,
-  // « Alton Towers ». Semé automatiquement depuis le titre Play Store.
-  name        String   @db.VarChar(255)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  parks    Park[]
-  versions AppVersion[]
-
-  @@map("apps")
-}
-
+// L'historique des versions d'une app mobile — la raison d'être de Watchtower.
+//
+// ⚠️ Le rattachement était `parkId` jusqu'au 2026-08-06 ; il est passé à
+// `appId`. La table elle-même n'a PAS été supprimée : seule sa colonne de
+// rattachement a changé, ses 303 lignes sont restées.
+//
+// Effet de bord réglé au passage : rattachée au parc, une app couvrant quatre
+// parcs écrivait QUATRE lignes identiques à chaque nouvelle version — et il
+// fallait choisir arbitrairement sur lequel des quatre parcs poser l'app pour
+// que Watchtower la surveille.
 model AppVersion {
   id                Int      @id @default(autoincrement())
   appId             Int
+  // `Cascade` : une version n'a aucun sens sans son app. (Les PARCS, eux,
+  // survivent à la suppression de leur app — cf. `Park.app`, en `SetNull`.)
   app               App      @relation(fields: [appId], references: [id], onDelete: Cascade)
   version           String   @db.VarChar(50)
   updated           BigInt
@@ -940,6 +1045,90 @@ model IpRule {
 
   @@index([type])
   @@map("ip_rules")
+}
+
+enum ProxyStatus {
+  untested
+  active
+  quarantine
+  dead
+}
+
+// Un proxy sortant utilisable par les fetchers géo-bloqués ou filtrés par
+// réputation d'IP. Remplace les proxies codés en dur (cf. docs/PROXY_POOL.md).
+//
+// ⚠️ Le pool est alimenté par des sources PUBLIQUES et éphémères : une ligne
+// n'est pas un actif durable, elle vit quelques heures à quelques jours. C'est
+// le renouvellement continu (harvester) et non la longévité d'une entrée qui
+// rend le service disponible.
+model Proxy {
+  id       Int     @id @default(autoincrement())
+  protocol String  @default("http") @db.VarChar(10)
+  host     String  @db.VarChar(45)
+  port     Int
+  // Proxies authentifiés (payants). Jamais renseignés par le harvester.
+  username String? @db.VarChar(255)
+  password String? @db.VarChar(255)
+
+  // ISO-2 de l'IP du proxy. Annoncé par la source ; c'est le seul discriminant
+  // qui compte pour une cible géo-bloquée (Happy Valley exige CN).
+  country String? @db.VarChar(2)
+  // "proxyscrape" | "geonode" | "monosans" | "manual"
+  source  String  @db.VarChar(30)
+  label   String? @db.VarChar(255)
+
+  status  ProxyStatus @default(untested)
+  // Retiré du pool à la main depuis l'admin : ni testé, ni servi. Distinct de
+  // `dead`, que le checker peut réhabiliter tout seul au prochain passage.
+  enabled Boolean     @default(true)
+
+  latencyMs Int?
+  failCount Int     @default(0)
+  lastError String? @db.VarChar(255)
+
+  // Posé par l'admin (bouton « Test proxies ») pour réclamer une vérification
+  // immédiate ; le checker le remet à null quand il a fini. C'est ce qui rend
+  // un proxy ajouté à la main utilisable en une minute au lieu d'une heure.
+  checkRequestedAt DateTime?
+
+  lastCheckedAt DateTime?
+  lastOkAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  targets ProxyTarget[]
+
+  @@unique([host, port])
+  @@index([country, status])
+  @@index([status, enabled])
+  @@index([checkRequestedAt])
+  @@map("proxies")
+}
+
+// Résultat du test d'un proxy contre UNE cible.
+//
+// ⚠️ C'est CE lien que le worker requête, jamais `Proxy.status` seul : un proxy
+// « vivant » ne débloque pas forcément telle cible (WAF propre, IP bannie,
+// latence). Mesuré le 2026-08-11 sur un même échantillon de 60 proxies publics :
+// 20 passaient Beto Carrero, 17 PortAventura et seulement 7 Puy du Fou.
+model ProxyTarget {
+  id      Int    @id @default(autoincrement())
+  proxyId Int
+  proxy   Proxy  @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+  // Identifiant du registre `src/services/proxy/targets.ts` : un provider
+  // ("happy-valley", "puy-du-fou") ou un parc custom ("beto-carrero-world").
+  target  String @db.VarChar(60)
+
+  ok        Boolean
+  latencyMs Int?
+  // Ce qui a fait échouer le test (code HTTP, code réseau) — sinon un `ok=false`
+  // ne dit pas si le proxy est mort ou si la cible l'a refusé.
+  error     String?  @db.VarChar(255)
+  checkedAt DateTime @default(now())
+
+  @@unique([proxyId, target])
+  @@index([target, ok])
+  @@map("proxy_targets")
 }
 
 model Report {
@@ -1016,84 +1205,6 @@ model ReportTemplate {
 
   @@index([active, sortOrder])
   @@map("report_templates")
-}
-
-//
-// POOL DE PROXIES
-//
-// ⚠️ Le frontend ne lit AUCUN de ces modèles. Ils figurent ici pour que les
-// trois dépôts décrivent la même base : un `prisma db push` lancé depuis un
-// schéma qui les ignore supprimerait leurs tables.
-
-enum ProxyStatus {
-  untested
-  active
-  quarantine
-  dead
-}
-
-model Proxy {
-  id       Int     @id @default(autoincrement())
-  protocol String  @default("http") @db.VarChar(10)
-  host     String  @db.VarChar(45)
-  port     Int
-  // Proxies authentifiés (payants). Jamais renseignés par le harvester.
-  username String? @db.VarChar(255)
-  password String? @db.VarChar(255)
-
-  // ISO-2 de l'IP du proxy. Annoncé par la source ; c'est le seul discriminant
-  // qui compte pour une cible géo-bloquée (Happy Valley exige CN).
-  country String? @db.VarChar(2)
-  // "proxyscrape" | "geonode" | "monosans" | "manual"
-  source  String  @db.VarChar(30)
-  label   String? @db.VarChar(255)
-
-  status ProxyStatus @default(untested)
-  // Retiré du pool à la main depuis l'admin : ni testé, ni servi. Distinct de
-  // `dead`, que le checker peut réhabiliter tout seul au prochain passage.
-  enabled Boolean @default(true)
-
-  latencyMs Int?
-  failCount Int  @default(0)
-  lastError String? @db.VarChar(255)
-
-  // Posé par l'admin (bouton « Test proxies ») pour réclamer une vérification
-  // immédiate ; le checker le remet à null quand il a fini. C'est ce qui rend
-  // un proxy ajouté à la main utilisable en une minute au lieu d'une heure.
-  checkRequestedAt DateTime?
-
-  lastCheckedAt DateTime?
-  lastOkAt      DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  targets ProxyTarget[]
-
-  @@unique([host, port])
-  @@index([country, status])
-  @@index([status, enabled])
-  @@index([checkRequestedAt])
-  @@map("proxies")
-}
-
-model ProxyTarget {
-  id      Int    @id @default(autoincrement())
-  proxyId Int
-  proxy   Proxy  @relation(fields: [proxyId], references: [id], onDelete: Cascade)
-  // Identifiant du registre `src/services/proxy/targets.ts` : un provider
-  // ("happy-valley", "puy-du-fou") ou un parc custom ("beto-carrero-world").
-  target  String @db.VarChar(60)
-
-  ok        Boolean
-  latencyMs Int?
-  // Ce qui a fait échouer le test (code HTTP, code réseau) — sinon un `ok=false`
-  // ne dit pas si le proxy est mort ou si la cible l'a refusé.
-  error     String?  @db.VarChar(255)
-  checkedAt DateTime @default(now())
-
-  @@unique([proxyId, target])
-  @@index([target, ok])
-  @@map("proxy_targets")
 }
 
 // Instantané QUOTIDIEN des huit compteurs d'alerte du dashboard.
@@ -1187,9 +1298,9 @@ model RawApiLatest {
   /// services peuvent taper la même URL. Une ligne = un appel, pas un service.
   seq     Int
 
-  method String  @db.VarChar(10)
+  method String @db.VarChar(10)
   /// Tronquée à 1 000 caractères. Jamais indexée : on ne cherche pas par URL.
-  url    String  @db.VarChar(1000)
+  url    String @db.VarChar(1000)
 
   /// `null` quand aucune réponse n'est parvenue (timeout, DNS, refus de
   /// connexion). La ligne est écrite quand même : un échec est souvent
@@ -1242,7 +1353,7 @@ model RawApiCapture {
   /// ⚠️ Nommée `triggerType` et pas `trigger` : `TRIGGER` est un mot réservé
   /// MySQL, et une colonne qui l'est oblige à l'échapper dans le moindre SQL
   /// écrit à la main — dont la recopie de `raw_api_latest`.
-  triggerType String @db.VarChar(20)
+  triggerType     String @db.VarChar(20)
   /// `unknown_statuses.id` ou `reports.id` selon `trigger`.
   ///
   /// Volontairement PAS une relation Prisma : la cible dépend du déclencheur,

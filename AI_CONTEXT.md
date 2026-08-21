@@ -75,9 +75,33 @@ types/               # api.ts, waitTime.ts, show.ts, openingHour.ts, park.ts, gr
 - Navigation localisée : importer `Link`, `useRouter`, `usePathname`,
   `redirect` depuis `@/i18n/routing` (pas `next/link`) pour préserver la locale.
 
+## La table `pois` (migration du 2026-08-21)
+
+`rides` et `shows` ont fusionné en une seule table `pois`, discriminée par
+`kind` (`ride` | `show`). Côté frontend : `wait_times.rideId` et
+`show_times.showId` s'appellent `poiId`, et les relations Prisma `ride` / `show`
+s'appellent `poi` (`lib/wait-times.ts`, `lib/show-times.ts`,
+`lib/ride-detail.ts`, `lib/wait-times-history.ts`, `app/api/cron/alerts`).
+Déroulé complet : `migrations/2026-08-21-pois/README.md` **du worker**.
+
+⚠️ **Toute lecture d'attraction précise `kind: "ride"`.** Mesuré en production,
+**40 `externalId` désignent une attraction ET un spectacle différents** dans le
+même parc. Sans le filtre, l'identifiant d'un spectacle ouvrirait la page
+« historique d'attraction » d'une entité qui n'a pas de file.
+
+⚠️ **La base UTILISATEURS n'a PAS été touchée, et c'est ce qui a dicté la
+migration.** `Alert.rideId`, `AlertHistory.rideId` et les favoris d'attraction
+(`{parkIdentifier}:{rideId}`) référencent la base principale **sans clé
+étrangère inter-bases** : rien n'aurait signalé une dérive. Les identifiants
+d'attraction ont donc été conservés à l'identique ; seuls les spectacles ont été
+décalés (+1 000 000), et rien ici ne référence un spectacle par identifiant —
+`ShowReminder` passe par `(parkIdentifier, showName, startTime)` et les favoris
+de spectacle par `{parkIdentifier}:{showName}`.
+
 ## Flux de données
 
-1. Le **worker** remplit la base (parcs, rides, wait_times, shows, opening_hours…).
+1. Le **worker** remplit la base (parcs, pois, wait_times, show_times,
+   opening_hours…).
 2. La **couche métier** lit cette base via Prisma (`lib/prisma.ts` →
    `getPrisma()`), pas d'appel HTTP au worker :
    - `lib/park-live-data.ts` → `getParkIdentity()` / `buildParkLiveData()`
@@ -161,8 +185,8 @@ Conséquences assumées, à ne pas « corriger » :
   la ligne existante via la clé `parkId:externalId`, l'id est donc stable) :
   toute ancienne forme d'URL résout encore et **redirige en 301** vers la forme
   courante, donc aucune notification ni aucun lien partagé ne tombe dans le vide.
-- L'attraction est résolue depuis la table `rides`, pas depuis les temps
-  d'attente du moment : une attraction fermée pour la saison ne doit pas
+- L'attraction est résolue depuis la table `pois` (`kind: "ride"`), pas depuis
+  les temps d'attente du moment : une attraction fermée pour la saison ne doit pas
   transformer un lien en 404. Si elle est absente du flux, la page du parc
   s'affiche sans popup.
 - L'ouverture du popup est gardée par un `useRef` : sans lui, le

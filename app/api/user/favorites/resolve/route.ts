@@ -90,8 +90,8 @@ export async function POST(request: NextRequest) {
         })
       : Promise.resolve([] as ParkRow[]),
     rideIds.length
-      ? prisma.ride.findMany({
-          where: { id: { in: rideIds } },
+      ? prisma.poi.findMany({
+          where: { kind: "ride", id: { in: rideIds } },
           select: { id: true, name: true, park: { select: { name: true } } },
         })
       : Promise.resolve([] as RideRow[]),

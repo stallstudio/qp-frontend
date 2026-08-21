@@ -340,19 +340,25 @@ async function runAlertsPass(): Promise<NextResponse> {
   const rideIds = [...new Set(alerts.map((a) => a.rideId))];
   const [waitRows, rides] = await Promise.all([
     prisma.waitTime.findMany({
-      where: { rideId: { in: rideIds }, endTime: null, type: "standby" },
+      where: { poiId: { in: rideIds }, endTime: null, type: "standby" },
       // `startTime` : la table est une table d'INTERVALLES et le statut fait
       // partie de la signature d'un intervalle (stateHash côté worker). Le
       // `startTime` de l'intervalle ouvert est donc l'instant EXACT où
       // l'attraction est entrée dans son état courant — c'est ce qui permet de
       // dater une panne sans conserver d'historique de notre côté.
-      select: { rideId: true, waitTime: true, status: true, startTime: true },
+      select: { poiId: true, waitTime: true, status: true, startTime: true },
     }),
     // Parc de chaque attraction : son FUSEAU sert à évaluer « aujourd'hui » pour
     // l'expiration quotidienne, et son IDENTIFIANT à retrouver son horaire de
     // fermeture (réarmement des alertes de réouverture).
-    prisma.ride.findMany({
-      where: { id: { in: rideIds } },
+    // ⚠️ `alerts.rideId` vient de la base UTILISATEURS, qui n'a AUCUNE clé
+    // étrangère vers celle-ci. Ces identifiants ont survécu tels quels à la
+    // migration du 2026-08-21 — les attractions ont gardé les leurs, seuls les
+    // spectacles ont été décalés — mais rien ne le garantirait à l'exécution :
+    // le `kind: "ride"` est donc la seule chose qui empêche une alerte de
+    // pointer sur un POI d'un autre type si un identifiant venait à dériver.
+    prisma.poi.findMany({
+      where: { kind: "ride", id: { in: rideIds } },
       select: { id: true, park: { select: { id: true, timezone: true } } },
     }),
   ]);
@@ -361,8 +367,8 @@ async function runAlertsPass(): Promise<NextResponse> {
     { waitTime: number; status: string; startTime: Date }
   >();
   for (const row of waitRows) {
-    if (row.rideId != null) {
-      waitByRide.set(row.rideId, {
+    if (row.poiId != null) {
+      waitByRide.set(row.poiId, {
         waitTime: row.waitTime,
         status: String(row.status),
         startTime: row.startTime,

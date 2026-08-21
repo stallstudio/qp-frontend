@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
   // vers `open`, or elle y est déjà). On refuse plutôt que d'enregistrer une
   // alerte silencieusement morte.
   const current = await getPrisma().waitTime.findFirst({
-    where: { rideId, endTime: null, type: "standby" },
+    where: { poiId: rideId, endTime: null, type: "standby" },
     select: { status: true, parkId: true },
   });
   const status = current ? String(current.status) : null;
