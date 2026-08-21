@@ -44,6 +44,8 @@
     "hoursUnavailable": "Öppettiderna är inte tillgängliga just nu",
     "privateEvent": "Parken är bokad för privat evenemang",
     "privateEventNoHours": "Parken är bokad för privat evenemang i dag",
+    "eventHours": "Event",
+    "hoursOther": "Öppettider",
     "cards": {
       "attractions": "Attraktioner",
       "shows": "Shower"
@@ -558,5 +560,13 @@
       "liabilityTitle": "Ansvar",
       "liability1": "Kötider och speltider tillhandahålls endast i informationssyfte, utifrån tredjepartskällor, utan någon garanti för riktighet eller tillgänglighet. Utgivaren kan inte hållas ansvarig för skada som uppstår till följd av att de används."
     }
+  },
+  "events": {
+    "opensAt": "Öppnar {time}",
+    "closesAt": "Stänger {time}",
+    "running": "Pågår nu",
+    "scheduled": "Kommer snart",
+    "separateTicket": "Separat biljett",
+    "noAttractions": "Ingen attraktion rapporterar någon kötid just nu"
   }
 }

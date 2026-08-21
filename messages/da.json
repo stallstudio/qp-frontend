@@ -44,6 +44,8 @@
     "hoursUnavailable": "Åbningstiderne er ikke tilgængelige lige nu",
     "privateEvent": "Parken er lukket for privat arrangement",
     "privateEventNoHours": "Parken er lukket for privat arrangement i dag",
+    "eventHours": "Event",
+    "hoursOther": "Åbningstider",
     "cards": {
       "attractions": "Forlystelser",
       "shows": "Shows"
@@ -558,5 +560,13 @@
       "liabilityTitle": "Ansvar",
       "liability1": "Ventetider og spilletider oplyses udelukkende til information ud fra tredjepartskilder og uden nogen garanti for nøjagtighed eller tilgængelighed. Udgiveren kan ikke holdes ansvarlig for skader, der følger af brugen af dem."
     }
+  },
+  "events": {
+    "opensAt": "Åbner kl. {time}",
+    "closesAt": "Lukker kl. {time}",
+    "running": "I gang nu",
+    "scheduled": "Kommer snart",
+    "separateTicket": "Separat billet",
+    "noAttractions": "Ingen forlystelser melder ventetid lige nu"
   }
 }

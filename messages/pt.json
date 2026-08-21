@@ -44,6 +44,8 @@
     "hoursUnavailable": "O horário não está disponível de momento",
     "privateEvent": "Parque reservado para evento privado",
     "privateEventNoHours": "Parque reservado para evento privado hoje",
+    "eventHours": "Evento",
+    "hoursOther": "Horário",
     "cards": {
       "attractions": "Atrações",
       "shows": "Espetáculos"
@@ -558,5 +560,13 @@
       "liabilityTitle": "Responsabilidade",
       "liability1": "Os tempos de espera e os horários dos espetáculos são fornecidos a título informativo, a partir de fontes de terceiros, sem qualquer garantia de exatidão ou de disponibilidade. O editor não pode ser responsabilizado por danos decorrentes da sua utilização."
     }
+  },
+  "events": {
+    "opensAt": "Abre às {time}",
+    "closesAt": "Fecha às {time}",
+    "running": "A decorrer",
+    "scheduled": "Brevemente",
+    "separateTicket": "Bilhete separado",
+    "noAttractions": "Nenhuma atração está a indicar tempo de espera de momento"
   }
 }

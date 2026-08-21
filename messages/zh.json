@@ -44,6 +44,8 @@
     "hoursUnavailable": "暂时无法获取营业时间",
     "privateEvent": "乐园被包场",
     "privateEventNoHours": "今日乐园被包场",
+    "eventHours": "活动",
+    "hoursOther": "开放时间",
     "cards": {
       "attractions": "项目",
       "shows": "演出"
@@ -558,5 +560,13 @@
       "liabilityTitle": "责任",
       "liability1": "排队时间与演出场次来自第三方数据源，仅供参考，不对其准确性或可用性作任何保证。运营方对因使用这些信息而产生的损失不承担责任。"
     }
+  },
+  "events": {
+    "opensAt": "{time} 开始",
+    "closesAt": "{time} 结束",
+    "running": "进行中",
+    "scheduled": "即将开始",
+    "separateTicket": "需另购门票",
+    "noAttractions": "目前没有项目提供等待时间"
   }
 }

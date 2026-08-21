@@ -44,6 +44,8 @@
     "hoursUnavailable": "Hiện chưa có thông tin giờ mở cửa",
     "privateEvent": "Công viên được thuê riêng",
     "privateEventNoHours": "Hôm nay công viên được thuê riêng",
+    "eventHours": "Sự kiện",
+    "hoursOther": "Giờ mở cửa",
     "cards": {
       "attractions": "Trò chơi",
       "shows": "Chương trình"
@@ -558,5 +560,13 @@
       "liabilityTitle": "Trách nhiệm",
       "liability1": "Thời gian chờ và lịch diễn chỉ mang tính tham khảo, được lấy từ nguồn của bên thứ ba, không có bất kỳ bảo đảm nào về độ chính xác hay tính khả dụng. Đơn vị vận hành không chịu trách nhiệm về thiệt hại phát sinh từ việc sử dụng các thông tin này."
     }
+  },
+  "events": {
+    "opensAt": "Mở lúc {time}",
+    "closesAt": "Đóng lúc {time}",
+    "running": "Đang diễn ra",
+    "scheduled": "Sắp diễn ra",
+    "separateTicket": "Vé riêng",
+    "noAttractions": "Hiện chưa có trò chơi nào báo thời gian chờ"
   }
 }

@@ -44,6 +44,8 @@
     "hoursUnavailable": "Die Öffnungszeiten sind derzeit nicht verfügbar",
     "privateEvent": "Park privat gebucht",
     "privateEventNoHours": "Park heute privat gebucht",
+    "eventHours": "Event",
+    "hoursOther": "Öffnungszeiten",
     "cards": {
       "attractions": "Attraktionen",
       "shows": "Shows"
@@ -558,5 +560,13 @@
       "liabilityTitle": "Haftung",
       "liability1": "Wartezeiten und Showzeiten werden ausschließlich zu Informationszwecken aus Drittquellen bereitgestellt, ohne Gewähr für Richtigkeit oder Verfügbarkeit. Der Herausgeber haftet nicht für Schäden, die aus ihrer Nutzung entstehen."
     }
+  },
+  "events": {
+    "opensAt": "Öffnet um {time}",
+    "closesAt": "Schließt um {time}",
+    "running": "Läuft gerade",
+    "scheduled": "Demnächst",
+    "separateTicket": "Separates Ticket",
+    "noAttractions": "Derzeit meldet keine Attraktion eine Wartezeit"
   }
 }

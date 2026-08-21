@@ -44,6 +44,8 @@
     "hoursUnavailable": "現在、営業時間の情報がありません",
     "privateEvent": "貸切のため休園",
     "privateEventNoHours": "本日は貸切のため休園",
+    "eventHours": "イベント",
+    "hoursOther": "営業時間",
     "cards": {
       "attractions": "アトラクション",
       "shows": "ショー"
@@ -558,5 +560,13 @@
       "liabilityTitle": "免責事項",
       "liability1": "待ち時間および公演スケジュールは第三者の情報源に基づく参考情報であり、正確性や利用可能性を保証するものではありません。これらの利用によって生じた損害について、運営者は責任を負いかねます。"
     }
+  },
+  "events": {
+    "opensAt": "{time} 開始",
+    "closesAt": "{time} 終了",
+    "running": "開催中",
+    "scheduled": "まもなく開催",
+    "separateTicket": "別途チケット",
+    "noAttractions": "現在、待ち時間を公開しているアトラクションはありません"
   }
 }

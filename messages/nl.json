@@ -44,6 +44,8 @@
     "hoursUnavailable": "De openingstijden zijn momenteel niet beschikbaar",
     "privateEvent": "Park privé afgehuurd",
     "privateEventNoHours": "Park vandaag privé afgehuurd",
+    "eventHours": "Evenement",
+    "hoursOther": "Openingstijden",
     "cards": {
       "attractions": "Attracties",
       "shows": "Shows"
@@ -558,5 +560,13 @@
       "liabilityTitle": "Aansprakelijkheid",
       "liability1": "Wachttijden en showtijden worden uitsluitend ter informatie verstrekt, op basis van bronnen van derden, zonder enige garantie op juistheid of beschikbaarheid. De uitgever kan niet aansprakelijk worden gesteld voor schade die voortvloeit uit het gebruik ervan."
     }
+  },
+  "events": {
+    "opensAt": "Opent om {time}",
+    "closesAt": "Sluit om {time}",
+    "running": "Nu bezig",
+    "scheduled": "Binnenkort",
+    "separateTicket": "Apart ticket",
+    "noAttractions": "Geen enkele attractie geeft op dit moment een wachttijd door"
   }
 }
