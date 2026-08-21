@@ -43,7 +43,11 @@
     "closedToday": "Vandaag gesloten",
     "hoursUnavailable": "De openingstijden zijn momenteel niet beschikbaar",
     "privateEvent": "Park privé afgehuurd",
-    "privateEventNoHours": "Park vandaag privé afgehuurd"
+    "privateEventNoHours": "Park vandaag privé afgehuurd",
+    "cards": {
+      "attractions": "Attracties",
+      "shows": "Shows"
+    }
   },
   "parkStatus": {
     "open": "Open",
@@ -58,8 +62,8 @@
     "unavailableShort": "N.b."
   },
   "tabs": {
-    "waitTimes": "Wachttijden",
-    "shows": "Shows"
+    "live": "Live",
+    "schedule": "Openingstijden"
   },
   "shows": {
     "show": "Show",
@@ -123,7 +127,7 @@
     "shortcutParksShort": "Parken"
   },
   "waitTimeTable": {
-    "attraction": "Attractie",
+    "name": "Naam",
     "waitTime": "Wachttijd",
     "status": "Status",
     "noWaitTimes": "Momenteel geen wachttijden beschikbaar",

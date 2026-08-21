@@ -43,7 +43,11 @@
     "closedToday": "Stängt i dag",
     "hoursUnavailable": "Öppettiderna är inte tillgängliga just nu",
     "privateEvent": "Parken är bokad för privat evenemang",
-    "privateEventNoHours": "Parken är bokad för privat evenemang i dag"
+    "privateEventNoHours": "Parken är bokad för privat evenemang i dag",
+    "cards": {
+      "attractions": "Attraktioner",
+      "shows": "Shower"
+    }
   },
   "parkStatus": {
     "open": "Öppen",
@@ -58,8 +62,8 @@
     "unavailableShort": "Otillg."
   },
   "tabs": {
-    "waitTimes": "Kötider",
-    "shows": "Shower"
+    "live": "Live",
+    "schedule": "Öppettider"
   },
   "shows": {
     "show": "Show",
@@ -123,7 +127,7 @@
     "shortcutParksShort": "Parker"
   },
   "waitTimeTable": {
-    "attraction": "Attraktion",
+    "name": "Namn",
     "waitTime": "Kötid",
     "status": "Status",
     "noWaitTimes": "Inga kötider tillgängliga just nu",

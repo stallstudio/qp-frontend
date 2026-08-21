@@ -45,7 +45,11 @@
     "privateEvent": "Parc privatisé",
     "privateEventNoHours": "Parc privatisé aujourd'hui",
     "eventHours": "Événement",
-    "hoursOther": "Horaires"
+    "hoursOther": "Horaires",
+    "cards": {
+      "attractions": "Attractions",
+      "shows": "Spectacles"
+    }
   },
   "parkStatus": {
     "open": "Ouvert",
@@ -60,8 +64,8 @@
     "unavailableShort": "Indispo"
   },
   "tabs": {
-    "waitTimes": "Temps d'attente",
-    "shows": "Spectacles"
+    "live": "En direct",
+    "schedule": "Horaires du jour"
   },
   "shows": {
     "show": "Spectacle",
@@ -125,7 +129,7 @@
     "shortcutParksShort": "Parcs"
   },
   "waitTimeTable": {
-    "attraction": "Attraction",
+    "name": "Nom",
     "waitTime": "Temps",
     "status": "État",
     "noWaitTimes": "Aucun temps d'attente disponible pour le moment",

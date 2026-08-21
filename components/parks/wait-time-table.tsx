@@ -333,7 +333,7 @@ export default function ParkWaitTimeTable({
                 onClick={() => handleSort("name")}
                 className={sortButtonClass}
               >
-                {t("attraction")}
+                {t("name")}
                 {sortIndicator("name")}
               </button>
             </div>

@@ -1,7 +1,15 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { AlertCircle, Clock, Drama, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  AlertCircle,
+  CalendarClock,
+  Drama,
+  Loader2,
+  Radio,
+  RollerCoaster,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import ParkWaitTimeTable from "./wait-time-table";
@@ -17,6 +25,7 @@ import {
 import { dayOpeningHours, visibleParkEvents } from "@/lib/park-events";
 import ParkShowTimeTable from "./show-time-table";
 import EventCard from "./event-card";
+import SectionCard from "./section-card";
 
 type MainCardProps = {
   park: ParkLiveData;
@@ -33,6 +42,44 @@ const STALE_DATA_MS = 10 * 60_000;
 // Espacement entre les cartes de la colonne. Aligné sur le `gap-1` de la page
 // (`park-page-client.tsx`), qui sépare déjà l'en-tête du parc du contenu.
 const CARD_STACK = "flex w-full flex-col gap-1";
+
+// ————— Arrondis de la pile —————
+//
+// La colonne se lit comme UN bloc découpé en tranches, pas comme une poignée de
+// cartes posées côte à côte : gros arrondi sur le DESSUS de la première et le
+// DESSOUS de la dernière, arrondi discret partout où deux cartes se touchent.
+//
+// Deux angles de 2 rem face à face, séparés par le `gap-1`, creusaient un
+// losange de fond entre chaque carte — l'œil y voyait un trou, pas une
+// jointure. À l'inverse, tout aplatir aurait rendu la colonne monolithique et
+// annulé la séparation qu'on vient d'introduire.
+const STACK_JOINT = "rounded-lg";
+const STACK_TOP = "rounded-t-4xl";
+const STACK_BOTTOM = "rounded-b-4xl";
+
+/**
+ * Classes d'arrondi d'une carte selon sa place dans la colonne.
+ *
+ * ⚠️ `isFirst` est FAUX dès qu'une carte la précède, y compris celle des
+ * onglets : le sélecteur fait partie de la pile, c'est lui qui en porte alors le
+ * bord haut.
+ */
+function stackRadius(isFirst: boolean, isLast: boolean) {
+  return cn(STACK_JOINT, isFirst && STACK_TOP, isLast && STACK_BOTTOM);
+}
+
+/** Une carte de la colonne, en attente de savoir où elle atterrit. */
+type StackCard = (radius: string) => React.ReactNode;
+
+/**
+ * Rend une pile de cartes en donnant à chacune ses arrondis.
+ * `headed` : une carte (celle des onglets) occupe déjà le haut de la colonne.
+ */
+function renderStack(cards: StackCard[], headed = false) {
+  return cards.map((card, i) =>
+    card(stackRadius(!headed && i === 0, i === cards.length - 1)),
+  );
+}
 
 /**
  * Contenu principal de la page d'un parc.
@@ -61,6 +108,7 @@ export default function MainCard({
   const [activeTab, setActiveTab] = useState<string>("");
   const t = useTranslations("waitTimeTable");
   const tTabs = useTranslations("tabs");
+  const tCards = useTranslations("parkPage.cards");
   const tShows = useTranslations("shows");
   const tNoData = useTranslations("noData");
 
@@ -218,8 +266,13 @@ export default function MainCard({
       items: park.waitTimes.filter((wt) => wt.eventId === view.event.id),
     }))
     .filter(({ items }) => items.length > 0)
-    .map(({ view, items }) => (
-      <EventCard key={view.event.id} view={view} timezone={park.timezone}>
+    .map(({ view, items }): StackCard => (radius) => (
+      <EventCard
+        key={view.event.id}
+        view={view}
+        timezone={park.timezone}
+        className={radius}
+      >
         <ParkWaitTimeTable
           waitTimes={items}
           queueTypeLabels={park.queueTypeLabels}
@@ -237,8 +290,13 @@ export default function MainCard({
       items: (park.shows ?? []).filter((s) => s.eventId === view.event.id),
     }))
     .filter(({ items }) => items.length > 0)
-    .map(({ view, items }) => (
-      <EventCard key={view.event.id} view={view} timezone={park.timezone}>
+    .map(({ view, items }): StackCard => (radius) => (
+      <EventCard
+        key={view.event.id}
+        view={view}
+        timezone={park.timezone}
+        className={radius}
+      >
         <ParkShowTimeTable
           shows={items}
           timezone={park.timezone}
@@ -249,8 +307,13 @@ export default function MainCard({
       </EventCard>
     ));
 
-  const waitTimesCard = hasWaitTimes ? (
-    <Card className="w-full gap-0 rounded-4xl p-2.5 py-2 sm:p-4 sm:py-2">
+  const waitTimesCard: StackCard = (radius) => (
+    <SectionCard
+      key="wait-times"
+      icon={RollerCoaster}
+      title={tCards("attractions")}
+      className={radius}
+    >
       <ParkWaitTimeTable
         waitTimes={mainWaitTimes}
         queueTypeLabels={park.queueTypeLabels}
@@ -259,11 +322,16 @@ export default function MainCard({
         reopenAllowed={reopenAllowed}
         initialRideId={initialRideId}
       />
-    </Card>
-  ) : null;
+    </SectionCard>
+  );
 
-  const showsCard = hasShows ? (
-    <Card className="w-full gap-0 rounded-4xl p-2.5 py-2 sm:p-4 sm:py-2">
+  const showsCard: StackCard = (radius) => (
+    <SectionCard
+      key="show-times"
+      icon={Drama}
+      title={tCards("shows")}
+      className={radius}
+    >
       <ParkShowTimeTable
         shows={mainShows}
         timezone={park.timezone}
@@ -271,8 +339,21 @@ export default function MainCard({
         parkIdentifier={park.identifier}
         parkName={park.name}
       />
-    </Card>
-  ) : null;
+    </SectionCard>
+  );
+
+  // Les deux piles, dans leur ordre d'affichage. C'est cette liste — et elle
+  // seule — qui dit quelle carte est en haut et laquelle est en bas ; ajouter
+  // demain les restaurants ou les files virtuelles, c'est l'insérer ici, les
+  // arrondis suivent.
+  const waitTimesStack: StackCard[] = [
+    ...eventWaitTimeCards,
+    ...(hasWaitTimes ? [waitTimesCard] : []),
+  ];
+  const showsStack: StackCard[] = [
+    ...eventShowCards,
+    ...(hasShows ? [showsCard] : []),
+  ];
 
   // Pied de colonne : décompte de rafraîchissement. Posé SOUS les cartes, en
   // texte libre — il décrit la fraîcheur de l'ensemble, pas d'un bloc en
@@ -311,6 +392,7 @@ export default function MainCard({
   if (park.shows.length === 0 && park.waitTimes.length === 0) {
     return (
       <div className={CARD_STACK}>
+        {/* Seule dans la colonne : elle garde ses quatre gros angles. */}
         <Card className="w-full gap-0 rounded-4xl p-2.5 py-6 sm:p-4 sm:py-6">
           <div className="flex flex-col items-center justify-center gap-y-0.5 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
@@ -331,10 +413,7 @@ export default function MainCard({
   if (!showTabs) {
     return (
       <div className={CARD_STACK}>
-        {eventWaitTimeCards}
-        {waitTimesCard}
-        {eventShowCards}
-        {showsCard}
+        {renderStack([...waitTimesStack, ...showsStack])}
         {footer}
       </div>
     );
@@ -349,7 +428,11 @@ export default function MainCard({
       {/* Le sélecteur d'onglets a sa PROPRE carte : c'est de la navigation, pas
           de la donnée. Le mélanger au contenu, c'était faire de l'un des deux
           blocs le « propriétaire » visuel des onglets. */}
-      <Card className="w-full rounded-4xl p-1.5 sm:p-2">
+      <Card className={cn("w-full p-1.5 sm:p-2", stackRadius(true, false))}>
+        {/* ⚠️ L'intérieur NE SUIT PAS l'arrondi de la carte. La jointure du bas
+            est presque droite, mais aplatir la liste et la pastille pour rester
+            concentrique donnait un galet coupé au couteau. Le sélecteur est un
+            objet à lui, posé DANS la carte : il reste une pastille. */}
         <TabsList className="relative w-full overflow-hidden rounded-3xl">
           {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
               Deux onglets de largeur égale -> largeur 50% (moins le padding),
@@ -371,26 +454,31 @@ export default function MainCard({
             value="wait-times"
             className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
           >
-            <Clock />
-            {tTabs("waitTimes")}
+            {/* Ondes de diffusion, pas une horloge : l'onglet ne parle plus de
+                temps d'attente mais de tout ce qui est vrai MAINTENANT. */}
+            <Radio />
+            {tTabs("live")}
           </TabsTrigger>
           <TabsTrigger
             value="show-times"
             className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
           >
-            <Drama />
-            {tTabs("shows")}
+            {/* Calendrier + horloge : des heures dans une journée. Les masques
+                de théâtre ne valaient que tant que l'onglet ne portait que des
+                spectacles. */}
+            <CalendarClock />
+            {tTabs("schedule")}
           </TabsTrigger>
         </TabsList>
       </Card>
 
+      {/* `headed` : la carte des onglets tient déjà le haut de la colonne, la
+          première carte de contenu n'a donc qu'une jointure au-dessus d'elle. */}
       <TabsContent value="wait-times" className={CARD_STACK}>
-        {eventWaitTimeCards}
-        {waitTimesCard}
+        {renderStack(waitTimesStack, true)}
       </TabsContent>
       <TabsContent value="show-times" className={CARD_STACK}>
-        {eventShowCards}
-        {showsCard}
+        {renderStack(showsStack, true)}
       </TabsContent>
 
       {footer}

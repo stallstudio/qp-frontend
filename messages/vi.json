@@ -43,7 +43,11 @@
     "closedToday": "Hôm nay đóng cửa",
     "hoursUnavailable": "Hiện chưa có thông tin giờ mở cửa",
     "privateEvent": "Công viên được thuê riêng",
-    "privateEventNoHours": "Hôm nay công viên được thuê riêng"
+    "privateEventNoHours": "Hôm nay công viên được thuê riêng",
+    "cards": {
+      "attractions": "Trò chơi",
+      "shows": "Chương trình"
+    }
   },
   "parkStatus": {
     "open": "Đang mở cửa",
@@ -58,8 +62,8 @@
     "unavailableShort": "Không có"
   },
   "tabs": {
-    "waitTimes": "Thời gian chờ",
-    "shows": "Chương trình"
+    "live": "Trực tiếp",
+    "schedule": "Giờ hôm nay"
   },
   "shows": {
     "show": "Chương trình",
@@ -123,7 +127,7 @@
     "shortcutParksShort": "Công viên"
   },
   "waitTimeTable": {
-    "attraction": "Trò chơi",
+    "name": "Tên",
     "waitTime": "Thời gian chờ",
     "status": "Trạng thái",
     "noWaitTimes": "Hiện chưa có dữ liệu thời gian chờ",

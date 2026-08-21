@@ -43,7 +43,11 @@
     "closedToday": "Heute geschlossen",
     "hoursUnavailable": "Die Öffnungszeiten sind derzeit nicht verfügbar",
     "privateEvent": "Park privat gebucht",
-    "privateEventNoHours": "Park heute privat gebucht"
+    "privateEventNoHours": "Park heute privat gebucht",
+    "cards": {
+      "attractions": "Attraktionen",
+      "shows": "Shows"
+    }
   },
   "parkStatus": {
     "open": "Geöffnet",
@@ -58,8 +62,8 @@
     "unavailableShort": "N. verf."
   },
   "tabs": {
-    "waitTimes": "Wartezeiten",
-    "shows": "Shows"
+    "live": "Live",
+    "schedule": "Öffnungszeiten"
   },
   "shows": {
     "show": "Show",
@@ -123,7 +127,7 @@
     "shortcutParksShort": "Parks"
   },
   "waitTimeTable": {
-    "attraction": "Attraktion",
+    "name": "Name",
     "waitTime": "Wartezeit",
     "status": "Status",
     "noWaitTimes": "Derzeit keine Wartezeiten verfügbar",

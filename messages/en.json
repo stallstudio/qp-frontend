@@ -45,7 +45,11 @@
     "privateEvent": "Park privately booked",
     "privateEventNoHours": "Park privately booked today",
     "eventHours": "Event",
-    "hoursOther": "Opening hours"
+    "hoursOther": "Opening hours",
+    "cards": {
+      "attractions": "Attractions",
+      "shows": "Shows"
+    }
   },
   "parkStatus": {
     "open": "Open",
@@ -60,8 +64,8 @@
     "unavailableShort": "Unavail"
   },
   "tabs": {
-    "waitTimes": "Wait Times",
-    "shows": "Shows"
+    "live": "Live",
+    "schedule": "Today's hours"
   },
   "shows": {
     "show": "Show",
@@ -125,7 +129,7 @@
     "shortcutParksShort": "Parks"
   },
   "waitTimeTable": {
-    "attraction": "Attraction",
+    "name": "Name",
     "waitTime": "Wait Time",
     "status": "Status",
     "noWaitTimes": "No wait times available for now",

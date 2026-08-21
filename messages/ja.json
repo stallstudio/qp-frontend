@@ -43,7 +43,11 @@
     "closedToday": "本日休園",
     "hoursUnavailable": "現在、営業時間の情報がありません",
     "privateEvent": "貸切のため休園",
-    "privateEventNoHours": "本日は貸切のため休園"
+    "privateEventNoHours": "本日は貸切のため休園",
+    "cards": {
+      "attractions": "アトラクション",
+      "shows": "ショー"
+    }
   },
   "parkStatus": {
     "open": "営業中",
@@ -58,8 +62,8 @@
     "unavailableShort": "情報なし"
   },
   "tabs": {
-    "waitTimes": "待ち時間",
-    "shows": "ショー"
+    "live": "ライブ",
+    "schedule": "本日の営業時間"
   },
   "shows": {
     "show": "ショー",
@@ -123,7 +127,7 @@
     "shortcutParksShort": "パーク"
   },
   "waitTimeTable": {
-    "attraction": "アトラクション",
+    "name": "名称",
     "waitTime": "待ち時間",
     "status": "状況",
     "noWaitTimes": "現在、待ち時間の情報はありません",

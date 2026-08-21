@@ -43,7 +43,11 @@
     "closedToday": "Chiuso oggi",
     "hoursUnavailable": "Gli orari non sono al momento disponibili",
     "privateEvent": "Parco riservato a un evento privato",
-    "privateEventNoHours": "Parco riservato a un evento privato oggi"
+    "privateEventNoHours": "Parco riservato a un evento privato oggi",
+    "cards": {
+      "attractions": "Attrazioni",
+      "shows": "Spettacoli"
+    }
   },
   "parkStatus": {
     "open": "Aperto",
@@ -58,8 +62,8 @@
     "unavailableShort": "N/D"
   },
   "tabs": {
-    "waitTimes": "Tempi di attesa",
-    "shows": "Spettacoli"
+    "live": "In diretta",
+    "schedule": "Orari di oggi"
   },
   "shows": {
     "show": "Spettacolo",
@@ -123,7 +127,7 @@
     "shortcutParksShort": "Parchi"
   },
   "waitTimeTable": {
-    "attraction": "Attrazione",
+    "name": "Nome",
     "waitTime": "Attesa",
     "status": "Stato",
     "noWaitTimes": "Nessun tempo di attesa disponibile al momento",

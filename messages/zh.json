@@ -43,7 +43,11 @@
     "closedToday": "今日闭园",
     "hoursUnavailable": "暂时无法获取营业时间",
     "privateEvent": "乐园被包场",
-    "privateEventNoHours": "今日乐园被包场"
+    "privateEventNoHours": "今日乐园被包场",
+    "cards": {
+      "attractions": "项目",
+      "shows": "演出"
+    }
   },
   "parkStatus": {
     "open": "营业中",
@@ -58,8 +62,8 @@
     "unavailableShort": "暂无"
   },
   "tabs": {
-    "waitTimes": "排队时间",
-    "shows": "演出"
+    "live": "实时",
+    "schedule": "今日营业时间"
   },
   "shows": {
     "show": "演出",
@@ -123,7 +127,7 @@
     "shortcutParksShort": "乐园"
   },
   "waitTimeTable": {
-    "attraction": "项目",
+    "name": "名称",
     "waitTime": "排队时间",
     "status": "状态",
     "noWaitTimes": "暂无排队时间数据",

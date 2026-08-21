@@ -43,7 +43,11 @@
     "closedToday": "Lukket i dag",
     "hoursUnavailable": "Åbningstiderne er ikke tilgængelige lige nu",
     "privateEvent": "Parken er lukket for privat arrangement",
-    "privateEventNoHours": "Parken er lukket for privat arrangement i dag"
+    "privateEventNoHours": "Parken er lukket for privat arrangement i dag",
+    "cards": {
+      "attractions": "Forlystelser",
+      "shows": "Shows"
+    }
   },
   "parkStatus": {
     "open": "Åben",
@@ -58,8 +62,8 @@
     "unavailableShort": "Utilgæng."
   },
   "tabs": {
-    "waitTimes": "Ventetider",
-    "shows": "Shows"
+    "live": "Live",
+    "schedule": "Åbningstider"
   },
   "shows": {
     "show": "Show",
@@ -123,7 +127,7 @@
     "shortcutParksShort": "Parker"
   },
   "waitTimeTable": {
-    "attraction": "Forlystelse",
+    "name": "Navn",
     "waitTime": "Ventetid",
     "status": "Status",
     "noWaitTimes": "Ingen ventetider tilgængelige lige nu",
