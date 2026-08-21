@@ -54,16 +54,16 @@ export async function GET(
       where: {
         parkId: park.id,
         type: "standby",
-        rideId: { not: null },
+        poiId: { not: null },
         startTime: { gte: dayStart },
       },
-      select: { rideId: true, waitTime: true },
-      orderBy: [{ rideId: "asc" }, { startTime: "asc" }],
+      select: { poiId: true, waitTime: true },
+      orderBy: [{ poiId: "asc" }, { startTime: "asc" }],
     });
 
     const history: Record<number, number[]> = {};
     for (const row of rows) {
-      const rideId = row.rideId!;
+      const rideId = row.poiId!;
       if (!history[rideId]) history[rideId] = [];
       history[rideId].push(row.waitTime);
     }
@@ -79,14 +79,14 @@ export async function GET(
       where: {
         parkId: park.id,
         type: "standby",
-        rideId: { not: null },
+        poiId: { not: null },
         endTime: null,
       },
-      select: { rideId: true, waitTime: true },
+      select: { poiId: true, waitTime: true },
     });
 
     for (const row of activeRows) {
-      const rideId = row.rideId!;
+      const rideId = row.poiId!;
       if (!history[rideId]) history[rideId] = [row.waitTime];
     }
 

@@ -36,21 +36,21 @@ export async function getLatestWaitTimesByPark(
       where: {
         parkId,
         endTime: null,
-        rideId: {
+        poiId: {
           not: null,
         },
         lastSeenAt: { gte: freshSince },
       },
-      include: { ride: true },
-      orderBy: [{ rideId: "asc" }, { type: "asc" }],
+      include: { poi: true },
+      orderBy: [{ poiId: "asc" }, { type: "asc" }],
     });
 
     // Grouper les wait times par ride
     const rideMap = new Map<number, WaitTime>();
 
     activeWaitTimes.forEach((wt) => {
-      const rideId = wt.rideId!;
-      const rideName = wt.ride?.name || "Unknown";
+      const rideId = wt.poiId!;
+      const rideName = wt.poi?.name || "Unknown";
 
       if (!rideMap.has(rideId)) {
         rideMap.set(rideId, {

@@ -37,59 +37,64 @@ model Park {
   opening_hours_fetcher Boolean   @default(false)
   pois_fetcher          Boolean   @default(false)
   show_times_fetcher    Boolean   @default(false)
-  playStoreId           String?   @db.VarChar(255)
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   openingHours    OpeningHours[]
-  rides           Ride[]
+  pois            Poi[]
   waitTimes       WaitTime[]
   unmatchedAlerts UnmatchedAlert[]
-  shows           Show[]
   showTimes       ShowTime[]
   poiChanges      PoiChange[]
-  appVersions     AppVersion[]
 
   @@index([groupId])
   @@map("parks")
 }
 
-model Ride {
+// UN point d'intérêt d'un parc, quel qu'il soit — attraction, spectacle, et
+// demain restaurant, boutique, hôtel, service.
+//
+// ⚠️ **Cette table REMPLACE `rides` et `shows`** (migration du 2026-08-21). Les
+// deux portaient les mêmes colonnes à `duration` près, et chacune imposait sa
+// propre table d'états (`wait_times` pour l'une, `show_times` pour l'autre).
+//
+// ⚠️ **`kind` fait partie de la clé unique**, et toute recherche par
+// `externalId` doit le préciser. Mesuré en production le 2026-08-21 : 40
+// `externalId` désignent une attraction ET un spectacle DIFFÉRENTS dans le même
+// parc — les deux flux d'un parc ont des espaces d'identifiants disjoints
+// (Paultons Park en aligne 23, Nigloland 7, Toverland 4).
+//
+// ⚠️ **Les identifiants des attractions ont été CONSERVÉS**, ceux des
+// spectacles décalés de +1 000 000, et les POI créés depuis partent de
+// 2 000 000. Un identifiant dit donc toujours d'où il vient.
+//
+// ⚠️ Ce schéma ne décrit que ce que le frontend LIT : la table porte aussi
+// `additionalData` (Json) et `duration`, inutiles ici. C'est sans conséquence en
+// lecture — mais c'est une raison de plus pour ne JAMAIS lancer `prisma db
+// push` depuis ce dépôt.
+model Poi {
   id         Int        @id @default(autoincrement())
+  kind       String     @db.VarChar(20)
   name       String     @db.VarChar(255)
   parkId     Int
   park       Park       @relation(fields: [parkId], references: [id], onDelete: Cascade)
   externalId String     @db.VarChar(255)
   thrillsId  String?    @db.VarChar(255)
-  active     Boolean    @default(true)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  waitTimes  WaitTime[]
-
-  @@unique([parkId, externalId])
-  @@index([parkId])
-  @@index([thrillsId])
-  @@map("rides")
-}
-
-model Show {
-  id         Int        @id @default(autoincrement())
-  name       String     @db.VarChar(255)
-  parkId     Int
-  park       Park       @relation(fields: [parkId], references: [id], onDelete: Cascade)
-  externalId String     @db.VarChar(255)
-  thrillsId  String?    @db.VarChar(255)
+  // Durée en minutes, renseignée par les seuls spectacles. Elle vient de
+  // l'ancien modèle `Show` ; `Ride` ne la portait pas.
   duration   Int?
   active     Boolean    @default(true)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+  waitTimes  WaitTime[]
   showTimes  ShowTime[]
 
-  @@unique([parkId, externalId])
+  @@unique([parkId, kind, externalId])
   @@index([parkId])
-  @@map("shows")
+  @@index([thrillsId])
+  @@map("pois")
 }
 
 //
@@ -105,8 +110,8 @@ enum WaitTimeStatus {
 
 model WaitTime {
   id         Int            @id @default(autoincrement())
-  rideId     Int?
-  ride       Ride?          @relation(fields: [rideId], references: [id], onDelete: SetNull)
+  poiId      Int?
+  poi        Poi?           @relation(fields: [poiId], references: [id], onDelete: SetNull)
   parkId     Int
   park       Park           @relation(fields: [parkId], references: [id], onDelete: Cascade)
   externalId String         @db.VarChar(255)
@@ -122,12 +127,12 @@ model WaitTime {
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
-  @@index([rideId, endTime])
+  @@index([poiId, endTime])
   @@index([parkId, endTime])
   @@index([externalId, endTime])
-  @@index([rideId, startTime])
-  @@index([stateHash, rideId])
-  @@index([rideId, type, endTime])
+  @@index([poiId, startTime])
+  @@index([stateHash, poiId])
+  @@index([poiId, type, endTime])
   @@index([parkId, endTime, lastSeenAt])
   @@map("wait_times")
 }
@@ -152,8 +157,8 @@ model OpeningHours {
 
 model ShowTime {
   id         Int       @id @default(autoincrement())
-  showId     Int?
-  show       Show?     @relation(fields: [showId], references: [id], onDelete: SetNull)
+  poiId      Int?
+  poi        Poi?      @relation(fields: [poiId], references: [id], onDelete: SetNull)
   parkId     Int
   park       Park      @relation(fields: [parkId], references: [id], onDelete: Cascade)
   externalId String    @db.VarChar(255)
@@ -163,7 +168,7 @@ model ShowTime {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  @@index([showId, date])
+  @@index([poiId, date])
   @@index([parkId, date])
   @@index([externalId, date])
   @@index([date])
@@ -276,23 +281,6 @@ model PoiChange {
   @@index([type])
   @@index([createdAt])
   @@map("poi_changes")
-}
-
-model AppVersion {
-  id                Int      @id @default(autoincrement())
-  parkId            Int
-  park              Park     @relation(fields: [parkId], references: [id], onDelete: Cascade)
-  version           String   @db.VarChar(50)
-  updated           BigInt
-  recentChanges     String?  @db.Text
-  translatedChanges String?  @db.Text
-  detectedLang      String?  @db.VarChar(10)
-  createdAt         DateTime @default(now())
-
-  @@unique([parkId, version])
-  @@index([parkId])
-  @@index([createdAt])
-  @@map("app_versions")
 }
 
 //

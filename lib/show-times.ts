@@ -12,12 +12,12 @@ export async function getShowTimesByParkAndDate(
       where: {
         parkId,
         date,
-        showId: {
+        poiId: {
           not: null,
         },
       },
       include: {
-        show: true,
+        poi: true,
       },
       orderBy: {
         startTime: "asc",
@@ -32,8 +32,8 @@ export async function getShowTimesByParkAndDate(
 
       if (!showsMap.has(externalId)) {
         showsMap.set(externalId, {
-          showName: st.show?.name ?? "Unknown",
-          duration: st.show?.duration ?? 0,
+          showName: st.poi?.name ?? "Unknown",
+          duration: st.poi?.duration ?? 0,
           schedules: [],
         });
       }
