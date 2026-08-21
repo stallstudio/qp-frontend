@@ -42,7 +42,8 @@ app/
   globals.css        # Thème Tailwind v4, animations (shine, border-beam, etc.)
 components/
   home/              # header (hero scroll-shrink), popular-parks, favorite-parks, parks-list, search
-  parks/             # header, main-card (container à onglets), wait-time-table,
+  parks/             # header, main-card (COLONNE de cartes), section-card,
+                     # event-card, wait-time-table,
                      # show-time-table, wait-trend (flèches), cover-image, opening-hours...
   about/             # vignette.tsx, demos.tsx, about-page-client.tsx [AJOUTÉ]
   ui/                # primitives (card, tabs, button, footer, favorite-star, table...)
@@ -846,9 +847,24 @@ la nouvelle référence d'objet à chaque rafraîchissement ne le relance pas.
   = server components qui exportent `generateMetadata` puis rendent un client.
 - `cn()` (`lib/utils`) = clsx + tailwind-merge ; passer des classes qui écrasent
   les défauts (ex. `Card` a `py-6 gap-6 rounded-xl`, surchargeable).
-- Le « container temps d'attente » = `components/parks/main-card.tsx` : `Card`
-  arrondie `rounded-4xl` avec `Tabs` et une pastille coulissante iOS-like.
-  La page À propos réutilise ce motif.
+- `components/parks/main-card.tsx` **n'est pas une carte malgré son nom** :
+  c'est la COLONNE de cartes de la page parc (onglets, événement, attractions,
+  demain restaurants et files virtuelles). Elle se lit comme UN BLOC TRANCHÉ :
+  `stackRadius(isFirst, isLast)` pose `rounded-lg` sur les jointures et
+  `rounded-t-4xl`/`rounded-b-4xl` aux deux bouts — la carte des onglets en est
+  le premier maillon, et `EventCard`/`SectionCard` reçoivent leurs angles par
+  `className` (elles ignorent leur place dans la pile).
+  ⚠️ L'INTÉRIEUR du sélecteur reste en `rounded-3xl` : le rendre concentrique
+  avec une jointure quasi droite donnait un galet coupé au couteau.
+- `section-card.tsx` = carte TITRÉE, cousine sobre d'`event-card.tsx` (même
+  géométrie d'en-tête, sans état ni repli ni teinte). **Le titre nomme la
+  SOURCE, pas l'onglet** (« Attractions », pas « Temps d'attente ») : c'est ce
+  qui tiendra quand l'onglet en portera quatre. La colonne « Attraction » de la
+  table s'appelle donc `waitTimeTable.name` (« Nom ») depuis le 2026-08-21.
+- Les onglets se partagent la colonne par NATURE, pas par source :
+  `tabs.live` (vrai à l'instant T) et `tabs.schedule` (ce qui a un horaire),
+  d'où leur renommage depuis `waitTimes`/`shows`. Pastille coulissante
+  iOS-like, motif repris par la page À propos.
 - Commentaires du code en français, orientés « pourquoi ».
 
 ## node/npm dans le shell agent
