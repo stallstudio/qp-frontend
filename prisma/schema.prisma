@@ -341,6 +341,22 @@ model Poi {
   // Durée en minutes. Renseignée par les seuls spectacles aujourd'hui.
   duration Int?
 
+  // Coordonnées publiées par la source, en degrés décimaux (WGS 84).
+  //
+  // ⚠️ Des COLONNES, et non deux clés d'`additionalData` juste au-dessous :
+  // c'est la première donnée de POI qu'on voudra INTERROGER — les POI d'un
+  // cadre de carte, le plus proche d'un point — et le commentaire
+  // d'`additionalData` pose déjà la règle, MariaDB n'indexe pas son contenu.
+  //
+  // `Float?` comme `Park.latitude` : un seul type de coordonnées dans le
+  // projet, aucune contrainte, `DOUBLE` en base.
+  //
+  // ⚠️ Écrites par la collecte À CHAQUE PASSAGE quand la source les publie,
+  // mais sans trace dans `poi_changes` : une correction de carte côté CMS
+  // n'est pas un renommage, et noierait un flux fait pour les repérer.
+  latitude  Float?
+  longitude Float?
+
   // Tout ce qu'une source publie en plus et qui n'a pas de colonne : bannière,
   // logo, carte de restaurant, description… Vide (`null`) sur la totalité des
   // lignes à la migration — la colonne est créée MAINTENANT pour éviter un
