@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useFavorites } from "@/hooks/useFavorites";
 import FavoriteStar from "@/components/ui/favorite-star";
@@ -47,9 +47,19 @@ export default function ImageSection({
   // défaut plutôt que de laisser un cadre vide — et le crédit disparaît AVEC
   // elle, puisqu'il n'y a plus rien à créditer.
   const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [banner]);
+  // Les bannières sont servies par les parcs eux-mêmes : selon l'hôte, elles
+  // arrivent en 100 ms ou en 5 s. Tant que l'image n'est pas décodée, on couvre
+  // le cadre d'un skeleton + spinner plutôt que de laisser un vide.
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    setFailed(false);
+    setLoaded(false);
+  }, [banner]);
 
   const showBanner = Boolean(banner) && !failed;
+  // Uniquement pour la bannière du parc : l'image par défaut est locale, elle
+  // est là tout de suite et n'a rien à faire patienter.
+  const showLoader = showBanner && !loaded;
 
   return (
     <div className="relative aspect-video w-full overflow-hidden bg-muted">
@@ -58,19 +68,45 @@ export default function ImageSection({
         alt={title}
         fill
         sizes="(max-width: 448px) 100vw, 448px"
-        className="object-cover"
+        className={`object-cover transition-opacity duration-500 ease-out ${
+          showLoader ? "opacity-0" : "opacity-100"
+        }`}
+        onLoad={() => setLoaded(true)}
         onError={() => setFailed(true)}
         priority
       />
+
+      {/* Skeleton + spinner, en fondu croisé avec l'image (l'overlay reste monté
+          le temps de la transition, d'où l'opacité plutôt qu'un démontage sec).
+          Le pulse est sur une couche INTERNE : `animate-pulse` anime lui aussi
+          l'opacité et écraserait la transition du parent. Pas de `z-index` — la
+          position dans le DOM suffit à le placer au-dessus de l'image et sous le
+          dégradé, le titre et l'étoile. */}
+      {showBanner && (
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-0 grid place-items-center transition-opacity duration-500 ease-out ${
+            loaded ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <div className="absolute inset-0 animate-pulse bg-muted-foreground/10" />
+          <Loader2 className="relative size-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
 
       {/* Crédit : l'image vient de l'API du parc, jamais de nous. Même
           emplacement et même mise en forme que le crédit d'une bannière de parc
           (`components/parks/cover-image.tsx`).
 
           ⚠️ Rien à créditer quand c'est notre image par défaut qui s'affiche —
-          d'où `showBanner` et non `credit` seul. */}
+          d'où `showBanner` et non `credit` seul. Il arrive en même temps que
+          l'image : sur le skeleton clair, ce blanc translucide serait invisible. */}
       {showBanner && credit && (
-        <div className="absolute top-3 right-4 z-50">
+        <div
+          className={`absolute top-3 right-4 z-50 transition-opacity duration-500 ease-out ${
+            loaded ? "opacity-100" : "opacity-0"
+          }`}
+        >
           <span className="text-[10px] text-white/60">© {credit}</span>
         </div>
       )}
