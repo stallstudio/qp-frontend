@@ -260,18 +260,46 @@ export default function MainCard({
   // à montrer. C'est aussi pour ça que la carte ne se rend pas quand sa liste
   // est vide — sinon un parc sans spectacle d'événement afficherait un encadré
   // vide dans l'onglet Spectacles onze soirs sur dix.
+  //
+  // ⚠️ **Un événement « Toujours » garde sa carte MÊME VIDE** (2026-08-24), et
+  // c'est la seule exception à la règle ci-dessus. `forced` n'est pas un état
+  // calculé : c'est une décision prise dans l'admin, dont l'aide dit « la carte
+  // s'affiche en permanence, même hors période et même sans dates connues ». La
+  // taire faute de contenu rendait le réglage inopérant SANS RIEN DIRE — on
+  // cherche alors le bug dans la visibilité, la période, la traduction, partout
+  // sauf là où il est.
+  //
+  // Mesuré sur Universal Studios Florida (24/08) : les huit maisons de Halloween
+  // Horror Nights sont bien créées et taguées, mais l'API a cessé de les émettre
+  // le 21/08 — leurs lignes `wait_times` restent ouvertes avec un `lastSeenAt`
+  // figé, et `getLatestWaitTimesByPark` les écarte au-delà de 3 jours
+  // (`STALE_WAIT_TIME_MS`). La carte n'avait donc plus rien à contenir, et
+  // disparaissait alors même qu'on venait de demander l'inverse.
+  //
+  // ⚠️ La carte vide n'apparaît QUE dans l'onglet des temps d'attente, jamais
+  // dans les deux : c'est l'onglet par défaut, et le même encadré vide dupliqué
+  // de part et d'autre du sélecteur se lirait comme deux événements distincts.
+  const hasEventItems = (eventId: number) =>
+    park.waitTimes.some((wt) => wt.eventId === eventId) ||
+    (park.shows ?? []).some((s) => s.eventId === eventId);
+
   const eventWaitTimeCards = eventViews
     .map((view) => ({
       view,
       items: park.waitTimes.filter((wt) => wt.eventId === view.event.id),
     }))
-    .filter(({ items }) => items.length > 0)
+    .filter(
+      ({ view, items }) =>
+        items.length > 0 ||
+        (view.event.visibility === "forced" && !hasEventItems(view.event.id)),
+    )
     .map(({ view, items }): StackCard => (radius) => (
       <EventCard
         key={view.event.id}
         view={view}
         timezone={park.timezone}
         className={radius}
+        isEmpty={items.length === 0}
       >
         <ParkWaitTimeTable
           waitTimes={items}

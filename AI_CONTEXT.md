@@ -376,6 +376,44 @@ par la tolérance ; 丝路盛景 (150 / 150) reste sous le seuil.
   « maintenant » se teste sur sa **position** (il disparaissait après minuit quand
   on le comparait à `now.hour`).
 
+### Événements saisonniers (`lib/park-events.ts`, `components/parks/event-card.tsx`)
+
+Une carte repliable par événement (Halloween, Noël), qui contient les
+attractions et les spectacles TAGUÉS avec son `eventId`. Le chargement vit dans
+`lib/park-events-db.ts`, l'état d'affichage dans le module PUR
+`lib/park-events.ts`, évalué **après montage** (la fenêtre dépend de l'heure
+courante, qui diffère entre Node et le navigateur).
+
+⚠️ **Une attraction taguée n'apparaît QUE dans la carte de son événement.** Hors
+période, la carte n'est pas rendue et l'attraction disparaît donc de la page —
+c'est voulu : un maze affichant « fermé » en juin entre deux coasters n'apprend
+rien.
+
+⚠️ **`visibility = "forced"` (« Toujours » dans l'admin) garde sa carte MÊME
+VIDE** (2026-08-24), et c'est la seule exception à « pas de contenu, pas de
+carte ». Cette règle vaut pour un événement `auto` — elle évite un encadré vide
+dans l'onglet Spectacles onze soirs sur dix — mais `forced` est une décision
+HUMAINE dont l'aide de l'admin dit « la carte s'affiche en permanence ». La taire
+faute de contenu rendait le réglage inopérant SANS RIEN DIRE : on cherche alors
+le bug dans la visibilité, la période, la traduction, partout sauf où il est.
+
+Mesuré sur Universal Studios Florida : les huit maisons de Halloween Horror
+Nights sont bien créées et taguées, mais l'API a cessé de les émettre le 21/08 —
+leurs lignes `wait_times` restent ouvertes avec un `lastSeenAt` figé, et
+`getLatestWaitTimesByPark` les écarte au-delà de `STALE_WAIT_TIME_MS` (3 jours).
+La carte n'avait donc plus rien à contenir et disparaissait alors même qu'on
+venait de demander l'inverse.
+
+⚠️ La carte vide n'apparaît QUE dans l'onglet des temps d'attente (le défaut),
+jamais dans les deux : le même encadré vide de part et d'autre du sélecteur se
+lirait comme deux événements distincts. `EventCard` portait déjà `isEmpty` /
+`emptyLabel` pour ça — c'est l'appelant qui ne s'en servait pas.
+
+⚠️ **`NON_DAY_HOUR_TYPES` exclut `event`** (billet séparé) mais PAS `extension`
+(même billet, journée prolongée). Une nocturne qui court jusqu'à 1 h rouvrirait
+sinon le droit aux alertes de réouverture sur TOUTES les attractions, y compris
+celles de jour arrêtées pour la nuit, et étirerait l'axe du graphique du jour.
+
 ### Historique & tendances — SUPPRIMÉS (2026-07-27)
 
 Les flèches de tendance et l'historique global du jour, suspendus depuis
