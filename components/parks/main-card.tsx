@@ -60,9 +60,9 @@ const STACK_BOTTOM = "rounded-b-4xl";
 /**
  * Classes d'arrondi d'une carte selon sa place dans la colonne.
  *
- * ⚠️ `isFirst` est FAUX dès qu'une carte la précède, y compris celle des
- * onglets : le sélecteur fait partie de la pile, c'est lui qui en porte alors le
- * bord haut.
+ * ⚠️ Seules les cartes de DONNÉES entrent dans ce calcul. Le sélecteur
+ * d'onglets n'en fait pas partie : c'est une pastille posée au-dessus de la
+ * pile, pas une tranche du bloc (voir le commentaire au point de rendu).
  */
 function stackRadius(isFirst: boolean, isLast: boolean) {
   return cn(STACK_JOINT, isFirst && STACK_TOP, isLast && STACK_BOTTOM);
@@ -71,13 +71,10 @@ function stackRadius(isFirst: boolean, isLast: boolean) {
 /** Une carte de la colonne, en attente de savoir où elle atterrit. */
 type StackCard = (radius: string) => React.ReactNode;
 
-/**
- * Rend une pile de cartes en donnant à chacune ses arrondis.
- * `headed` : une carte (celle des onglets) occupe déjà le haut de la colonne.
- */
-function renderStack(cards: StackCard[], headed = false) {
+/** Rend une pile de cartes en donnant à chacune ses arrondis. */
+function renderStack(cards: StackCard[]) {
   return cards.map((card, i) =>
-    card(stackRadius(!headed && i === 0, i === cards.length - 1)),
+    card(stackRadius(i === 0, i === cards.length - 1)),
   );
 }
 
@@ -453,60 +450,65 @@ export default function MainCard({
       onValueChange={setActiveTab}
       className={CARD_STACK}
     >
-      {/* Le sélecteur d'onglets a sa PROPRE carte : c'est de la navigation, pas
-          de la donnée. Le mélanger au contenu, c'était faire de l'un des deux
-          blocs le « propriétaire » visuel des onglets. */}
-      <Card className={cn("w-full p-1.5 sm:p-2", stackRadius(true, false))}>
-        {/* ⚠️ L'intérieur NE SUIT PAS l'arrondi de la carte. La jointure du bas
-            est presque droite, mais aplatir la liste et la pastille pour rester
-            concentrique donnait un galet coupé au couteau. Le sélecteur est un
-            objet à lui, posé DANS la carte : il reste une pastille. */}
-        <TabsList className="relative w-full overflow-hidden rounded-3xl">
-          {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
-              Deux onglets de largeur égale -> largeur 50% (moins le padding),
-              translation 0% / 100%. Courbe d'accélération type iOS. */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] rounded-3xl bg-background shadow-sm dark:border dark:border-input dark:bg-input/30"
-            style={{
-              transform:
-                activeTab === "show-times"
-                  ? "translateX(100%)"
-                  : "translateX(0%)",
-              transitionProperty: "transform",
-              transitionDuration: "1000ms",
-              transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
-            }}
-          />
-          <TabsTrigger
-            value="wait-times"
-            className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
-          >
-            {/* Ondes de diffusion, pas une horloge : l'onglet ne parle plus de
-                temps d'attente mais de tout ce qui est vrai MAINTENANT. */}
-            <Radio />
-            {tTabs("live")}
-          </TabsTrigger>
-          <TabsTrigger
-            value="show-times"
-            className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
-          >
-            {/* Calendrier + horloge : des heures dans une journée. Les masques
-                de théâtre ne valaient que tant que l'onglet ne portait que des
-                spectacles. */}
-            <CalendarClock />
-            {tTabs("schedule")}
-          </TabsTrigger>
-        </TabsList>
-      </Card>
+      {/* ————— Le sélecteur d'onglets n'a PAS de carte autour de lui —————
+          (2026-08-24)
 
-      {/* `headed` : la carte des onglets tient déjà le haut de la colonne, la
-          première carte de contenu n'a donc qu'une jointure au-dessus d'elle. */}
+          Il en avait une, qui portait alors le haut de la colonne. Elle est
+          retirée parce qu'elle empilait deux formes contradictoires : une carte
+          de 48 px arrondie à 32 px EN HAUT et 8 px en bas — donc une arche —
+          enfermant une pastille, elle, parfaitement ronde. Rendre l'arche
+          concentrique demandait d'aplatir la pastille (« un galet coupé au
+          couteau »), et l'arrondir partout revenait à dessiner deux galets
+          imbriqués.
+
+          ⚠️ **La pastille se suffit à elle-même** : c'est de la navigation, pas
+          de la donnée, et elle n'a jamais eu besoin d'un fond pour se poser.
+          Conséquence à ne pas oublier — la première carte de CONTENU redevient
+          le haut de la pile et reprend son gros arrondi (`renderStack` sans
+          `headed`). */}
+      <TabsList className="relative mb-1 w-full overflow-hidden rounded-3xl">
+        {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
+            Deux onglets de largeur égale -> largeur 50% (moins le padding),
+            translation 0% / 100%. Courbe d'accélération type iOS. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] rounded-3xl bg-background shadow-sm dark:border dark:border-input dark:bg-input/30"
+          style={{
+            transform:
+              activeTab === "show-times"
+                ? "translateX(100%)"
+                : "translateX(0%)",
+            transitionProperty: "transform",
+            transitionDuration: "1000ms",
+            transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
+          }}
+        />
+        <TabsTrigger
+          value="wait-times"
+          className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+        >
+          {/* Ondes de diffusion, pas une horloge : l'onglet ne parle plus de
+              temps d'attente mais de tout ce qui est vrai MAINTENANT. */}
+          <Radio />
+          {tTabs("live")}
+        </TabsTrigger>
+        <TabsTrigger
+          value="show-times"
+          className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+        >
+          {/* Calendrier + horloge : des heures dans une journée. Les masques
+              de théâtre ne valaient que tant que l'onglet ne portait que des
+              spectacles. */}
+          <CalendarClock />
+          {tTabs("schedule")}
+        </TabsTrigger>
+      </TabsList>
+
       <TabsContent value="wait-times" className={CARD_STACK}>
-        {renderStack(waitTimesStack, true)}
+        {renderStack(waitTimesStack)}
       </TabsContent>
       <TabsContent value="show-times" className={CARD_STACK}>
-        {renderStack(showsStack, true)}
+        {renderStack(showsStack)}
       </TabsContent>
 
       {footer}

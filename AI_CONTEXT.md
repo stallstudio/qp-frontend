@@ -913,11 +913,18 @@ la nouvelle référence d'objet à chaque rafraîchissement ne le relance pas.
   c'est la COLONNE de cartes de la page parc (onglets, événement, attractions,
   demain restaurants et files virtuelles). Elle se lit comme UN BLOC TRANCHÉ :
   `stackRadius(isFirst, isLast)` pose `rounded-lg` sur les jointures et
-  `rounded-t-4xl`/`rounded-b-4xl` aux deux bouts — la carte des onglets en est
-  le premier maillon, et `EventCard`/`SectionCard` reçoivent leurs angles par
-  `className` (elles ignorent leur place dans la pile).
-  ⚠️ L'INTÉRIEUR du sélecteur reste en `rounded-3xl` : le rendre concentrique
-  avec une jointure quasi droite donnait un galet coupé au couteau.
+  `rounded-t-4xl`/`rounded-b-4xl` aux deux bouts ; `EventCard`/`SectionCard`
+  reçoivent leurs angles par `className` (elles ignorent leur place dans la
+  pile).
+  ⚠️ **Le sélecteur d'onglets n'a PLUS de carte autour de lui** (2026-08-24) et
+  ne fait donc plus partie de la pile : la première carte de DONNÉES en porte de
+  nouveau le bord haut (`renderStack` n'a plus de paramètre `headed`). La carte
+  retirée empilait deux formes contradictoires — 48 px de haut, arrondie à 32 px
+  EN HAUT et 8 px en bas, donc une arche — autour d'une pastille, elle,
+  parfaitement ronde. Les deux issues concentriques avaient déjà été écartées :
+  aplatir la pastille donnait « un galet coupé au couteau », l'arrondir partout
+  dessinait deux galets imbriqués. La pastille se suffit à elle-même — c'est de
+  la navigation, pas de la donnée.
 - `section-card.tsx` = carte TITRÉE, cousine sobre d'`event-card.tsx` (même
   géométrie d'en-tête, sans état ni repli ni teinte). **Le titre nomme la
   SOURCE, pas l'onglet** (« Attractions », pas « Temps d'attente ») : c'est ce
