@@ -94,20 +94,41 @@ export default function ImageSection({
         </div>
       )}
 
-      {/* Crédit : l'image vient de l'API du parc, jamais de nous. Même
-          emplacement et même mise en forme que le crédit d'une bannière de parc
+      {/* Crédit : l'image vient de l'API du parc, jamais de nous. Même mise en
+          forme que le crédit d'une bannière de parc
           (`components/parks/cover-image.tsx`).
 
           ⚠️ Rien à créditer quand c'est notre image par défaut qui s'affiche —
           d'où `showBanner` et non `credit` seul. Il arrive en même temps que
-          l'image : sur le skeleton clair, ce blanc translucide serait invisible. */}
+          l'image : sur le skeleton clair, ce blanc translucide serait invisible.
+
+          ⚠️⚠️ **`pointer-events-none`, et ce n'est pas une précaution.** Ce bloc
+          était posé en `top-3 right-4 z-50`, c'est-à-dire PILE sur la croix de
+          fermeture du dialogue (`top-4 right-4` dans `components/ui/dialog.tsx`),
+          et au-dessus d'elle. Un texte décoratif volait donc les clics du seul
+          bouton qui referme le popup — au doigt comme à la souris. Un crédit ne
+          doit JAMAIS être une cible : c'est vrai ici, ce le restera où qu'on le
+          déplace.
+
+          ⚠️ `right-12` et non `right-4` : la croix occupe les 32 premiers pixels
+          depuis le bord. Le `pointer-events-none` suffirait à débloquer le clic,
+          mais le crédit resterait illisible SOUS la croix.
+
+          ⚠️ **Même BOÎTE que la croix, pas un décalage à la main** : `top-4` +
+          `h-4` + `items-center`, exactement les `top-4` et `size-4` du bouton de
+          `dialog.tsx`. Les deux centres tombent donc sur la même ligne, et ils y
+          restent si la taille du texte change — un `top-3` calé à l'œil se
+          désalignait de 5 px, et se serait désaligné autrement au premier
+          ajustement. */}
       {showBanner && credit && (
         <div
-          className={`absolute top-3 right-4 z-50 transition-opacity duration-500 ease-out ${
+          className={`pointer-events-none absolute top-4 right-12 z-10 flex h-4 items-center transition-opacity duration-500 ease-out ${
             loaded ? "opacity-100" : "opacity-0"
           }`}
         >
-          <span className="text-[10px] text-white/60">© {credit}</span>
+          <span className="text-[10px] leading-none text-white/60">
+            © {credit}
+          </span>
         </div>
       )}
 
