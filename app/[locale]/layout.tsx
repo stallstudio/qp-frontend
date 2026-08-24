@@ -12,6 +12,8 @@ import { FavoritesProvider } from "@/components/providers/favorites-provider";
 import { NotificationsProvider } from "@/components/providers/notifications-provider";
 import CookieConsent from "@/components/cookie-consent";
 import { getSiteUrl } from "@/lib/site-url";
+import { headers } from "next/headers";
+import { COUNTRY_HEADERS, regionalDefaults } from "@/lib/regional-defaults";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -106,10 +108,37 @@ export default async function LocaleLayout({
 
   const messages = await getMessages();
 
+  // ————— Défauts d'affichage, déduits de la REQUÊTE —————
+  //
+  // ⚠️ **Calculés ici et passés en props**, jamais lus dans le navigateur au
+  // premier rendu : c'est ce qui supprime l'erreur d'hydratation des deux
+  // providers, et ce qui sert du 12 h à un Américain dès la première image.
+  // Le détail des règles est dans `lib/regional-defaults.ts`.
+  //
+  // ⚠️ **`headers()` rend ce layout DYNAMIQUE**, donc tout ce qu'il enveloppe.
+  // Le coût est nul en pratique : l'accueil et la page d'un parc sont déjà en
+  // `force-dynamic` (temps d'attente et classement des populaires sont vivants),
+  // et il ne reste que quelques pages secondaires à ne plus pouvoir être
+  // pré-rendues.
+  //
+  // ⚠️ **Conséquence pour un cache PARTAGÉ** : deux visiteurs de `/en/...` ne
+  // reçoivent plus forcément le même HTML — `en-US` donne 12 h et Fahrenheit,
+  // `en-GB` donne 24 h et Celsius. Un CDN posé devant l'application devrait donc
+  // faire varier sur `accept-language` et l'en-tête de pays, ou ne pas mettre
+  // ces pages en cache du tout (ce qui est le cas aujourd'hui).
+  const requestHeaders = await headers();
+  const defaults = regionalDefaults({
+    locale,
+    acceptLanguage: requestHeaders.get("accept-language"),
+    countryCode: COUNTRY_HEADERS.map((name) => requestHeaders.get(name)).find(
+      (value) => value !== null,
+    ),
+  });
+
   return (
     <NextIntlClientProvider messages={messages}>
-      <TimeFormatProvider>
-        <TemperatureUnitProvider>
+      <TimeFormatProvider defaultFormat={defaults.timeFormat}>
+        <TemperatureUnitProvider defaultUnit={defaults.temperatureUnit}>
           <AuthSessionProvider>
             <UserProvider>
               {/* AuthGateProvider avant FavoritesProvider : `useFavorites`
