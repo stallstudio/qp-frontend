@@ -1,6 +1,6 @@
 import { TimeSlot, WaitTime } from "@/types/waitTime";
 import { getPrisma } from "./prisma";
-import { proxiedImageUrl } from "@/lib/image-proxy";
+import { readBanner } from "@/lib/poi-banner";
 
 function parseTimeSlot(raw: unknown): TimeSlot | null {
   if (!raw || typeof raw !== "object") return null;
@@ -33,26 +33,6 @@ function parseTimeSlot(raw: unknown): TimeSlot | null {
 // (2026-08-16), et à 7 jours elles s'affichaient encore « Fermé » sur la page
 // du parc trois jours après la fin de l'événement.
 const STALE_WAIT_TIME_MS = 3 * 24 * 60 * 60 * 1000;
-
-/**
- * La bannière que la source du parc publie, quand elle en publie une.
- *
- * ⚠️ **`additionalData` est un `Json` libre, écrit par le worker** : sa forme
- * n'est garantie par aucun type. On la sonde donc au lieu de la caster — une
- * source qui changerait de structure ne doit pas faire tomber la page d'un parc
- * pour une image.
- *
- * ⚠️ **L'URL rendue n'est PAS celle du parc**, mais un chemin local signé :
- * `proxiedImageUrl` la fait passer par notre domaine. Sans quoi il faudrait
- * déclarer l'hôte de chaque parc dans `next.config.ts` — une liste qui se
- * périme au premier parc suivant. Voir `lib/image-proxy.ts`.
- */
-function readBanner(value: unknown): string | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const banner = (value as Record<string, unknown>).banner;
-  if (typeof banner !== "string") return null;
-  return proxiedImageUrl(banner);
-}
 
 export async function getLatestWaitTimesByPark(
   parkId: number,

@@ -20,4 +20,10 @@ export interface ShowTime {
    * grilles, deux axes.
    */
   eventId: number | null;
+  /**
+   * Bannière publiée par la source du parc pour ce spectacle, sous forme de
+   * chemin LOCAL signé (voir `lib/poi-banner.ts`), ou `null` quand la source
+   * n'en publie pas — le popup retombe alors sur l'image par défaut.
+   */
+  banner: string | null;
 }

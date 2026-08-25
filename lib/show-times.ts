@@ -1,5 +1,6 @@
 import { ShowTime } from "@/types/show";
 import { getPrisma } from "./prisma";
+import { readBanner } from "@/lib/poi-banner";
 
 export async function getShowTimesByParkAndDate(
   parkId: number,
@@ -37,6 +38,7 @@ export async function getShowTimesByParkAndDate(
           // Sans requête supplémentaire : `include: { poi: true }` ci-dessus
           // ramène déjà la ligne complète du spectacle.
           eventId: st.poi?.eventId ?? null,
+          banner: readBanner(st.poi?.additionalData),
           schedules: [],
         });
       }

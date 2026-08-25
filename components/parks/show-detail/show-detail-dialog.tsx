@@ -102,6 +102,8 @@ export default function ShowDetailDialog({
                   url: "https://thrills.world",
                   label: t("thrillsLink"),
                 }}
+                banner={target.banner}
+                credit={parkName}
               />
             </div>
 
