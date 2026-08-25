@@ -41,6 +41,23 @@ if (allowedImageHosts.length === 0 && process.env.NODE_ENV === "production") {
 
 const nextConfig: NextConfig = {
   output: "standalone",
+
+  /**
+   * ⚠️ **Sharp ne survit pas au build `standalone` sans ça.**
+   *
+   * Le tracing de Next suit les `require` et copie bien le binaire
+   * `@img/sharp-<plateforme>/lib/sharp-<plateforme>.node`. Mais ce binaire
+   * charge ENSUITE `libvips-cpp.so` par `dlopen`, à l'exécution : aucune
+   * analyse statique ne peut le voir, et la route répond 500 à l'IMPORT du
+   * module — hors de tout `try` du handler. Le même piège a déjà coûté l'upload
+   * CDN de l'admin.
+   *
+   * `/api/image` redimensionne les bannières trop lourdes (voir sa route) ;
+   * c'est la seule route qui charge sharp explicitement.
+   */
+  outputFileTracingIncludes: {
+    "/api/image": ["./node_modules/@img/**/*", "./node_modules/sharp/**/*"],
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

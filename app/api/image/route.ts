@@ -15,10 +15,38 @@ import { verifyImageSignature } from "@/lib/image-proxy";
  * pas à chaque visiteur.
  */
 
-// Une bannière de parc pèse quelques centaines de kilo-octets ; au-delà de 10 Mo
-// ce n'est plus une bannière, et rien ne justifie de le faire transiter.
-const TAILLE_MAX = 10 * 1024 * 1024;
-const DELAI_MS = 8000;
+// Au-delà de ce poids, l'image est REDIMENSIONNÉE avant d'être servie, elle
+// n'est plus refusée.
+//
+// ⚠️ **Refuser était le comportement d'origine, et il a coûté des bannières
+// muettes.** Les sources publient des fichiers de photographe : `Serpent Slayer`
+// (Dreamworld) pèse 24,6 Mo en 8192 x 5464, Bellewaerde monte à 35,9 Mo,
+// Walibi Nederland à 28,6 Mo. Un `413` ici devient un `400` à l'étage de
+// l'optimiseur — dont l'amont n'a pas répondu 200 —, et la vignette disparaît
+// sans que rien ne l'explique : la même URL ouverte à la main s'affiche très
+// bien. Sur 249 bannières tirées au sort dans la base, trois dépassaient
+// 10 Mo, soit environ 200 POI à l'échelle du catalogue, et chaque parc ajouté
+// en apporte d'autres.
+//
+// Le worker borne déjà ce qu'il peut À LA SOURCE (`utils/poi.boundImageUrl` :
+// Cloudinary, imgix, Sanity servent l'image à 1600 px). Mais les CDN qui ne
+// redimensionnent pas par URL — sondés, ce sont justement Walibi et
+// Bellewaerde — ne peuvent être traités qu'ici.
+const TAILLE_COMPRESSION = 2 * 1024 * 1024;
+
+// Plafond DUR, lui : au-delà, on ne télécharge même pas. Il protège la mémoire
+// du serveur, ce que le seuil ci-dessus ne fait plus.
+const TAILLE_MAX = 48 * 1024 * 1024;
+
+// Largeur servie après redimensionnement. L'optimiseur de Next reprend derrière
+// pour la taille réellement demandée par la page ; 1600 px lui laisse de quoi
+// travailler sur un écran à haute densité.
+const LARGEUR_MAX = 1600;
+
+// ⚠️ Relevé de 8 à 20 s AVEC le redimensionnement : télécharger 30 Mo depuis un
+// CDN lent dépasse allègrement huit secondes, et un délai dépassé ici est
+// exactement la panne qu'on vient de corriger.
+const DELAI_MS = 20000;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -70,10 +98,12 @@ export async function GET(request: NextRequest) {
       return new NextResponse("Image trop volumineuse", { status: 413 });
     }
 
-    return new NextResponse(corps, {
+    const { corps: servi, type: typeServi } = await compresserSiBesoin(corps, type);
+
+    return new NextResponse(servi, {
       headers: {
-        "Content-Type": type,
-        "Content-Length": String(corps.byteLength),
+        "Content-Type": typeServi,
+        "Content-Length": String(servi.byteLength),
         // Une URL signée désigne une image immuable : son contenu change, son
         // URL change. Un an de cache, sans revalidation.
         "Cache-Control": "public, max-age=31536000, immutable",
@@ -87,5 +117,52 @@ export async function GET(request: NextRequest) {
     // l'image par défaut. Rien à journaliser, une source de parc qui tombe est
     // un événement ordinaire.
     return new NextResponse("Image injoignable", { status: 502 });
+  }
+}
+
+/**
+ * Ramène une image trop lourde à une taille raisonnable, format d'origine
+ * conservé.
+ *
+ * ⚠️ **Le redimensionnement se fait à la DÉCOMPRESSION** (`resize` posé avant
+ * la lecture des pixels) : libjpeg et libwebp savent décoder directement à
+ * l'échelle demandée, ce qui évite de tenir un bitmap de 8192 x 5464 en mémoire
+ * pour en sortir 1600 px. C'est ce qui rend l'opération tenable dans un
+ * conteneur.
+ *
+ * ⚠️ **Jamais d'agrandissement** (`withoutEnlargement`) : une image légère mais
+ * étroite ne doit pas ressortir interpolée, plus lourde qu'à l'arrivée.
+ *
+ * ⚠️ **Un échec n'est pas fatal** : mieux vaut servir l'original lourd que rien
+ * du tout. Sharp refuse certains fichiers exotiques, et ce n'est pas une raison
+ * pour faire disparaître une bannière.
+ */
+async function compresserSiBesoin(
+  corps: Buffer<ArrayBuffer>,
+  type: string,
+): Promise<{ corps: Uint8Array<ArrayBuffer>; type: string }> {
+  if (corps.byteLength <= TAILLE_COMPRESSION) return { corps, type };
+
+  try {
+    const { default: sharp } = await import("sharp");
+
+    const reduit = await sharp(corps, { failOn: "none" })
+      .rotate()
+      .resize({ width: LARGEUR_MAX, withoutEnlargement: true })
+      .jpeg({ quality: 82, mozjpeg: true })
+      .toBuffer();
+
+    // Un format déjà mieux compressé que notre JPEG (un WebP compact, par
+    // exemple) ne doit pas être remplacé par plus lourd.
+    if (reduit.byteLength >= corps.byteLength) return { corps, type };
+
+    // Recopié dans un `ArrayBuffer` à lui : le `Buffer` de sharp partage le
+    // pool interne de Node, que la signature de `Response` n'accepte pas.
+    const octets = new Uint8Array(reduit.byteLength);
+    octets.set(reduit);
+
+    return { corps: octets, type: "image/jpeg" };
+  } catch {
+    return { corps, type };
   }
 }
