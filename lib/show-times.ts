@@ -2,9 +2,23 @@ import { ShowTime } from "@/types/show";
 import { getPrisma } from "./prisma";
 import { readBanner } from "@/lib/poi-banner";
 
-export async function getShowTimesByParkAndDate(
+/**
+ * Créneaux d'un parc pour une ou plusieurs dates de RANGEMENT.
+ *
+ * ⚠️ **Plusieurs dates, parce que la date d'une ligne n'est pas la journée
+ * d'exploitation.** Les sources datent un créneau au calendrier du fuseau du
+ * parc : une nocturne 19:00 → 01:00 range donc ses dernières représentations
+ * sous le lendemain. Charger la seule date logique les faisait disparaître de la
+ * grille au moment précis où on les regardait — passé minuit, en pleine séance.
+ *
+ * Le tri définitif se fait ensuite sur les horaires, pas sur la date :
+ * `limitShowsToSessions` (voir `lib/show-window.ts`) ne garde que les créneaux
+ * qui tombent dans une séance du jour. Cette fonction ratisse donc large,
+ * volontairement.
+ */
+export async function getShowTimesByParkAndDates(
   parkId: number,
-  date: string,
+  dates: string[],
 ): Promise<ShowTime[]> {
   try {
     const prisma = getPrisma();
@@ -12,7 +26,7 @@ export async function getShowTimesByParkAndDate(
     const showTimes = await prisma.showTime.findMany({
       where: {
         parkId,
-        date,
+        date: { in: dates },
         poiId: {
           not: null,
         },

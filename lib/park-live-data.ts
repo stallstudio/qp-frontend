@@ -5,7 +5,8 @@ import {
   getOpeningHoursByParkAndDate,
 } from "@/lib/opening-hours";
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
-import { getShowTimesByParkAndDate } from "@/lib/show-times";
+import { getShowTimesByParkAndDates } from "@/lib/show-times";
+import { limitShowsToSessions } from "@/lib/show-window";
 import { getWeatherByParkAndDate } from "@/lib/weather";
 import { getParkEventsByDate } from "@/lib/park-events-db";
 import { isAdminViewer } from "@/lib/auth-helpers";
@@ -43,6 +44,19 @@ export type ParkIdentity = {
   // C'est ce qui permet à la page d'afficher son bandeau d'avertissement.
   display: boolean;
 };
+
+/**
+ * Date de rangement suivante, en YYYY-MM-DD.
+ *
+ * ⚠️ Arithmétique en UTC sur une date NUE, sans fuseau : `2026-08-25` suivi de
+ * `2026-08-26`, où que soit le parc. Passer par son fuseau n'apporterait rien —
+ * on ne cherche pas un instant, mais l'étiquette du casier d'à côté.
+ */
+function nextDay(date: string): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
 
 export function normalizeCover(raw: unknown): CoverImage[] | null {
   if (!raw || !Array.isArray(raw) || raw.length === 0) return null;
@@ -130,9 +144,14 @@ export const buildParkLiveData = cache(
 
     // Requêtes indépendantes : lancées en parallèle plutôt qu'en série (c'était
     // quatre allers-retours enchaînés dans la route d'origine).
+    //
+    // ⚠️ Les spectacles se chargent sur DEUX dates de rangement : une séance qui
+    // dépasse minuit range ses dernières représentations sous le lendemain (voir
+    // `getShowTimesByParkAndDates`). Elles sont retriées juste après sur les
+    // horaires, jamais sur la date.
     const [waitTimes, showTimes, openingHours, daily] = await Promise.all([
       getLatestWaitTimesByPark(park.id, park.lastUpdatedAt),
-      getShowTimesByParkAndDate(park.id, today),
+      getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
       getOpeningHoursByParkAndDate(park.id, today),
       getWeatherByParkAndDate(park.id, today),
     ]);
@@ -141,6 +160,13 @@ export const buildParkLiveData = cache(
     // session, donc la fenêtre du jour de chaque événement. Les charger d'abord
     // évite une seconde requête sur `opening_hours`.
     const events = await getParkEventsByDate(park.id, today, openingHours ?? []);
+
+    // Chaque créneau est rendu à la SÉANCE qui le contient — un spectacle
+    // d'événement à celles de son événement, les autres à l'exploitation de
+    // jour. C'est ce qui retire les représentations de la nuit PRÉCÉDENTE, que
+    // leur date calendaire range sous aujourd'hui, et ce qui garde celles de la
+    // nuit en cours, rangées sous demain.
+    const shows = limitShowsToSessions(showTimes ?? [], openingHours ?? []);
 
     // Fusion météo « live » (courant, ligne Park) + prévision du jour (daily).
     // `null` seulement si on n'a NI courant NI prévision.
@@ -166,7 +192,7 @@ export const buildParkLiveData = cache(
         queueTypeLabels: park.queueTypeLabels,
         openingHours: openingHours ?? [],
         waitTimes,
-        shows: showTimes ?? [],
+        shows,
         weather,
         events,
         lastUpdate:

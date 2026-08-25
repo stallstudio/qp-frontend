@@ -376,6 +376,43 @@ par la tolérance ; 丝路盛景 (150 / 150) reste sous le seuil.
   « maintenant » se teste sur sa **position** (il disparaissait après minuit quand
   on le comparait à `now.hour`).
 
+#### La date d'un créneau n'est pas sa journée d'exploitation (2026-08-25)
+
+⚠️ **Une nocturne à cheval sur minuit est coupée en deux par le CALENDRIER, pas
+par l'exploitation.** Les sources datent chaque créneau au jour local : Halloween
+Horror Nights tourne de 19:00 à 01:00, ses dernières représentations sont donc
+rangées sous le LENDEMAIN, et celles de la veille sous AUJOURD'HUI.
+
+Mesuré sur Universal Studios Florida le 25/08 à 16:00 : la carte HHN affichait
+les représentations de 00:00, 00:30 et 00:45 — la fin de la nuit du 24 — déjà
+grisées, sous un en-tête annonçant « Ouvre à 19:00 ». Le symétrique était pire :
+passé minuit, les représentations de la nuit EN COURS disparaissaient de la
+grille, rangées sous une date que personne ne chargeait.
+
+Deux pièces, et il faut les deux :
+
+1. `getShowTimesByParkAndDates` charge le jour logique **et le lendemain** — la
+   date en base ne sert plus que de pré-filtre grossier ;
+2. `limitShowsToSessions` (`lib/show-window.ts`, module PUR) ne garde que les
+   créneaux qui tombent dans une **séance** du jour, à une heure près. Un
+   spectacle sans créneau restant est retiré — donc la carte d'événement ne se
+   rend pas, ce qui vaut mieux qu'une grille montrant la nuit d'avant.
+
+⚠️ **Les deux camps n'ont pas la même fenêtre.** Un spectacle tagué `eventId`
+n'est confronté qu'aux séances de SON événement — c'est ce qui écarte la nuit
+précédente, dont les heures tombent en plein dans la journée d'aujourd'hui. Un
+spectacle NON tagué, lui, est confronté à **toutes** les séances, nocturnes
+comprises : le restreindre à l'exploitation de jour supprimerait les
+représentations de 23:00 d'un parc dont la nocturne existe mais dont les
+spectacles ne sont pas tagués. Une donnée incomplète ne doit pas faire
+disparaître de la donnée juste.
+
+⚠️ Sans horaires publiés, **rien n'est filtré** : le repli garde la donnée telle
+quelle, faute de quoi la grille disparaîtrait chez tous les parcs muets sur leurs
+horaires. Côté worker, `showService.saveShowTimes` re-date en parallèle chaque
+créneau sur la séance qui le contient (`utils/operatingDay.ts`) — mais seulement
+ceux que la source publie encore, jamais l'historique déjà en base.
+
 ### Événements saisonniers (`lib/park-events.ts`, `components/parks/event-card.tsx`)
 
 Une carte repliable par événement (Halloween, Noël), qui contient les
