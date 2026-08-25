@@ -57,12 +57,60 @@ const STACK_JOINT = "rounded-lg";
 const STACK_TOP = "rounded-t-4xl";
 const STACK_BOTTOM = "rounded-b-4xl";
 
+// ————— Concentricité du sélecteur d'onglets —————
+//
+// Les mêmes rayons, mais en LONGUEURS : une classe utilitaire n'est pas lisible
+// par un `calc()`, or l'intérieur du sélecteur doit se DÉDUIRE de l'extérieur.
+// Une seule règle, appliquée à chaque couche traversée :
+//
+//     rayon intérieur = rayon extérieur − épaisseur qui les sépare
+//
+// Écrire les résultats en dur aurait figé huit valeurs (deux angles × deux
+// couches × deux tailles d'écran) qu'un simple changement de padding aurait
+// désaccordées sans rien casser de visible ailleurs.
+const TAB_GEOMETRY = cn(
+  "[--tab-r-top:2rem]", // = STACK_TOP, `rounded-4xl`
+  "[--tab-r-bottom:var(--radius)]", // = STACK_JOINT, `rounded-lg`
+  "[--tab-r-floor:4px]", // plancher des angles bas, cf. plus bas
+  "[--tab-pad:0.375rem] sm:[--tab-pad:0.5rem]", // épaisseur de la carte
+);
+
+// ⚠️ **En bas, la soustraction ne suffit pas** — et aucune valeur n'y est
+// idéale. La carte n'a là que sa jointure de pile (10 px), plus FINE que les
+// 8 + 3 px de padding qu'on traverse : le calcul tombe à −1 px, un rayon
+// négatif invalide la déclaration CSS, et le coin finit droit dans un angle
+// arrondi. Reprendre tel quel le rayon extérieur ne marche pas davantage : à
+// rayon égal, l'arc intérieur — plus petit — se lit plus GRAS que celui du
+// bord. D'où un plancher : la règle concentrique s'applique, sans jamais
+// descendre sous `--tab-r-floor`. Assez pour ne pas lire comme une coupe,
+// assez discret pour ne pas surpasser la courbe qui l'entoure.
+//
+// Un plancher et non un `4px` en dur : le jour où la carte s'épaissit ou la
+// jointure grossit, c'est le calcul qui doit reprendre la main.
+//
+// ⚠️ Les deux angles bas ne diffèrent que par `_-_3px`, mais ils restent écrits
+// EN TOUTES LETTRES. Tailwind scanne les sources comme du texte : une classe
+// assemblée par template literal n'y apparaît jamais, et le CSS ne serait tout
+// simplement pas généré — sans la moindre erreur au build.
+
+// Couche 1 : la liste épouse la face INTÉRIEURE de la carte (moins son padding).
+const TAB_LIST_RADIUS = cn(
+  "rounded-t-[calc(var(--tab-r-top)_-_var(--tab-pad))]",
+  "rounded-b-[max(var(--tab-r-floor),calc(var(--tab-r-bottom)_-_var(--tab-pad)))]",
+);
+
+// Couche 2 : la pastille et les onglets, retranchés des 3 px de `TabsList`.
+const TAB_PILL_RADIUS = cn(
+  "rounded-t-[calc(var(--tab-r-top)_-_var(--tab-pad)_-_3px)]",
+  "rounded-b-[max(var(--tab-r-floor),calc(var(--tab-r-bottom)_-_var(--tab-pad)_-_3px))]",
+);
+
 /**
  * Classes d'arrondi d'une carte selon sa place dans la colonne.
  *
- * ⚠️ Seules les cartes de DONNÉES entrent dans ce calcul. Le sélecteur
- * d'onglets n'en fait pas partie : c'est une pastille posée au-dessus de la
- * pile, pas une tranche du bloc (voir le commentaire au point de rendu).
+ * ⚠️ `isFirst` est FAUX dès qu'une carte la précède, y compris celle des
+ * onglets : le sélecteur fait partie de la pile, c'est lui qui en porte alors le
+ * bord haut.
  */
 function stackRadius(isFirst: boolean, isLast: boolean) {
   return cn(STACK_JOINT, isFirst && STACK_TOP, isLast && STACK_BOTTOM);
@@ -71,10 +119,13 @@ function stackRadius(isFirst: boolean, isLast: boolean) {
 /** Une carte de la colonne, en attente de savoir où elle atterrit. */
 type StackCard = (radius: string) => React.ReactNode;
 
-/** Rend une pile de cartes en donnant à chacune ses arrondis. */
-function renderStack(cards: StackCard[]) {
+/**
+ * Rend une pile de cartes en donnant à chacune ses arrondis.
+ * `headed` : une carte (celle des onglets) occupe déjà le haut de la colonne.
+ */
+function renderStack(cards: StackCard[], headed = false) {
   return cards.map((card, i) =>
-    card(stackRadius(i === 0, i === cards.length - 1)),
+    card(stackRadius(!headed && i === 0, i === cards.length - 1)),
   );
 }
 
@@ -113,7 +164,10 @@ export default function MainCard({
   // gérée par le hook lui-même. ⚠️ Le décompte est celui du prochain FETCH
   // CLIENT ; il ne dépend plus de `park.lastUpdate`, qui pouvait se figer et
   // arrêter le cycle pour de bon (voir `useAutoRefresh`).
-  const { timeSinceLastUpdate, isRefreshing } = useAutoRefresh(onRefresh, 60000);
+  const { timeSinceLastUpdate, isRefreshing } = useAutoRefresh(
+    onRefresh,
+    60000,
+  );
 
   // Fraîcheur de la DONNÉE (horodatage du worker), à distinguer du décompte
   // ci-dessus. Au-delà de ce délai, la source du parc ne répond plus (ou le parc
@@ -445,70 +499,79 @@ export default function MainCard({
   }
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={setActiveTab}
-      className={CARD_STACK}
-    >
-      {/* ————— Le sélecteur d'onglets n'a PAS de carte autour de lui —————
-          (2026-08-24)
-
-          Il en avait une, qui portait alors le haut de la colonne. Elle est
-          retirée parce qu'elle empilait deux formes contradictoires : une carte
-          de 48 px arrondie à 32 px EN HAUT et 8 px en bas — donc une arche —
-          enfermant une pastille, elle, parfaitement ronde. Rendre l'arche
-          concentrique demandait d'aplatir la pastille (« un galet coupé au
-          couteau »), et l'arrondir partout revenait à dessiner deux galets
-          imbriqués.
-
-          ⚠️ **La pastille se suffit à elle-même** : c'est de la navigation, pas
-          de la donnée, et elle n'a jamais eu besoin d'un fond pour se poser.
-          Conséquence à ne pas oublier — la première carte de CONTENU redevient
-          le haut de la pile et reprend son gros arrondi (`renderStack` sans
-          `headed`). */}
-      <TabsList className="relative mb-1 w-full overflow-hidden rounded-3xl">
-        {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
-            Deux onglets de largeur égale -> largeur 50% (moins le padding),
-            translation 0% / 100%. Courbe d'accélération type iOS. */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] rounded-3xl bg-background shadow-sm dark:border dark:border-input dark:bg-input/30"
-          style={{
-            transform:
-              activeTab === "show-times"
-                ? "translateX(100%)"
-                : "translateX(0%)",
-            transitionProperty: "transform",
-            transitionDuration: "1000ms",
-            transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
-          }}
-        />
-        <TabsTrigger
-          value="wait-times"
-          className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+    <Tabs value={activeTab} onValueChange={setActiveTab} className={CARD_STACK}>
+      {/* Le sélecteur d'onglets a sa PROPRE carte : c'est de la navigation, pas
+          de la donnée. Le mélanger au contenu, c'était faire de l'un des deux
+          blocs le « propriétaire » visuel des onglets. */}
+      <Card
+        className={cn(
+          "w-full p-(--tab-pad)",
+          TAB_GEOMETRY,
+          stackRadius(true, false),
+        )}
+      >
+        {/* ⚠️ L'intérieur SUIT l'arrondi de la carte, angle par angle : très
+            rond en haut (concentrique, à l'épaisseur près), franchement
+            discret en bas où la carte n'a que sa jointure de pile. Le
+            `rounded-3xl` uniforme d'avant gardait le même gros coin partout,
+            y compris là : c'est ce désaccord-là qui se voyait. */}
+        <TabsList
+          className={cn("relative w-full overflow-hidden", TAB_LIST_RADIUS)}
         >
-          {/* Ondes de diffusion, pas une horloge : l'onglet ne parle plus de
-              temps d'attente mais de tout ce qui est vrai MAINTENANT. */}
-          <Radio />
-          {tTabs("live")}
-        </TabsTrigger>
-        <TabsTrigger
-          value="show-times"
-          className="relative z-10 rounded-3xl data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
-        >
-          {/* Calendrier + horloge : des heures dans une journée. Les masques
-              de théâtre ne valaient que tant que l'onglet ne portait que des
-              spectacles. */}
-          <CalendarClock />
-          {tTabs("schedule")}
-        </TabsTrigger>
-      </TabsList>
+          {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
+              Deux onglets de largeur égale -> largeur 50% (moins le padding),
+              translation 0% / 100%. Courbe d'accélération type iOS. */}
+          <span
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] bg-background shadow-sm dark:border dark:border-input dark:bg-input/30",
+              TAB_PILL_RADIUS,
+            )}
+            style={{
+              transform:
+                activeTab === "show-times"
+                  ? "translateX(100%)"
+                  : "translateX(0%)",
+              transitionProperty: "transform",
+              transitionDuration: "1000ms",
+              transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
+            }}
+          />
+          <TabsTrigger
+            value="wait-times"
+            className={cn(
+              "relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent",
+              TAB_PILL_RADIUS,
+            )}
+          >
+            {/* Ondes de diffusion, pas une horloge : l'onglet ne parle plus de
+                temps d'attente mais de tout ce qui est vrai MAINTENANT. */}
+            <Radio />
+            {tTabs("live")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="show-times"
+            className={cn(
+              "relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent",
+              TAB_PILL_RADIUS,
+            )}
+          >
+            {/* Calendrier + horloge : des heures dans une journée. Les masques
+                de théâtre ne valaient que tant que l'onglet ne portait que des
+                spectacles. */}
+            <CalendarClock />
+            {tTabs("schedule")}
+          </TabsTrigger>
+        </TabsList>
+      </Card>
 
+      {/* `headed` : la carte des onglets tient déjà le haut de la colonne, la
+          première carte de contenu n'a donc qu'une jointure au-dessus d'elle. */}
       <TabsContent value="wait-times" className={CARD_STACK}>
-        {renderStack(waitTimesStack)}
+        {renderStack(waitTimesStack, true)}
       </TabsContent>
       <TabsContent value="show-times" className={CARD_STACK}>
-        {renderStack(showsStack)}
+        {renderStack(showsStack, true)}
       </TabsContent>
 
       {footer}

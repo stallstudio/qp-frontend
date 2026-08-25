@@ -913,18 +913,29 @@ la nouvelle référence d'objet à chaque rafraîchissement ne le relance pas.
   c'est la COLONNE de cartes de la page parc (onglets, événement, attractions,
   demain restaurants et files virtuelles). Elle se lit comme UN BLOC TRANCHÉ :
   `stackRadius(isFirst, isLast)` pose `rounded-lg` sur les jointures et
-  `rounded-t-4xl`/`rounded-b-4xl` aux deux bouts ; `EventCard`/`SectionCard`
-  reçoivent leurs angles par `className` (elles ignorent leur place dans la
-  pile).
-  ⚠️ **Le sélecteur d'onglets n'a PLUS de carte autour de lui** (2026-08-24) et
-  ne fait donc plus partie de la pile : la première carte de DONNÉES en porte de
-  nouveau le bord haut (`renderStack` n'a plus de paramètre `headed`). La carte
-  retirée empilait deux formes contradictoires — 48 px de haut, arrondie à 32 px
-  EN HAUT et 8 px en bas, donc une arche — autour d'une pastille, elle,
-  parfaitement ronde. Les deux issues concentriques avaient déjà été écartées :
-  aplatir la pastille donnait « un galet coupé au couteau », l'arrondir partout
-  dessinait deux galets imbriqués. La pastille se suffit à elle-même — c'est de
-  la navigation, pas de la donnée.
+  `rounded-t-4xl`/`rounded-b-4xl` aux deux bouts — la carte des onglets en est
+  le premier maillon, et `EventCard`/`SectionCard` reçoivent leurs angles par
+  `className` (elles ignorent leur place dans la pile).
+  ⚠️ **L'INTÉRIEUR du sélecteur SUIT sa carte, angle par angle** (2026-08-25),
+  au lieu du `rounded-3xl` uniforme d'avant qui gardait le même coin partout —
+  y compris en bas, où la carte n'a que sa jointure de pile. La géométrie vit
+  dans `TAB_GEOMETRY` / `TAB_LIST_RADIUS` / `TAB_PILL_RADIUS` (variables CSS +
+  `calc()`), pour que les rayons se DÉDUISENT du padding au lieu d'être figés à
+  côté de lui — deux couches (carte → liste → pastille) et deux tailles d'écran.
+  - **En haut, concentrique** : `rayon extérieur − épaisseur traversée`, soit
+    32 px moins le padding de la carte, puis moins les 3 px de la `TabsList`.
+  - **En bas, la même règle mais avec un PLANCHER** (`--tab-r-floor`, 4 px).
+    La carte n'y a que 10 px de jointure, plus fin que les 8 + 3 px de padding
+    cumulés : la soustraction tombe à −1 px, un rayon négatif invalide la
+    déclaration CSS, et le coin finit droit dans un angle arrondi. Reprendre
+    tel quel le rayon extérieur ne marche pas davantage — à rayon égal, l'arc
+    intérieur, plus petit, se lit plus GRAS que celui du bord. Aucune valeur
+    n'est idéale : le plancher est l'arbitrage, et il s'efface dès que le
+    calcul repasse au-dessus.
+
+  ⚠️ Les classes sont écrites EN TOUTES LETTRES, jamais assemblées par template
+  literal : Tailwind scanne les sources comme du texte, et une classe construite
+  à l'exécution ne génère aucun CSS — sans erreur au build.
 - `section-card.tsx` = carte TITRÉE, cousine sobre d'`event-card.tsx` (même
   géométrie d'en-tête, sans état ni repli ni teinte). **Le titre nomme la
   SOURCE, pas l'onglet** (« Attractions », pas « Temps d'attente ») : c'est ce
