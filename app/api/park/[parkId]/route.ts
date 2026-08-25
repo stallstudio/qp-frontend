@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { buildParkLiveData } from "@/lib/park-live-data";
+import { buildParkLiveDataForViewer } from "@/lib/park-live-data";
 import { getClientIp, isBlacklisted } from "@/lib/ip-rules";
 import { logParkRequest } from "@/lib/api-request-log";
 import {
@@ -52,7 +52,11 @@ export async function GET(
       );
     }
 
-    const result = await buildParkLiveData(parkId);
+    // Repli admin compris : sans lui, le rafraîchissement automatique d'un parc
+    // masqué recevrait un 404 et le client renverrait à l'accueil (cf.
+    // `fetchParkData` dans park-page-client) — la page s'ouvrirait pour se
+    // refermer soixante secondes plus tard.
+    const result = await buildParkLiveDataForViewer(parkId);
 
     if (result.status === "not-found") {
       log(404);

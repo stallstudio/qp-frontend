@@ -29,6 +29,11 @@ model User {
   email         String?   @unique @db.VarChar(255)
   emailVerified DateTime?
   image         String?   @db.Text
+  // Aperçu des parcs masqués (`parks.display = false`) sur le site public : un
+  // admin ouvre l'URL normale du parc au lieu d'avoir à le publier pour voir son
+  // rendu. Aucun rapport avec la table `users` de la base PRINCIPALE, qui est
+  // celle des comptes de l'admin panel — les deux bases sont disjointes.
+  isAdmin       Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
@@ -22,3 +23,20 @@ export async function requireUserId(): Promise<Guard> {
   }
   return { userId, response: null };
 }
+
+/**
+ * `true` si la personne connectée peut voir les parcs masqués
+ * (`parks.display = false`) comme s'ils étaient publiés.
+ *
+ * Mémoïsé par `cache()` pour la durée d'UNE requête : la page, sa métadonnée et
+ * la route de rafraîchissement peuvent tous poser la question sans multiplier la
+ * lecture de session (qui, en stratégie "database", est une requête SQL).
+ *
+ * ⚠️ À n'appeler QU'APRÈS avoir constaté qu'un parc est introuvable — voir
+ * `resolveParkForViewer` (lib/park-live-data.ts). Le chemin nominal, y compris le
+ * rafraîchissement de 60 s de chaque visiteur, ne doit lire aucune session.
+ */
+export const isAdminViewer = cache(async (): Promise<boolean> => {
+  const session = await auth();
+  return session?.user?.isAdmin === true;
+});

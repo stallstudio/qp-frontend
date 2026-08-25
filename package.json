@@ -11,7 +11,8 @@
     "user:migrate": "prisma migrate dev --config prisma.user.config.ts",
     "user:deploy": "prisma migrate deploy --config prisma.user.config.ts",
     "user:push": "prisma db push --config prisma.user.config.ts",
-    "vapid:generate": "web-push generate-vapid-keys"
+    "vapid:generate": "web-push generate-vapid-keys",
+    "make-admin": "node --env-file=.env scripts/make-admin.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

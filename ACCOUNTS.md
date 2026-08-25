@@ -23,6 +23,12 @@ inter-bases).
 
 Schéma : [`prisma/user/schema.prisma`](prisma/user/schema.prisma).
 
+**`User.isAdmin`** (2026-08-25) : autorise l'aperçu des parcs masqués
+(`parks.display = false`) à leur URL normale — voir « Aperçu admin des parcs
+masqués » dans `AI_CONTEXT.md`. Se pose avec `npm run make-admin -- <email>`
+(`--off` pour retirer) sur un compte déjà créé, et n'a **aucun rapport** avec les
+comptes de l'admin panel, qui vivent dans l'autre base.
+
 ### Authentification (Auth.js v5, sans mot de passe)
 
 - **Google OAuth** + **Magic link** par email (provider Resend).

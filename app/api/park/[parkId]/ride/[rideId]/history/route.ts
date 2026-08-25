@@ -4,6 +4,7 @@ import { getClientIp, isBlacklisted } from "@/lib/ip-rules";
 import { logParkRequest } from "@/lib/api-request-log";
 import { BLOCKED_ERROR, BLOCKED_MESSAGE } from "@/lib/api-disclaimer";
 import { buildRideHistory } from "@/lib/wait-times-history";
+import { isAdminViewer } from "@/lib/auth-helpers";
 import { sampleDaySeries, type TimedPoint } from "@/lib/wait-times-series";
 import type { ConfidenceLevel, RideHistoryResponse } from "@/types/rideHistory";
 
@@ -83,10 +84,22 @@ export async function GET(
       );
     }
 
-    const park = await prisma.park.findUnique({
+    // Même repli admin que la page du parc : sans lui, le graphique du popup
+    // « détail attraction » resterait vide sur un parc masqué, alors que la page
+    // qui l'entoure s'affiche.
+    //
+    // ⚠️ La session n'est lue QUE si le parc est introuvable autrement : le
+    // chemin nominal, appelé à chaque ouverture de popup, n'y perd rien.
+    let park = await prisma.park.findUnique({
       where: { identifier: parkId, display: true },
       select: { id: true, timezone: true },
     });
+    if (!park && (await isAdminViewer())) {
+      park = await prisma.park.findUnique({
+        where: { identifier: parkId },
+        select: { id: true, timezone: true },
+      });
+    }
     if (!park) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }

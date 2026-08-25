@@ -5,9 +5,10 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import ParkPageClient from "@/components/parks/park-page-client";
 import ParkJsonLd from "@/components/parks/park-json-ld";
+import HiddenParkNotice from "@/components/parks/hidden-park-notice";
 import {
-  buildParkLiveData,
-  getParkIdentity,
+  buildParkLiveDataForViewer,
+  resolveParkForViewer,
   type ParkIdentity,
 } from "@/lib/park-live-data";
 import { getRideIdentity, type RideIdentity } from "@/lib/ride-detail";
@@ -53,7 +54,7 @@ async function resolve(parkIdentifier: string, slug: string): Promise<Resolved> 
   const rideId = parseRideSlug(slug);
   if (rideId === null) return { status: "not-found" };
 
-  const park = await getParkIdentity(parkIdentifier);
+  const park = await resolveParkForViewer(parkIdentifier);
   if (park === undefined) return { status: "error" };
   if (park === null) return { status: "not-found" };
 
@@ -82,6 +83,9 @@ export async function generateMetadata({
       absolute: `${ride.name} — ${t("liveWaitTimes")} | ${park.name}`,
     },
     description: t("rideDescription", { ride: ride.name, park: park.name }),
+    // Même filet que sur la page du parc : un parc masqué n'est servi qu'à un
+    // admin, mais rien de ce qu'il contient n'a vocation à être indexé.
+    ...(park.display ? {} : { robots: { index: false, follow: false } }),
     alternates: {
       // La page du parc, PAS cette URL : le contenu servi est le sien.
       canonical: `/${locale}/park/${parkIdentifier}`,
@@ -108,7 +112,7 @@ export default async function RideDeepLinkPage({ params }: PageParams) {
 
   const [resolved, live] = await Promise.all([
     resolve(parkIdentifier, slug),
-    buildParkLiveData(parkIdentifier),
+    buildParkLiveDataForViewer(parkIdentifier),
   ]);
 
   if (resolved.status === "not-found") notFound();
@@ -161,6 +165,7 @@ export default async function RideDeepLinkPage({ params }: PageParams) {
         initialData={live.status === "ok" ? live.data : null}
         initialRideId={ride.id}
       />
+      {park.display === false && <HiddenParkNotice />}
     </>
   );
 }

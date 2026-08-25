@@ -132,6 +132,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session({ session, user }) {
       if (session.user && user) {
         session.user.id = user.id;
+        // `isAdmin` autorise l'aperçu des parcs masqués (voir lib/auth-helpers).
+        // La stratégie est "database" : `user` EST la ligne relue en base à
+        // chaque requête, le drapeau ne coûte donc aucune requête de plus et un
+        // retrait prend effet sans attendre une reconnexion. Le cast contourne
+        // `AdapterUser`, qui ne connaît que les champs standard d'Auth.js.
+        session.user.isAdmin =
+          (user as { isAdmin?: boolean }).isAdmin === true;
       }
       return session;
     },

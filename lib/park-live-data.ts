@@ -8,6 +8,7 @@ import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDate } from "@/lib/show-times";
 import { getWeatherByParkAndDate } from "@/lib/weather";
 import { getParkEventsByDate } from "@/lib/park-events-db";
+import { isAdminViewer } from "@/lib/auth-helpers";
 import type { CoverImage, ParkLiveData, ParkWeather } from "@/types/api";
 
 // Construction des données « live » d'un parc (temps d'attente, spectacles,
@@ -38,6 +39,9 @@ export type ParkIdentity = {
   queueTypeLabels: Record<string, string> | null;
   currentTemp: number | null;
   currentWeatherCode: number | null;
+  // Faux = parc masqué du site, rendu ici parce qu'un admin le prévisualise.
+  // C'est ce qui permet à la page d'afficher son bandeau d'avertissement.
+  display: boolean;
 };
 
 export function normalizeCover(raw: unknown): CoverImage[] | null {
@@ -60,12 +64,24 @@ export function normalizeCover(raw: unknown): CoverImage[] | null {
  * seule requête SQL est émise. Renvoie `null` si le parc n'existe pas (ou n'est
  * pas affichable) et `undefined` si la base est injoignable — la distinction
  * évite de transformer une panne passagère en 404 définitive.
+ *
+ * `includeHidden` lève le filtre `display: true` pour l'aperçu admin. Il n'est
+ * JAMAIS déduit ici : c'est `resolveParkForViewer` qui décide, et lui seul lit
+ * la session.
+ *
+ * ⚠️ **La clé de mémoïsation inclut `includeHidden`.** Deux appels au même parc
+ * avec des valeurs différentes émettent deux requêtes SQL — d'où le repli en
+ * deux temps plutôt qu'un `includeHidden` calculé au petit bonheur par chaque
+ * appelant.
  */
 export const getParkIdentity = cache(
-  async (identifier: string): Promise<ParkIdentity | null | undefined> => {
+  async (
+    identifier: string,
+    includeHidden = false,
+  ): Promise<ParkIdentity | null | undefined> => {
     try {
       const park = await getPrisma().park.findUnique({
-        where: { identifier, display: true },
+        where: includeHidden ? { identifier } : { identifier, display: true },
         select: {
           id: true,
           identifier: true,
@@ -80,6 +96,7 @@ export const getParkIdentity = cache(
           queueTypeLabels: true,
           currentTemp: true,
           currentWeatherCode: true,
+          display: true,
         },
       });
       if (!park) return null;
@@ -97,11 +114,12 @@ export const getParkIdentity = cache(
 
 /**
  * Données live complètes d'un parc déjà résolu. Mémoïsé lui aussi : la page et
- * l'image de partage peuvent le demander dans la même requête.
+ * l'image de partage peuvent le demander dans la même requête (même réserve sur
+ * `includeHidden` dans la clé de cache que `getParkIdentity`).
  */
 export const buildParkLiveData = cache(
-  async (identifier: string): Promise<ParkLiveResult> => {
-    const park = await getParkIdentity(identifier);
+  async (identifier: string, includeHidden = false): Promise<ParkLiveResult> => {
+    const park = await getParkIdentity(identifier, includeHidden);
     if (park === undefined) return { status: "error", reason: "database" };
     if (park === null) return { status: "not-found" };
 
@@ -157,3 +175,40 @@ export const buildParkLiveData = cache(
     };
   },
 );
+
+/**
+ * Parc du point de vue de CELUI QUI REGARDE : le parc affichable, ou — pour un
+ * admin seulement — le parc masqué, rendu comme s'il était publié.
+ *
+ * ⚠️ **La session n'est lue QUE si le parc est introuvable autrement.** C'est
+ * tout l'intérêt du repli en deux temps : un visiteur d'un parc publié, y compris
+ * à chacun de ses rafraîchissements de 60 s, ne déclenche aucune requête de
+ * session. Le second aller-retour SQL n'existe que sur un parc masqué, cas rare
+ * par construction.
+ *
+ * `undefined` (base injoignable) est propagé tel quel, sans consulter la session :
+ * une panne ne doit pas devenir un 404.
+ */
+export async function resolveParkForViewer(
+  identifier: string,
+): Promise<ParkIdentity | null | undefined> {
+  const park = await getParkIdentity(identifier);
+  if (park !== null) return park;
+  if (!(await isAdminViewer())) return null;
+  return getParkIdentity(identifier, true);
+}
+
+/**
+ * Même repli que `resolveParkForViewer`, pour les données live complètes.
+ *
+ * Le « ce parc est masqué » dont la page a besoin pour son bandeau se lit sur
+ * `ParkIdentity.display` — inutile de le renvoyer une seconde fois ici.
+ */
+export async function buildParkLiveDataForViewer(
+  identifier: string,
+): Promise<ParkLiveResult> {
+  const result = await buildParkLiveData(identifier);
+  if (result.status !== "not-found") return result;
+  if (!(await isAdminViewer())) return result;
+  return buildParkLiveData(identifier, true);
+}

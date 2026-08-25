@@ -1061,6 +1061,46 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
   notification) reste dans le fuseau du LECTEUR : c'est un moment qu'il a vécu.
   ⚠️ `ShowReminderHistory` : penser à `npm run user:generate` + `user:push`.
 - i18n : namespaces `userBlock`, `auth`, `profile`, `alerts` (fr+en).
+
+## Aperçu admin des parcs masqués (2026-08-25)
+
+Un parc dont `parks.display = false` reste invisible de tous — sauf des comptes du
+SITE portant `users.isAdmin` (base UTILISATEURS, colonne ajoutée par
+`prisma/user/manual/2026-08-25-user-is-admin.sql`), qui voient sa page à son URL
+normale, comme s'il était publié. C'est ce qui permet de vérifier une couverture,
+un badge ou des horaires avant la mise en ligne, au lieu de publier pour voir.
+
+⚠️ **Ce n'est PAS le compte de l'admin panel.** `tw-waittimes-admin` a sa propre
+table `users` dans la base PRINCIPALE (bcrypt) ; celle-ci est celle du site
+(Auth.js). Les deux bases sont disjointes et l'admin ne se connecte pas à la
+seconde : le drapeau se pose avec `npm run make-admin -- <email>` (`--off` pour le
+retirer), sur un compte **déjà créé**, c'est-à-dire connecté au moins une fois.
+Sessions en base : le retrait prend effet sans reconnexion.
+
+- `resolveParkForViewer()` / `buildParkLiveDataForViewer()`
+  (`lib/park-live-data.ts`) sont un **repli**, pas un contournement : la version
+  filtrée est tentée d'abord, et **la session n'est lue que si le parc est
+  introuvable**. Un visiteur d'un parc publié — y compris à chacun de ses
+  rafraîchissements de 60 s — ne déclenche donc aucune requête de session. C'est
+  la raison de la forme en deux temps plutôt qu'un `includeHidden` que chaque
+  appelant calculerait.
+- ⚠️ `getParkIdentity` / `buildParkLiveData` sont mémoïsés par `cache()` et
+  **`includeHidden` fait partie de la clé** : mélanger les deux formes dans une
+  même requête émet deux fois la requête SQL.
+- Câblé sur : la page parc (+ `robots: noindex` quand le parc est masqué), la
+  page lien profond attraction, `GET /api/park/[parkId]` et
+  `GET /api/park/[parkId]/ride/[rideId]/history`. ⚠️ **La route de
+  rafraîchissement n'est pas optionnelle** : `park-page-client` renvoie à
+  l'accueil sur un 404, la page s'ouvrirait donc pour se refermer 60 s plus tard.
+- **Hors périmètre, volontairement** : l'accueil, la liste des parcs et
+  `app/sitemap.ts` — un parc masqué y reste absent même pour un admin. Les deux
+  `opengraph-image.tsx` non plus (`revalidate = 900` : rendus hors requête, sans
+  cookie à lire), donc image de partage de repli, assumé.
+- `components/parks/hidden-park-notice.tsx` : pastille flottante **en bas**, pas
+  un bandeau en tête — l'en-tête du parc est `fixed z-50` et passerait dessus.
+  Texte non traduit à dessein (seuls les admins le voient ; un namespace pour une
+  phrase coûterait quatorze fichiers de messages).
+
 ## Divers (2026-07-20)
 
 - **Manifest PWA localisé par langue** : route dynamique

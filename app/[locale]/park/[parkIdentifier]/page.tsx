@@ -5,7 +5,11 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import ParkPageClient from "@/components/parks/park-page-client";
 import ParkJsonLd from "@/components/parks/park-json-ld";
-import { buildParkLiveData, getParkIdentity } from "@/lib/park-live-data";
+import HiddenParkNotice from "@/components/parks/hidden-park-notice";
+import {
+  buildParkLiveDataForViewer,
+  resolveParkForViewer,
+} from "@/lib/park-live-data";
 import { logParkRequest } from "@/lib/api-request-log";
 
 // Les temps d'attente sont par nature vivants : la page est rendue à chaque
@@ -20,7 +24,7 @@ export async function generateMetadata({
   const { parkIdentifier, locale } = await params;
   const t = await getTranslations({ locale, namespace: "metadata" });
 
-  const park = await getParkIdentity(parkIdentifier);
+  const park = await resolveParkForViewer(parkIdentifier);
   if (!park) return { title: t("title") };
 
   // Aucune clé `images` ici, volontairement : la vignette est produite par
@@ -29,6 +33,11 @@ export async function generateMetadata({
   return {
     title: { absolute: `${park.name} | ${t("liveWaitTimes")}` },
     description: t("description"),
+    // Un parc masqué n'est servi qu'à un admin — un robot reçoit un 404 et ne
+    // verra jamais ces balises. Le `noindex` est un filet : la page est
+    // `force-dynamic`, donc rendue à la demande, et une erreur de garde ne doit
+    // pas se solder par une page non finie dans l'index.
+    ...(park.display ? {} : { robots: { index: false, follow: false } }),
     alternates: {
       canonical: `/${locale}/park/${parkIdentifier}`,
     },
@@ -58,8 +67,8 @@ export default async function ParkPage({
   // servi contient donc les temps d'attente : c'est ce que voient les moteurs de
   // recherche, et c'est affiché sans attendre un aller-retour réseau.
   const [park, live] = await Promise.all([
-    getParkIdentity(parkIdentifier),
-    buildParkLiveData(parkIdentifier),
+    resolveParkForViewer(parkIdentifier),
+    buildParkLiveDataForViewer(parkIdentifier),
   ]);
 
   // Vrai 404 HTTP, au lieu d'un 200 puis d'une redirection côté client.
@@ -108,6 +117,7 @@ export default async function ParkPage({
         parkIdentifier={parkIdentifier}
         initialData={live.status === "ok" ? live.data : null}
       />
+      {park?.display === false && <HiddenParkNotice />}
     </>
   );
 }
