@@ -241,7 +241,15 @@ export default function ParkShowTimeTable({
     <div className="w-full overflow-hidden">
       <div className="flex">
         {/* Show names column */}
-        <div className="w-9/20 sm:w-2/5 shrink-0 sticky left-0 bg-card border-e z-10 min-w-0">
+        {/* ⚠️ Fond OPAQUE obligatoire : la colonne est `sticky`, les créneaux
+            défileraient visiblement dessous sans lui. Mais `bg-card` en dur
+            plaquait un rectangle GRIS au milieu d'une carte d'événement teintée
+            (Halloween Horror Nights, capture du 25/08) : la carte n'a pas le
+            fond `--card`, elle a un voile orange posé sur le fond de page.
+            `--table-surface` porte cette teinte aplatie, et c'est la carte qui
+            la donne (`event-accents.tsx`) ; hors carte d'événement, personne ne
+            la définit et le repli rend exactement le fond d'avant. */}
+        <div className="w-9/20 sm:w-2/5 shrink-0 sticky left-0 bg-[var(--table-surface,var(--card))] border-e z-10 min-w-0">
           {/* En-tête de la colonne des noms : simple espaceur aligné sur la ligne
               des heures (plus de libellé « MES FAVORIS »). */}
           <div className="h-10 border-b" />

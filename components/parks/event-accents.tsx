@@ -1,5 +1,7 @@
 import { Ghost, Gift, Sparkles, type LucideIcon } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+
 // ————————————————————————————————————————————————————————————————————————
 // HABILLAGE DES CARTES D'ÉVÉNEMENT
 //
@@ -40,15 +42,46 @@ export type AccentStyle = {
   iconClass: string;
 };
 
+// ————— La surface OPAQUE de la carte (`--table-surface`) —————
+//
+// Le fond d'une carte d'événement est un VOILE : `bg-orange-400/12` posé sur le
+// fond de page. Un contenu qui a besoin d'un fond opaque ne peut donc pas s'y
+// fondre en réutilisant un token — c'est ce qui donnait, dans la grille des
+// spectacles, une colonne de noms GRISE plaquée au milieu d'une carte orange :
+// elle porte `bg-card` parce qu'elle est `sticky`, et qu'un fond translucide
+// laisserait défiler les créneaux dessous.
+//
+// D'où cette variable : la MÊME teinte, mais aplatie sur le fond de page. Les
+// deux écritures restent côte à côte, dans le même objet, pour qu'un changement
+// de teinte se voie tout de suite dans les deux.
+//
+// ⚠️ `in srgb`, et pas `in oklab` : on ne cherche pas un joli mélange, on
+// REPRODUIT ce que le navigateur fait déjà en composant `bg-orange-400/12` sur
+// le fond de page — et cette composition-là se fait en sRGB. Mélanger en oklab
+// donnerait une teinte voisine, donc une colonne légèrement décalée du reste de
+// la carte : le défaut qu'on corrige, en plus discret.
+//
+// ⚠️ Écrites EN TOUTES LETTRES, comme les rayons du sélecteur d'onglets :
+// Tailwind scanne les sources comme du texte, une classe assemblée par template
+// literal n'existerait tout simplement pas dans le CSS produit — sans erreur au
+// build.
 const ACCENT_STYLES: Record<string, AccentStyle> = {
   halloween: {
     icon: Ghost,
-    card: "border-orange-300/60 bg-orange-50/70 dark:border-orange-400/40 dark:bg-orange-400/12",
+    card: cn(
+      "border-orange-300/60 bg-orange-50/70 dark:border-orange-400/40 dark:bg-orange-400/12",
+      "[--table-surface:color-mix(in_srgb,var(--color-orange-50)_70%,var(--background))]",
+      "dark:[--table-surface:color-mix(in_srgb,var(--color-orange-400)_12%,var(--background))]",
+    ),
     iconClass: "text-orange-700 dark:text-orange-300",
   },
   christmas: {
     icon: Gift,
-    card: "border-emerald-300/60 bg-emerald-50/70 dark:border-emerald-400/40 dark:bg-emerald-400/12",
+    card: cn(
+      "border-emerald-300/60 bg-emerald-50/70 dark:border-emerald-400/40 dark:bg-emerald-400/12",
+      "[--table-surface:color-mix(in_srgb,var(--color-emerald-50)_70%,var(--background))]",
+      "dark:[--table-surface:color-mix(in_srgb,var(--color-emerald-400)_12%,var(--background))]",
+    ),
     iconClass: "text-emerald-700 dark:text-emerald-300",
   },
 };
