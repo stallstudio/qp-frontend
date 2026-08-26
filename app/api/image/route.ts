@@ -76,13 +76,17 @@ export async function GET(request: NextRequest) {
       return new NextResponse("Image indisponible", { status: 404 });
     }
 
-    const type = amont.headers.get("content-type") ?? "";
+    const declare = amont.headers.get("content-type") ?? "";
 
     // ⚠️ Un SVG peut embarquer du script, et servi depuis NOTRE domaine il
     // s'exécuterait dans NOTRE origine. `next.config.ts` les refuse déjà côté
     // optimiseur (`dangerouslyAllowSVG: false`) ; le refus doit être ici aussi,
     // sans quoi le proxy rouvrirait la porte que la config ferme.
-    if (!type.startsWith("image/") || type.includes("svg")) {
+    //
+    // ⚠️ Refusé sur la DÉCLARATION, avant même de télécharger : c'est le seul
+    // type dont le nom suffit à trancher, et le seul qu'on ne veut pas voir
+    // passer par le renifleur ci-dessous.
+    if (declare.includes("svg")) {
       return new NextResponse("Type non autorisé", { status: 415 });
     }
 
@@ -96,6 +100,32 @@ export async function GET(request: NextRequest) {
     const corps = Buffer.from(await amont.arrayBuffer());
     if (corps.byteLength > TAILLE_MAX) {
       return new NextResponse("Image trop volumineuse", { status: 413 });
+    }
+
+    // ⚠️ **Le `content-type` de l'amont n'est PAS une autorité, et le type
+    // servi est celui des OCTETS.** S'y fier a coûté des catalogues entiers :
+    // mesuré le 2026-08-26 sur les 20 439 bannières de la base, quatre hôtes
+    // servent de VRAIS JPEG — signature `ff d8 ff` vérifiée — sous un type
+    // générique, parce que le CMS du parc a téléversé les fichiers sur S3 sans
+    // métadonnée. `application/octet-stream` chez Beto Carrero (45 POI), Lotte
+    // World (108) et Lotte World Busan (67), `binary/octet-stream` chez Huis
+    // Ten Bosch (141). **361 POI** dont la bannière était refusée en `415` ici,
+    // ce que l'optimiseur de Next traduit par un `400 « The requested resource
+    // isn't a valid image »` — et le même en-tête fait TÉLÉCHARGER l'image au
+    // lieu de l'afficher quand on ouvre l'URL du parc à la main, symptôme par
+    // lequel on l'a vu.
+    //
+    // ⚠️ **Vérifier la signature est plus SÛR que croire l'en-tête, pas plus
+    // laxiste.** Un SVG annoncé `image/png` passait quand le type déclaré
+    // suffisait ; il ne passe plus, puisqu'un SVG est du texte et ne présente
+    // aucune signature binaire. Le prix de cette sévérité a été mesuré avant
+    // d'être payé : sur les 70 hôtes de la base, 63 servent une image reconnue
+    // (48 JPEG, 8 PNG, 7 WebP) et les 7 autres ne servent AUCUNE image — des
+    // pages d'erreur HTML ou des hôtes injoignables, déjà cassés aujourd'hui.
+    // Aucune bannière qui s'affiche ne cesse donc de s'afficher.
+    const type = typeReniffle(corps);
+    if (!type) {
+      return new NextResponse("Type non autorisé", { status: 415 });
     }
 
     const { corps: servi, type: typeServi } = await compresserSiBesoin(corps, type);
@@ -118,6 +148,51 @@ export async function GET(request: NextRequest) {
     // un événement ordinaire.
     return new NextResponse("Image injoignable", { status: 502 });
   }
+}
+
+/**
+ * Le vrai format d'un fichier, lu dans ses premiers octets — ou `null` si ce
+ * n'est pas une image que nous servons.
+ *
+ * ⚠️ **Liste FERMÉE, et c'est ce qui en fait un garde-fou.** Tout ce qui n'est
+ * pas une de ces cinq signatures est refusé : du HTML (une page d'erreur servie
+ * en 200), un PDF, et un SVG — qui est du texte et n'a donc aucune signature
+ * binaire à présenter. Le renifleur ne peut pas élargir ce que la route accepte,
+ * seulement reconnaître ce qu'un en-tête mal renseigné cachait.
+ *
+ * Les octets lus sont ceux du standard de chaque format : `ff d8 ff` pour JPEG,
+ * le préambule PNG de huit octets, `GIF8`, `RIFF` + `WEBP` au huitième octet, et
+ * la boîte `ftyp` d'ISO-BMFF pour AVIF et HEIC.
+ */
+function typeReniffle(corps: Buffer): string | null {
+  if (corps.length < 12) return null;
+
+  if (corps[0] === 0xff && corps[1] === 0xd8 && corps[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (corps.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+    return "image/png";
+  }
+  if (corps.subarray(0, 4).toString("ascii") === "GIF8") {
+    return "image/gif";
+  }
+  if (
+    corps.subarray(0, 4).toString("ascii") === "RIFF" &&
+    corps.subarray(8, 12).toString("ascii") === "WEBP"
+  ) {
+    return "image/webp";
+  }
+  // ISO-BMFF : la marque de format suit la boîte `ftyp`. `avif` et `heic`
+  // partagent le conteneur, `sharp` décode les deux.
+  if (corps.subarray(4, 8).toString("ascii") === "ftyp") {
+    const marque = corps.subarray(8, 12).toString("ascii");
+    if (marque.startsWith("avif") || marque.startsWith("avis")) return "image/avif";
+    if (marque.startsWith("heic") || marque.startsWith("heix") || marque.startsWith("mif1")) {
+      return "image/heic";
+    }
+  }
+
+  return null;
 }
 
 /**
