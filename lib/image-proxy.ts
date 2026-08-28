@@ -26,6 +26,10 @@ import { createHmac, timingSafeEqual } from "crypto";
  * production. La dérivation par étiquette (`HMAC(secret, "image-proxy")`) évite
  * de réutiliser la clé d'authentification telle quelle : une signature d'image
  * ne doit rien pouvoir prouver d'autre.
+ *
+ * ⚠️ **L'URL source voyage ENCODÉE, et ce n'est pas de la coquetterie** — voir
+ * `encoderUrl` plus bas. Un nom de fichier en clair dans la query suffit à
+ * faire annuler la requête par les bloqueurs de publicité du visiteur.
  */
 
 const ETIQUETTE = "image-proxy/v1";
@@ -70,7 +74,69 @@ export function proxiedImageUrl(rawUrl: string): string | null {
   if (parsed.protocol !== "https:") return null;
 
   const url = parsed.toString();
-  return `/api/image?u=${encodeURIComponent(url)}&s=${signature(url)}`;
+  return `/api/image?u=${encoderUrl(url)}&s=${signature(url)}`;
+}
+
+/**
+ * L'URL source, en base64url plutôt qu'en clair.
+ *
+ * ⚠️ **Un nom de fichier en clair dans la query fait ANNULER la requête par le
+ * navigateur du visiteur, et rien côté serveur ne le voit.** Constaté le
+ * 2026-08-28 sur `WildChaseWaterCoaster_300x250.jpg` (Sunway Lagoon) :
+ * `net::ERR_BLOCKED_BY_CLIENT`, alors que l'URL du parc rend un `200` de
+ * 176 Ko. `300x250` est le format IAB « medium rectangle », le pavé
+ * publicitaire le plus répandu du web, et les listes de filtres qu'embarquent
+ * uBlock Origin, AdBlock ou Brave Shields bloquent génériquement toute URL dont
+ * le chemin porte une dimension d'emplacement — sans regarder ce qu'il y a
+ * dedans. Le parc a simplement nommé sa vignette d'après la taille d'un pavé.
+ *
+ * ⚠️ **`encodeURIComponent` ne protégeait de rien** : il n'échappe que les
+ * séparateurs, le nom de fichier restait lisible, et le bloqueur lit la chaîne
+ * ENTIÈRE — donc aussi le `/_next/image?url=…` qui nous enveloppe. Les deux
+ * étages portaient le motif. Le base64url, lui, ne laisse que
+ * `A-Za-z0-9-_` : il n'y a plus rien à reconnaître, et il traverse le `url=` de
+ * l'optimiseur sans ré-encodage.
+ *
+ * ⚠️ **La signature ne change pas de portée** : elle porte toujours sur l'URL
+ * DÉCODÉE. Cet encodage est un transport, pas un secret — il n'ajoute aucune
+ * sécurité et n'en retire aucune.
+ *
+ * ⚠️ **Ça vise la CLASSE, pas les quatre cas du jour.** Mesuré sur les 21 733
+ * bannières du catalogue : quatre visuels portent un format IAB, tous chez
+ * Sunway (Wild Chase Coaster, Giraffe & Friends, Hippo Kingdom, Rabbit
+ * Wonderland), tous en `300x250`. Mais le symptôme est MUET — la vignette
+ * n'apparaît pas, aucune erreur serveur, la même URL s'ouvre très bien à la
+ * main — et chaque parc ajouté peut en apporter d'autres (`728x90`, `160x600`,
+ * `300x600`…).
+ */
+function encoderUrl(url: string): string {
+  return Buffer.from(url, "utf8").toString("base64url");
+}
+
+/**
+ * L'URL source telle que la route doit la lire, ou `null` si le paramètre n'en
+ * porte pas une.
+ *
+ * ⚠️ **La forme EN CLAIR est encore acceptée, et c'est temporaire.** Les
+ * variantes déjà calculées par l'optimiseur de Next vivent sept jours
+ * (`minimumCacheTTL`) et les pages déjà rendues chez un visiteur portent
+ * l'ancienne forme : la refuser d'un coup ferait disparaître des bannières le
+ * temps que les caches tournent. Un `https://` ne peut pas être du base64url —
+ * ni `:` ni `/` n'en font partie —, la distinction est donc exacte et non
+ * heuristique. **Supprimable après le 2026-09-05.**
+ */
+export function decoderUrl(parametre: string): string | null {
+  if (parametre.startsWith("https://")) return parametre;
+
+  let decode: string;
+  try {
+    decode = Buffer.from(parametre, "base64url").toString("utf8");
+  } catch {
+    return null;
+  }
+  // Un base64url invalide ne LÈVE pas, il rend des octets arbitraires : c'est
+  // ce test qui rejette, pas le `catch`.
+  return decode.startsWith("https://") ? decode : null;
 }
 
 /** L'URL est-elle bien l'une des nôtres ? Comparaison à temps constant. */

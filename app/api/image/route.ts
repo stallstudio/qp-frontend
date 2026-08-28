@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyImageSignature } from "@/lib/image-proxy";
+import { decoderUrl, verifyImageSignature } from "@/lib/image-proxy";
 
 /**
  * Sert une image distante SIGNÉE par nous, sur notre domaine.
@@ -50,11 +50,20 @@ const DELAI_MS = 20000;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const url = searchParams.get("u");
+  const parametre = searchParams.get("u");
   const sig = searchParams.get("s");
 
-  if (!url || !sig) {
+  if (!parametre || !sig) {
     return new NextResponse("Paramètres manquants", { status: 400 });
+  }
+
+  // ⚠️ `u` porte l'URL en base64url, pas en clair : un nom de fichier lisible
+  // dans la query fait annuler la requête par les bloqueurs de publicité du
+  // visiteur (voir `decoderUrl`). Le décodage précède la vérification, qui
+  // porte sur l'URL décodée.
+  const url = decoderUrl(parametre);
+  if (!url) {
+    return new NextResponse("Paramètre illisible", { status: 400 });
   }
 
   // ⚠️ La signature est vérifiée AVANT le moindre fetch : une URL fabriquée à

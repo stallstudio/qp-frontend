@@ -847,6 +847,24 @@ c'est délibéré, la corriger demanderait de séparer « horaires pour l'état 
   historique). `BUILTIN_IMAGE_HOSTS` dans `next.config.ts` porte les hôtes imposés
   par le code (avatars Google) : les oublier casserait toutes les photos de
   profil.
+- **Proxy d'images** (`lib/image-proxy.ts` + `app/api/image/route.ts`) : les
+  bannières de parc passent par notre domaine, signées (HMAC dérivé
+  d'`AUTH_SECRET`), pour éviter une liste d'hôtes qui se périme à chaque parc.
+  ⚠️ **L'URL source voyage en `base64url`, jamais en clair** (2026-08-28). Un nom
+  de fichier lisible dans la query fait ANNULER la requête par le bloqueur de
+  publicité du visiteur : `WildChaseWaterCoaster_300x250.jpg` (Sunway Lagoon)
+  rendait `net::ERR_BLOCKED_BY_CLIENT` alors que l'URL du parc répond `200` en
+  176 Ko. `300x250` est le format IAB « medium rectangle », et EasyList — chargée
+  par défaut par uBlock Origin, AdBlock, Brave Shields — bloque toute URL dont le
+  chemin porte une dimension d'emplacement publicitaire, sans regarder le
+  contenu. `encodeURIComponent` ne protégeait de rien : il n'échappe que les
+  séparateurs, et le bloqueur lit la chaîne entière, `/_next/image?url=…`
+  compris. Mesuré : **4 visuels sur 21 733 bannières** portent un format IAB
+  (tous Sunway, tous `300x250`), mais le symptôme est MUET — pas d'erreur
+  serveur, la même URL s'ouvre à la main — et chaque parc ajouté peut en apporter
+  d'autres. La signature porte toujours sur l'URL DÉCODÉE : c'est un transport,
+  pas un secret. `decoderUrl` accepte encore la forme en clair le temps que les
+  caches tournent (**supprimable après le 2026-09-05**).
 - **Liens profonds push** : alerte sur UNE attraction →
   `/{locale}/park/{parc}/ride/{slug}` (parc + popup ouvert) ; plusieurs → page du
   parc ; rappel de spectacle → page du parc avec `?tab=shows` (lu par
