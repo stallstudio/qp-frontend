@@ -1,6 +1,6 @@
 "use client";
 
-import { WaitTime, QueueTime } from "@/types/waitTime";
+import { WaitTime } from "@/types/waitTime";
 import { motion } from "motion/react";
 import { getStatusBadge, getTimeSlotBadge, getWaitTimeBadge } from "@/lib/badge";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
@@ -11,6 +11,13 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { useNotifications } from "@/components/providers/notifications-provider";
 import AttractionDetailDialog from "@/components/parks/attraction-detail/attraction-detail-dialog";
 import { cn } from "@/lib/utils";
+// ⚠️ Partagés avec `poi-status-table.tsx` : deux listes du même onglet ne
+// peuvent pas trier les états ni couper les libellés différemment.
+import {
+  STATUS_ORDER,
+  getPrimaryQueue,
+  splitGluedTail,
+} from "@/lib/poi-list";
 import {
   BellRing,
   ChevronRight,
@@ -43,35 +50,6 @@ const QUEUE_TYPE_MAP: Record<string, QueueTypeInfo> = {
   },
 };
 
-// Au-delà de cette longueur, le dernier mot n'est plus collé aux icônes (voir
-// `splitGluedTail`).
-const MAX_GLUED_TAIL = 18;
-
-/**
- * Découpe un libellé en « début » + « dernier mot ».
- *
- * Le dernier mot est ensuite rendu dans le même bloc `whitespace-nowrap` que les
- * icônes qui le suivent (chevron, cloche, type de file). Sans ça, sur mobile,
- * ces icônes se retrouvent SEULES sur une ligne, sans texte — un rendu qui
- * n'évoque rien. Quand la place manque, c'est donc le dernier mot qui part à la
- * ligne AVEC elles : « Voltron Nevera powered by » / « Rimac ⌄ 🔔 ».
- *
- * Garde-fou : un dernier mot très long resterait insécable et déborderait de la
- * colonne (étroite sur mobile). Au-delà de `MAX_GLUED_TAIL` caractères on
- * repasse donc au flux normal ; seules les icônes restent solidaires entre
- * elles.
- *
- * Partagé par la ligne standby et les lignes de files secondaires : ces
- * dernières étaient en `flex items-center`, si bien qu'un libellé sur deux
- * lignes laissait son icône centrée verticalement à côté du bloc, détachée.
- */
-function splitGluedTail(name: string): { head: string; tail: string } {
-  const lastSpace = name.lastIndexOf(" ");
-  const candidate = name.slice(lastSpace + 1);
-  if (candidate.length > MAX_GLUED_TAIL) return { head: name, tail: "" };
-  return { head: name.slice(0, lastSpace + 1), tail: candidate };
-}
-
 type SortKey = "name" | "wait" | "status";
 type SortDir = "asc" | "desc";
 
@@ -96,8 +74,6 @@ type WaitTimeTableProps = {
   initialRideId?: number | null;
 };
 
-const STATUS_ORDER = { open: 0, down: 1, closed: 2, maintenance: 3 } as const;
-
 // Grille partagée par l'en-tête et chaque ligne pour aligner les colonnes.
 // Le chevron d'expand est collé À LA FIN DU NOM (dans la 1re colonne), donc pas
 // de piste d'action dédiée : 3 colonnes.
@@ -116,10 +92,6 @@ const STATUS_ORDER = { open: 0, down: 1, closed: 2, maintenance: 3 } as const;
 // visible d'une quinzaine de pixels pour une largeur de nom inchangée.
 const GRID_COLS =
   "grid items-center gap-x-2 grid-cols-[minmax(0,1fr)_4rem_6rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)]";
-
-function getPrimaryQueue(wt: WaitTime): QueueTime | undefined {
-  return wt.queues.find((q) => q.type === "standby") || wt.queues[0];
-}
 
 export default function ParkWaitTimeTable({
   waitTimes,

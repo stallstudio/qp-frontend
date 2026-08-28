@@ -48,7 +48,10 @@
     "hoursOther": "Opening hours",
     "cards": {
       "attractions": "Attractions",
-      "shows": "Shows"
+      "shows": "Shows",
+      "restaurants": "Restaurants",
+      "shops": "Shops",
+      "hotels": "Hotels"
     }
   },
   "parkStatus": {
@@ -511,6 +514,13 @@
     "reopenSaved": "Reopening alert saved",
     "reopenTooLate": "The park is closed, alerts are unavailable. Come back when the park next opens.",
     "statusChanged": "The ride's status just changed. Reopen the page to create the right alert."
+  },
+  "poiDetail": {
+    "openFor": "View details for {poi}",
+    "thrillsLink": "View on Thrills",
+    "statusTitle": "Status",
+    "menuTitle": "Menu",
+    "menuAction": "View menu"
   },
   "legal": {
     "backHome": "Back to home",

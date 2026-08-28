@@ -24,3 +24,21 @@ export function readBanner(value: unknown): string | null {
   if (typeof banner !== "string") return null;
   return proxiedImageUrl(banner);
 }
+
+/**
+ * La CARTE (menu) d'un POI, lue dans le même `additionalData` que la bannière.
+ *
+ * ⚠️ **Pas de proxy, contrairement à `readBanner`.** `proxiedImageUrl` signe des
+ * IMAGES pour qu'elles traversent `next/image` sans que l'hôte de chaque parc
+ * soit déclaré dans `next.config.ts` ; un menu est presque toujours un PDF,
+ * ouvert dans un nouvel onglet sur le site du parc. Le faire passer par le proxy
+ * d'images le rendrait illisible.
+ *
+ * ⚠️ Sondé et non casté, comme `readBanner` : `additionalData` est un `Json`
+ * libre, sa forme n'est garantie par aucun type.
+ */
+export function readPoiMenu(value: unknown): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const menu = (value as Record<string, unknown>).menu;
+  return typeof menu === "string" && menu ? menu : null;
+}

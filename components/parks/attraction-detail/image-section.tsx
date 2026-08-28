@@ -17,6 +17,15 @@ const DEFAULT_COVER = "/default_cover.webp";
 //
 // `favNamespace` isole la liste de favoris ("rides" | "shows"), `favKey` est la
 // clé (ex. "{parkIdentifier}:{rideId}" ou "{parkIdentifier}:{showName}").
+//
+// ⚠️ **Les deux sont OPTIONNELS, et leur absence retire l'étoile.** Le popup des
+// POI qui ne sont ni attraction ni spectacle (restaurants, boutiques…) réutilise
+// cet en-tête, mais les favoris sont persistés PAR NAMESPACE sur le compte de
+// l'utilisateur (`FavNamespace`, plafonds compris) : leur en inventer un
+// troisième pour ce popup, ce serait ouvrir une liste que rien ne lit, ni
+// l'espace compte ni les rappels. Le jour où ces POI méritent d'être mis en
+// favori, c'est le namespace qu'il faudra créer — pas ce composant qu'il faudra
+// détourner.
 export default function ImageSection({
   title,
   favNamespace,
@@ -27,8 +36,8 @@ export default function ImageSection({
   credit,
 }: {
   title: string;
-  favNamespace: "rides" | "shows";
-  favKey: string;
+  favNamespace?: "rides" | "shows";
+  favKey?: string;
   link?: { url: string; label: string };
   // Sous-titre optionnel sous le nom (ex. durée d'un spectacle).
   subtitle?: string;
@@ -39,8 +48,12 @@ export default function ImageSection({
   credit?: string | null;
 }) {
   const tFav = useTranslations("favorites");
-  const { isFavorite, toggle } = useFavorites(favNamespace);
-  const isFav = isFavorite(favKey);
+  // ⚠️ Le hook est appelé SANS CONDITION (règle des hooks) : c'est le RENDU de
+  // l'étoile qui est conditionnel, plus bas. `"rides"` n'est ici qu'un
+  // namespace de repli inerte — rien n'est lu ni écrit sans `favKey`.
+  const { isFavorite, toggle } = useFavorites(favNamespace ?? "rides");
+  const showFavorite = favNamespace !== undefined && favKey !== undefined;
+  const isFav = showFavorite && isFavorite(favKey);
 
   // ⚠️ Une bannière peut disparaître sans prévenir : le CMS d'un parc supprime
   // une photo, le proxy expire, l'hôte tombe. On retombe alors sur l'image par
@@ -136,21 +149,28 @@ export default function ImageSection({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
 
       {/* Étoile favori, en bas à droite de l'image (comme l'en-tête de parc). */}
-      <div className="absolute right-0 bottom-0 z-10 p-3">
-        <FavoriteStar
-          active={isFav}
-          onToggle={() => toggle(favKey)}
-          label={isFav ? tFav("remove") : tFav("add")}
-          size="md"
-          className={`p-1.5 bg-black/25 backdrop-blur-sm hover:bg-black/35 ${
-            isFav ? "text-amber-400" : "text-white/90 hover:text-white"
-          }`}
-        />
-      </div>
+      {showFavorite && (
+        <div className="absolute right-0 bottom-0 z-10 p-3">
+          <FavoriteStar
+            active={isFav}
+            onToggle={() => toggle(favKey)}
+            label={isFav ? tFav("remove") : tFav("add")}
+            size="md"
+            className={`p-1.5 bg-black/25 backdrop-blur-sm hover:bg-black/35 ${
+              isFav ? "text-amber-400" : "text-white/90 hover:text-white"
+            }`}
+          />
+        </div>
+      )}
 
       {/* Aligné à gauche, même mise en forme que l'en-tête d'un parc. `pr-16`
-          évite le chevauchement avec l'étoile. */}
-      <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-1 px-5 pr-16 pb-4 text-left">
+          réserve la place de l'étoile — et seulement quand il y en a une, sinon
+          le titre s'arrêterait à 64 px d'un bord vide. */}
+      <div
+        className={`absolute inset-x-0 bottom-0 flex flex-col items-start gap-1 px-5 pb-4 text-left ${
+          showFavorite ? "pr-16" : "pr-5"
+        }`}
+      >
         <p className="text-xl font-bold text-white line-clamp-2 drop-shadow-sm">
           {title}
         </p>

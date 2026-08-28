@@ -1,3 +1,5 @@
+import type { PoiKind } from "@/lib/poi-kinds";
+
 export type WaitTimeStatus = "open" | "closed" | "down" | "maintenance";
 
 export type TimeSlot = {
@@ -44,4 +46,29 @@ export type WaitTime = {
    * fait déjà `include: { poi: true }`.
    */
   banner: string | null;
+  /**
+   * Famille du POI — `"ride"` pour la quasi-totalité des lignes.
+   *
+   * ⚠️ **`wait_times` n'est plus la table des seules attractions** (2026-08-28) :
+   * certaines sources y publient l'état de leurs restaurants, boutiques ou
+   * services, sous le même espace d'identifiants. Sans ce champ, ils se
+   * verseraient dans la carte « Attractions » — un snack au milieu des coasters.
+   *
+   * ⚠️ `"ride"` quand la valeur en base est illisible : mieux vaut une entité mal
+   * rangée qu'une entité qui disparaît de la page.
+   */
+  kind: PoiKind;
+  /**
+   * Carte du restaurant publiée par la source, en URL ABSOLUE — souvent un PDF
+   * sur le site du parc.
+   *
+   * ⚠️ **`null` sur toute attraction, à dessein**, et pas seulement parce que
+   * leur popup ne l'afficherait pas : un gros parc en aligne deux cents, et
+   * cette charge utile repart à chaque rafraîchissement de 60 s.
+   *
+   * ⚠️ **Ce n'est PAS une image** : contrairement à `banner`, elle ne passe pas
+   * par `proxiedImageUrl`. Le proxy sert à faire traverser `next/image` sans
+   * déclarer l'hôte de chaque parc ; un PDF n'y a rien à faire.
+   */
+  menu: string | null;
 };

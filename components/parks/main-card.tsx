@@ -24,8 +24,14 @@ import {
 } from "@/lib/park-closing";
 import { dayOpeningHours, visibleParkEvents } from "@/lib/park-events";
 import ParkShowTimeTable from "./show-time-table";
+import PoiStatusTable from "./poi-status-table";
 import EventCard from "./event-card";
 import SectionCard from "./section-card";
+import {
+  POI_CARD_KINDS,
+  POI_KIND_ICONS,
+  type PoiCardKind,
+} from "@/lib/poi-kinds";
 
 type MainCardProps = {
   park: ParkLiveData;
@@ -33,6 +39,17 @@ type MainCardProps = {
   // Lien profond vers une attraction : force l'onglet « temps d'attente » et
   // demande à la table d'ouvrir le popup correspondant.
   initialRideId?: number | null;
+};
+
+// Le titre de la carte de chaque famille, dans `parkPage.cards`.
+//
+// ⚠️ Une TABLE et non `tCards(kind + "s")` : `next-intl` exige des clés
+// littérales pour que l'outillage sache dire quelle traduction manque, et un
+// pluriel fabriqué par concaténation ne tient pas d'une langue à l'autre.
+const CARD_TITLE_KEYS: Record<PoiCardKind, string> = {
+  restaurant: "restaurants",
+  shop: "shops",
+  hotel: "hotels",
 };
 
 // Au-delà de ce délai sans écriture du worker, on affiche l'horodatage des
@@ -134,7 +151,8 @@ function renderStack(cards: StackCard[], headed = false) {
  *
  * ⚠️ **Ce n'est plus UNE carte, malgré son nom** : c'est une COLONNE de cartes.
  * Le sélecteur d'onglets a la sienne, et chaque bloc de données la sienne —
- * événement, temps d'attente, et demain restaurants ou files virtuelles.
+ * événement, attractions, restaurants, boutiques… et demain les files
+ * virtuelles.
  *
  * Le regroupement d'origine (tout dans un seul encadré) empêchait précisément
  * ça : ajouter un bloc, c'était l'empiler à l'intérieur du même contenant, sans
@@ -143,10 +161,10 @@ function renderStack(cards: StackCard[], headed = false) {
  * d'ordre sans toucher aux autres.
  *
  * Les deux onglets se partagent la colonne selon la NATURE de la donnée :
- *   - « Temps d'attente » : tout ce qui donne un état à l'instant T (événement,
- *     attractions, plus tard restaurants et files virtuelles) ;
- *   - « Spectacles » : tout ce qui donne un HORAIRE (représentations, plus tard
- *     ouvertures/fermetures d'attractions, de boutiques, de restaurants).
+ *   - « En direct » : tout ce qui donne un état à l'instant T (événement,
+ *     attractions, restaurants, boutiques, plus tard files virtuelles) ;
+ *   - « Horaires du jour » : tout ce qui donne un HORAIRE (représentations, plus
+ *     tard ouvertures/fermetures d'attractions, de boutiques, de restaurants).
  */
 export default function MainCard({
   park,
@@ -226,6 +244,29 @@ export default function MainCard({
     [park.waitTimes],
   );
 
+  // ⚠️ **`wait_times` n'est plus la table des seules attractions** (2026-08-28) :
+  // certaines sources y publient l'état de leurs restaurants et boutiques, sous
+  // le même espace d'identifiants — chez Bellewaerde, quatorze restaurants sur
+  // quinze. Sans cette partition, ils tomberaient au milieu des coasters de la
+  // carte « Attractions », triés par temps d'attente avec un « 5 min » qui n'est
+  // qu'une sentinelle d'ouverture.
+  const rideWaitTimes = useMemo(
+    () => mainWaitTimes.filter((wt) => wt.kind === "ride"),
+    [mainWaitTimes],
+  );
+
+  // Une entrée par famille qui a QUELQUE CHOSE à montrer, dans l'ordre fixe de
+  // `POI_CARD_KINDS`. L'écrasante majorité des parcs rend un tableau vide, et
+  // leur page est alors strictement celle d'avant.
+  const poiFamilies = useMemo(
+    () =>
+      POI_CARD_KINDS.map((kind) => ({
+        kind,
+        items: mainWaitTimes.filter((wt) => wt.kind === kind),
+      })).filter(({ items }) => items.length > 0),
+    [mainWaitTimes],
+  );
+
   // Même partition pour les spectacles — mais ici la raison n'est pas seulement
   // le rangement : mélanger des représentations NOCTURNES dans la timeline du
   // jour étire l'axe de ~10 h à ~15 h d'amplitude et écrase toutes les
@@ -235,9 +276,14 @@ export default function MainCard({
     [park.shows],
   );
 
-  const hasWaitTimes = mainWaitTimes.length > 0;
+  const hasWaitTimes = rideWaitTimes.length > 0;
   const hasShows = mainShows.length > 0;
-  const showTabs = hasWaitTimes && hasShows;
+  // ⚠️ **Ce qui décide du sélecteur d'onglets, c'est « l'onglet En direct
+  // a-t-il quelque chose à montrer ? »**, pas « y a-t-il des attractions ? ».
+  // Une source qui ne publierait QUE des états de restaurants perdrait sinon son
+  // sélecteur, et avec lui l'accès aux spectacles.
+  const hasLiveContent = hasWaitTimes || poiFamilies.length > 0;
+  const showTabs = hasLiveContent && hasShows;
   const parkDate = park.openingHours?.[0]?.date ?? null;
 
   // Le parc est-il fermé, ou sur le point de l'être ? Sert au formulaire
@@ -285,7 +331,7 @@ export default function MainCard({
       // popup est dans l'onglet des temps d'attente.
       if (initialRideId != null) {
         setActiveTab("wait-times");
-      } else if (requestedTab === "shows" || (hasShows && !hasWaitTimes)) {
+      } else if (requestedTab === "shows" || (hasShows && !hasLiveContent)) {
         setActiveTab("show-times");
       } else {
         setActiveTab("wait-times");
@@ -394,7 +440,7 @@ export default function MainCard({
       className={radius}
     >
       <ParkWaitTimeTable
-        waitTimes={mainWaitTimes}
+        waitTimes={rideWaitTimes}
         queueTypeLabels={park.queueTypeLabels}
         parkIdentifier={park.identifier}
         parkName={park.name}
@@ -421,13 +467,42 @@ export default function MainCard({
     </SectionCard>
   );
 
+  // Une carte par famille de POI qui publie un état : restaurants, boutiques,
+  // hôtels, services. Elles se rendent SOUS les attractions, dans l'ordre de
+  // `POI_CARD_KINDS`.
+  //
+  // ⚠️ **Le titre nomme la famille, pas la donnée** — « Restaurants », comme
+  // « Attractions » au-dessus (voir `SectionCard`). C'est l'onglet qui dit qu'on
+  // regarde le direct.
+  const familyCards: StackCard[] = poiFamilies.map(
+    ({ kind, items }): StackCard =>
+      (radius) => {
+        const Icon = POI_KIND_ICONS[kind];
+        return (
+          <SectionCard
+            key={kind}
+            icon={Icon}
+            title={tCards(CARD_TITLE_KEYS[kind])}
+            className={radius}
+          >
+            <PoiStatusTable
+              pois={items}
+              kind={kind}
+              parkIdentifier={park.identifier}
+              parkName={park.name}
+            />
+          </SectionCard>
+        );
+      },
+  );
+
   // Les deux piles, dans leur ordre d'affichage. C'est cette liste — et elle
   // seule — qui dit quelle carte est en haut et laquelle est en bas ; ajouter
-  // demain les restaurants ou les files virtuelles, c'est l'insérer ici, les
-  // arrondis suivent.
+  // demain les files virtuelles, c'est l'insérer ici, les arrondis suivent.
   const waitTimesStack: StackCard[] = [
     ...eventWaitTimeCards,
     ...(hasWaitTimes ? [waitTimesCard] : []),
+    ...familyCards,
   ];
   const showsStack: StackCard[] = [
     ...eventShowCards,

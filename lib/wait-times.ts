@@ -1,6 +1,7 @@
 import { TimeSlot, WaitTime } from "@/types/waitTime";
 import { getPrisma } from "./prisma";
-import { readBanner } from "@/lib/poi-banner";
+import { readBanner, readPoiMenu } from "@/lib/poi-banner";
+import { parsePoiKind } from "@/lib/poi-kinds";
 
 function parseTimeSlot(raw: unknown): TimeSlot | null {
   if (!raw || typeof raw !== "object") return null;
@@ -68,13 +69,22 @@ export async function getLatestWaitTimesByPark(
       const rideName = wt.poi?.name || "Unknown";
 
       if (!rideMap.has(rideId)) {
+        // ⚠️ **Repli sur `"ride"` et non sur un rejet.** Un `kind` inconnu — une
+        // valeur écrite par une version plus récente du worker — doit ranger le
+        // POI dans la carte principale, pas le faire disparaître de la page.
+        const kind = parsePoiKind(wt.poi?.kind) ?? "ride";
+
         rideMap.set(rideId, {
           rideId,
           rideName,
           // Sans requête supplémentaire : `include: { poi: true }` ci-dessus
-          // ramène déjà la ligne complète de l'attraction.
+          // ramène déjà la ligne complète du POI.
           eventId: wt.poi?.eventId ?? null,
           banner: readBanner(wt.poi?.additionalData),
+          kind,
+          // ⚠️ Uniquement hors attraction : leur popup ne l'affiche pas, et un
+          // gros parc en aligne deux cents à chaque rafraîchissement de 60 s.
+          menu: kind === "ride" ? null : readPoiMenu(wt.poi?.additionalData),
           queues: [],
         });
       }
