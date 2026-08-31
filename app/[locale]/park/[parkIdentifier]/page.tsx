@@ -11,6 +11,7 @@ import {
   resolveParkForViewer,
 } from "@/lib/park-live-data";
 import { logParkRequest } from "@/lib/api-request-log";
+import { getClientIp } from "@/lib/ip-rules";
 
 // Les temps d'attente sont par nature vivants : la page est rendue à chaque
 // requête (le client prend ensuite le relais avec son rafraîchissement 60 s).
@@ -88,10 +89,13 @@ export default async function ParkPage({
     logParkRequest({
       endpoint: `/park/${parkIdentifier}`,
       parkId: parkIdentifier,
-      ipAddress:
-        headerList.get("x-forwarded-for")?.split(",")[0] ??
-        headerList.get("x-real-ip") ??
-        "unknown",
+      // ⚠️ `getClientIp` et non les en-têtes lus à la main : depuis la bascule
+      // Cloudflare du 2026-08-26, `x-forwarded-for` porte le datacenter et non
+      // le visiteur. C'est cette page qui journalise le PREMIER affichage d'un
+      // parc — la recopie qui vivait ici enregistrait donc de fausses adresses
+      // sur la plus grosse part du trafic, pendant que la route corrigée en
+      // enregistrait des bonnes.
+      ipAddress: getClientIp(headerList),
       userAgent: headerList.get("user-agent"),
       referer: headerList.get("referer"),
       statusCode: live.status === "ok" ? 200 : 500,

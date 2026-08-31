@@ -13,6 +13,7 @@ import {
 } from "@/lib/park-live-data";
 import { getRideIdentity, type RideIdentity } from "@/lib/ride-detail";
 import { logParkRequest } from "@/lib/api-request-log";
+import { getClientIp } from "@/lib/ip-rules";
 import { parseRideSlug, rideSlug } from "@/lib/slug";
 
 // LIEN PROFOND vers une attraction, pas une page distincte.
@@ -137,10 +138,13 @@ export default async function RideDeepLinkPage({ params }: PageParams) {
     logParkRequest({
       endpoint: `/park/${parkIdentifier}/ride/${ride.id}`,
       parkId: parkIdentifier,
-      ipAddress:
-        headerList.get("x-forwarded-for")?.split(",")[0] ??
-        headerList.get("x-real-ip") ??
-        "unknown",
+      // ⚠️ `getClientIp` et non les en-têtes lus à la main : depuis la bascule
+      // Cloudflare du 2026-08-26, `x-forwarded-for` porte le datacenter et non
+      // le visiteur. C'est cette page qui journalise le PREMIER affichage d'un
+      // parc — la recopie qui vivait ici enregistrait donc de fausses adresses
+      // sur la plus grosse part du trafic, pendant que la route corrigée en
+      // enregistrait des bonnes.
+      ipAddress: getClientIp(headerList),
       userAgent: headerList.get("user-agent"),
       referer: headerList.get("referer"),
       statusCode: live.status === "ok" ? 200 : 500,

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { buildParkLiveDataForViewer } from "@/lib/park-live-data";
-import { getClientIp, isBlacklisted } from "@/lib/ip-rules";
+import {
+  getClientIp,
+  isBlacklisted,
+  isUserAgentBlacklisted,
+} from "@/lib/ip-rules";
 import { logParkRequest } from "@/lib/api-request-log";
 import {
   BLOCKED_ERROR,
@@ -44,7 +48,15 @@ export async function GET(
     });
 
   try {
-    if (await isBlacklisted(ipAddress)) {
+    // Deux critères indépendants : l'adresse et le user agent. Le second
+    // existe parce que le premier ne suffit plus — voir le modèle
+    // `UserAgentRule` du schéma : un robot passé derrière Cloudflare change
+    // d'IP en continu sur des adresses PARTAGÉES avec de vrais visiteurs, que
+    // bloquer l'IP couperait aussi.
+    if (
+      (await isBlacklisted(ipAddress)) ||
+      (await isUserAgentBlacklisted(userAgent))
+    ) {
       log(403);
       return NextResponse.json(
         { error: BLOCKED_ERROR, message: BLOCKED_MESSAGE },

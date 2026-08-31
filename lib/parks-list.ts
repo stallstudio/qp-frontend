@@ -1,7 +1,10 @@
 import { DateTime } from "luxon";
 import { getPrisma } from "@/lib/prisma";
 import { fetchOpeningHoursForParks } from "@/lib/opening-hours";
-import { getWhitelistedIps } from "@/lib/ip-rules";
+import {
+  getWhitelistedIps,
+  getWhitelistedUserAgentPatterns,
+} from "@/lib/ip-rules";
 import { normalizeCover } from "@/lib/park-live-data";
 import { getCountryName } from "@/lib/utils";
 import type { ParkList } from "@/types/api";
@@ -110,7 +113,12 @@ export async function getPopularParkIdentifiers(
 ): Promise<string[]> {
   const prisma = getPrisma();
   const twoHoursAgo = DateTime.now().minus({ hours: 2 }).toJSDate();
-  const whitelistedIps = await getWhitelistedIps();
+  // Les deux whitelists sortent du même cache mémoire, donc ces deux appels
+  // ne coûtent qu'une lecture (voir lib/ip-rules).
+  const [whitelistedIps, whitelistedUserAgents] = await Promise.all([
+    getWhitelistedIps(),
+    getWhitelistedUserAgentPatterns(),
+  ]);
 
   const rows = await prisma.apiRequestLog.groupBy({
     by: ["parkId"],
@@ -120,6 +128,21 @@ export async function getPopularParkIdentifiers(
       parkId: { not: null },
       ...(whitelistedIps.length > 0 && {
         ipAddress: { notIn: whitelistedIps },
+      }),
+      // Pendant user agent de la ligne au-dessus : un client whitelisté ne
+      // doit pas peser sur le classement, qu'on l'ait désigné par son
+      // adresse ou par son user agent.
+      //
+      // ⚠️ `NOT { OR contains }` et non un `notIn` : la règle est un
+      // FRAGMENT, pas un user agent complet (cf. `UserAgentRule`). En
+      // pratique la liste est vide ou tient en deux ou trois entrées, et la
+      // fenêtre reste bornée à 2 h par l'index `createdAt`.
+      ...(whitelistedUserAgents.length > 0 && {
+        NOT: {
+          OR: whitelistedUserAgents.map((pattern) => ({
+            userAgent: { contains: pattern },
+          })),
+        },
       }),
     },
     _count: { parkId: true },

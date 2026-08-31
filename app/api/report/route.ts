@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/ip-rules";
 import { getCategoryLabel, getSubcategoryLabel } from "@/lib/report-config";
 import { captureRawSnapshotForReport } from "@/lib/raw-capture";
 
@@ -118,10 +119,13 @@ const REPORT_LIMIT = 5;
 const REPORT_WINDOW_MS = 60 * 60_000;
 
 export async function POST(request: Request) {
-  const ipAddress =
-    request.headers.get("x-forwarded-for")?.split(",")[0] ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
+  // ⚠️ `getClientIp` et non les en-têtes lus à la main. Deux raisons : depuis
+  // la bascule Cloudflare du 2026-08-26 ces en-têtes portent le datacenter et
+  // non le visiteur — le plafond de cinq signalements par heure s'appliquait
+  // donc à un point de sortie entier, punissant des inconnus pour le spam d'un
+  // autre — et la valeur de repli doit être la MÊME chaîne que celle
+  // qu'écartent les règles d'accès (`UNKNOWN_IP`).
+  const ipAddress = getClientIp(request);
   const userAgent = request.headers.get("user-agent");
 
   try {

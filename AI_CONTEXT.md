@@ -1020,6 +1020,75 @@ la nouvelle référence d'objet à chaque rafraîchissement ne le relance pas.
   mais porte les rôles ARIA `table`/`rowgroup`/`row`/`columnheader`/`rowheader`/
   `cell` + `aria-sort`. Toute nouvelle ligne doit conserver cette structure.
 
+## Blocage des abus — IP **et** user agent (2026-08-31)
+
+`lib/ip-rules.ts` porte les deux familles de règles malgré son nom (gardé pour
+ne pas casser ses appelants) : `ip_rules` et `user_agent_rules`. Un seul cache
+mémoire, TTL **60 s**, alimenté par les deux tables en un `Promise.all`. Les
+routes `/api/park/[parkId]` et `.../ride/[rideId]/history` refusent en 403 si
+l'IP **ou** le user agent est blacklisté.
+
+⚠️ **Le user agent est là parce que, depuis le 2026-08-26, l'IP ne désigne plus
+personne.** La zone DNS a été migrée chez Cloudflare le 25/08 vers 23 h, et
+Cloudflare **proxifie par défaut** les enregistrements A/AAAA qu'il importe : la
+migration a placé un reverse proxy devant le site sans que ce soit l'intention.
+Le volume
+journalisé n'a pas bougé (~20 000 requêtes/jour) mais les IPs distinctes sont
+tombées de **2 214 à 912, puis à ~500**, et 85 % du trafic arrive d'une plage
+Cloudflare. `getClientIp` enregistre donc le datacenter, pas le visiteur.
+
+⚠️ **Ces adresses sont PARTAGÉES.** Mesuré le 2026-08-31 sur 172.71.123.212 :
+1 282 requêtes, **42 user agents distincts**, dont 45 de
+`EnergylandiaStatsBot/1.0` et 888 venues de pages du site en français. La
+blacklister coupe 96 % de trafic légitime pour 3,5 % de robot.
+
+**Corrigé le 2026-08-31** : `getClientIp` lit `cf-connecting-ip` en priorité —
+Cloudflare y pose l'adresse réelle du visiteur, et aucun proxy interne ne le
+réécrit, contrairement à `x-forwarded-for`.
+
+⚠️ **Il n'est lu QUE si le pair est bien Cloudflare** (`lib/cloudflare-ips.ts`,
+plages officielles, IPv4 et IPv6). Ce n'est pas une précaution de principe :
+l'origine reste joignable en direct — le palier Cloudflare plafonne à ~85 %,
+jamais 100 % — et cet en-tête n'est qu'une chaîne que n'importe quel client peut
+écrire. Le lire sans condition aurait remplacé une adresse fausse mais honnête
+par une adresse **falsifiable** : de quoi se faire passer pour un tiers, ou
+changer d'IP à chaque requête pour esquiver une blacklist. Le pair est identifié
+par `x-forwarded-for[0]` — ce même remplacement qui a fait perdre les IPs rend
+ici service, puisqu'il dit qui nous parle vraiment.
+
+⚠️ **`getClientIp` prend des EN-TÊTES, pas seulement une `Request`.** Trois
+endroits recopiaient sa logique en littéral — `/api/report` et surtout les deux
+pages parc en rendu serveur, qui journalisent le PREMIER affichage, donc la plus
+grosse part du trafic. Ils enregistraient de fausses adresses pendant que les
+routes corrigées en enregistraient des bonnes. Ils passent tous par la fonction
+depuis qu'elle accepte le `ReadonlyHeaders` de `next/headers`. **Ne pas relire
+ces en-têtes à la main ailleurs.**
+
+⚠️ **La liste des plages Cloudflare évolue** (rarement, mais réellement). Une
+plage ajoutée chez eux et pas dans `CLOUDFLARE_IPV4`/`IPV6` ne provoque aucune
+erreur : le trafic qui en vient cesse simplement d'être reconnu et réapparaît
+sous l'adresse du datacenter. Symptôme à connaître — https://www.cloudflare.com/ips/
+
+⚠️ **L'historique n'est PAS réécrit.** Les lignes déjà en base gardent l'adresse
+du datacenter ; seules les nouvelles portent la vraie. La page Requests mélange
+donc les deux le temps de la rétention (30 jours à compter du 2026-08-31).
+
+⚠️ **Comparaison par SOUS-CHAÎNE, en minuscules** — `EnergylandiaStatsBot`
+attrape aussi la version 1.1. Le fragment vide est écarté à la lecture du cache
+(une règle posée à la main en SQL bloquerait tout le site) ; l'admin refuse en
+plus tout fragment de moins de 3 caractères.
+
+⚠️ **`isUserAgentBlacklisted` ignore la whitelist, et ce n'est pas un oubli** :
+une règle `whitelist` veut dire « ne compte pas dans les statistiques »
+(`getWhitelistedIps` / `getWhitelistedUserAgentPatterns` sortent ce trafic du
+classement des parcs populaires), pas « autorisé malgré tout ». Lui faire lever
+un blocage lui donnerait un second sens, invisible depuis l'admin où les deux
+boutons se ressemblent.
+
+⚠️ La règle `UNKNOWN_IP` reste ignorée : `"unknown"` n'est pas une adresse mais
+le repli de toutes les requêtes sans en-tête de proxy — la blacklister bannirait
+ce trafic en bloc.
+
 ## Conventions
 
 - Composants avec état/hooks/browser → `"use client"`. Pages `page.tsx` de route

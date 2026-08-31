@@ -1063,6 +1063,48 @@ model IpRule {
   @@map("ip_rules")
 }
 
+// Une règle de filtrage portant sur le USER AGENT et non sur l'adresse.
+//
+// ⚠️ **Elle existe parce que, depuis le 2026-08-26, une IP ne DÉSIGNE plus
+// personne.** Ce jour-là le site est passé derrière Cloudflare : le volume
+// journalisé n'a pas bougé (~20 000 requêtes/jour) mais le nombre d'IPs
+// distinctes est tombé de **2 214 à 912, puis à ~500**, et 85 % du trafic arrive
+// désormais d'une plage Cloudflare. `api_request_logs.ipAddress` n'enregistre
+// plus le visiteur mais le datacenter qui relaie sa requête.
+//
+// ⚠️ **Donc une IP est PARTAGÉE, et la blacklister frappe au hasard.** Mesuré le
+// 2026-08-31 sur 172.71.123.212 : 1 282 requêtes, **42 user agents distincts**,
+// dont 45 requêtes de `EnergylandiaStatsBot/1.0` et 888 venues de pages du site
+// en français. La bloquer coupe 96 % de trafic légitime pour 3,5 % de robot.
+//
+// Le user agent, lui, continue de désigner exactement un client. C'est la seule
+// raison d'être de cette table — pas un doublon commode de `ip_rules`.
+//
+// (`EnergylandiaStatsBot/1.0` : 42 387 requêtes depuis 79 IPs au 2026-08-31.
+// Son IP d'origine, 185.217.127.26, est WHITELISTÉE depuis le 2026-07-27 — elle
+// n'a jamais été bloquée. Elle a cessé d'apparaître le 2026-08-26 comme toutes
+// les autres, pour la raison ci-dessus.)
+//
+// Les deux jeux de règles sont INDÉPENDANTS et s'ajoutent : une requête est
+// refusée si son IP est blacklistée OU si son user agent l'est.
+model UserAgentRule {
+  id Int @id @default(autoincrement())
+
+  /// Fragment cherché DANS le user agent, en sous-chaîne et sans tenir compte
+  /// de la casse — pas une égalité, et pas la « famille » `Produit/Version`
+  /// affichée par le filtre de l'admin : celle-ci porte le numéro de version,
+  /// qu'il suffirait de passer en 1.1 pour ressortir. `EnergylandiaStatsBot`
+  /// survit à ça.
+  pattern   String     @unique @db.VarChar(255)
+  type      IpRuleType
+  label     String?    @db.VarChar(255)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([type])
+  @@map("user_agent_rules")
+}
+
 enum ProxyStatus {
   untested
   active

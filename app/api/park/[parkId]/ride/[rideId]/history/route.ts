@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
-import { getClientIp, isBlacklisted } from "@/lib/ip-rules";
+import {
+  getClientIp,
+  isBlacklisted,
+  isUserAgentBlacklisted,
+} from "@/lib/ip-rules";
 import { logParkRequest } from "@/lib/api-request-log";
 import { BLOCKED_ERROR, BLOCKED_MESSAGE } from "@/lib/api-disclaimer";
 import { buildRideHistory } from "@/lib/wait-times-history";
@@ -33,6 +37,7 @@ export async function GET(
   const { parkId, rideId } = await params;
 
   const ipAddress = getClientIp(request);
+  const userAgent = request.headers.get("user-agent");
 
   const emptyData = (timezone: string): RideHistoryResponse => ({
     timezone,
@@ -56,7 +61,15 @@ export async function GET(
   try {
     const prisma = getPrisma();
 
-    if (await isBlacklisted(ipAddress)) {
+    // Deux critères indépendants : l'adresse et le user agent. Le second
+    // existe parce que le premier ne suffit plus — voir le modèle
+    // `UserAgentRule` du schéma : un robot passé derrière Cloudflare change
+    // d'IP en continu sur des adresses PARTAGÉES avec de vrais visiteurs, que
+    // bloquer l'IP couperait aussi.
+    if (
+      (await isBlacklisted(ipAddress)) ||
+      (await isUserAgentBlacklisted(userAgent))
+    ) {
       // ⚠️ **Cette route ne journalise QUE le 403, jamais ses réponses
       // normales**, et l'asymétrie est voulue. `api_request_logs` alimente le
       // classement des parcs populaires (`getPopularParkIdentifiers`), qui ne
@@ -65,7 +78,7 @@ export async function GET(
       // popup d'attraction se rouvre bien plus souvent qu'on ne change de parc,
       // et ce trafic serait venu s'ajouter à celui de la route parc.
       //
-      // Ce qu'on veut voir, c'est une IP bloquée qui CONTINUE de cogner : sans
+      // Ce qu'on veut voir, c'est un client bloqué qui CONTINUE de cogner : sans
       // cette ligne elle disparaissait du journal au moment même où elle
       // devenait intéressante, et rien ne disait si un blocage avait servi.
       // `parkId` est renseigné, donc la ventilation par parc de la page
@@ -74,7 +87,7 @@ export async function GET(
         endpoint: `/api/park/${parkId}/ride/${rideId}/history`,
         parkId,
         ipAddress,
-        userAgent: request.headers.get("user-agent"),
+        userAgent,
         referer: request.headers.get("referer"),
         statusCode: 403,
       });
