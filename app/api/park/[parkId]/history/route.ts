@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { DateTime } from "luxon";
 import { getPrisma } from "@/lib/prisma";
 import { calculateParkDate } from "@/lib/opening-hours";
-import { isBlacklisted } from "@/lib/ip-rules";
+import { getClientIp, isBlacklisted } from "@/lib/ip-rules";
 
 // Nombre max de points renvoyés par attraction (on garde les plus récents).
 const MAX_POINTS = 120;
@@ -19,10 +19,7 @@ export async function GET(
 ) {
   const { parkId } = await params;
 
-  const ipAddress =
-    request.headers.get("x-forwarded-for")?.split(",")[0] ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
+  const ipAddress = getClientIp(request);
 
   try {
     const prisma = getPrisma();

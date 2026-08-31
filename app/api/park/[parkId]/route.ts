@@ -7,7 +7,7 @@ import {
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDate } from "@/lib/show-times";
 import { ParkLiveData, CoverImage } from "@/types/api";
-import { isBlacklisted } from "@/lib/ip-rules";
+import { getClientIp, isBlacklisted } from "@/lib/ip-rules";
 
 function normalizeCover(raw: unknown): CoverImage[] | null {
   if (!raw || !Array.isArray(raw) || raw.length === 0) return null;
@@ -27,10 +27,7 @@ export async function GET(
 ) {
   const { parkId } = await params;
 
-  const ipAddress =
-    request.headers.get("x-forwarded-for")?.split(",")[0] ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
+  const ipAddress = getClientIp(request);
   const userAgent = request.headers.get("user-agent");
   const referer = request.headers.get("referer");
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { getCategoryLabel, getSubcategoryLabel } from "@/lib/report-config";
+import { getClientIp } from "@/lib/ip-rules";
 
 interface DiscordEmbed {
   title: string;
@@ -104,10 +105,12 @@ async function sendReportDiscordNotification(params: {
 }
 
 export async function POST(request: Request) {
-  const ipAddress =
-    request.headers.get("x-forwarded-for")?.split(",")[0] ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
+  // ⚠️ `getClientIp` et non les en-têtes lus à la main : depuis la bascule
+  // Cloudflare du 2026-08-26 ils portent le datacenter et non le visiteur, si
+  // bien que le plafond de signalements par heure s'appliquait à un point de
+  // sortie entier — un seul spammeur faisait taire tous les visiteurs derrière
+  // la même adresse.
+  const ipAddress = getClientIp(request);
   const userAgent = request.headers.get("user-agent");
 
   try {
