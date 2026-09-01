@@ -2,7 +2,7 @@
 
 > Fiche de contexte pour l'assistant IA. But : comprendre le projet sans relire
 > tout le code. À maintenir à jour quand l'architecture change.
-> Dernière mise à jour : 2026-08-28.
+> Dernière mise à jour : 2026-09-01.
 
 ## En un mot
 
@@ -668,6 +668,23 @@ du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
   prévision vivait encore ici en double du worker) ne porte plus que la
   reconstruction de la courbe observée — `sampleDaySeries` /
   `sliceIntervalsForWindow`.
+- ⚠️⚠️ **Un intervalle n'est une observation que tant qu'il est CONFIRMÉ**
+  (2026-09-01). `wait_times` ne distingue pas « l'état n'a pas changé » de « on
+  n'a pas regardé » : tant que rien ne bouge, le worker se contente de
+  rafraîchir `lastSeenAt`, et si la collecte s'arrête la ligne reste ouverte
+  puis se clôture **à la reprise**. La courbe observée traçait donc une ligne
+  parfaitement plate sur des heures où personne n'avait rien mesuré — vu au
+  Parc du Petit Prince : « 35 min » du 2026-08-30 12:09 au 31 à 14:01, soit
+  25,8 h, dont la moitié de deux journées d'ouverture.
+  `getRideStandbyIntervals` borne donc chaque intervalle à `lastSeenAt + 15 min`
+  (`COLLECTION_TOLERANCE_MS`) ; au-delà, pas de point du tout, ce que le
+  graphique sait déjà rendre.
+  ⚠️ **Les 15 min doivent rester ÉGALES à `COLLECTION_TOLERANCE_MINUTES` du
+  worker** (`services/forecast/forecastData.ts`), qui borne le même historique
+  pour la prévision : deux valeurs différentes feraient diverger la courbe
+  observée et la courbe prévue sur les mêmes heures. Le chiffre vient d'une
+  mesure — 98,3 % des délais entre deux passages sont ≤ 2 min sur 397 529
+  intervalles.
 - ⚠️ **Un TROU de la prévision doit rompre la courbe** (2026-08-05). Le worker
   n'émet aucun point sur les créneaux « habituellement fermés » — un trou
   délibéré plutôt qu'un 0 trompeur. Mais `connectNulls={false}` ne rompt que sur

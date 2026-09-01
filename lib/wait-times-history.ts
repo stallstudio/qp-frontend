@@ -64,9 +64,31 @@ export function resolveDayWindow(
   return { open, close };
 }
 
+// Délai au-delà duquel un intervalle cesse d'être une OBSERVATION.
+//
+// ⚠️⚠️ **`wait_times` ne distingue pas « l'état n'a pas changé » de « on n'a pas
+// regardé ».** Tant que l'état ne bouge pas, le worker ne fait que rafraîchir
+// `lastSeenAt` ; si la collecte s'arrête, la ligne reste OUVERTE et sera clôturée
+// à la REPRISE. La table affirme alors que la dernière valeur connue a tenu
+// pendant tout le trou. Sans cette borne, la courbe « observée » du jour trace
+// une ligne parfaitement plate sur des heures où personne n'a rien mesuré —
+// mesuré au Parc du Petit Prince : « 35 min » du 2026-08-30 12:09 au 31 à 14:01,
+// soit 25,8 h, dont la moitié de deux journées d'ouverture.
+//
+// 15 min : l'écart entre deux passages est à 98,3 % inférieur à 2 min (397 529
+// intervalles clos relevés du 2026-08-25 au 09-01) ; la valeur absorbe les
+// ratés ponctuels sans jamais couvrir un vrai trou. ⚠️ Doit rester alignée sur
+// `COLLECTION_TOLERANCE_MINUTES` du worker (`services/forecast/forecastData.ts`),
+// qui borne le même historique pour la PRÉVISION : deux valeurs différentes
+// feraient diverger la courbe observée de la courbe prévue sur les mêmes heures.
+const COLLECTION_TOLERANCE_MS = 15 * 60_000;
+
 // Intervalles standby d'une attraction chevauchant [fromUtc, toUtc). Le
 // `OR endTime` capte l'intervalle actif au début de la fenêtre (attraction
 // stable depuis la veille), sinon la courbe du matin serait vide.
+//
+// Chaque intervalle est borné à sa dernière confirmation (`lastSeenAt`) : ce
+// qui sort d'ici n'est pas ce que la table AFFIRME, c'est ce qui a été observé.
 export async function getRideStandbyIntervals(
   parkId: number,
   rideId: number,
@@ -81,17 +103,42 @@ export async function getRideStandbyIntervals(
       startTime: { lt: toUtc },
       OR: [{ endTime: null }, { endTime: { gte: fromUtc } }],
     },
-    select: { waitTime: true, status: true, startTime: true, endTime: true },
+    select: {
+      waitTime: true,
+      status: true,
+      startTime: true,
+      endTime: true,
+      lastSeenAt: true,
+    },
     orderBy: { startTime: "asc" },
   });
 
-  return rows.map((r) => ({
-    start: r.startTime,
-    end: r.endTime,
-    waitTime: r.waitTime,
-    status: r.status,
-    available: r.status === "open" && r.waitTime >= 0,
-  }));
+  const intervals: WaitInterval[] = [];
+  for (const r of rows) {
+    let end = r.endTime;
+    const confirmedUntil = r.lastSeenAt.getTime() + COLLECTION_TOLERANCE_MS;
+    const endMs = end ? end.getTime() : Infinity;
+    if (confirmedUntil < endMs) {
+      if (end === null && confirmedUntil >= toUtc.getTime()) {
+        // État courant, confirmé jusqu'au bout de la fenêtre : il n'a pas de
+        // fin, et lui en donner une couperait la dernière mesure de la courbe.
+        end = null;
+      } else {
+        if (confirmedUntil <= fromUtc.getTime()) continue;
+        end = new Date(confirmedUntil);
+      }
+    }
+    if (end !== null && end.getTime() <= r.startTime.getTime()) continue;
+
+    intervals.push({
+      start: r.startTime,
+      end,
+      waitTime: r.waitTime,
+      status: r.status,
+      available: r.status === "open" && r.waitTime >= 0,
+    });
+  }
+  return intervals;
 }
 
 // Orchestrateur : construit today + N jours précédents pour une attraction.
