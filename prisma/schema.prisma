@@ -1446,3 +1446,115 @@ model RawApiCapture {
   @@index([unknownStatusId])
   @@map("raw_api_captures")
 }
+
+/// Un réglage du worker, publié par lui et modifiable depuis l'admin.
+///
+/// ⚠️ **Le catalogue est publié par le WORKER à chaque démarrage**
+/// (`services/settingsPublisher.ts`), jamais saisi à la main : l'admin est un
+/// dépôt séparé, sans accès au code, et une liste recopiée là-bas dériverait en
+/// silence. Seule `value` porte une décision humaine — la publication ne la
+/// touche jamais.
+///
+/// ⚠️ `settingKey` et non `key` : `KEY` est un mot réservé de MariaDB, et la
+/// première requête brute écrite plus tard casserait sans raison lisible.
+model Setting {
+  id         Int    @id @default(autoincrement())
+  settingKey String @unique @db.VarChar(100)
+  category   String @db.VarChar(40)
+  label      String @db.VarChar(255)
+
+  description String? @db.Text
+  /// "int" | "float" | "bool" | "string"
+  valueType   String  @db.VarChar(20)
+
+  /// Valeur saisie. `null` = « garder le défaut du code », état distinct de
+  /// « saisir la même valeur que le défaut » : un défaut amélioré côté code
+  /// s'applique alors aux réglages jamais touchés.
+  value        String? @db.VarChar(255)
+  /// Valeur du code déployé, réécrite à chaque démarrage du worker.
+  defaultValue String  @db.VarChar(255)
+
+  unit     String? @db.VarChar(30)
+  /// ⚠️ `valueMin`/`valueMax` et non `minValue`/`maxValue` : `MAXVALUE` est un
+  /// mot réservé de MariaDB (partitionnement). Deuxième après `KEY`.
+  valueMin Float?
+  valueMax Float?
+
+  /// `false` = zone ambre : publié pour être lu, jamais modifiable (pool de
+  /// proxies, moteur de prévision).
+  editable  Boolean @default(true)
+  sourceRef String? @db.VarChar(255)
+  sortOrder Int     @default(0)
+
+  /// Dernière valeur réellement prise en compte par le worker, et quand. C'est
+  /// ce couple qui permet à la page d'afficher « appliqué » au lieu de laisser
+  /// deviner si le changement est passé.
+  appliedValue String?   @db.VarChar(255)
+  appliedAt    DateTime?
+
+  /// Clé disparue du catalogue : marquée, jamais supprimée.
+  deprecatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@map("settings")
+}
+
+/// Une tâche planifiée, montée par `services/jobScheduleService.ts`.
+model JobSchedule {
+  id          Int     @id @default(autoincrement())
+  jobKey      String  @unique @db.VarChar(60)
+  label       String  @db.VarChar(255)
+  description String? @db.Text
+
+  expression        String  @db.VarChar(100)
+  defaultExpression String  @db.VarChar(100)
+  enabled           Boolean @default(true)
+
+  /// `false` = cadence tenue par une Schedule Dokploy (temps d'attente, pool de
+  /// proxies) : la ligne est en lecture seule, `expression` n'y est qu'un
+  /// reflet documentaire.
+  managed  Boolean @default(true)
+  runnable Boolean @default(true)
+
+  /// Noms portés dans `job_executions`, séparés par des virgules : le passage
+  /// horaire en enchaîne sept.
+  jobNames String? @db.VarChar(255)
+
+  /// Exécution réclamée depuis l'admin — même patron que
+  /// `proxies.checkRequestedAt`.
+  runRequestedAt DateTime?
+  runStartedAt   DateTime?
+
+  lastError String? @db.VarChar(255)
+
+  /// Prochain passage, publié par le superviseur (`getNextRun()`). Calculé par
+  /// celui qui tient la tâche : deux analyseurs d'expressions cron finiraient
+  /// par ne pas dire la même chose.
+  nextRunAt DateTime?
+
+  appliedExpression String?   @db.VarChar(100)
+  appliedAt         DateTime?
+
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([runRequestedAt])
+  @@map("job_schedules")
+}
+
+/// Battement de cœur du worker : `worker.bootedAt` et `settings.lastReadAt`.
+///
+/// ⚠️ Sans ces deux lignes, l'admin ne peut pas distinguer « le réglage n'est
+/// pas encore pris en compte » de « le worker est mort depuis trois heures ».
+model WorkerState {
+  id        Int      @id @default(autoincrement())
+  stateKey  String   @unique @db.VarChar(60)
+  value     String?  @db.VarChar(255)
+  updatedAt DateTime @updatedAt
+
+  @@map("worker_state")
+}
