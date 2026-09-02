@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import axios from "axios";
+import { toast } from "sonner";
 import { startThemeTransition, resolvesToDark } from "@/lib/theme-transition";
 import {
   Globe,
@@ -11,7 +13,12 @@ import {
   Moon,
   MonitorSmartphone,
   Thermometer,
+  UserRound,
+  Check,
+  Loader2,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -129,6 +136,76 @@ function SlidingSegment<T extends string>({
   );
 }
 
+// Nom affiché du compte : seul réglage de cette carte qui ne passe pas par
+// `updatePreferences` (il vit sur la ligne `users`, pas dans les préférences) et
+// qui n'est donc PAS appliqué à la frappe — on valide explicitement, comme la
+// rectification d'e-mail de la section confidentialité.
+// Plafond aligné sur celui de l'API (app/api/user/name/route.ts) : au-delà, le
+// nom déborderait de la pastille du compte.
+const MAX_NAME_LENGTH = 60;
+
+function DisplayNameRow() {
+  const t = useTranslations("profile");
+  const { profile, refresh } = useUser();
+  const currentName = profile?.name ?? "";
+  const [name, setName] = useState(currentName);
+  const [saving, setSaving] = useState(false);
+
+  // Le profil arrive de façon asynchrone : on recale le champ dès que le nom
+  // connu change (chargement initial, refresh après sauvegarde).
+  useEffect(() => {
+    setName(profile?.name ?? "");
+  }, [profile?.name]);
+
+  const trimmed = name.trim();
+  const changed = trimmed !== currentName.trim();
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await axios.patch("/api/user/name", { name: trimmed });
+      // Rafraîchit le profil partagé : la pastille du compte (accueil) et le
+      // « Content de vous revoir » reprennent le nouveau nom sans rechargement.
+      await refresh();
+      toast.success(t("displayNameSaved"));
+    } catch {
+      toast.error(t("displayNameError"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <SettingRow icon={<UserRound className="size-4" />} label={t("displayName")}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (changed && !saving) save();
+        }}
+        className="flex w-full items-center gap-2 sm:w-auto"
+      >
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={MAX_NAME_LENGTH}
+          autoComplete="given-name"
+          placeholder={t("displayNamePlaceholder")}
+          aria-label={t("displayName")}
+          className="w-full sm:w-44"
+        />
+        <Button type="submit" disabled={!changed || saving} className="shrink-0">
+          {saving ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Check className="size-4" />
+          )}
+          {t("displayNameSave")}
+        </Button>
+      </form>
+    </SettingRow>
+  );
+}
+
 export default function PreferencesCard() {
   const t = useTranslations("profile");
   const { profile, updatePreferences } = useUser();
@@ -162,6 +239,10 @@ export default function PreferencesCard() {
 
   return (
     <div className="flex flex-col gap-2.5">
+      {/* Nom affiché — en tête : c'est l'identité du compte, le reste n'est que
+          confort d'affichage. */}
+      <DisplayNameRow />
+
       {/* Thème — segment tactile compact (icône + libellé), sur la même rangée
           que le libellé (comme la maquette). Passe pleine largeur sur mobile. */}
       <SettingRow icon={<Palette className="size-4" />} label={t("theme")}>

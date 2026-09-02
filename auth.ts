@@ -33,6 +33,21 @@ async function detectEmailLocale(): Promise<string> {
   return routing.defaultLocale;
 }
 
+// Google renvoie le nom COMPLET (« Prénom Nom »). On ne conserve que le prénom
+// dans `name` : l'interface s'adresse à l'utilisateur par son prénom, ton plus
+// personnel. `given_name` est la source fiable (il peut être composé, on le
+// garde tel quel) ; à défaut on prend le premier mot du nom complet.
+function googleFirstName(profile?: {
+  name?: string | null;
+  given_name?: string | null;
+}): string | undefined {
+  const given = profile?.given_name?.trim();
+  if (given) return given;
+  const full = profile?.name?.trim();
+  if (!full) return undefined;
+  return full.split(/\s+/)[0];
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // Le client de la base utilisateurs est généré sur un chemin custom : on le
   // passe tel quel à l'adapter (structurellement compatible), cast pour éviter
@@ -48,6 +63,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
       allowDangerousEmailAccountLinking: true,
+      // Profil normalisé utilisé par l'adapter À LA CRÉATION du compte : même
+      // forme que celui d'Auth.js, au nom près (prénom seul).
+      profile(profile) {
+        return {
+          id: profile.sub,
+          // Pas de nom fourni par Google : on laisse vide, l'UI retombe
+          // d'elle-même sur l'e-mail.
+          name: googleFirstName(profile) ?? null,
+          email: profile.email,
+          image: profile.picture,
+        };
+      },
     }),
     ResendProvider({
       apiKey: process.env.RESEND_API_KEY,
@@ -91,13 +118,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Selon la normalisation d'Auth.js, la photo Google arrive sous `picture`
         // (profil OIDC brut) ou `image` (profil normalisé) : on lit les deux.
         const google = profile as
-          | { name?: string; email?: string; picture?: string; image?: string }
+          | {
+              name?: string;
+              given_name?: string;
+              email?: string;
+              picture?: string;
+              image?: string;
+            }
           | undefined;
         // On lit le nom/photo depuis PLUSIEURS sources : le profil OIDC brut
         // (`name`/`picture`), le profil normalisé (`image`) et l'objet `user`
         // normalisé par Auth.js — selon le flux, la donnée n'arrive pas toujours
         // au même endroit.
-        const googleName = google?.name ?? user?.name ?? undefined;
+        // Prénom uniquement, ici aussi : sans ça la connexion suivante
+        // réécrirait le nom complet par-dessus.
+        const googleName =
+          googleFirstName(google) ??
+          googleFirstName({ name: user?.name }) ??
+          undefined;
         const googleImage =
           google?.picture ?? google?.image ?? user?.image ?? undefined;
         const email = user?.email ?? google?.email;
@@ -106,13 +144,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             const db = getUserPrisma();
             const existing = await db.user.findUnique({ where: { email } });
             if (existing) {
-              // Google fait AUTORITÉ pour le nom et la photo (l'app ne permet pas
-              // de les modifier). On écrase donc dès que Google fournit une valeur
+              // Google fait AUTORITÉ pour la photo (l'app ne permet pas de la
+              // modifier). On écrase donc dès que Google fournit une valeur
               // DIFFÉRENTE — et pas seulement « si le champ est vide ». Sans ça,
               // un compte créé par magic link dont un correctif précédent avait
-              // rempli un nom/une photo restait bloqué sur l'ancienne valeur.
+              // rempli une photo restait bloqué sur l'ancienne valeur.
               const data: { name?: string; image?: string } = {};
-              if (googleName && existing.name !== googleName)
+              // ...SAUF pour le nom, désormais modifiable depuis le profil : on
+              // ne le remplace que s'il est vide ou s'il porte encore une valeur
+              // VENUE de Google (nom complet d'avant, ou prénom déjà appliqué).
+              // Un nom choisi par l'utilisateur n'est jamais écrasé.
+              const nameFromGoogle =
+                !existing.name ||
+                existing.name === google?.name ||
+                existing.name === googleName;
+              if (googleName && nameFromGoogle && existing.name !== googleName)
                 data.name = googleName;
               if (googleImage && existing.image !== googleImage)
                 data.image = googleImage;
