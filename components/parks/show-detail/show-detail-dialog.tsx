@@ -99,9 +99,12 @@ export default function ShowDetailDialog({
                 title={target.showName}
                 favNamespace="shows"
                 favKey={`${parkIdentifier}:${target.showName}`}
-                // La zone du parc quand la source la publie, rien sinon —
-                // voir `readPoiZone`.
-                zone={target.zone}
+                // Le quartier du parc quand la source le publie ; à défaut la
+                // SALLE, qui répond à la même question d'un cran plus près
+                // (« Amfiteatr Colosseo ») ; rien du tout sinon. 109 des 134
+                // spectacles qui nomment une salle n'ont pas de quartier :
+                // sans ce repli, ces popups n'indiqueraient jamais où aller.
+                place={target.zone ?? target.venue}
                 banner={target.banner}
                 credit={parkName}
               />

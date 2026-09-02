@@ -12,8 +12,8 @@ const DEFAULT_COVER = "/default_cover.webp";
 // Bannière d'en-tête RÉUTILISABLE pour les popups détail (attraction ET
 // spectacle). Quand la source du parc en publie une, c'est ELLE qui s'affiche ;
 // sinon la bannière par défaut de Queue Park (default_cover.webp). Par-dessus,
-// en bas : le titre (+ zone du parc, ou lien externe) à gauche et l'étoile
-// favori à droite.
+// en bas : le titre (+ lieu, ou lien externe) à gauche et l'étoile favori à
+// droite.
 //
 // `favNamespace` isole la liste de favoris ("rides" | "shows"), `favKey` est la
 // clé (ex. "{parkIdentifier}:{rideId}" ou "{parkIdentifier}:{showName}").
@@ -31,7 +31,7 @@ export default function ImageSection({
   favNamespace,
   favKey,
   link,
-  zone,
+  place,
   subtitle,
   banner,
   credit,
@@ -39,15 +39,17 @@ export default function ImageSection({
   title: string;
   favNamespace?: "rides" | "shows";
   favKey?: string;
-  // ⚠️ **`zone` et `link` s'excluent**, et ce n'est pas une contrainte
+  // ⚠️ **`place` et `link` s'excluent**, et ce n'est pas une contrainte
   // technique : ils occupent la même ligne sous le nom, celle qui répond à
-  // « et sinon ? ». Les popups attraction et spectacle y mettent la zone du
-  // parc ; celui des autres POI (restaurants, boutiques) y garde son lien
-  // sortant. `zone` l'emporte si les deux sont fournis.
+  // « et sinon ? ». Les popups attraction et spectacle y mettent le lieu ;
+  // celui des autres POI (restaurants, boutiques) y garde son lien sortant.
+  // `place` l'emporte si les deux sont fournis.
   link?: { url: string; label: string };
-  // Zone du parc, dans la langue de la source — voir `readPoiZone`. `null` ou
-  // absente = rien ne s'affiche : mieux vaut pas de lieu qu'un faux lieu.
-  zone?: string | null;
+  // Où se trouve la chose, dans la langue de la source : le quartier du parc
+  // (`readPoiZone`), ou pour un spectacle la salle à défaut de quartier
+  // (`readPoiVenue`) — l'appelant tranche, ce composant affiche. `null` ou
+  // absent = rien ne s'affiche : mieux vaut pas de lieu qu'un faux lieu.
+  place?: string | null;
   // Sous-titre optionnel sous le nom (ex. durée d'un spectacle).
   subtitle?: string;
   // Chemin LOCAL signé vers l'image du parc (voir `lib/image-proxy.ts`), ou
@@ -188,14 +190,16 @@ export default function ImageSection({
             {subtitle}
           </p>
         )}
-        {/* La zone du parc, quand la source la publie. Pas de libellé devant :
+        {/* Le lieu, quand la source le publie. Pas de libellé devant :
             l'épingle le dit, et un préfixe traduit (« Zone : ») devant un nom
-            propre néerlandais ou japonais ne rendrait pas la ligne plus claire.
+            propre néerlandais ou japonais ne rendrait pas la ligne plus claire —
+            il serait d'ailleurs faux une fois sur deux, la même ligne portant
+            tantôt un quartier, tantôt une salle de spectacle.
             `line-clamp-1` parce qu'une source verbeuse existe toujours. */}
-        {zone ? (
+        {place ? (
           <p className="inline-flex items-center gap-1 text-sm font-medium text-white/90 drop-shadow-sm line-clamp-1">
             <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
-            {zone}
+            {place}
           </p>
         ) : (
           link && (

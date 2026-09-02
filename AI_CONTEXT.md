@@ -626,6 +626,13 @@ possible — et rien du tout quand elle n'en publie pas : environ un POI sur deu
 (`efteling-park`). Le popup des autres POI (restaurants, boutiques) garde son
 lien, avec son libellé propre.
 
+⚠️ **Un SPECTACLE sans quartier retombe sur sa SALLE** (`readPoiVenue`,
+`ShowTime.venue`, « Amfiteatr Egypt ») : même ligne, même épingle, l'appelant
+tranche et `ImageSection` ne voit qu'un `place`. 109 des 134 spectacles qui
+nomment une salle n'ont pas de quartier — Energylandia, Movie Park Germany et
+Flamingo Land nomment la salle et rien d'autre. Sans ce repli, leurs popups
+n'indiqueraient jamais où aller.
+
 > **Ligne cliquable vs chevron** : la ligne entière (standby ET files
 > secondaires) ouvre le popup ; le **chevron** est la SEULE zone qui ne le fait
 > pas — il déplie les files secondaires et arrête la propagation (clic et

@@ -112,7 +112,7 @@ export default function AttractionDetailDialog({
                 title={target.rideName}
                 favNamespace="rides"
                 favKey={`${parkIdentifier}:${target.rideId}`}
-                zone={target.zone}
+                place={target.zone}
                 banner={target.banner}
                 credit={parkName}
               />

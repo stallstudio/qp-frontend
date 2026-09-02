@@ -55,26 +55,52 @@ export function readPoiMenu(value: unknown): string | null {
  * d'une attraction, en revanche, il répond à la seule question qu'on se pose
  * devant une fiche : c'est où dans le parc ?
  *
+ * ⚠️ Sondé et non casté, comme `readBanner` : `additionalData` est un `Json`
+ * libre, sa forme n'est garantie par aucun type. Le nettoyage est commun avec
+ * `readPoiVenue`, voir `readLieu`.
+ */
+export function readPoiZone(value: unknown): string | null {
+  return readLieu(value, "zone");
+}
+
+/**
+ * La SALLE où se joue un spectacle — « Amfiteatr Colosseo », « Teatr Egypt ».
+ *
+ * ⚠️ **Ce n'est PAS un repli de `readPoiZone` ici, c'en est un chez l'appelant** :
+ * les deux clés disent des choses différentes — le quartier du parc d'un côté,
+ * le lieu de la représentation de l'autre. C'est le popup du spectacle qui
+ * décide de montrer la seconde à défaut de la première, parce que la question
+ * posée est la même : c'est où ?
+ *
+ * ⚠️ Rare et concentrée : 134 spectacles sur 6 488 en ont une (mesuré le
+ * 2026-09-02), dont 109 SANS quartier — Energylandia, Movie Park Germany et
+ * Flamingo Land nomment la salle et rien d'autre. C'est exactement là que le
+ * repli sert.
+ */
+export function readPoiVenue(value: unknown): string | null {
+  return readLieu(value, "venue");
+}
+
+/**
+ * Le nettoyage commun aux deux lieux ci-dessus.
+ *
  * ⚠️ **Deux formes sont écartées, mesurées en production le 2026-09-02** : les
  * codes purement numériques (Everland, Caribbean Bay et Universal Studios
  * Beijing numérotent leurs zones « 01 », « 3 »…) et les slugs tout en minuscules
  * (`efteling-park`). 205 POI sur 5 172 zonés — le reste est du texte lisible.
- * Une zone illisible sous le titre est pire que pas de zone du tout, et c'est
- * exactement ce que demande l'appelant : la zone si on la connaît, rien sinon.
- *
- * ⚠️ Sondé et non casté, comme `readBanner` : `additionalData` est un `Json`
- * libre, sa forme n'est garantie par aucun type.
+ * Un lieu illisible sous le titre est pire que pas de lieu du tout, et c'est
+ * exactement ce que demande l'appelant : le lieu si on le connaît, rien sinon.
  */
-export function readPoiZone(value: unknown): string | null {
+function readLieu(value: unknown, cle: "zone" | "venue"): string | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const zone = (value as Record<string, unknown>).zone;
-  if (typeof zone !== "string") return null;
-  const trimmed = zone.trim();
+  const brut = (value as Record<string, unknown>)[cle];
+  if (typeof brut !== "string") return null;
+  const trimmed = brut.trim();
   if (!trimmed) return null;
   // Un code interne (« 01 », « 666 ») ne dit rien à personne.
   if (/^\d+$/.test(trimmed)) return null;
   // Un slug (`efteling-park`) : tout en minuscules, mots liés par des tirets.
-  // Un vrai nom de zone porte une majuscule ou un espace, et n'est pas touché.
+  // Un vrai nom de lieu porte une majuscule ou un espace, et n'est pas touché.
   if (/^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(trimmed)) return null;
   return trimmed;
 }

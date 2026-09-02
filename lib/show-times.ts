@@ -1,6 +1,6 @@
 import { ShowTime } from "@/types/show";
 import { getPrisma } from "./prisma";
-import { readBanner, readPoiZone } from "@/lib/poi-banner";
+import { readBanner, readPoiVenue, readPoiZone } from "@/lib/poi-banner";
 
 /**
  * Créneaux d'un parc pour une ou plusieurs dates de RANGEMENT.
@@ -54,6 +54,7 @@ export async function getShowTimesByParkAndDates(
           eventId: st.poi?.eventId ?? null,
           banner: readBanner(st.poi?.additionalData),
           zone: readPoiZone(st.poi?.additionalData),
+          venue: readPoiVenue(st.poi?.additionalData),
           schedules: [],
         });
       }

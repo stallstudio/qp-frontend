@@ -33,9 +33,21 @@ export interface ShowTime {
    * ⚠️ **Dans la langue de la SOURCE, et pas traduisible** : c'est un nom propre
    * de quartier. Voir `readPoiZone`, qui écarte au passage les codes internes.
    *
-   * ⚠️ Distincte de la SALLE (`venue` en base, « Amfiteatr Colosseo ») : cette
-   * dernière n'est renseignée que par une poignée de spectacles et n'est pas
-   * transportée jusqu'ici.
+   * ⚠️ Distincte de la SALLE (`venue`, juste en dessous), qui prend le relais
+   * quand la source ne publie pas de quartier.
    */
   zone: string | null;
+  /**
+   * Salle où se joue le spectacle — « Amfiteatr Colosseo », « Teatr Egypt ».
+   *
+   * ⚠️ **Le popup ne l'affiche QU'À DÉFAUT de `zone`**, au même endroit : les
+   * deux répondent à « c'est où ? », mais le quartier situe dans le parc quand
+   * la salle ne situe que dans le quartier. Les montrer ensemble ferait deux
+   * lignes pour une question.
+   *
+   * ⚠️ Rare (134 spectacles sur 6 488), mais presque toujours SEULE quand elle
+   * est là : 109 de ces spectacles n'ont pas de quartier. Energylandia, Movie
+   * Park Germany et Flamingo Land nomment la salle et rien d'autre.
+   */
+  venue: string | null;
 }
