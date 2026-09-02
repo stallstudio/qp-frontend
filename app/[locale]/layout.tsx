@@ -11,6 +11,8 @@ import { AuthGateProvider } from "@/components/providers/auth-gate-provider";
 import { FavoritesProvider } from "@/components/providers/favorites-provider";
 import { NotificationsProvider } from "@/components/providers/notifications-provider";
 import CookieConsent from "@/components/cookie-consent";
+import WhatsNewDialog from "@/components/whats-new/whats-new-dialog";
+import { whatsNewBanners } from "@/components/whats-new/banners";
 import { getSiteUrl } from "@/lib/site-url";
 import { headers } from "next/headers";
 import { COUNTRY_HEADERS, regionalDefaults } from "@/lib/regional-defaults";
@@ -151,6 +153,15 @@ export default async function LocaleLayout({
                   <NotificationsProvider>
                     {children}
                     <CookieConsent />
+                    {/* Annonce de version : monté ICI et non sur l'accueil, car
+                        on arrive tout aussi bien sur la page d'un parc par un
+                        lien partagé. Le composant décide lui-même s'il a
+                        quelque chose à dire (version déjà vue, page exclue,
+                        bandeau cookies en attente). */}
+                    {/* Les deux photos des scènes sont signées ICI : le dialog
+                        est un composant client, et la clé de signature n'existe
+                        pas dans le navigateur (`components/whats-new/banners.ts`). */}
+                    <WhatsNewDialog banners={whatsNewBanners()} />
                   </NotificationsProvider>
                 </FavoritesProvider>
               </AuthGateProvider>

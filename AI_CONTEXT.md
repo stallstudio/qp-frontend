@@ -46,6 +46,7 @@ components/
                      # event-card, wait-time-table,
                      # show-time-table, wait-trend (flèches), cover-image, opening-hours...
   about/             # vignette.tsx, demos.tsx, about-page-client.tsx [AJOUTÉ]
+  whats-new/         # annonce de version : dialog + scènes animées [AJOUTÉ]
   ui/                # primitives (card, tabs, button, footer, favorite-star, table...)
   search/ providers/ theme-provider
 hooks/               # useFavorites, useAutoRefresh, usePageVisibility, useTimeFormat, useWaitTimeChanges
@@ -1366,6 +1367,64 @@ Sessions en base : le retrait prend effet sans reconnexion.
   un bandeau en tête — l'en-tête du parc est `fixed z-50` et passerait dessus.
   Texte non traduit à dessein (seuls les admins le voient ; un namespace pour une
   phrase coûterait quatorze fichiers de messages).
+
+## Annonce de version — « quoi de neuf » (ajout 2026-09-02)
+
+Présentation des nouveautés, montrée UNE fois à l'arrivée sur le site. Remplace
+le dialog de la v2 (`components/home/welcome-v2.tsx`, retiré en juin) et son
+namespace `welcome`, désormais supprimé de `fr.json`.
+
+- `lib/whats-new.ts` : **la version annoncée** (`WHATS_NEW_VERSION`) et rien
+  d'autre. La clé de stockage l'embarque (`qp-whats-new-v3-seen`) : annoncer une
+  v4 = changer la constante, sans nettoyage. `WHATS_NEW_EXPIRES_AT` (2027-03-01)
+  éteint l'annonce même pour qui n'était pas revenu depuis. En stockage bloqué
+  (navigation privée), `hasSeenWhatsNew()` renvoie **true** — mieux vaut une
+  annonce manquée qu'une annonce à chaque page.
+- `components/whats-new/whats-new-dialog.tsx` : une **page qui se déroule** —
+  ouverture, sept nouveautés en cartes, clôture. Filet de progression du
+  défilement en haut, bouton de sortie collé en bas, invite « faites défiler »
+  qui s'efface au premier geste.
+  ⚠️ Une première version enchaînait **neuf écrans** avec « Suivant ». Écartée :
+  chaque clic est une occasion d'abandonner, et rien ne dit combien il en reste.
+  Le défilement montre tout, et laisse partir quand on veut.
+- `components/whats-new/scenes.tsx` + `scene-frame.tsx` : une scène animée par
+  nouveauté, qui **mime l'interface réelle** (notification, courbe du jour,
+  carte d'événement teintée, bannière météo) plutôt que d'illustrer une idée.
+  Décor commun : trois taches floues qui dérivent, un grain, un dégradé de
+  raccord vers la surface qui les porte.
+  ⚠️ `SceneActivity` (contexte) porte deux informations : **`active`** — la scène
+  est-elle à l'écran ? sept décors qui dérivent en même temps, c'est du travail
+  continu pour rien — et **`surface`**, la couleur vers laquelle le bas se fond
+  (`background` pour l'ouverture et la clôture, `card` dans une carte ; identiques
+  en thème clair, différentes en sombre). `useStillness()` réunit ce drapeau et
+  `prefers-reduced-motion` : une scène immobile garde ses couleurs, elle ne bouge
+  simplement plus.
+  ⚠️ Chaque scène n'est **montée qu'à l'approche** (`margin: 240px`) : sinon ses
+  animations d'entrée (tracé de la courbe, ouverture de la fiche) auraient déjà
+  eu lieu, invisibles, à l'ouverture du dialog.
+  ⚠️ Une orbite d'icônes **ne tourne pas en faisant pivoter son conteneur** : ça
+  fait tourner l'ellipse, dont le grand axe finit à la verticale et sort du cadre.
+  ⚠️ **Pas de `pathLength` animé sur un tracé en pointillé** : motion pilote
+  `strokeDasharray` pour le dessiner, et efface donc le pointillé — soit
+  justement ce qui distingue l'estimation de l'observé.
+- **Monté dans `app/[locale]/layout.tsx`**, pas sur l'accueil : on arrive tout
+  aussi bien sur la page d'un parc par un lien partagé. `EXCLUDED_PATHS` écarte
+  profil et pages légales.
+- ⚠️ **L'annonce attend le bandeau cookies.** Elle ne s'ouvre que si un choix de
+  consentement existe déjà, sinon elle s'abonne à `CONSENT_EVENT` : un voile
+  par-dessus une décision de consentement serait au mieux discutable.
+- ⚠️ Les blocs qui se suivent portent `-mb-px` : le dialog étant centré par
+  `translate(-50%)`, sa hauteur tombe sur un demi-pixel et une couture apparaît
+  entre deux blocs, par où la page transparaît.
+- ⚠️ **`?whatsnew=1` rouvre l'annonce** quoi qu'il arrive (déjà vue, date passée,
+  page exclue). C'est la seule façon de la relire une fois lue.
+- Contenu i18n sous le namespace `whatsNew`. Les scènes réutilisent les clés déjà
+  traduites ailleurs (`attractionDetail.chart*`, `weather.*`, `attractionStatus`,
+  `events.separateTicket`) ; seuls les libellés propres à l'annonce sont neufs.
+  ⚠️ **`fr.json` seul pour l'instant** : les 13 autres langues n'ont pas encore
+  le namespace, et le repli de `i18n/request.ts` se fait sur l'ANGLAIS — donc
+  tant que `en.json` n'est pas rempli, l'annonce affiche ses clés brutes hors
+  français. À traduire avant toute mise en production.
 
 ## Divers (2026-07-20)
 

@@ -290,25 +290,73 @@
     "timeFormat": "Format de l'heure",
     "temperatureUnit": "Unité de température"
   },
-  "welcome": {
-    "welcomeTo": "Bienvenue sur",
-    "title": "Bienvenue sur la v2 ! 🕝",
-    "description": "Nous avons entièrement repensé l'application pour vous offrir une meilleure expérience. Découvrez une nouvelle interface, de nouvelles fonctionnalités et bien plus encore !",
-    "button": "Ok, super !",
-    "features": {
-      "showsTimeline": "Timeline des spectacles",
-      "newParks": "Nouveaux parcs",
-      "darkMode": "Mode sombre",
-      "brandNewUI": "Nouvelle interface",
-      "fastlaneWaitTimes": "Temps d'attente Fastlane",
-      "autoRefresh": "Actualisation auto",
-      "rotatingParkCovers": "Couvertures rotatives",
-      "parkStatusIndicator": "Indicateur de statut du parc",
-      "singleRiderWaitTimes": "Temps d'attente Single Rider",
-      "multiLanguage": "Multi-langues",
-      "improvedPerformance": "Performances améliorées",
-      "countryParkFiltering": "Filtrage par pays",
-      "groupParkFiltering": "Filtrage par groupe"
+  "whatsNew": {
+    "srTitle": "Les nouveautés de Queue Park v3",
+    "srDescription": "Présentation des nouveautés de la version 3 de Queue Park.",
+    "hero": {
+      "eyebrow": "{count} nouveautés",
+      "title": "Queue Park passe en v3",
+      "body": "Un compte qui vous suit d'un appareil à l'autre, des notifications au bon moment, des prévisions d'affluence : voici ce qui change."
+    },
+    "nav": {
+      "scrollHint": "Faites défiler",
+      "finish": "C'est parti",
+      "close": "Fermer l'annonce"
+    },
+    "badges": {
+      "beta": "Bêta"
+    },
+    "slides": {
+      "account": {
+        "title": "Votre compte Queue Park",
+        "body": "Connectez-vous en un instant, avec Google ou un simple lien reçu par e-mail — sans mot de passe. Vos favoris, vos alertes et vos préférences vous suivent alors du téléphone au parc à l'ordinateur à la maison."
+      },
+      "favorites": {
+        "title": "Vos favoris, sur tous vos appareils",
+        "body": "L'étoile fonctionne désormais sur les parcs, les attractions et les spectacles. Vos parcs favoris s'épinglent en haut de l'accueil, vos attractions et spectacles remontent en tête des tableaux du parc, et vous les retrouvez tous dans votre profil — synchronisés sur tous vos appareils."
+      },
+      "notifications": {
+        "title": "Prévenu au bon moment",
+        "body": "Installez Queue Park comme une application, et laissez-la surveiller le parc à votre place.",
+        "install": "Installer l'application",
+        "points": {
+          "threshold": "L'attente d'une attraction passe sous le seuil que vous avez choisi.",
+          "reopened": "Une attraction rouvre après une panne ou une fermeture.",
+          "show": "Un spectacle va commencer, avec le temps d'avance qui vous convient."
+        }
+      },
+      "forecast": {
+        "title": "Prévisions d'affluence",
+        "body": "La courbe pleine retrace l'attente depuis l'ouverture, le pointillé l'estime jusqu'à la fermeture. De quoi repérer le bon moment pour y aller."
+      },
+      "detail": {
+        "title": "La fiche de chaque attraction",
+        "body": "Touchez une attraction ou un spectacle : sa photo, son quartier dans le parc, la courbe de la journée avec sa prévision et le réglage de vos alertes, tout est réuni au même endroit."
+      },
+      "events": {
+        "title": "Les événements du parc",
+        "body": "Pendant Halloween ou Noël, les attractions et spectacles propres à l'événement ont leur propre carte, aux couleurs de la saison — avec la mention « Billet séparé » quand l'accès n'est pas compris dans l'entrée."
+      },
+      "weather": {
+        "title": "La météo du parc, en direct",
+        "body": "La température et le ciel du parc s'affichent dans son en-tête, mis à jour chaque heure. Pratique pour anticiper l'affluence — et savoir s'il faut prendre le K-way."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "L'attente est descendue à 15 min",
+        "reopened": "L'attraction vient de rouvrir",
+        "show": "Commence dans 15 minutes"
+      },
+      "events": {
+        "halloween": "Halloween",
+        "christmas": "Noël"
+      }
+    },
+    "finale": {
+      "title": "Bonne visite !",
+      "body": "Tout est en place. Une nouvelle page « À propos » raconte d'où viennent les temps d'attente et détaille chaque fonctionnalité, si vous voulez creuser.",
+      "aboutLink": "Découvrir la page À propos"
     }
   },
   "reportProblem": {
