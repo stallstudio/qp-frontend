@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 // ⚠️ **Une identité par FAMILLE, jamais par événement.** Les sources publient
 // bien une couleur par opération (CDA notamment), mais les empiler dans une même
 // page produirait un dégradé arbitraire au lieu de deux familles qu'on
-// reconnaît. Halloween est rouge, Noël est vert, et c'est tout.
+// reconnaît. Halloween est rouge, Noël est bleu givré, et c'est tout.
 //
 // ⚠️ **Volontairement SOBRE.** Une version antérieure posait un décor animé —
 // braises pulsantes pour Halloween, givre et fissures pour Noël. Écarté après
@@ -101,15 +101,15 @@ const ACCENT_STYLES: Record<string, AccentStyle> = {
   christmas: {
     icon: Gift,
     card: cn(
-      "border-emerald-300/60 bg-emerald-50/70 dark:border-emerald-400/40 dark:bg-emerald-400/12",
-      "[--table-surface:color-mix(in_srgb,var(--color-emerald-50)_70%,var(--background))]",
-      "dark:[--table-surface:color-mix(in_srgb,var(--color-emerald-400)_12%,var(--background))]",
-      "[--table-row-accent:color-mix(in_srgb,var(--color-emerald-500)_12%,transparent)]",
-      "[--table-row-hover:color-mix(in_srgb,var(--color-emerald-500)_6%,transparent)]",
-      "dark:[--table-row-accent:color-mix(in_srgb,var(--color-emerald-400)_20%,transparent)]",
-      "dark:[--table-row-hover:color-mix(in_srgb,var(--color-emerald-400)_10%,transparent)]",
+      "border-sky-300/60 bg-sky-50/70 dark:border-sky-400/40 dark:bg-sky-400/12",
+      "[--table-surface:color-mix(in_srgb,var(--color-sky-50)_70%,var(--background))]",
+      "dark:[--table-surface:color-mix(in_srgb,var(--color-sky-400)_12%,var(--background))]",
+      "[--table-row-accent:color-mix(in_srgb,var(--color-sky-500)_12%,transparent)]",
+      "[--table-row-hover:color-mix(in_srgb,var(--color-sky-500)_6%,transparent)]",
+      "dark:[--table-row-accent:color-mix(in_srgb,var(--color-sky-400)_20%,transparent)]",
+      "dark:[--table-row-hover:color-mix(in_srgb,var(--color-sky-400)_10%,transparent)]",
     ),
-    iconClass: "text-emerald-700 dark:text-emerald-300",
+    iconClass: "text-sky-700 dark:text-sky-300",
   },
 };
 

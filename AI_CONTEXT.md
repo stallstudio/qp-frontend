@@ -483,6 +483,13 @@ attractions et les spectacles TAGUÉS avec son `eventId`. Le chargement vit dans
 `lib/park-events.ts`, évalué **après montage** (la fenêtre dépend de l'heure
 courante, qui diffère entre Node et le navigateur).
 
+⚠️ **Teintes par FAMILLE, et Noël est BLEU GIVRÉ depuis le 2026-09-02** (il
+était vert émeraude). Halloween reste rouge. Les classes vivent dans
+`components/parks/event-accents.tsx` et sont RECOPIÉES dans
+`tw-waittimes-admin/components/parks/event-accent.tsx`, dont c'est toute la
+raison d'être (montrer le réglage tel qu'il sera vu) : les deux fichiers doivent
+bouger ensemble, la scène « saisons » de l'annonce de version aussi.
+
 ⚠️ **Une attraction taguée n'apparaît QUE dans la carte de son événement.** Hors
 période, la carte n'est pas rendue et l'attraction disparaît donc de la page —
 c'est voulu : un maze affichant « fermé » en juin entre deux coasters n'apprend
