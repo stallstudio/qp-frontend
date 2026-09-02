@@ -214,27 +214,35 @@ export default function WaitTimeChart({
       [1, 2, 3, 4, 6, 12].find((s) => spanHours / s <= maxIntervals) ?? 24;
     const stepMs = stepHours * HOUR_MS;
 
-    const xTicks: number[] = [xMin];
-    // On démarre à la première heure pleine située à AU MOINS un pas de
-    // l'ouverture, et on s'arrête aux TROIS QUARTS d'un pas avant la fermeture :
-    // sans ces deux marges, la première (ou la dernière) graduation viendrait se
-    // coller à l'heure d'ouverture/fermeture avec un écart bien plus petit que
-    // les autres — le défaut qu'on cherche justement à corriger.
+    // ⚠️ **La grille se compte À REBOURS DEPUIS LA FERMETURE**, pas depuis
+    // l'ouverture. L'axe porte deux graduations imposées — l'ouverture et la
+    // fermeture — et une grille régulière ne peut se caler que sur UNE des deux ;
+    // l'écart bâtard se retrouve forcément à l'autre bout. Posé à droite, il
+    // tombait juste là où l'œil compare : Halloween Horror Nights
+    // (18:30 – 02:00, pas de 2 h) donnait 18:30 · 21:00 · 23:00 · 02:00, soit
+    // 2 h 30 puis 2 h puis 3 h. Ancré sur la fermeture : 18:30 · 20:00 · 22:00 ·
+    // 00:00 · 02:00 — toutes les graduations tombent sur des heures rondes et le
+    // seul écart irrégulier est le premier, contre l'ouverture, où il se lit
+    // comme un début de journée et non comme une erreur de grille.
     //
-    // ⚠️ Un demi-pas ne suffisait pas, et une nocturne l'a montré : Halloween
-    // Horror Nights (18:30 – 02:00) fait 7 h 30, donc un pas de 2 h, donc un
-    // dernier tick autorisé à 01:00 — pile un demi-pas avant la fermeture, soit
-    // « 01:00 » et « 02:00 » qui se TOUCHENT dans la largeur du popup. La borne
-    // n'est pas une question de proportion mais de place : au-delà des trois
-    // quarts, deux libellés d'heure ne tiennent plus côte à côte.
-    let cur = DateTime.fromMillis(xMin + stepMs).setZone(timezone).startOf("hour");
-    if (cur.toMillis() < xMin + stepMs) cur = cur.plus({ hours: 1 });
-    const lastAllowed = xMax - stepMs * 0.75;
-    while (cur.toMillis() <= lastAllowed) {
-      xTicks.push(cur.toMillis());
-      cur = cur.plus({ hours: stepHours });
+    // ⚠️ Rien ne change pour une journée qui ouvre à l'heure pile (09:00 – 17:00
+    // reste 09:00 · 11:00 · 13:00 · 15:00 · 17:00) : les deux ancrages coïncident
+    // alors exactement.
+    //
+    // Un tick à moins d'un DEMI-PAS d'une borne est écarté : c'est ce qui
+    // empêche « 01:00 » de venir se coller à « 02:00 » (les deux libellés se
+    // touchaient dans la largeur du popup), et une heure pleine de doubler une
+    // ouverture à 10:45.
+    const xTicks: number[] = [xMin];
+    const minGap = stepMs / 2;
+    const inner: number[] = [];
+    let cur = DateTime.fromMillis(xMax).setZone(timezone).startOf("hour");
+    while (cur.toMillis() > xMin + minGap) {
+      const ms = cur.toMillis();
+      if (ms < xMax - minGap) inner.push(ms);
+      cur = cur.minus({ hours: stepHours });
     }
-    xTicks.push(xMax);
+    xTicks.push(...inner.reverse(), xMax);
 
     // Plages d'indispo observées (actual == null avant « maintenant ») : au lieu
     // d'un trou dans la courbe, une barre basse colorée par statut. On fusionne
