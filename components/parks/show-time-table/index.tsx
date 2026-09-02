@@ -287,7 +287,7 @@ export default function ParkShowTimeTable({
                   // la durée sert d'abord au clignotement d'un temps qui change,
                   // mais elle donne aussi son rythme au survol).
                   "border-b flex cursor-pointer items-center pe-2 text-sm font-medium transition-colors duration-500",
-                  hoveredUid === item.uid && "bg-accent/50",
+                  hoveredUid === item.uid && "bg-[var(--table-row-hover)]",
                   hasFavBoundary &&
                     index === favCount &&
                     "border-t-2 border-border",

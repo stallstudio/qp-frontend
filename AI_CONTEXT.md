@@ -524,6 +524,14 @@ repli : un jour sans session est un jour où l'événement ne tournait pas.
 Contrepartie côté worker : `computeRideForecasts` groupe les attractions par
 journée (`ForecastGroup`) pour que la PRÉVISION suive la même fenêtre.
 
+⚠️ **La ligne surlignée d'une liste suit la teinte de sa carte.** Survol et
+clignotement de changement passent par deux rôles CSS — `--table-row-hover` et
+`--table-row-accent`, valeurs par défaut dans `app/globals.css`, redéfinies par
+famille dans `components/parks/event-accents.tsx`. `bg-accent` en dur donnait une
+ligne GRISE au milieu d'une carte Halloween rouge, comme la colonne de noms des
+spectacles avant `--table-surface`. Les redéfinitions se mélangent à
+`transparent` (et non au fond) : c'est un voile de PLUS sur celui de la carte.
+
 ### Historique & tendances — SUPPRIMÉS (2026-07-27)
 
 Les flèches de tendance et l'historique global du jour, suspendus depuis

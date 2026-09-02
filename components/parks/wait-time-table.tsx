@@ -387,9 +387,15 @@ export default function ParkWaitTimeTable({
                     role="row"
                     className={cn(
                       GRID_COLS,
-                      "cursor-pointer transition-colors duration-500 hover:bg-accent/50",
+                      "cursor-pointer transition-colors duration-500",
+                      // Survol et clignotement de changement passent par des
+                      // RÔLES, pas par `bg-accent` : dans une carte
+                      // d'événement, la teinte de la famille les redéfinit
+                      // (`event-accents.tsx`), ailleurs ils valent exactement
+                      // l'ancien gris (`app/globals.css`).
+                      "hover:bg-[var(--table-row-hover)]",
                       changedRides.has(`${waitTime.rideId}-standby`) &&
-                        "bg-accent",
+                        "bg-[var(--table-row-accent)]",
                     )}
                     // Toute la ligne ouvre le popup de détail ; seul le chevron
                     // (qui stoppe la propagation) déplie les files secondaires.
@@ -521,9 +527,10 @@ export default function ParkWaitTimeTable({
                       role="row"
                       className={cn(
                         GRID_COLS,
-                        "cursor-pointer border-t transition-colors duration-500 hover:bg-accent/50",
+                        "cursor-pointer border-t transition-colors duration-500",
+                        "hover:bg-[var(--table-row-hover)]",
                         changedRides.has(`${waitTime.rideId}-${queue.type}`) &&
-                          "bg-accent",
+                          "bg-[var(--table-row-accent)]",
                       )}
                       // Les files secondaires appartiennent à la même attraction :
                       // elles ouvrent le même popup que la ligne standby.

@@ -65,6 +65,25 @@ export type AccentStyle = {
 // Tailwind scanne les sources comme du texte, une classe assemblée par template
 // literal n'existerait tout simplement pas dans le CSS produit — sans erreur au
 // build.
+//
+// ————— Le fond d'une LIGNE (`--table-row-accent`, `--table-row-hover`) —————
+//
+// Même histoire que ci-dessus, un cran plus bas : les listes allument une ligne
+// au survol, et la font clignoter quand sa valeur vient de changer. Les deux
+// tenaient sur `bg-accent`, un GRIS — posé dans une carte rouge, il se lit comme
+// une ligne désactivée, pas comme une ligne mise en avant. Les valeurs par
+// défaut vivent dans `app/globals.css` (`:root`) et reproduisent exactement
+// l'ancien gris ; seules les cartes d'événement les redéfinissent.
+//
+// ⚠️ Le mélange se fait avec `transparent`, pas avec le fond : contrairement à
+// `--table-surface`, cette teinte est un VOILE DE PLUS posé sur celui de la
+// carte. L'aplatir sur `--background` la ferait passer devant lui, et une ligne
+// surlignée serait alors PLUS PÂLE que la carte qui la porte.
+//
+// ⚠️ La rampe monte d'un cran par rapport à la carte (500 en clair, 400 en
+// sombre, contre 50/400 pour le fond) : la ligne doit se détacher du voile
+// qu'elle recouvre, sinon le clignotement de changement passe inaperçu — c'est
+// la seule chose qu'il ait à faire.
 const ACCENT_STYLES: Record<string, AccentStyle> = {
   halloween: {
     icon: Ghost,
@@ -72,6 +91,10 @@ const ACCENT_STYLES: Record<string, AccentStyle> = {
       "border-red-300/60 bg-red-50/70 dark:border-red-400/40 dark:bg-red-400/12",
       "[--table-surface:color-mix(in_srgb,var(--color-red-50)_70%,var(--background))]",
       "dark:[--table-surface:color-mix(in_srgb,var(--color-red-400)_12%,var(--background))]",
+      "[--table-row-accent:color-mix(in_srgb,var(--color-red-500)_12%,transparent)]",
+      "[--table-row-hover:color-mix(in_srgb,var(--color-red-500)_6%,transparent)]",
+      "dark:[--table-row-accent:color-mix(in_srgb,var(--color-red-400)_20%,transparent)]",
+      "dark:[--table-row-hover:color-mix(in_srgb,var(--color-red-400)_10%,transparent)]",
     ),
     iconClass: "text-red-700 dark:text-red-300",
   },
@@ -81,6 +104,10 @@ const ACCENT_STYLES: Record<string, AccentStyle> = {
       "border-emerald-300/60 bg-emerald-50/70 dark:border-emerald-400/40 dark:bg-emerald-400/12",
       "[--table-surface:color-mix(in_srgb,var(--color-emerald-50)_70%,var(--background))]",
       "dark:[--table-surface:color-mix(in_srgb,var(--color-emerald-400)_12%,var(--background))]",
+      "[--table-row-accent:color-mix(in_srgb,var(--color-emerald-500)_12%,transparent)]",
+      "[--table-row-hover:color-mix(in_srgb,var(--color-emerald-500)_6%,transparent)]",
+      "dark:[--table-row-accent:color-mix(in_srgb,var(--color-emerald-400)_20%,transparent)]",
+      "dark:[--table-row-hover:color-mix(in_srgb,var(--color-emerald-400)_10%,transparent)]",
     ),
     iconClass: "text-emerald-700 dark:text-emerald-300",
   },

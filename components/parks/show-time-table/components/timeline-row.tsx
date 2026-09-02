@@ -55,7 +55,9 @@ export function TimelineRow({
         // d'attraction, pour que les deux moitiés s'allument à l'unisson.
         "border-b relative cursor-pointer transition-colors duration-500",
         dividerTop && "border-t-2 border-border",
-        highlighted && "bg-accent/50",
+        // Rôle partagé avec les lignes d'attraction : dans une carte
+        // d'événement, la teinte de la famille remplace le gris.
+        highlighted && "bg-[var(--table-row-hover)]",
       )}
       style={{ height: `${rowHeight}px` }}
       onMouseEnter={() => onHoverChange?.(true)}

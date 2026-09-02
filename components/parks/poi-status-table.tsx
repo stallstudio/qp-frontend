@@ -204,8 +204,12 @@ export default function PoiStatusTable({
                   role="row"
                   className={cn(
                     gridCols,
-                    "cursor-pointer transition-colors duration-500 hover:bg-accent/50",
-                    changed.has(`${poi.rideId}-${queue.type}`) && "bg-accent",
+                    "cursor-pointer transition-colors duration-500",
+                    // Mêmes rôles que la table des temps d'attente : la teinte
+                    // suit la carte d'événement quand il y en a une.
+                    "hover:bg-[var(--table-row-hover)]",
+                    changed.has(`${poi.rideId}-${queue.type}`) &&
+                      "bg-[var(--table-row-accent)]",
                   )}
                   onClick={() => setDetailPoiId(poi.rideId)}
                   tabIndex={0}

@@ -104,6 +104,26 @@
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
+  /* ————— Fond d'une LIGNE de liste : survol, et valeur qui vient de changer —————
+
+     Ces deux-là ne sont pas des couleurs de plus dans la palette : ce sont des
+     RÔLES, et ils existent parce qu'ils se redéfinissent. Une carte d'événement
+     (`components/parks/event-accents.tsx`) y pose la teinte de sa famille, sans
+     quoi la ligne surlignée d'une nocturne Halloween s'allumait en GRIS au
+     milieu d'une carte rouge — le même défaut que la colonne de noms des
+     spectacles avant `--table-surface`.
+
+     ⚠️ Déclarées UNE SEULE FOIS, ici : `var(--accent)` se résout à l'USAGE, donc
+     le thème sombre suit tout seul. Les recopier sous `.dark` figerait la valeur
+     claire dans les deux thèmes le jour où l'une des deux serait oubliée.
+
+     ⚠️ Le défaut reprend `--accent` tel quel (donc opaque) pour que les listes
+     hors événement ne bougent pas d'un pixel. Les redéfinitions d'événement,
+     elles, sont TRANSLUCIDES : la ligne se pose sur le voile teinté de la carte
+     et doit s'y ajouter, là où un aplat opaque le remplacerait — c'est
+     exactement ce qui donnait le gris. */
+  --table-row-accent: var(--accent);
+  --table-row-hover: color-mix(in srgb, var(--accent) 50%, transparent);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
