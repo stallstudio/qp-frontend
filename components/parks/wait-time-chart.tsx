@@ -216,13 +216,20 @@ export default function WaitTimeChart({
 
     const xTicks: number[] = [xMin];
     // On démarre à la première heure pleine située à AU MOINS un pas de
-    // l'ouverture, et on s'arrête un DEMI-pas avant la fermeture : sans ces deux
-    // marges, la première (ou la dernière) graduation viendrait se coller à
-    // l'heure d'ouverture/fermeture avec un écart deux fois plus petit que les
-    // autres — le défaut qu'on cherche justement à corriger.
+    // l'ouverture, et on s'arrête aux TROIS QUARTS d'un pas avant la fermeture :
+    // sans ces deux marges, la première (ou la dernière) graduation viendrait se
+    // coller à l'heure d'ouverture/fermeture avec un écart bien plus petit que
+    // les autres — le défaut qu'on cherche justement à corriger.
+    //
+    // ⚠️ Un demi-pas ne suffisait pas, et une nocturne l'a montré : Halloween
+    // Horror Nights (18:30 – 02:00) fait 7 h 30, donc un pas de 2 h, donc un
+    // dernier tick autorisé à 01:00 — pile un demi-pas avant la fermeture, soit
+    // « 01:00 » et « 02:00 » qui se TOUCHENT dans la largeur du popup. La borne
+    // n'est pas une question de proportion mais de place : au-delà des trois
+    // quarts, deux libellés d'heure ne tiennent plus côte à côte.
     let cur = DateTime.fromMillis(xMin + stepMs).setZone(timezone).startOf("hour");
     if (cur.toMillis() < xMin + stepMs) cur = cur.plus({ hours: 1 });
-    const lastAllowed = xMax - stepMs / 2;
+    const lastAllowed = xMax - stepMs * 0.75;
     while (cur.toMillis() <= lastAllowed) {
       xTicks.push(cur.toMillis());
       cur = cur.plus({ hours: stepHours });
