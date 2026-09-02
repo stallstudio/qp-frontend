@@ -79,7 +79,6 @@
   "showDetail": {
     "openFor": "Xem chi tiết {show}",
     "notifTitle": "Nhắc nhở",
-    "thrillsLink": "Xem chương trình trên Thrills",
     "duration": "Thời lượng: {duration}",
     "continuousAccess": "Vào cửa liên tục · {range}",
     "signInIntro": "Đăng nhập để được nhắc trước khi một chương trình bắt đầu.",
@@ -476,7 +475,6 @@
   },
   "attractionDetail": {
     "openFor": "Xem chi tiết {ride}",
-    "thrillsLink": "Xem trò chơi trên Thrills",
     "alertsTitle": "Nhắc nhở",
     "chartTitle": "Thời gian chờ hôm nay",
     "chartToday": "Hôm nay",

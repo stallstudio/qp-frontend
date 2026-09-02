@@ -58,6 +58,19 @@ export type WaitTime = {
    * rangée qu'une entité qui disparaît de la page.
    */
   kind: PoiKind;
+
+  /**
+   * Zone du parc où se trouve le POI — « Fantasyland », « Dock World » —, telle
+   * que la source la nomme. `null` quand elle n'en publie pas : un parc zoné sur
+   * deux environ (mesuré le 2026-09-02).
+   *
+   * ⚠️ **Dans la langue de la SOURCE, et pas traduisible** : c'est un nom propre
+   * de quartier. Voir `readPoiZone`, qui écarte au passage les codes internes.
+   *
+   * ⚠️ Aucune requête supplémentaire pour l'obtenir : `getLatestWaitTimesByPark`
+   * fait déjà `include: { poi: true }`.
+   */
+  zone: string | null;
   /**
    * Carte du restaurant publiée par la source, en URL ABSOLUE — souvent un PDF
    * sur le site du parc.

@@ -79,7 +79,6 @@
   "showDetail": {
     "openFor": "Se detaljer for {show}",
     "notifTitle": "Notifikationer",
-    "thrillsLink": "Se showet på Thrills",
     "duration": "Varighed: {duration}",
     "continuousAccess": "Løbende adgang · {range}",
     "signInIntro": "Log ind for at få en påmindelse, før et show begynder.",
@@ -476,7 +475,6 @@
   },
   "attractionDetail": {
     "openFor": "Se detaljer for {ride}",
-    "thrillsLink": "Se forlystelsen på Thrills",
     "alertsTitle": "Notifikationer",
     "chartTitle": "Ventetid i dag",
     "chartToday": "I dag",

@@ -92,16 +92,16 @@ export default function ShowDetailDialog({
               </DialogDescription>
             </DialogHeader>
 
-            {/* En-tête épinglée : bannière + nom + étoile favori (namespace shows). */}
+            {/* En-tête épinglée : bannière + nom + zone du parc + étoile favori
+                (namespace shows). */}
             <div className="shrink-0">
               <ImageSection
                 title={target.showName}
                 favNamespace="shows"
                 favKey={`${parkIdentifier}:${target.showName}`}
-                link={{
-                  url: "https://thrills.world",
-                  label: t("thrillsLink"),
-                }}
+                // La zone du parc quand la source la publie, rien sinon —
+                // voir `readPoiZone`.
+                zone={target.zone}
                 banner={target.banner}
                 credit={parkName}
               />

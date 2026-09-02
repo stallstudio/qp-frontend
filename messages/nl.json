@@ -79,7 +79,6 @@
   "showDetail": {
     "openFor": "Details van {show} bekijken",
     "notifTitle": "Meldingen",
-    "thrillsLink": "Bekijk de show op Thrills",
     "duration": "Duur: {duration}",
     "continuousAccess": "Doorlopend · {range}",
     "signInIntro": "Meld je aan om een herinnering te krijgen voordat een show begint.",
@@ -476,7 +475,6 @@
   },
   "attractionDetail": {
     "openFor": "Details van {ride} bekijken",
-    "thrillsLink": "Bekijk de attractie op Thrills",
     "alertsTitle": "Meldingen",
     "chartTitle": "Wachttijd vandaag",
     "chartToday": "Vandaag",

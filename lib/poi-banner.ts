@@ -42,3 +42,39 @@ export function readPoiMenu(value: unknown): string | null {
   const menu = (value as Record<string, unknown>).menu;
   return typeof menu === "string" && menu ? menu : null;
 }
+
+/**
+ * La ZONE du parc où se trouve le POI — « Fantasyland », « Dock World » —, lue
+ * dans le même `additionalData` que la bannière.
+ *
+ * ⚠️ **Le texte est celui de la SOURCE, dans SA langue** : « Zoetigheden » chez
+ * Bellewaerde, « アムステルダムシティ » chez Huis Ten Bosch. Rien ne le traduit,
+ * et rien ne le pourra — c'est un nom propre de quartier, pas un libellé
+ * d'interface. C'est ce qui avait fait retirer le bloc « Informations » du popup
+ * des restaurants (voir `poi-detail-dialog.tsx`) ; affiché SEUL sous le nom
+ * d'une attraction, en revanche, il répond à la seule question qu'on se pose
+ * devant une fiche : c'est où dans le parc ?
+ *
+ * ⚠️ **Deux formes sont écartées, mesurées en production le 2026-09-02** : les
+ * codes purement numériques (Everland, Caribbean Bay et Universal Studios
+ * Beijing numérotent leurs zones « 01 », « 3 »…) et les slugs tout en minuscules
+ * (`efteling-park`). 205 POI sur 5 172 zonés — le reste est du texte lisible.
+ * Une zone illisible sous le titre est pire que pas de zone du tout, et c'est
+ * exactement ce que demande l'appelant : la zone si on la connaît, rien sinon.
+ *
+ * ⚠️ Sondé et non casté, comme `readBanner` : `additionalData` est un `Json`
+ * libre, sa forme n'est garantie par aucun type.
+ */
+export function readPoiZone(value: unknown): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const zone = (value as Record<string, unknown>).zone;
+  if (typeof zone !== "string") return null;
+  const trimmed = zone.trim();
+  if (!trimmed) return null;
+  // Un code interne (« 01 », « 666 ») ne dit rien à personne.
+  if (/^\d+$/.test(trimmed)) return null;
+  // Un slug (`efteling-park`) : tout en minuscules, mots liés par des tirets.
+  // Un vrai nom de zone porte une majuscule ou un espace, et n'est pas touché.
+  if (/^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(trimmed)) return null;
+  return trimmed;
+}

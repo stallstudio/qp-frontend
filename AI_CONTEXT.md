@@ -612,10 +612,18 @@ groupe des favoris est encadré de deux séparateurs ondulés ambrés
 
 **Un clic n'importe où sur la ligne** ouvre `attraction-detail-dialog.tsx` — plus
 d'icône œil (2026-07-28), plus d'étoile/cloche cliquable dans la liste. Le popup
-empile des sections : image (placeholder `CameraOff`), favoris
-(`favorite-section.tsx`), alertes (`alert-section.tsx`), graphique
-du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`), et Thrills
-(`thrills-section.tsx`, lien placeholder vers thrills.world).
+empile des sections : image (`image-section.tsx` — bannière de la source, nom,
+quartier et étoile favori en surimpression), alertes (`alert-section.tsx`),
+graphique du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`).
+
+⚠️ **Le QUARTIER a remplacé le lien Thrills le 2026-09-02**, dans les popups
+attraction ET spectacle : `Poi.additionalData.zone`, lu par `readPoiZone`
+(`lib/poi-banner.ts`) et transporté par `WaitTime.zone` / `ShowTime.zone`. Il
+s'affiche tel que la SOURCE le publie — donc dans sa langue, sans traduction
+possible — et rien du tout quand elle n'en publie pas : environ un POI sur deux.
+`readPoiZone` écarte au passage les codes internes (« 01 », « 3 ») et les slugs
+(`efteling-park`). Le popup des autres POI (restaurants, boutiques) garde son
+lien, avec son libellé propre.
 
 > **Ligne cliquable vs chevron** : la ligne entière (standby ET files
 > secondaires) ouvre le popup ; le **chevron** est la SEULE zone qui ne le fait

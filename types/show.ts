@@ -26,4 +26,16 @@ export interface ShowTime {
    * n'en publie pas — le popup retombe alors sur l'image par défaut.
    */
   banner: string | null;
+  /**
+   * Zone du parc où se joue le spectacle — « Fantasyland », « Dock World » —,
+   * telle que la source la nomme, ou `null` quand elle n'en publie pas.
+   *
+   * ⚠️ **Dans la langue de la SOURCE, et pas traduisible** : c'est un nom propre
+   * de quartier. Voir `readPoiZone`, qui écarte au passage les codes internes.
+   *
+   * ⚠️ Distincte de la SALLE (`venue` en base, « Amfiteatr Colosseo ») : cette
+   * dernière n'est renseignée que par une poignée de spectacles et n'est pas
+   * transportée jusqu'ici.
+   */
+  zone: string | null;
 }

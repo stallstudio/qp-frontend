@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useFavorites } from "@/hooks/useFavorites";
 import FavoriteStar from "@/components/ui/favorite-star";
@@ -12,7 +12,7 @@ const DEFAULT_COVER = "/default_cover.webp";
 // Bannière d'en-tête RÉUTILISABLE pour les popups détail (attraction ET
 // spectacle). Quand la source du parc en publie une, c'est ELLE qui s'affiche ;
 // sinon la bannière par défaut de Queue Park (default_cover.webp). Par-dessus,
-// en bas : le titre (+ lien externe optionnel, ex. Thrills) à gauche et l'étoile
+// en bas : le titre (+ zone du parc, ou lien externe) à gauche et l'étoile
 // favori à droite.
 //
 // `favNamespace` isole la liste de favoris ("rides" | "shows"), `favKey` est la
@@ -31,6 +31,7 @@ export default function ImageSection({
   favNamespace,
   favKey,
   link,
+  zone,
   subtitle,
   banner,
   credit,
@@ -38,7 +39,15 @@ export default function ImageSection({
   title: string;
   favNamespace?: "rides" | "shows";
   favKey?: string;
+  // ⚠️ **`zone` et `link` s'excluent**, et ce n'est pas une contrainte
+  // technique : ils occupent la même ligne sous le nom, celle qui répond à
+  // « et sinon ? ». Les popups attraction et spectacle y mettent la zone du
+  // parc ; celui des autres POI (restaurants, boutiques) y garde son lien
+  // sortant. `zone` l'emporte si les deux sont fournis.
   link?: { url: string; label: string };
+  // Zone du parc, dans la langue de la source — voir `readPoiZone`. `null` ou
+  // absente = rien ne s'affiche : mieux vaut pas de lieu qu'un faux lieu.
+  zone?: string | null;
   // Sous-titre optionnel sous le nom (ex. durée d'un spectacle).
   subtitle?: string;
   // Chemin LOCAL signé vers l'image du parc (voir `lib/image-proxy.ts`), ou
@@ -179,16 +188,27 @@ export default function ImageSection({
             {subtitle}
           </p>
         )}
-        {link && (
-          <a
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm font-medium text-white/90 transition-colors hover:text-white"
-          >
-            {link.label}
-            <ArrowRight className="size-3.5" />
-          </a>
+        {/* La zone du parc, quand la source la publie. Pas de libellé devant :
+            l'épingle le dit, et un préfixe traduit (« Zone : ») devant un nom
+            propre néerlandais ou japonais ne rendrait pas la ligne plus claire.
+            `line-clamp-1` parce qu'une source verbeuse existe toujours. */}
+        {zone ? (
+          <p className="inline-flex items-center gap-1 text-sm font-medium text-white/90 drop-shadow-sm line-clamp-1">
+            <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+            {zone}
+          </p>
+        ) : (
+          link && (
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm font-medium text-white/90 transition-colors hover:text-white"
+            >
+              {link.label}
+              <ArrowRight className="size-3.5" />
+            </a>
+          )
         )}
       </div>
     </div>

@@ -79,7 +79,6 @@
   "showDetail": {
     "openFor": "Visa detaljer för {show}",
     "notifTitle": "Aviseringar",
-    "thrillsLink": "Se showen på Thrills",
     "duration": "Längd: {duration}",
     "continuousAccess": "Löpande insläpp · {range}",
     "signInIntro": "Logga in för att få en påminnelse innan en show börjar.",
@@ -476,7 +475,6 @@
   },
   "attractionDetail": {
     "openFor": "Visa detaljer för {ride}",
-    "thrillsLink": "Se attraktionen på Thrills",
     "alertsTitle": "Aviseringar",
     "chartTitle": "Dagens kötid",
     "chartToday": "I dag",

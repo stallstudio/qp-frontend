@@ -79,7 +79,6 @@
   "showDetail": {
     "openFor": "{show} の詳細を見る",
     "notifTitle": "通知",
-    "thrillsLink": "Thrills でこのショーを見る",
     "duration": "所要時間：{duration}",
     "continuousAccess": "随時入場 · {range}",
     "signInIntro": "ログインすると、ショー開始前にお知らせを受け取れます。",
@@ -476,7 +475,6 @@
   },
   "attractionDetail": {
     "openFor": "{ride} の詳細を見る",
-    "thrillsLink": "Thrills でこのアトラクションを見る",
     "alertsTitle": "通知",
     "chartTitle": "本日の待ち時間",
     "chartToday": "今日",

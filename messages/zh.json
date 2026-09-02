@@ -79,7 +79,6 @@
   "showDetail": {
     "openFor": "查看 {show} 的详情",
     "notifTitle": "提醒",
-    "thrillsLink": "在 Thrills 上查看该演出",
     "duration": "时长：{duration}",
     "continuousAccess": "全时段开放 · {range}",
     "signInIntro": "登录后可在演出开始前收到提醒。",
@@ -476,7 +475,6 @@
   },
   "attractionDetail": {
     "openFor": "查看 {ride} 的详情",
-    "thrillsLink": "在 Thrills 上查看该项目",
     "alertsTitle": "提醒",
     "chartTitle": "今日排队时间",
     "chartToday": "今天",

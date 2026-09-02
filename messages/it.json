@@ -79,7 +79,6 @@
   "showDetail": {
     "openFor": "Vedi i dettagli di {show}",
     "notifTitle": "Avvisi",
-    "thrillsLink": "Vedi lo spettacolo su Thrills",
     "duration": "Durata: {duration}",
     "continuousAccess": "Accesso continuo · {range}",
     "signInIntro": "Accedi per ricevere un promemoria prima dell'inizio di uno spettacolo.",
@@ -476,7 +475,6 @@
   },
   "attractionDetail": {
     "openFor": "Vedi i dettagli di {ride}",
-    "thrillsLink": "Vedi l'attrazione su Thrills",
     "alertsTitle": "Avvisi",
     "chartTitle": "Attesa di oggi",
     "chartToday": "Oggi",

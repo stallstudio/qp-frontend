@@ -45,8 +45,8 @@ function Section({
   );
 }
 
-// Popup « détail attraction » : centralise image (nom + lien Thrills en overlay),
-// favoris, alertes et graphique. Ouvert quand `target` est non nul.
+// Popup « détail attraction » : centralise image (nom + zone du parc en
+// overlay), favoris, alertes et graphique. Ouvert quand `target` est non nul.
 export default function AttractionDetailDialog({
   target,
   parkIdentifier,
@@ -103,14 +103,16 @@ export default function AttractionDetailDialog({
               </DialogDescription>
             </DialogHeader>
 
-            {/* En-tête épinglée (ne défile pas) : bannière avec le nom, le lien
-                Thrills et l'étoile favori intégrés (plus de gros bouton séparé). */}
+            {/* En-tête épinglée (ne défile pas) : bannière avec le nom, la zone
+                du parc et l'étoile favori intégrés (plus de gros bouton séparé).
+                La zone ne s'affiche que si la source la publie — voir
+                `readPoiZone` ; sinon la ligne disparaît, sans repli. */}
             <div className="shrink-0">
               <ImageSection
                 title={target.rideName}
                 favNamespace="rides"
                 favKey={`${parkIdentifier}:${target.rideId}`}
-                link={{ url: "https://thrills.world", label: t("thrillsLink") }}
+                zone={target.zone}
                 banner={target.banner}
                 credit={parkName}
               />
