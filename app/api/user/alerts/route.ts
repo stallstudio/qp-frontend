@@ -7,7 +7,7 @@ import {
   reopenAllowedForWindow,
   REOPEN_CREATE_CLOSING_MARGIN_MS,
 } from "@/lib/park-closing";
-import { loadParkOpenWindows } from "@/lib/park-closing-db";
+import { loadParkHourPeriods, rideOpenWindow } from "@/lib/park-closing-db";
 import type { AlertType } from "@/types/user";
 
 export const runtime = "nodejs";
@@ -111,13 +111,22 @@ export async function POST(request: NextRequest) {
 
   // Trop près de la fermeture : ce qui s'arrête maintenant s'arrête pour la
   // nuit, pas pour une panne. Voir `lib/park-closing.ts` — la même règle borne le
-  // réarmement automatique côté moteur, avec une marge plus large.
+  // réarmement automatique côté moteur, avec une marge plus large ET une vue
+  // plus étroite des horaires (`scope`).
+  //
+  // ⚠️ Le `scope: "create"` compte les SESSIONS D'ÉVÉNEMENT comme une ouverture,
+  // pour tout le parc : pendant Halloween Horror Nights, une alerte peut être
+  // posée sur n'importe quelle attraction, y compris une attraction de jour qui
+  // rouvrirait pour la soirée. Le pire qui puisse en sortir est une alerte
+  // muette, effacée en fin de journée.
   if (type === "reopen" && current) {
     const now = new Date();
-    const windows = await loadParkOpenWindows([current.parkId], now);
+    const periodsByPark = await loadParkHourPeriods([current.parkId], now);
     if (
       !reopenAllowedForWindow(
-        windows.get(current.parkId),
+        rideOpenWindow(periodsByPark.get(current.parkId), now, {
+          scope: "create",
+        }),
         now,
         REOPEN_CREATE_CLOSING_MARGIN_MS,
       )

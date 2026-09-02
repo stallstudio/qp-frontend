@@ -22,7 +22,11 @@ import {
   reopenAllowedForWindow,
   REOPEN_CREATE_CLOSING_MARGIN_MS,
 } from "@/lib/park-closing";
-import { dayOpeningHours, visibleParkEvents } from "@/lib/park-events";
+import {
+  alertOpeningHours,
+  dayOpeningHours,
+  visibleParkEvents,
+} from "@/lib/park-events";
 import ParkShowTimeTable from "./show-time-table";
 import PoiStatusTable from "./poi-status-table";
 import EventCard from "./event-card";
@@ -273,10 +277,17 @@ export default function MainCard({
   // horaires déjà chargés — sans quoi l'UI proposerait un bouton que la route de
   // création refuserait ensuite en 409.
   //
-  // ⚠️ **`dayOpeningHours` exclut les sessions d'ÉVÉNEMENT.** Une nocturne qui
-  // court jusqu'à 1 h du matin rouvrirait sinon ce droit sur TOUTES les
-  // attractions, y compris celles de jour arrêtées pour la nuit — soit
-  // exactement le piège « la fin de journée est indiscernable d'une panne ».
+  // ⚠️ **`alertOpeningHours` COMPTE les sessions d'événement**, contrairement à
+  // `dayOpeningHours` qui borne la journée d'exploitation. Le droit dont il est
+  // question ici est celui de CRÉER une alerte, dont le pire échec est une
+  // alerte muette : pendant Halloween Horror Nights, on veut pouvoir en poser
+  // sur les mazes qui tournent, et sur les attractions de jour au cas où
+  // certaines rouvrent pour la soirée.
+  //
+  // Le piège « la fin de journée est indiscernable d'une panne » reste tenu, mais
+  // là où il se joue vraiment : le RÉARMEMENT automatique côté moteur, seul à
+  // pouvoir envoyer une notification, garde la vue étroite (voir
+  // `lib/park-closing.ts`, `ReopenScope`).
   //
   // Recalculé à chaque rendu — et ce composant se re-rend chaque seconde pour le
   // décompte : le formulaire se referme donc tout seul quand l'heure limite
@@ -291,7 +302,7 @@ export default function MainCard({
     (() => {
       const at = new Date();
       return reopenAllowedForWindow(
-        parkOpenWindowFrom(dayOpeningHours(park.openingHours ?? []), at),
+        parkOpenWindowFrom(alertOpeningHours(park.openingHours ?? []), at),
         at,
         REOPEN_CREATE_CLOSING_MARGIN_MS,
       );

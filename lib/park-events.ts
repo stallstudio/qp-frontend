@@ -126,9 +126,10 @@ export function visibleParkEvents(
  * aussi les alertes de réouverture, le profil de prévision et l'axe du graphique
  * du jour. Une nocturne qui court jusqu'à 1 h du matin :
  *
- *   - rouvrirait le droit aux alertes de réouverture sur TOUTES les attractions,
- *     y compris celles de jour arrêtées pour la nuit — soit exactement le piège
- *     « la fin de journée est indiscernable d'une panne » ;
+ *   - ferait RÉARMER les alertes de réouverture des attractions de jour arrêtées
+ *     pour la nuit — soit exactement le piège « la fin de journée est
+ *     indiscernable d'une panne ». ⚠️ Pour la CRÉATION d'une alerte, c'est
+ *     l'inverse qu'on veut : voir `alertOpeningHours` plus bas ;
  *   - étirerait l'axe du graphique d'une attraction de jour jusqu'à 1 h.
  *
  * L'oublier ne casse rien visiblement : ça dégrade silencieusement et fait
@@ -142,4 +143,25 @@ export const NON_DAY_HOUR_TYPES = new Set(["private_event", "sold_out", "event"]
 /** Les horaires qui décrivent la journée d'exploitation du parc. */
 export function dayOpeningHours(hours: OpeningHour[]): OpeningHour[] {
   return hours.filter((h) => !NON_DAY_HOUR_TYPES.has(h.type));
+}
+
+/**
+ * Les horaires qui ouvrent le droit à CRÉER une alerte de réouverture : la
+ * journée du parc ET ses sessions d'événement.
+ *
+ * ⚠️ C'est la seule vue où `event` revient — et seulement pour la création.
+ * Pendant Halloween Horror Nights, le parc de jour est fermé : jugée sur
+ * `dayOpeningHours`, la page n'aurait proposé aucune alerte de la soirée, pas
+ * même sur les mazes qui tournent. Le coût d'une erreur ici est une alerte
+ * muette, effacée en fin de journée ; côté moteur, le RÉARMEMENT garde la vue
+ * étroite, parce que là le coût est une notification push (voir
+ * `lib/park-closing.ts`, `ReopenScope`).
+ *
+ * ⚠️ `private_event` et `sold_out` restent exclus : une soirée privée ou une
+ * journée complète ne sont pas des heures où l'on entre.
+ */
+export function alertOpeningHours(hours: OpeningHour[]): OpeningHour[] {
+  return hours.filter(
+    (h) => h.type !== "private_event" && h.type !== "sold_out",
+  );
 }

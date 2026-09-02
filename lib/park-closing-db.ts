@@ -1,8 +1,10 @@
 import { getPrisma } from "@/lib/prisma";
 import {
   parkOpenWindowFrom,
+  reopenPeriodsFor,
   type OpeningPeriod,
   type ParkOpenWindow,
+  type ReopenScope,
 } from "@/lib/park-closing";
 
 // Chargement des horaires depuis la base principale, pour la règle de proximité
@@ -16,48 +18,73 @@ import {
 // peut plus être en cours.
 const LOOKBACK_MS = 24 * 60 * 60_000;
 
-// État d'ouverture courant des parcs demandés. Une seule requête, quel que soit
-// le nombre de parcs.
-export async function loadParkOpenWindows(
+/**
+ * Périodes d'ouverture courantes des parcs demandés, TOUS TYPES CONFONDUS. Une
+ * seule requête, quel que soit le nombre de parcs.
+ *
+ * ⚠️ **Le tri se fait à la LECTURE, plus dans le `where`.** Cette requête
+ * écartait les sessions d'événement (`type: { not: "event" }`) parce qu'elle ne
+ * servait qu'au réarmement, où une nocturne rendrait « ouvertes » des
+ * attractions de jour endormies. Mais la même donnée sert aussi à décider si
+ * l'on peut CRÉER une alerte, et là les sessions comptent — sinon aucune alerte
+ * n'est possible pendant Halloween Horror Nights, mazes compris. Les périodes
+ * sortent donc entières, avec leur `type` et leur `eventId`, et c'est
+ * `reopenPeriodsFor` qui choisit celles qui s'appliquent.
+ *
+ * ⚠️ `private_event` et `sold_out` ne sont volontairement PAS écartés ici : ils
+ * le sont côté frontend, pas côté serveur, et l'écart est antérieur à cette
+ * fonctionnalité. Le corriger changerait le comportement des alertes sur des
+ * parcs sans rapport — à traiter à part.
+ */
+export async function loadParkHourPeriods(
   parkIds: number[],
   now: Date,
-): Promise<Map<number, ParkOpenWindow>> {
-  const result = new Map<number, ParkOpenWindow>();
+): Promise<Map<number, OpeningPeriod[]>> {
+  const result = new Map<number, OpeningPeriod[]>();
   if (parkIds.length === 0) return result;
 
   const rows = await getPrisma().openingHours.findMany({
     where: {
       parkId: { in: parkIds },
       closeTime: { gte: new Date(now.getTime() - LOOKBACK_MS) },
-      // ⚠️ **Les sessions d'événement sont exclues, et c'est indispensable.**
-      // Cette requête sert à décider si une alerte de RÉOUVERTURE a encore un
-      // sens. Une nocturne qui court jusqu'à 1 h du matin rendrait le parc
-      // « ouvert » toute la soirée et rouvrirait ce droit sur TOUTES ses
-      // attractions — y compris celles de jour, arrêtées pour la nuit. Chaque
-      // soir d'octobre partirait alors une salve de « c'est de nouveau à
-      // l'arrêt » qui ne décrit aucun incident.
-      //
-      // ⚠️ `private_event` et `sold_out` ne sont volontairement PAS exclus ici :
-      // ils le sont côté frontend, pas côté serveur, et l'écart est
-      // antérieur à cette fonctionnalité. Le corriger changerait le
-      // comportement des alertes sur des parcs sans rapport — à traiter à part.
-      type: { not: "event" },
     },
-    select: { parkId: true, openTime: true, closeTime: true },
+    select: {
+      parkId: true,
+      openTime: true,
+      closeTime: true,
+      type: true,
+      eventId: true,
+    },
   });
 
-  const byPark = new Map<number, OpeningPeriod[]>();
   for (const row of rows) {
-    const list = byPark.get(row.parkId) ?? [];
-    list.push({ openTime: row.openTime, closeTime: row.closeTime });
-    byPark.set(row.parkId, list);
-  }
-
-  // Un parc sans aucune ligne reste « unknown » : `parkOpenWindowFrom` le déduit
-  // d'une liste vide, on n'a donc pas de cas particulier à traiter ici.
-  for (const id of parkIds) {
-    result.set(id, parkOpenWindowFrom(byPark.get(id) ?? [], now));
+    const list = result.get(row.parkId) ?? [];
+    list.push({
+      openTime: row.openTime,
+      closeTime: row.closeTime,
+      type: row.type,
+      eventId: row.eventId,
+    });
+    result.set(row.parkId, list);
   }
 
   return result;
+}
+
+/**
+ * État d'ouverture applicable à UNE attraction : les périodes de son parc,
+ * filtrées par son rattachement événementiel et par l'usage (voir
+ * `reopenPeriodsFor`).
+ *
+ * ⚠️ Un parc sans aucune ligne reste « unknown », que `parkOpenWindowFrom`
+ * déduit d'une liste vide : on ne conclut RIEN d'une absence d'horaires, sous
+ * peine de supprimer la fonctionnalité chez tous les parcs qui n'en publient
+ * pas.
+ */
+export function rideOpenWindow(
+  periods: OpeningPeriod[] | undefined,
+  now: Date,
+  opts: { eventId?: number | null; scope: ReopenScope },
+): ParkOpenWindow {
+  return parkOpenWindowFrom(reopenPeriodsFor(periods ?? [], opts), now);
 }

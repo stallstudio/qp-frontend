@@ -11,10 +11,12 @@ import {
 } from "@/lib/alert-messages";
 import { rideSlug } from "@/lib/slug";
 import {
+  localDayStillRunning,
   reopenAllowedForWindow,
   REOPEN_REARM_CLOSING_MARGIN_MS,
+  type OpeningPeriod,
 } from "@/lib/park-closing";
-import { loadParkOpenWindows } from "@/lib/park-closing-db";
+import { loadParkHourPeriods, rideOpenWindow } from "@/lib/park-closing-db";
 import {
   buildShowReminderMessage,
   type ReminderShow,
@@ -359,7 +361,15 @@ async function runAlertsPass(): Promise<NextResponse> {
     // pointer sur un POI d'un autre type si un identifiant venait à dériver.
     prisma.poi.findMany({
       where: { kind: "ride", id: { in: rideIds } },
-      select: { id: true, park: { select: { id: true, timezone: true } } },
+      // `eventId` : une attraction rattachée à un événement (un maze de
+      // Halloween Horror Nights) est jugée sur les horaires de SON événement —
+      // sans quoi elle n'aurait jamais droit à un réarmement au moment précis
+      // où elle tourne, le parc de jour étant fermé.
+      select: {
+        id: true,
+        eventId: true,
+        park: { select: { id: true, timezone: true } },
+      },
     }),
   ]);
   const waitByRide = new Map<
@@ -377,27 +387,47 @@ async function runAlertsPass(): Promise<NextResponse> {
   }
   const tzByRide = new Map<number, string>();
   const parkIdByRide = new Map<number, number>();
+  const eventIdByRide = new Map<number, number>();
   for (const r of rides) {
     tzByRide.set(r.id, r.park?.timezone ?? "Europe/Paris");
     if (r.park) parkIdByRide.set(r.id, r.park.id);
+    if (r.eventId != null) eventIdByRide.set(r.id, r.eventId);
   }
 
-  // Horaires d'ouverture des parcs concernés, UNIQUEMENT si des alertes de
-  // réouverture déjà notifiées attendent un éventuel réarmement. Aucune alerte
-  // de ce type en attente = aucune requête (le cas courant : ce cron tourne
-  // toutes les 1-2 min, pour rien la plupart du temps).
-  const rearmCandidateParkIds = [
+  // Horaires d'ouverture des parcs concernés, UNIQUEMENT si quelque chose en
+  // dépend à ce passage. Aucun candidat = aucune requête (le cas courant : ce
+  // cron tourne toutes les 1-2 min, pour rien la plupart du temps).
+  //
+  // Deux usages, et le second est ce qui l'élargit :
+  //   - le RÉARMEMENT d'une alerte de réouverture déjà notifiée ;
+  //   - l'EXPIRATION d'une alerte de la veille, qui doit attendre la vraie fin
+  //     de journée du parc et non minuit (voir `localDayStillRunning`).
+  const alertDay = (a: (typeof alerts)[number]): string | null =>
+    a.activeDate
+      ? DateTime.fromJSDate(a.activeDate)
+          .setZone(tzByRide.get(a.rideId) ?? "Europe/Paris")
+          .toISODate()
+      : null;
+  const todayIn = (rideId: number): string | null =>
+    DateTime.now().setZone(tzByRide.get(rideId) ?? "Europe/Paris").toISODate();
+
+  const hourCandidateParkIds = [
     ...new Set(
       alerts
-        .filter((a) => a.type === "reopen" && !a.active)
+        .filter((a) => {
+          if (a.type === "reopen" && !a.active) return true;
+          const day = alertDay(a);
+          const today = todayIn(a.rideId);
+          return !!day && !!today && day < today;
+        })
         .map((a) => parkIdByRide.get(a.rideId))
         .filter((id): id is number => id != null),
     ),
   ];
-  const parkWindows =
-    rearmCandidateParkIds.length > 0
-      ? await loadParkOpenWindows(rearmCandidateParkIds, now)
-      : new Map();
+  const periodsByPark =
+    hourCandidateParkIds.length > 0
+      ? await loadParkHourPeriods(hourCandidateParkIds, now)
+      : new Map<number, OpeningPeriod[]>();
 
   // 3. Décision par alerte : à expirer (jour passé), à envoyer, à réarmer.
   //
@@ -427,8 +457,22 @@ async function runAlertsPass(): Promise<NextResponse> {
       const activeDay = DateTime.fromJSDate(a.activeDate).setZone(tz).toISODate();
       const today = DateTime.now().setZone(tz).toISODate();
       if (activeDay && today && activeDay < today) {
-        toExpire.push(a.id);
-        continue;
+        // ⚠️ **Le calendrier ne suffit pas à dire que la journée est passée.**
+        // Une nocturne (ou un parc qui ferme à 01:00) déborde sur la date
+        // suivante : supprimer à minuit effaçait, en pleine session, l'alerte
+        // posée dix minutes plus tôt. On attend donc que plus aucune période
+        // ouverte CE JOUR-LÀ ne soit en cours.
+        const parkId = parkIdByRide.get(a.rideId);
+        const stillRunning = localDayStillRunning(
+          (parkId != null ? periodsByPark.get(parkId) : undefined) ?? [],
+          activeDay,
+          tz,
+          now,
+        );
+        if (!stillRunning) {
+          toExpire.push(a.id);
+          continue;
+        }
       }
     }
 
@@ -457,10 +501,24 @@ async function runAlertsPass(): Promise<NextResponse> {
 
         // …et le parc ne doit pas être sur le point de fermer : à cette heure-là,
         // un `down` / `maintenance` est une mise en sommeil, pas une panne.
+        //
+        // ⚠️ `scope: "rearm"` — la vue la plus ÉTROITE : une attraction
+        // ordinaire est jugée sur la seule journée du parc, sessions
+        // d'événement exclues. Sans ça, tout le parc s'endormant à 17:00
+        // pendant que la nocturne tourne partirait une salve de « c'est de
+        // nouveau à l'arrêt ». Un maze, lui, est jugé sur SON événement
+        // (`eventId`), donc reste réarmable pendant toute la soirée.
         const parkId = parkIdByRide.get(a.rideId);
         if (
           !reopenAllowedForWindow(
-            parkId != null ? parkWindows.get(parkId) : undefined,
+            rideOpenWindow(
+              parkId != null ? periodsByPark.get(parkId) : undefined,
+              now,
+              {
+                eventId: eventIdByRide.get(a.rideId) ?? null,
+                scope: "rearm",
+              },
+            ),
             now,
             REOPEN_REARM_CLOSING_MARGIN_MS,
           )

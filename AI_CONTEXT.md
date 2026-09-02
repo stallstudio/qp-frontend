@@ -509,9 +509,11 @@ lirait comme deux événements distincts. `EventCard` portait déjà `isEmpty` /
 `emptyLabel` pour ça — c'est l'appelant qui ne s'en servait pas.
 
 ⚠️ **`NON_DAY_HOUR_TYPES` exclut `event`** (billet séparé) mais PAS `extension`
-(même billet, journée prolongée). Une nocturne qui court jusqu'à 1 h rouvrirait
-sinon le droit aux alertes de réouverture sur TOUTES les attractions, y compris
-celles de jour arrêtées pour la nuit, et étirerait l'axe du graphique du jour.
+(même billet, journée prolongée). Une nocturne qui court jusqu'à 1 h ferait sinon
+RÉARMER les alertes de réouverture des attractions de jour arrêtées pour la nuit,
+et étirerait l'axe du graphique du jour. ⚠️ Pour le droit à CRÉER une alerte,
+c'est l'inverse qu'on veut (`alertOpeningHours`) — voir « Les nocturnes : deux
+vues des horaires ».
 
 ⚠️ **La réciproque vaut pour les POI de l'événement** (2026-09-02) : un maze
 n'ouvre QUE pendant la nocturne. `buildRideHistory` accepte donc un `eventId`
@@ -968,6 +970,33 @@ NOTIFIER une vraie réouverture jusqu'à la fermeture, et c'est là l'essentiel.
 formulaire (`main-card.tsx` → prop `reopenAllowed` → `AlertSection`), la route de
 création (409 `Park is closing`) et le moteur. Si l'UI proposait un bouton que la
 route refuse ensuite, l'utilisateur ne verrait qu'un échec inexplicable.
+
+##### Les nocturnes : deux vues des horaires, pas une (2026-09-02)
+
+`loadParkOpenWindows` écartait les lignes `type: "event"` en SQL, donc pendant
+Halloween Horror Nights le parc comptait comme fermé **pour tout le monde** — y
+compris les mazes, seuls à tourner à cette heure-là. La lecture rend maintenant
+les périodes entières (`loadParkHourPeriods`, avec `type` et `eventId`) et c'est
+`reopenPeriodsFor` qui choisit, selon le `ReopenScope` :
+
+| Scope | Vue des horaires | Pourquoi |
+|---|---|---|
+| `create` | **toutes** les périodes, nocturnes comprises, pour toute attraction | le pire échec est une alerte muette ; pendant l'événement on peut donc poser une alerte partout, au cas où une attraction de jour rouvre pour la soirée |
+| `rearm` | journée du parc seule ; un POI d'événement (`pois.eventId`) est jugé sur les sessions de SON événement | le pire échec est un **push** ; sans cette vue étroite, tout le parc s'endormant à 17:00 pendant que la nocturne tourne partirait une salve de « c'est de nouveau à l'arrêt » |
+
+⚠️ `eventId` ne joue QUE sur `rearm`. Restreindre un maze à ses sessions dès la
+création ferait refuser par la route ce que le formulaire propose (celui-ci juge
+sur les horaires du parc entier) — le « bouton qui échoue » décrit juste au-dessus.
+Côté client, la vue large est `alertOpeningHours` (`lib/park-events.ts`), à ne pas
+confondre avec `dayOpeningHours` qui borne la journée d'exploitation.
+
+⚠️ **L'expiration quotidienne ne peut plus être une comparaison de dates.** Une
+alerte posée à 23:50 pendant une nocturne qui court jusqu'à 02:00 était supprimée
+dix minutes plus tard, en pleine session — et le défaut touchait déjà tout parc
+fermant après minuit. Le cron applique donc un sursis (`localDayStillRunning`) :
+tant qu'une période OUVERTE ce jour-là est encore en cours, l'alerte survit. La
+période doit avoir ouvert ce jour-là, sinon l'ouverture du lendemain ferait
+survivre indéfiniment une alerte de la veille.
 
 Le réarmement automatique **ne recale pas `activeDate`** : il ne doit pas
 prolonger la validité de l'alerte au-delà de la journée d'origine. Et il n'écrit
