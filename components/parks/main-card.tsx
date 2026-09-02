@@ -74,53 +74,30 @@ const STACK_JOINT = "rounded-lg";
 const STACK_TOP = "rounded-t-4xl";
 const STACK_BOTTOM = "rounded-b-4xl";
 
-// ————— Concentricité du sélecteur d'onglets —————
+// ————— Le sélecteur : une pill dans une carte du ticket —————
 //
-// Les mêmes rayons, mais en LONGUEURS : une classe utilitaire n'est pas lisible
-// par un `calc()`, or l'intérieur du sélecteur doit se DÉDUIRE de l'extérieur.
-// Une seule règle, appliquée à chaque couche traversée :
+// Deux objets, deux vocabulaires, et on a cessé d'essayer de les accorder.
 //
-//     rayon intérieur = rayon extérieur − épaisseur qui les sépare
+// La CARTE appartient à la pile : elle en est la première tranche, donc gros
+// arrondi sur le dessus, jointure discrète en dessous — c'est ce qui fait lire
+// la colonne comme un ticket découpé plutôt que comme des cartes posées.
 //
-// Écrire les résultats en dur aurait figé huit valeurs (deux angles × deux
-// couches × deux tailles d'écran) qu'un simple changement de padding aurait
-// désaccordées sans rien casser de visible ailleurs.
-const TAB_GEOMETRY = cn(
-  "[--tab-r-top:2rem]", // = STACK_TOP, `rounded-4xl`
-  "[--tab-r-bottom:var(--radius)]", // = STACK_JOINT, `rounded-lg`
-  "[--tab-r-floor:4px]", // plancher des angles bas, cf. plus bas
-  "[--tab-pad:0.375rem] sm:[--tab-pad:0.5rem]", // épaisseur de la carte
-);
+// Le SÉLECTEUR qu'elle contient est un segmented control, et un segmented
+// control est une pill : piste et curseur en `rounded-full`, comme partout
+// ailleurs. Les faire descendre jusqu'aux angles de la carte, c'est ce que
+// faisaient les versions précédentes — deux paddings à soustraire d'une
+// jointure de 10 px, un calcul qui passait sous zéro, un plancher pour le
+// rattraper, et au bout un curseur au bas presque droit qui se lisait comme une
+// tranche coincée. Le padding de la carte suffit à séparer les deux formes :
+// à 8 px d'écart, l'œil ne compare plus les courbes.
+//
+// ⚠️ La concentricité de la pill est GRATUITE, et c'est le seul accord qui
+// compte encore : sur 36 px de haut, la piste a un rayon de 18 px et le
+// curseur, inscrit 3 px plus petit de chaque côté, exactement 15 px.
+const TAB_GEOMETRY = "[--tab-pad:0.375rem] sm:[--tab-pad:0.5rem]";
 
-// ⚠️ **En bas, la soustraction ne suffit pas** — et aucune valeur n'y est
-// idéale. La carte n'a là que sa jointure de pile (10 px), plus FINE que les
-// 8 + 3 px de padding qu'on traverse : le calcul tombe à −1 px, un rayon
-// négatif invalide la déclaration CSS, et le coin finit droit dans un angle
-// arrondi. Reprendre tel quel le rayon extérieur ne marche pas davantage : à
-// rayon égal, l'arc intérieur — plus petit — se lit plus GRAS que celui du
-// bord. D'où un plancher : la règle concentrique s'applique, sans jamais
-// descendre sous `--tab-r-floor`. Assez pour ne pas lire comme une coupe,
-// assez discret pour ne pas surpasser la courbe qui l'entoure.
-//
-// Un plancher et non un `4px` en dur : le jour où la carte s'épaissit ou la
-// jointure grossit, c'est le calcul qui doit reprendre la main.
-//
-// ⚠️ Les deux angles bas ne diffèrent que par `_-_3px`, mais ils restent écrits
-// EN TOUTES LETTRES. Tailwind scanne les sources comme du texte : une classe
-// assemblée par template literal n'y apparaît jamais, et le CSS ne serait tout
-// simplement pas généré — sans la moindre erreur au build.
-
-// Couche 1 : la liste épouse la face INTÉRIEURE de la carte (moins son padding).
-const TAB_LIST_RADIUS = cn(
-  "rounded-t-[calc(var(--tab-r-top)_-_var(--tab-pad))]",
-  "rounded-b-[max(var(--tab-r-floor),calc(var(--tab-r-bottom)_-_var(--tab-pad)))]",
-);
-
-// Couche 2 : la pastille et les onglets, retranchés des 3 px de `TabsList`.
-const TAB_PILL_RADIUS = cn(
-  "rounded-t-[calc(var(--tab-r-top)_-_var(--tab-pad)_-_3px)]",
-  "rounded-b-[max(var(--tab-r-floor),calc(var(--tab-r-bottom)_-_var(--tab-pad)_-_3px))]",
-);
+// Piste, curseur, onglets : la même pill, à trois échelles.
+const TAB_PILL_RADIUS = "rounded-full";
 
 /**
  * Classes d'arrondi d'une carte selon sa place dans la colonne.
@@ -585,13 +562,12 @@ export default function MainCard({
           stackRadius(true, false),
         )}
       >
-        {/* ⚠️ L'intérieur SUIT l'arrondi de la carte, angle par angle : très
-            rond en haut (concentrique, à l'épaisseur près), franchement
-            discret en bas où la carte n'a que sa jointure de pile. Le
-            `rounded-3xl` uniforme d'avant gardait le même gros coin partout,
-            y compris là : c'est ce désaccord-là qui se voyait. */}
+        {/* ⚠️ L'intérieur NE SUIT PAS les angles de la carte : c'est une pill,
+            comme tout segmented control. Les lui faire suivre revenait à
+            imposer un bas presque droit à un objet qui ne borde rien de ce
+            côté-là — cf. le bloc de géométrie en tête de fichier. */}
         <TabsList
-          className={cn("relative w-full overflow-hidden", TAB_LIST_RADIUS)}
+          className={cn("relative w-full overflow-hidden", TAB_PILL_RADIUS)}
         >
           {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
               Deux onglets de largeur égale -> largeur 50% (moins le padding),
@@ -612,6 +588,10 @@ export default function MainCard({
               transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
             }}
           />
+          {/* ⚠️ L'onglet actif est TRANSPARENT — c'est le curseur qui est
+              dessiné dessous — donc son arrondi ne se voit qu'à l'anneau de
+              focus clavier. Il prend quand même la pill : un anneau
+              rectangulaire posé sur un curseur arrondi se remarquerait. */}
           <TabsTrigger
             value="wait-times"
             className={cn(
