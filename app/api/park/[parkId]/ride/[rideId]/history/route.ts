@@ -129,7 +129,10 @@ export async function GET(
     // page « historique d'attraction » d'une entité qui n'a pas de file.
     const ride = await prisma.poi.findFirst({
       where: { kind: "ride", id: rideIdNum, parkId: park.id },
-      select: { id: true },
+      // `eventId` : une attraction d'événement (maze de HHN, de Traumatica) ne
+      // vit que pendant la nocturne. C'est lui qui décide de la fenêtre du
+      // graphique — voir `buildRideHistory`.
+      select: { id: true, eventId: true },
     });
     if (!ride) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -140,6 +143,7 @@ export async function GET(
     // donc plus nécessaire (historyDays: 0).
     const rideHistory = await buildRideHistory(park.id, park.timezone, rideIdNum, {
       historyDays: 0,
+      eventId: ride.eventId,
     });
 
     if (!rideHistory.today) {

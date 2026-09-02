@@ -20,6 +20,14 @@ const DEFAULT_HISTORY_DAYS = 7;
 // du matin étirerait l'axe du graphique du jour de ~10 h à ~15 h d'amplitude, et
 // écraserait toute la courbe d'une attraction de JOUR pour une session à
 // laquelle elle ne participe même pas.
+//
+// ⚠️ **La réciproque est vraie, et c'est ce que gère `eventId` ci-dessous :** un
+// maze de Halloween Horror Nights n'ouvre QUE pendant la nocturne. Lui appliquer
+// la fenêtre de jour du parc (Universal Studios Florida : 09:00 – 17:00) donnait
+// un graphique dont l'axe s'arrêtait à 17:00, soit une heure et demie AVANT que
+// l'attraction n'ouvre — la courbe du soir et la prévision tombaient toutes deux
+// hors champ. Un POI rattaché à un événement suit donc les horaires de SON
+// événement (18:30 – 02:00), pas ceux du parc.
 const EXCLUDED_HOUR_TYPES = new Set(["private_event", "sold_out", "event"]);
 
 export type RideHistory = {
@@ -38,6 +46,8 @@ type HourEntry = {
   type: string;
   openTime?: Date | string | null;
   closeTime?: Date | string | null;
+  /** Événement saisonnier dont cette ligne est une session. */
+  eventId?: number | null;
 };
 
 function toDate(value: Date | string | null | undefined): Date | null {
@@ -48,13 +58,21 @@ function toDate(value: Date | string | null | undefined): Date | null {
 // Fenêtre d'exploitation d'un jour = enveloppe [min(openTime), max(closeTime)]
 // sur les horaires « normaux ». openTime/closeTime étant des instants absolus,
 // un parc nocturne (fermeture après minuit) donne naturellement close > open.
+//
+// `eventId` renseigné = fenêtre de CET événement : on ne retient alors que ses
+// sessions, et le filtre par type ne s'applique pas — c'est justement une ligne
+// `event` (ou `extension`) qu'on cherche. `null` (le cas courant) = fenêtre de
+// jour du parc, sans les nocturnes.
 export function resolveDayWindow(
   hours: HourEntry[],
+  eventId: number | null = null,
 ): { open: Date; close: Date } | null {
   let open: Date | null = null;
   let close: Date | null = null;
   for (const entry of hours) {
-    if (EXCLUDED_HOUR_TYPES.has(entry.type)) continue;
+    if (eventId != null) {
+      if (entry.eventId !== eventId) continue;
+    } else if (EXCLUDED_HOUR_TYPES.has(entry.type)) continue;
     const o = toDate(entry.openTime);
     const c = toDate(entry.closeTime);
     if (o && (!open || o < open)) open = o;
@@ -142,13 +160,18 @@ export async function getRideStandbyIntervals(
 }
 
 // Orchestrateur : construit today + N jours précédents pour une attraction.
+//
+// `eventId` = l'événement auquel l'attraction est rattachée (`pois.eventId`),
+// quand elle l'est. Il ne change qu'une chose, mais elle est décisive : les
+// fenêtres de journée sont alors celles de l'ÉVÉNEMENT et non du parc.
 export async function buildRideHistory(
   parkId: number,
   timezone: string,
   rideId: number,
-  opts?: { historyDays?: number },
+  opts?: { historyDays?: number; eventId?: number | null },
 ): Promise<RideHistory> {
   const historyDays = opts?.historyDays ?? DEFAULT_HISTORY_DAYS;
+  const eventId = opts?.eventId ?? null;
   const now = new Date();
 
   const todayISO = await calculateParkDate(parkId, timezone);
@@ -169,12 +192,21 @@ export async function buildRideHistory(
     now,
   );
   const todayHours = await getOpeningHoursByParkAndDate(parkId, todayISO);
-  const todayWindow = resolveDayWindow(todayHours) ?? {
-    // Sans horaires connus : on borne à [dayStart, maintenant] pour tracer au
-    // moins l'observé (la stratégie ne produira alors pas de prévision).
-    open: dayStart,
-    close: now,
-  };
+  // ⚠️ Repli sur la fenêtre du PARC quand l'événement n'a pas de session
+  // publiée aujourd'hui, et non sur « rien » : un parc peut très bien faire
+  // tourner ses mazes sans jamais publier d'horaires de nocturne (c'est
+  // exactement ce que `ParkEvent.startDate/endDate` existe pour rattraper). On
+  // retombe alors sur le comportement d'avant, qui vaut mieux qu'un graphique
+  // vide.
+  const todayWindow = (eventId != null
+    ? resolveDayWindow(todayHours, eventId)
+    : null) ??
+    resolveDayWindow(todayHours) ?? {
+      // Sans horaires connus : on borne à [dayStart, maintenant] pour tracer au
+      // moins l'observé (la stratégie ne produira alors pas de prévision).
+      open: dayStart,
+      close: now,
+    };
 
   const today: DayIntervals = {
     open: todayWindow.open,
@@ -209,7 +241,13 @@ export async function buildRideHistory(
     getRideStandbyIntervals(parkId, rideId, windowStart, dayStart),
     getPrisma().openingHours.findMany({
       where: { parkId, date: { in: prevDates } },
-      select: { date: true, type: true, openTime: true, closeTime: true },
+      select: {
+        date: true,
+        type: true,
+        openTime: true,
+        closeTime: true,
+        eventId: true,
+      },
     }),
   ]);
 
@@ -222,7 +260,11 @@ export async function buildRideHistory(
 
   const history: DayIntervals[] = [];
   for (const date of prevDates) {
-    const window = resolveDayWindow(hoursByDate.get(date) ?? []);
+    // ⚠️ Pour un POI d'événement, PAS de repli sur la fenêtre du parc ici : un
+    // jour sans session est un jour où l'événement ne tournait pas, et le
+    // compter reviendrait à verser une journée entière de « fermé » dans un
+    // profil censé décrire des soirées.
+    const window = resolveDayWindow(hoursByDate.get(date) ?? [], eventId);
     if (!window) continue; // parc fermé ce jour-là : exclu du profil moyen.
     const intervals = sliceIntervalsForWindow(
       historyIntervals,

@@ -513,6 +513,17 @@ lirait comme deux événements distincts. `EventCard` portait déjà `isEmpty` /
 sinon le droit aux alertes de réouverture sur TOUTES les attractions, y compris
 celles de jour arrêtées pour la nuit, et étirerait l'axe du graphique du jour.
 
+⚠️ **La réciproque vaut pour les POI de l'événement** (2026-09-02) : un maze
+n'ouvre QUE pendant la nocturne. `buildRideHistory` accepte donc un `eventId`
+(celui de `pois.eventId`, transmis par la route du graphique) et borne alors la
+journée aux **sessions de cet événement** — 18:30 – 02:00 chez Universal Studios
+Florida, et non 09:00 – 17:00. Sans lui, l'axe du graphique s'arrêtait une heure
+et demie avant l'ouverture du maze. Repli sur la fenêtre du parc si l'événement
+n'a pas de session publiée ce jour-là ; pour les journées d'HISTORIQUE, pas de
+repli : un jour sans session est un jour où l'événement ne tournait pas.
+Contrepartie côté worker : `computeRideForecasts` groupe les attractions par
+journée (`ForecastGroup`) pour que la PRÉVISION suive la même fenêtre.
+
 ### Historique & tendances — SUPPRIMÉS (2026-07-27)
 
 Les flèches de tendance et l'historique global du jour, suspendus depuis
