@@ -5,7 +5,6 @@ import Footer from "@/components/ui/footer";
 import SearchBar from "@/components/search/search-bar";
 import PopularParks from "@/components/home/popular-parks";
 import FavoriteParks from "@/components/home/favorite-parks";
-import UserBlock from "@/components/home/user-block";
 import ParksList from "@/components/home/parks-list";
 import type { ParkList } from "@/types/api";
 
@@ -30,8 +29,6 @@ export default function HomePageClient({
         <HomeHeader />
 
         <SearchBar parks={parks} />
-
-        <UserBlock />
 
         <FavoriteParks parks={parks} />
 
