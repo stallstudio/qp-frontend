@@ -1514,10 +1514,19 @@ model JobSchedule {
   enabled           Boolean @default(true)
 
   /// `false` = cadence tenue par une Schedule Dokploy (temps d'attente, pool de
-  /// proxies) : la ligne est en lecture seule, `expression` n'y est qu'un
-  /// reflet documentaire.
+  /// proxies). `expression` et `defaultExpression` sont alors VIDES : la
+  /// cadence vit dans Dokploy, l'admin l'y lit et l'y écrit par `schedule.list`
+  /// / `schedule.update`. Une valeur laissée ici serait le reflet qui avait
+  /// fini par mentir (relevé du 2026-09-01).
   managed  Boolean @default(true)
   runnable Boolean @default(true)
+
+  /// Commande de la Schedule Dokploy qui tient cette tâche, publiée par le
+  /// worker (`jobRegistry.dokployCommand`) — seul dépôt à savoir quel script
+  /// exécute son travail. C'est le lien entre cette ligne et sa Schedule :
+  /// l'admin l'apparie sur la commande rendue par `schedule.list`. `null` pour
+  /// une tâche gérée par le worker lui-même.
+  dokployCommand String? @db.VarChar(255)
 
   /// Noms portés dans `job_executions`, séparés par des virgules : le passage
   /// horaire en enchaîne sept.
