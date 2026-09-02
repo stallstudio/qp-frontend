@@ -245,7 +245,7 @@ export default function ParkShowTimeTable({
             défileraient visiblement dessous sans lui. Mais `bg-card` en dur
             plaquait un rectangle GRIS au milieu d'une carte d'événement teintée
             (Halloween Horror Nights, capture du 25/08) : la carte n'a pas le
-            fond `--card`, elle a un voile orange posé sur le fond de page.
+            fond `--card`, elle a un voile rouge posé sur le fond de page.
             `--table-surface` porte cette teinte aplatie, et c'est la carte qui
             la donne (`event-accents.tsx`) ; hors carte d'événement, personne ne
             la définit et le repli rend exactement le fond d'avant. */}
