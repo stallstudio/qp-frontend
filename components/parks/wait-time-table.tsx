@@ -11,8 +11,10 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { useNotifications } from "@/components/providers/notifications-provider";
 import AttractionDetailDialog from "@/components/parks/attraction-detail/attraction-detail-dialog";
 import { cn } from "@/lib/utils";
-// ⚠️ Partagés avec `poi-status-table.tsx` : deux listes du même onglet ne
-// peuvent pas trier les états ni couper les libellés différemment.
+// ⚠️ Extraits ici pour être PARTAGÉS avec la liste d'état des autres familles de
+// POI (reportée en V4, voir `lib/poi-kinds.ts`) : deux listes du même onglet ne
+// peuvent pas trier les états ni couper les libellés différemment. `poi-list.ts`
+// reste donc un module à part, même s'il n'a plus qu'un appelant ici.
 import {
   STATUS_ORDER,
   getPrimaryQueue,

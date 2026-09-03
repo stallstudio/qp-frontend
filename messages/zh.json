@@ -48,10 +48,7 @@
     "hoursOther": "开放时间",
     "cards": {
       "attractions": "项目",
-      "shows": "演出",
-      "restaurants": "餐厅",
-      "shops": "商店",
-      "hotels": "酒店"
+      "shows": "演出"
     }
   },
   "parkStatus": {
@@ -569,13 +566,6 @@
     "reopenSaved": "重开提醒已保存",
     "reopenTooLate": "乐园已闭园，提醒功能不可用。请在下次开园时再来。",
     "statusChanged": "该项目的状态刚刚发生变化。请重新打开页面以创建合适的提醒。"
-  },
-  "poiDetail": {
-    "openFor": "查看 {poi} 的详情",
-    "thrillsLink": "在 Thrills 上查看",
-    "statusTitle": "状态",
-    "menuTitle": "菜单",
-    "menuAction": "查看菜单"
   },
   "legal": {
     "backHome": "返回首页",

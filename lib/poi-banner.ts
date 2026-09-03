@@ -26,24 +26,6 @@ export function readBanner(value: unknown): string | null {
 }
 
 /**
- * La CARTE (menu) d'un POI, lue dans le même `additionalData` que la bannière.
- *
- * ⚠️ **Pas de proxy, contrairement à `readBanner`.** `proxiedImageUrl` signe des
- * IMAGES pour qu'elles traversent `next/image` sans que l'hôte de chaque parc
- * soit déclaré dans `next.config.ts` ; un menu est presque toujours un PDF,
- * ouvert dans un nouvel onglet sur le site du parc. Le faire passer par le proxy
- * d'images le rendrait illisible.
- *
- * ⚠️ Sondé et non casté, comme `readBanner` : `additionalData` est un `Json`
- * libre, sa forme n'est garantie par aucun type.
- */
-export function readPoiMenu(value: unknown): string | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const menu = (value as Record<string, unknown>).menu;
-  return typeof menu === "string" && menu ? menu : null;
-}
-
-/**
  * La ZONE du parc où se trouve le POI — « Fantasyland », « Dock World » —, lue
  * dans le même `additionalData` que la bannière.
  *
@@ -51,9 +33,9 @@ export function readPoiMenu(value: unknown): string | null {
  * Bellewaerde, « アムステルダムシティ » chez Huis Ten Bosch. Rien ne le traduit,
  * et rien ne le pourra — c'est un nom propre de quartier, pas un libellé
  * d'interface. C'est ce qui avait fait retirer le bloc « Informations » du popup
- * des restaurants (voir `poi-detail-dialog.tsx`) ; affiché SEUL sous le nom
- * d'une attraction, en revanche, il répond à la seule question qu'on se pose
- * devant une fiche : c'est où dans le parc ?
+ * des restaurants, lui-même reporté en V4 (voir `lib/poi-kinds.ts`) ; affiché
+ * SEUL sous le nom d'une attraction, en revanche, il répond à la seule question
+ * qu'on se pose devant une fiche : c'est où dans le parc ?
  *
  * ⚠️ Sondé et non casté, comme `readBanner` : `additionalData` est un `Json`
  * libre, sa forme n'est garantie par aucun type. Le nettoyage est commun avec

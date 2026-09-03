@@ -48,10 +48,7 @@
     "hoursOther": "Giờ mở cửa",
     "cards": {
       "attractions": "Trò chơi",
-      "shows": "Chương trình",
-      "restaurants": "Nhà hàng",
-      "shops": "Cửa hàng",
-      "hotels": "Khách sạn"
+      "shows": "Chương trình"
     }
   },
   "parkStatus": {
@@ -569,13 +566,6 @@
     "reopenSaved": "Đã lưu cảnh báo mở lại",
     "reopenTooLate": "Công viên đã đóng cửa, cảnh báo không khả dụng. Hãy quay lại vào lần mở cửa tới.",
     "statusChanged": "Trạng thái của trò chơi vừa thay đổi. Hãy mở lại trang để tạo đúng loại cảnh báo."
-  },
-  "poiDetail": {
-    "openFor": "Xem chi tiết {poi}",
-    "thrillsLink": "Xem trên Thrills",
-    "statusTitle": "Trạng thái",
-    "menuTitle": "Thực đơn",
-    "menuAction": "Xem thực đơn"
   },
   "legal": {
     "backHome": "Về trang chủ",

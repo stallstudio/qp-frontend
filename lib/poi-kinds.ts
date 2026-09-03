@@ -1,13 +1,3 @@
-import {
-  BedDouble,
-  Drama,
-  RollerCoaster,
-  ShoppingBag,
-  UtensilsCrossed,
-  Wrench,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
 /**
  * Les types de POI admis en base.
  *
@@ -34,71 +24,28 @@ export function parsePoiKind(value: string | null | undefined): PoiKind | null {
   return POI_KINDS.includes(value as PoiKind) ? (value as PoiKind) : null;
 }
 
-/**
- * Les familles qui reçoivent leur PROPRE carte dans l'onglet « En direct »,
- * dans leur ordre d'affichage sous la carte des attractions.
- *
- * `ride` n'y est pas : c'est la carte principale, elle a son propre tableau.
- * `show` non plus : ses horaires vivent dans l'autre onglet.
- *
- * ⚠️ **`service` est ABSENT à dessein** (arbitré le 2026-08-28). Le worker les
- * rattache comme les autres — ça ferme des centaines d'alertes non matchées dans
- * l'admin et ça ne coûte rien de plus en base —, mais ils ne s'affichent pas
- * ici. Ce que ces sources y rangent, ce sont des toilettes, des casiers, des
- * zones fumeurs, des distributeurs d'eau, des guichets et des postes de secours,
- * par dizaines : chez Thorpe Park, 41 « services » contre 36 restaurants. Savoir
- * qu'une toilette est ouverte n'aide personne à organiser sa journée, et la
- * carte noierait celles qui le font.
- *
- * ⚠️ **Une carte ne se rend que si elle a du contenu.** L'écrasante majorité des
- * parcs ne publie l'état d'aucun de ces POI ; leur page est alors strictement
- * celle d'avant.
- *
- * ⚠️ **Une famille présente en base n'est pas une famille VIVANTE, et le tri se
- * fait ailleurs.** Mesuré le 2026-08-28 : chez Merlin, Knoebels, Gardaland et
- * les LEGOLAND, les relevés de restaurants, boutiques ET services sont tous
- * `closed` avec un `lastSeenAt` figé au 27 avril 2026 — la source a cessé de les
- * émettre ce jour-là, alors que ces parcs sont collectés à la minute. C'est
- * `STALE_WAIT_TIME_MS` (`lib/wait-times.ts`, 3 jours) qui les écarte, pas cette
- * liste : sur les 1 092 POI concernés en base, quinze seulement sont vivants
- * (douze restaurants à Bellewaerde, trois à Walibi Holland). Ne pas chercher à
- * dupliquer ce filtre ici.
- */
-export const POI_CARD_KINDS = ["restaurant", "shop", "hotel"] as const;
-
-export type PoiCardKind = (typeof POI_CARD_KINDS)[number];
-
-/** Mêmes pictogrammes que `POI_KIND_ICONS` de l'admin, pour un seul vocabulaire. */
-export const POI_KIND_ICONS: Record<PoiKind, LucideIcon> = {
-  ride: RollerCoaster,
-  show: Drama, // les spectacles ont leur propre carte, dans l'autre onglet
-  restaurant: UtensilsCrossed,
-  shop: ShoppingBag,
-  service: Wrench,
-  hotel: BedDouble,
-};
-
-/**
- * Parcs dont une famille non-attraction publie une VRAIE file d'attente, et
- * pour lesquels la colonne « temps » a donc un sens.
- *
- * ⚠️ **Vide, et ce n'est pas un oubli.** Ce que ces sources publient est un
- * TÉMOIN OUVERT/FERMÉ, pas une file : chez Compagnie des Alpes, un restaurant
- * ouvert annonce une CONSTANTE — 300 s (5 min) à Bellewaerde, 60 s à Walibi
- * Rhône-Alpes — et `-1` fermé. Deux valeurs distinctes sur tout l'historique,
- * mesuré sur 10 237 relevés. La valeur est stockée telle quelle (c'est ce que la
- * source dit), mais l'afficher comme un temps d'attente afficherait « 5 min »
- * en permanence sur les quatorze restaurants du parc : une information fausse,
- * indiscernable d'une vraie pour qui la lit.
- *
- * Le jour où une source publie une vraie file de restaurant, l'ouvrir tient en
- * une ligne ici. Le critère pour l'ajouter : plus de deux valeurs distinctes de
- * `waitTime` dans l'historique de ce parc pour ce kind.
- */
-const REAL_WAIT_TIMES: Record<string, readonly PoiKind[]> = {};
-
-/** Voir `REAL_WAIT_TIMES`. */
-export function showsWaitTime(parkIdentifier: string, kind: PoiKind): boolean {
-  if (kind === "ride") return true;
-  return REAL_WAIT_TIMES[parkIdentifier]?.includes(kind) ?? false;
-}
+// ⚠️ **Les cartes par famille de POI sont reportées en V4** (arbitré le
+// 2026-09-03, retirées de la V3 juste avant sa mise en production).
+//
+// Ce qui vivait ici et qui est parti avec elles : `POI_CARD_KINDS` (les familles
+// qui recevaient leur propre carte dans l'onglet « En direct » — restaurant,
+// shop, hotel, `service` volontairement exclu), `POI_KIND_ICONS` (les
+// pictogrammes de ces cartes) et `REAL_WAIT_TIMES` (les parcs dont une famille
+// non-attraction publie une VRAIE file, aucun à ce jour). Avec eux :
+// `components/parks/poi-status-table.tsx`,
+// `components/parks/poi-detail/poi-detail-dialog.tsx`, `readPoiMenu`
+// (`lib/poi-banner.ts`) et le champ `menu` de `WaitTime`, que seul ce popup
+// lisait — `readBanner` et `readPoiZone`, eux, servent aux attractions et aux
+// spectacles et restent en place.
+//
+// ⚠️ **Ce qui RESTE ci-dessus n'est pas de la feature, ne pas l'emporter au
+// nettoyage** : `parsePoiKind` alimente le champ `kind` de `WaitTime`, sur
+// lequel `main-card` filtre `kind === "ride"`. Le worker continue de rattacher
+// restaurants, boutiques et services, et le serveur continue de les servir : ce
+// filtre est le seul rempart qui les empêche de tomber au milieu des coasters de
+// la carte « Attractions », avec un « 5 min » qui n'est qu'une sentinelle
+// d'ouverture. Le retirer serait la régression exacte que la partition évitait.
+//
+// Pour rouvrir la feature : `git log --diff-filter=D -- components/parks/poi-status-table.tsx`
+// mène au commit de retrait, dont le revert la ramène en entier. La branche
+// `dev` en garde par ailleurs la version vivante.

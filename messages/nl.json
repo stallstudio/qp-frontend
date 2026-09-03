@@ -48,10 +48,7 @@
     "hoursOther": "Openingstijden",
     "cards": {
       "attractions": "Attracties",
-      "shows": "Shows",
-      "restaurants": "Restaurants",
-      "shops": "Winkels",
-      "hotels": "Hotels"
+      "shows": "Shows"
     }
   },
   "parkStatus": {
@@ -569,13 +566,6 @@
     "reopenSaved": "Heropeningsmelding opgeslagen",
     "reopenTooLate": "Het park is gesloten, meldingen zijn niet beschikbaar. Kom terug bij de volgende opening van het park.",
     "statusChanged": "De status van de attractie is zojuist gewijzigd. Open de pagina opnieuw om de juiste melding te maken."
-  },
-  "poiDetail": {
-    "openFor": "Details van {poi} bekijken",
-    "thrillsLink": "Bekijken op Thrills",
-    "statusTitle": "Status",
-    "menuTitle": "Menukaart",
-    "menuAction": "Menukaart bekijken"
   },
   "legal": {
     "backHome": "Terug naar de startpagina",

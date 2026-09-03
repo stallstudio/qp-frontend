@@ -1,6 +1,6 @@
 import { TimeSlot, WaitTime } from "@/types/waitTime";
 import { getPrisma } from "./prisma";
-import { readBanner, readPoiMenu, readPoiZone } from "@/lib/poi-banner";
+import { readBanner, readPoiZone } from "@/lib/poi-banner";
 import { parsePoiKind } from "@/lib/poi-kinds";
 
 function parseTimeSlot(raw: unknown): TimeSlot | null {
@@ -81,14 +81,11 @@ export async function getLatestWaitTimesByPark(
           // ramène déjà la ligne complète du POI.
           eventId: wt.poi?.eventId ?? null,
           banner: readBanner(wt.poi?.additionalData),
-          // Quelques caractères, pour tous les kinds : contrairement au menu
-          // juste dessous, une zone ne pèse rien dans le rafraîchissement de
-          // 60 s, et le popup qui l'affiche n'a pas à savoir d'où elle vient.
+          // Quelques caractères seulement : une zone ne pèse rien dans le
+          // rafraîchissement de 60 s, et le popup qui l'affiche n'a pas à savoir
+          // d'où elle vient.
           zone: readPoiZone(wt.poi?.additionalData),
           kind,
-          // ⚠️ Uniquement hors attraction : leur popup ne l'affiche pas, et un
-          // gros parc en aligne deux cents à chaque rafraîchissement de 60 s.
-          menu: kind === "ride" ? null : readPoiMenu(wt.poi?.additionalData),
           queues: [],
         });
       }

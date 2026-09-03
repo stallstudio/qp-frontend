@@ -105,67 +105,38 @@ décalés (+1 000 000), et rien ici ne référence un spectacle par identifiant 
 `ShowReminder` passe par `(parkIdentifier, showName, startTime)` et les favoris
 de spectacle par `{parkIdentifier}:{showName}`.
 
-## Les cartes de POI non-attraction (2026-08-28)
+## Les POI non-attraction : rattachés, filtrés, pas affichés (V4)
 
-L'onglet « En direct » d'un parc n'affiche plus seulement les attractions : les
-sources qui publient l'état de leurs **restaurants, boutiques, hôtels ou
-services** dans le flux des temps d'attente reçoivent une carte par famille, sous
-celle des attractions. À Bellewaerde, quatorze restaurants sur quinze.
+Certaines sources publient l'état de leurs **restaurants, boutiques, hôtels ou
+services** dans le flux des temps d'attente, sous le même espace d'identifiants
+que les attractions — à Bellewaerde, quatorze restaurants sur quinze. Le worker
+les rattache et `getLatestWaitTimesByPark` les sert : **elle ne filtre pas sur le
+type de POI**, elle prend tout `wait_times` dont le `poiId` n'est pas nul.
 
-- `lib/poi-kinds.ts` — la liste des kinds (jumelle de celles du worker et de
-  l'admin), l'ordre des cartes (`POI_CARD_KINDS`), et la **liste blanche des
-  temps**.
-- `WaitTime.kind` / `WaitTime.menu` (`types/waitTime.ts`), remplis par
-  `getLatestWaitTimesByPark` sans requête supplémentaire — `menu` seulement hors
-  attraction, pour ne pas alourdir la charge utile des 200 POI d'un gros parc.
-- `components/parks/poi-status-table.tsx` — la liste, et
-  `poi-detail/poi-detail-dialog.tsx` — le popup.
+⚠️ **Le frontend ne les affiche pas** : les cartes par famille dans l'onglet
+« En direct » ont été écrites le 2026-08-28 puis **retirées de la V3 le
+2026-09-03**, et sont reportées en V4. La branche `dev` en garde la version
+vivante ; `lib/poi-kinds.ts` porte la note de retrait, et le revert du commit de
+retrait les ramène en entier.
 
-⚠️ **Sans `kind`, ces POI tombaient dans la carte « Attractions ».**
-`getLatestWaitTimesByPark` ne filtre pas sur le type de POI : elle prend tout
-`wait_times` dont le `poiId` n'est pas nul. Le jour où le worker s'est mis à
-rattacher les restaurants, ils sont donc arrivés dans la liste des attractions
-sans qu'une ligne de frontend ait changé.
+⚠️ **Ce qui reste est le REMPART, et il ne faut pas y toucher** :
+`WaitTime.kind` (`types/waitTime.ts`), rempli par `parsePoiKind` sans requête
+supplémentaire, et le filtre `kind === "ride"` de `main-card.tsx`. Sans lui, ces
+POI retombent dans la carte « Attractions » — c'est exactement ce qui s'est
+produit le jour où le worker s'est mis à rattacher les restaurants : ils sont
+arrivés au milieu des coasters sans qu'une ligne de frontend ait changé.
 
-⚠️ **Ce que ces sources publient est un TÉMOIN, pas une file.** Chez Compagnie
-des Alpes, un restaurant ouvert annonce une constante — 5 min à Bellewaerde,
-1 min à Walibi Rhône-Alpes — et « indisponible » fermé : deux valeurs distinctes
-sur tout l'historique. La colonne « temps » ne s'ouvre donc que pour les parcs
-déclarés dans `REAL_WAIT_TIMES` (`lib/poi-kinds.ts`), **aujourd'hui aucun**.
-Critère pour en ajouter un : plus de deux valeurs distinctes de `waitTime` dans
-son historique pour ce kind.
+⚠️ **Ce que ces sources publient est un TÉMOIN, pas une file**, et c'est pour ça
+qu'un affichage naïf est faux. Chez Compagnie des Alpes, un restaurant ouvert
+annonce une constante — 5 min à Bellewaerde, 1 min à Walibi Rhône-Alpes — et
+« indisponible » fermé : deux valeurs distinctes sur tout l'historique. Les
+trier par temps d'attente afficherait « 5 min » en permanence sur quatorze
+restaurants, indiscernable d'un vrai chiffre.
 
-⚠️ **`poi-status-table.tsx` est un composant à part, pas un mode de
-`wait-time-table.tsx`.** Ce dernier porte les favoris, les alertes, le dépliage
-des files secondaires, le lien profond `/ride/{slug}` et l'épinglage des favoris
-en tête : six mécanismes dont aucun n'a de sens sur un ouvert/fermé. Ce qui est
-réellement partagé vit dans `lib/poi-list.ts` (`STATUS_ORDER`, `splitGluedTail`,
-`getPrimaryQueue`) — deux listes du même onglet ne peuvent pas trier les états
-différemment.
-
-⚠️ **Le popup réutilise `ImageSection` mais SANS étoile** : `favNamespace` et
-`favKey` y sont devenus optionnels. Les favoris sont persistés par namespace sur
-le compte (`FavNamespace`, plafonds compris) ; en inventer un troisième aurait
-ouvert une liste que ni l'espace compte ni les rappels ne lisent.
-
-⚠️ **Le popup se limite à sa bannière et à l'état**, plus un bouton « Voir la
-carte » quand la source publie un menu — ce qu'aucun parc CDA ne fait
-aujourd'hui, alors que le champ existe dans leur CMS (Disney Japon, Miral, Parc
-Astérix, Paultons, Tibidabo et Dreamworld en publient). Un bloc
-« Informations » reprenant zone, catégorie et étiquettes a été écrit puis
-RETIRÉ le 2026-08-28 : ces valeurs arrivent dans la langue du flux du parc
-(« Zoetigheden » chez Bellewaerde, qui publie en néerlandais), et elles ne sont
-donc plus transportées du tout.
-
-⚠️ **`service` n'est PAS affiché**, bien que le worker le rattache comme les
-autres (`POI_CARD_KINDS`). Ce que les sources y rangent, ce sont des toilettes,
-des casiers, des zones fumeurs et des guichets, par dizaines — 41 chez Thorpe
-Park contre 36 restaurants. Le rattachement sert à fermer les alertes non
-matchées de l'admin, pas à peupler la page.
-
-⚠️ **Le libellé du lien Thrills est PROPRE à ce popup** (`poiDetail.thrillsLink`,
-« Voir sur Thrills ») : celui du popup d'attraction dit « Voir l'attraction sur
-Thrills », ce qui est faux sur un restaurant.
+⚠️ **`lib/poi-list.ts` reste un module à part** (`STATUS_ORDER`,
+`splitGluedTail`, `getPrimaryQueue`) même s'il n'a plus qu'un appelant : il avait
+été extrait de `wait-time-table.tsx` précisément pour être partagé avec la liste
+d'état des autres familles, que la V4 rebranchera. Ne pas le réintégrer.
 
 ## Flux de données
 

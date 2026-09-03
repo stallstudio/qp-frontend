@@ -48,10 +48,7 @@
     "hoursOther": "営業時間",
     "cards": {
       "attractions": "アトラクション",
-      "shows": "ショー",
-      "restaurants": "レストラン",
-      "shops": "ショップ",
-      "hotels": "ホテル"
+      "shows": "ショー"
     }
   },
   "parkStatus": {
@@ -569,13 +566,6 @@
     "reopenSaved": "再開アラートを保存しました",
     "reopenTooLate": "パークは閉園中のため、アラートはご利用いただけません。次の開園時にお越しください。",
     "statusChanged": "アトラクションの状態が変わりました。ページを開き直して、適切なアラートを作成してください。"
-  },
-  "poiDetail": {
-    "openFor": "{poi} の詳細を見る",
-    "thrillsLink": "Thrills で見る",
-    "statusTitle": "状況",
-    "menuTitle": "メニュー",
-    "menuAction": "メニューを見る"
   },
   "legal": {
     "backHome": "ホームに戻る",

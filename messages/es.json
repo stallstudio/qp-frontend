@@ -48,10 +48,7 @@
     "hoursOther": "Horario",
     "cards": {
       "attractions": "Atracciones",
-      "shows": "Espectáculos",
-      "restaurants": "Restaurantes",
-      "shops": "Tiendas",
-      "hotels": "Hoteles"
+      "shows": "Espectáculos"
     }
   },
   "parkStatus": {
@@ -569,13 +566,6 @@
     "reopenSaved": "Alerta de reapertura guardada",
     "reopenTooLate": "El parque está cerrado, las alertas no están disponibles. Vuelve en la próxima apertura del parque.",
     "statusChanged": "El estado de la atracción acaba de cambiar. Vuelve a abrir la ficha para crear la alerta adecuada."
-  },
-  "poiDetail": {
-    "openFor": "Ver la ficha de {poi}",
-    "thrillsLink": "Ver en Thrills",
-    "statusTitle": "Estado",
-    "menuTitle": "Carta",
-    "menuAction": "Ver la carta"
   },
   "legal": {
     "backHome": "Volver al inicio",

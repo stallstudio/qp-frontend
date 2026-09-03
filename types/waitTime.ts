@@ -71,17 +71,4 @@ export type WaitTime = {
    * fait déjà `include: { poi: true }`.
    */
   zone: string | null;
-  /**
-   * Carte du restaurant publiée par la source, en URL ABSOLUE — souvent un PDF
-   * sur le site du parc.
-   *
-   * ⚠️ **`null` sur toute attraction, à dessein**, et pas seulement parce que
-   * leur popup ne l'afficherait pas : un gros parc en aligne deux cents, et
-   * cette charge utile repart à chaque rafraîchissement de 60 s.
-   *
-   * ⚠️ **Ce n'est PAS une image** : contrairement à `banner`, elle ne passe pas
-   * par `proxiedImageUrl`. Le proxy sert à faire traverser `next/image` sans
-   * déclarer l'hôte de chaque parc ; un PDF n'y a rien à faire.
-   */
-  menu: string | null;
 };

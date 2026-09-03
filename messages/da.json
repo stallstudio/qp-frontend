@@ -48,10 +48,7 @@
     "hoursOther": "Åbningstider",
     "cards": {
       "attractions": "Forlystelser",
-      "shows": "Shows",
-      "restaurants": "Restauranter",
-      "shops": "Butikker",
-      "hotels": "Hoteller"
+      "shows": "Shows"
     }
   },
   "parkStatus": {
@@ -569,13 +566,6 @@
     "reopenSaved": "Genåbningsalarm gemt",
     "reopenTooLate": "Parken er lukket, alarmer er ikke tilgængelige. Kom tilbage ved parkens næste åbning.",
     "statusChanged": "Forlystelsens status er lige ændret. Åbn siden igen for at oprette den rigtige alarm."
-  },
-  "poiDetail": {
-    "openFor": "Se detaljer om {poi}",
-    "thrillsLink": "Se på Thrills",
-    "statusTitle": "Status",
-    "menuTitle": "Menukort",
-    "menuAction": "Se menukortet"
   },
   "legal": {
     "backHome": "Tilbage til forsiden",

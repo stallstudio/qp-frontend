@@ -48,10 +48,7 @@
     "hoursOther": "Öppettider",
     "cards": {
       "attractions": "Attraktioner",
-      "shows": "Shower",
-      "restaurants": "Restauranger",
-      "shops": "Butiker",
-      "hotels": "Hotell"
+      "shows": "Shower"
     }
   },
   "parkStatus": {
@@ -569,13 +566,6 @@
     "reopenSaved": "Återöppningsavisering sparad",
     "reopenTooLate": "Parken är stängd, aviseringar är inte tillgängliga. Kom tillbaka vid parkens nästa öppning.",
     "statusChanged": "Attraktionens status har just ändrats. Öppna sidan igen för att skapa rätt avisering."
-  },
-  "poiDetail": {
-    "openFor": "Visa information om {poi}",
-    "thrillsLink": "Visa på Thrills",
-    "statusTitle": "Status",
-    "menuTitle": "Meny",
-    "menuAction": "Visa menyn"
   },
   "legal": {
     "backHome": "Tillbaka till startsidan",

@@ -48,10 +48,7 @@
     "hoursOther": "운영 시간",
     "cards": {
       "attractions": "어트랙션",
-      "shows": "공연",
-      "restaurants": "레스토랑",
-      "shops": "상점",
-      "hotels": "호텔"
+      "shows": "공연"
     }
   },
   "parkStatus": {
@@ -569,13 +566,6 @@
     "reopenSaved": "재개장 알림이 저장되었습니다",
     "reopenTooLate": "공원이 문을 닫아 알림을 사용할 수 없습니다. 다음 개장 때 다시 방문해 주세요.",
     "statusChanged": "어트랙션 상태가 방금 변경되었습니다. 페이지를 다시 열어 알맞은 알림을 만들어 주세요."
-  },
-  "poiDetail": {
-    "openFor": "{poi} 상세 보기",
-    "thrillsLink": "Thrills에서 보기",
-    "statusTitle": "상태",
-    "menuTitle": "메뉴",
-    "menuAction": "메뉴 보기"
   },
   "legal": {
     "backHome": "홈으로 돌아가기",
