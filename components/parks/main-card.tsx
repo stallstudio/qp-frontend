@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
+import { useParkStream } from "@/hooks/useParkStream";
 import ParkWaitTimeTable from "./wait-time-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useEffect, useMemo, useState } from "react";
@@ -167,10 +168,18 @@ export default function MainCard({
   // servie) : ni `park.lastUpdate` seul, qui peut se figer et arrêtait le cycle,
   // ni une minute en dur, qui tombait à côté de l'écriture une fois sur cinq.
   // Voir `useAutoRefresh` et `lib/collection-cycle.ts`.
-  const { secondsUntilRefresh, isRefreshing } = useAutoRefresh(
+  const { secondsUntilRefresh, isRefreshing, handleRefresh } = useAutoRefresh(
     onRefresh,
     park.nextUpdateIn,
   );
+
+  // Direct : le worker vient d'écrire, on va chercher les données sans attendre
+  // la fin du décompte. Le flux ne porte que le signal, jamais les données (voir
+  // `lib/park-updates.ts`) — le rafraîchissement reste l'appel habituel, donc le
+  // journal des consultations et le filtrage IP continuent de s'appliquer.
+  // Quand le flux est coupé, il ne se passe rien de particulier : le décompte
+  // fait le travail, comme avant son existence.
+  useParkStream(park.identifier, park.lastUpdate, handleRefresh);
 
   // Fraîcheur de la DONNÉE (horodatage du worker), à distinguer du décompte
   // ci-dessus. Au-delà de ce délai, la source du parc ne répond plus (ou le parc

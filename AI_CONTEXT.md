@@ -50,13 +50,15 @@ components/
   ui/                # primitives (card, tabs, button, footer, favorite-star, table...)
   search/ providers/ theme-provider
 hooks/               # useFavorites, useAutoRefresh (cadence dictée par le serveur),
+                     # useParkStream (direct SSE, devance le décompte),
                      # usePageVisibility, useTimeFormat, useWaitTimeChanges
 i18n/                # routing.ts (locales), request.ts (chargement messages + fallback EN)
 lib/                 # badge.tsx (pastilles temps/statut), prisma.ts, wait-times.ts,
                      # show-times.ts, opening-hours.ts, ip-rules.ts, utils.ts, report-config.ts
                      # collection-cycle.ts (+ -db) : quand le worker écrira, donc
                      # quand le client doit revenir ; process-cache.ts : cache
-                     # mémoire court, partagé entre visiteurs d'une instance
+                     # mémoire court, partagé entre visiteurs d'une instance ;
+                     # park-updates.ts : qui écoute quel parc, une requête pour tous
                      # ⚠️ report-config.ts ne décrit QUE les catégories du
                      # formulaire de signalement (+ libellés Discord). Les
                      # RÉPONSES de résolution en ont été retirées le 2026-08-18 :
@@ -230,6 +232,36 @@ précédente à celui qui arrive au bon moment.
 
 `node scripts/check-collection-cycle.ts` vérifie la logique sans base ni
 framework (Node ≥ 22 sur le poste ; l'image de prod est en Node 20).
+
+### Direct (`lib/park-updates.ts`, `/api/park/[parkId]/stream`)
+
+Le décompte ci-dessus n'est plus le déclencheur principal, mais le **filet**.
+En marche normale, un flux SSE prévient le navigateur dès que le worker a écrit
+et le rafraîchissement part aussitôt — mesuré à moins d'une seconde après
+l'écriture, contre 20 s d'âge médian avec le seul décompte.
+
+⚠️ **Le flux est une SONNETTE, pas un facteur** : il ne transporte que
+l'horodatage de la collecte, jamais les données. Le client refait son appel
+habituel à `/api/park/{id}`. C'est ce qui préserve les trois choses qu'un flux
+porteur de données aurait cassées : une seule définition de la forme des données
+(dans `lib/`), le journal des consultations qui alimente le classement des parcs
+populaires, et le filtrage IP / user-agent appliqué à chaque rafraîchissement.
+
+⚠️ **Une seule requête pour tout le monde.** Un minuteur unique relève d'un coup
+les `lastUpdatedAt` de tous les parcs écoutés (une requête par seconde pour tout
+le site, vérifié : 11 requêtes pour 4 abonnés sur 12 s) et s'arrête dès que plus
+personne n'écoute. Interroger la base par abonné serait pire que le sondage
+qu'on remplace.
+
+⚠️ **La route vérifie que le parc existe avant d'abonner.** Sans ce filtre,
+n'importe qui ferait entrer des milliers d'identifiants inventés dans le `IN`
+du guetteur.
+
+⚠️ **SSE et non WebSocket** : le client n'a rien à émettre. `EventSource` se
+reconnecte seul, traverse les proxies et n'abandonne que sur une réponse
+d'erreur. Battement toutes les 20 s et `X-Accel-Buffering: no`, sans quoi un
+frontal tamponne le flux en silence. Fermé quand l'onglet est caché, comme le
+décompte — même raison de batterie.
 
 ### Journal des consultations (`lib/api-request-log.ts`)
 
