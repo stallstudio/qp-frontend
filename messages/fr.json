@@ -137,11 +137,15 @@
     "noWaitTimes": "Aucun temps d'attente disponible pour le moment",
     "tableLabel": "Temps d'attente — {park}",
     "toggleQueues": "Afficher les autres files de {ride}",
-    "refreshingIn": "Actualisation dans",
     "second": "seconde",
     "seconds": "secondes",
+    "minute": "minute",
+    "minutes": "minutes",
     "nowRefreshing": "Actualisation en cours...",
-    "lastUpdate": "Dernière mise à jour"
+    "lastUpdate": "Dernière mise à jour",
+    "updatedAgo": "Mis à jour il y a {age}",
+    "liveConnected": "En direct",
+    "liveFallback": "Actualisation automatique"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Tous droits réservés.",

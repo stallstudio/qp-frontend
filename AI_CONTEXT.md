@@ -257,6 +257,20 @@ qu'on remplace.
 n'importe qui ferait entrer des milliers d'identifiants inventés dans le `IN`
 du guetteur.
 
+⚠️ **Le pied de colonne n'affiche plus de décompte** (2026-09-03). Il annonçait
+une attente qui n'arrivait jamais : on lisait « 28 secondes », le flux devançait
+l'échéance, et l'affichage repartait à « 90 secondes » — le calcul était juste
+(le créneau suivant celui qu'on venait de servir) mais la question n'existe plus.
+La page montre l'ÂGE de la donnée, qui se vérifie, et un point plein quand le
+flux est vivant. `useAutoRefresh` ne rend donc plus de décompte mais un `tick`,
+battement d'une seconde dont dépendent aussi l'ouverture des cartes d'événement
+à leur heure.
+
+⚠️ **`dataAgeSeconds` est une DURÉE, pas un instant**, même raison que
+`nextUpdateIn` : une horloge de téléphone décalée donnerait un âge absurde. Elle
+sert aussi à écarter toute erreur d'hydratation — au premier rendu, serveur et
+navigateur affichent exactement cette valeur (voir `hooks/useDataAge.ts`).
+
 ⚠️ **SSE et non WebSocket** : le client n'a rien à émettre. `EventSource` se
 reconnecte seul, traverse les proxies et n'abandonne que sur une réponse
 d'erreur. Battement toutes les 20 s et `X-Accel-Buffering: no`, sans quoi un

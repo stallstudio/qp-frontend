@@ -30,6 +30,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * collecte il tient déjà en main. Le serveur, lui, sait les deux — alors il
  * calcule le délai et le dit.
  *
+ * ⚠️ **Le décompte n'est plus AFFICHÉ** (voir `main-card`). Depuis que le flux
+ * SSE devance l'échéance, il annonçait une attente qui n'arrivait jamais : on
+ * pouvait lire « 28 secondes », voir la page se rafraîchir aussitôt, puis lire
+ * « 90 secondes » — le calcul était juste (le créneau suivant celui qu'on venait
+ * de servir) mais il répondait à une question que plus personne ne se pose. La
+ * page affiche désormais l'ÂGE de la donnée, qui se vérifie. Ce hook reste le
+ * filet : il déclenche le rafraîchissement quand le flux est mort.
+ *
  * Ce qui est conservé de la version précédente, et pourquoi :
  *
  * - **Le cycle ne peut jamais s'arrêter.** Une échéance est reposée dans le
@@ -82,7 +90,10 @@ export function useAutoRefresh(
 ) {
   const firstDelay = clampSeconds(initialDelaySeconds ?? FALLBACK_SECONDS);
 
-  const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(firstDelay);
+  // Battement de rendu, incrémenté chaque seconde tant que l'onglet est visible.
+  // ⚠️ Il ne sert PAS à décompter : c'est l'horloge d'affichage de la page —
+  // l'âge de la donnée, et l'ouverture des cartes d'événement à leur heure.
+  const [tick, setTick] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Refs plutôt que dépendances : l'effet de planification ne doit pas se
@@ -139,16 +150,15 @@ export function useAutoRefresh(
       }
     };
 
-    const tick = () => {
-      const remaining = Math.ceil((nextRefreshAt.current - Date.now()) / 1000);
-      setSecondsUntilRefresh(Math.max(0, remaining));
-      if (remaining <= 0) handleRefresh();
+    const beat = () => {
+      setTick((value) => value + 1);
+      if (Date.now() >= nextRefreshAt.current) handleRefresh();
     };
 
     const start = () => {
       stop();
-      tick();
-      timer = setInterval(tick, 1000);
+      beat();
+      timer = setInterval(beat, 1000);
     };
 
     const handleVisibility = () => {
@@ -172,5 +182,5 @@ export function useAutoRefresh(
     };
   }, [handleRefresh]);
 
-  return { secondsUntilRefresh, isRefreshing, handleRefresh };
+  return { tick, isRefreshing, handleRefresh };
 }

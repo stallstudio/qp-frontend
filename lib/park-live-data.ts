@@ -29,15 +29,17 @@ export type ParkLiveResult =
   | { status: "error"; reason: string };
 
 /**
- * Ce qui est réellement mis en cache : tout SAUF `nextUpdateIn`.
+ * Ce qui est réellement mis en cache : tout SAUF les deux DURÉES.
  *
- * ⚠️ Cette exclusion est la raison d'être du type. `nextUpdateIn` est un délai
- * qui court : le garder en cache dix secondes le servirait périmé d'autant, et
- * — plus grave — donnerait la même valeur à tous les visiteurs servis dans la
- * fenêtre, qui reviendraient donc ensemble. Il est recalculé à chaque réponse.
+ * ⚠️ Cette exclusion est la raison d'être du type. `nextUpdateIn` et
+ * `dataAgeSeconds` courent tous les deux : les garder en cache dix secondes les
+ * servirait périmés d'autant — un âge de donnée figé serait même faux à l'œil nu.
+ * Et pour `nextUpdateIn`, mutualiser la valeur donnerait le même délai à tous
+ * les visiteurs servis dans la fenêtre, qui reviendraient donc ensemble. Les
+ * deux sont recalculés à chaque réponse.
  */
 type ParkLiveSnapshot =
-  | { status: "ok"; data: Omit<ParkLiveData, "nextUpdateIn"> }
+  | { status: "ok"; data: Omit<ParkLiveData, "nextUpdateIn" | "dataAgeSeconds"> }
   | { status: "not-found" }
   | { status: "error"; reason: string };
 
@@ -272,13 +274,23 @@ export const buildParkLiveData = cache(
     // être propre à cette réponse-ci. Ancré sur l'horodatage de la donnée qu'on
     // s'apprête à servir — la suivante arrive une minute après CELLE-CI, pas une
     // minute après l'instant de la requête.
-    const lastUpdateMs = Date.parse(snapshot.data.lastUpdate);
-    const nextUpdateIn = delayFromEstimate(
-      cycle,
-      Date.now(),
-      Number.isNaN(lastUpdateMs) ? null : lastUpdateMs,
-    );
-    return { status: "ok", data: { ...snapshot.data, nextUpdateIn } };
+    const parsed = Date.parse(snapshot.data.lastUpdate);
+    const lastUpdateMs = Number.isNaN(parsed) ? null : parsed;
+    const servedAt = Date.now();
+
+    const nextUpdateIn = delayFromEstimate(cycle, servedAt, lastUpdateMs);
+
+    // Hors cache, comme `nextUpdateIn` : c'est une durée qui court, la mettre
+    // en cache la servirait périmée de sa durée de vie.
+    const dataAgeSeconds =
+      lastUpdateMs == null
+        ? 0
+        : Math.max(0, Math.round((servedAt - lastUpdateMs) / 1000));
+
+    return {
+      status: "ok",
+      data: { ...snapshot.data, nextUpdateIn, dataAgeSeconds },
+    };
   },
 );
 

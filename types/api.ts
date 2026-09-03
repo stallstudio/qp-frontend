@@ -51,6 +51,19 @@ export type ParkLiveData = {
    * jamais mise en cache avec le reste de l'objet.
    */
   nextUpdateIn: number;
+  /**
+   * Âge de la donnée en secondes, AU MOMENT OÙ LA RÉPONSE EST SERVIE.
+   *
+   * ⚠️ **Une durée et non un instant, pour la même raison que `nextUpdateIn`** :
+   * l'horloge d'un téléphone peut être décalée de plusieurs minutes, et
+   * `lastUpdate` seul donnerait alors un âge absurde. Le client part de cette
+   * valeur et la fait vieillir avec sa propre horloge, qui est juste pour
+   * mesurer un écoulement même si elle est fausse pour donner l'heure.
+   *
+   * ⚠️ C'est aussi ce qui évite une erreur d'hydratation : au premier rendu,
+   * serveur et navigateur affichent tous deux exactement cette valeur.
+   */
+  dataAgeSeconds: number;
 };
 
 export type ParkListData = {

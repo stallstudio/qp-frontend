@@ -134,7 +134,6 @@
     "noWaitTimes": "現在、待ち時間の情報はありません",
     "tableLabel": "待ち時間 — {park}",
     "toggleQueues": "{ride} の他の列を表示",
-    "refreshingIn": "更新まで",
     "second": "秒",
     "seconds": "秒",
     "nowRefreshing": "更新中...",

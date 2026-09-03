@@ -13,6 +13,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { useParkStream } from "@/hooks/useParkStream";
+import { useDataAge } from "@/hooks/useDataAge";
 import ParkWaitTimeTable from "./wait-time-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useEffect, useMemo, useState } from "react";
@@ -168,7 +169,7 @@ export default function MainCard({
   // servie) : ni `park.lastUpdate` seul, qui peut se figer et arrêtait le cycle,
   // ni une minute en dur, qui tombait à côté de l'écriture une fois sur cinq.
   // Voir `useAutoRefresh` et `lib/collection-cycle.ts`.
-  const { secondsUntilRefresh, isRefreshing, handleRefresh } = useAutoRefresh(
+  const { tick, isRefreshing, handleRefresh } = useAutoRefresh(
     onRefresh,
     park.nextUpdateIn,
   );
@@ -179,7 +180,11 @@ export default function MainCard({
   // journal des consultations et le filtrage IP continuent de s'appliquer.
   // Quand le flux est coupé, il ne se passe rien de particulier : le décompte
   // fait le travail, comme avant son existence.
-  useParkStream(park.identifier, park.lastUpdate, handleRefresh);
+  const isLive = useParkStream(park.identifier, park.lastUpdate, handleRefresh);
+
+  // Âge de la donnée, qui vieillit chaque seconde. Remplace le décompte : voir
+  // le pied de colonne plus bas.
+  const dataAge = useDataAge(park.lastUpdate, park.dataAgeSeconds, tick);
 
   // Fraîcheur de la DONNÉE (horodatage du worker), à distinguer du décompte
   // ci-dessus. Au-delà de ce délai, la source du parc ne répond plus (ou le parc
@@ -203,7 +208,7 @@ export default function MainCard({
   // d'événement n'est rendue — c'est l'état correct dans la quasi-totalité des
   // cas, et l'ajustement se fait ensuite par un simple re-rendu.
   //
-  // Ce composant se re-rend chaque seconde pour le décompte : la carte s'ouvre
+  // Ce composant se re-rend chaque seconde (`tick`) : la carte s'ouvre
   // donc d'elle-même à l'heure d'ouverture, sans rien câbler.
   const eventViews = useMemo(
     () =>
@@ -225,7 +230,7 @@ export default function MainCard({
               boundary: null,
             })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [park.events, mounted, secondsUntilRefresh],
+    [park.events, mounted, tick],
   );
 
   // ⚠️ **Une attraction taguée n'apparaît QUE dans la carte de son événement.**
@@ -510,19 +515,30 @@ export default function MainCard({
     ...(hasShows ? [showsCard] : []),
   ];
 
-  // Pied de colonne : décompte de rafraîchissement. Posé SOUS les cartes, en
-  // texte libre — il décrit la fraîcheur de l'ensemble, pas d'un bloc en
-  // particulier, et l'enfermer dans l'une des cartes le rattacherait à tort à
-  // celle-là.
+  // Pied de colonne : fraîcheur de la donnée. Posé SOUS les cartes, en texte
+  // libre — il décrit l'ensemble, pas un bloc en particulier, et l'enfermer dans
+  // l'une des cartes le rattacherait à tort à celle-là.
+  //
+  // ⚠️ **C'était un décompte jusqu'au 2026-09-03, et c'est devenu faux.** Depuis
+  // que le flux SSE devance l'échéance, on lisait « 28 secondes », la page se
+  // rafraîchissait aussitôt, et l'affichage repartait à « 90 secondes » : le
+  // calcul était juste (le créneau suivant celui qu'on venait de servir) mais il
+  // annonçait une attente qui n'arrivait jamais. L'âge de la donnée, lui, se
+  // vérifie — et reste vrai que le direct fonctionne ou non.
+  const ageLabel =
+    dataAge < 60
+      ? `${dataAge} ${dataAge < 2 ? t("second") : t("seconds")}`
+      : `${Math.floor(dataAge / 60)} ${dataAge < 120 ? t("minute") : t("minutes")}`;
+
   const footer = (
     <div className="my-4 flex flex-col items-center justify-center text-sm text-muted-foreground">
       {/* Trois états, dans cet ordre : rafraîchissement en cours, données du
-          worker périmées, décompte normal.
+          worker périmées, fraîcheur normale.
 
-          ⚠️ « Dernière mise à jour » n'est plus l'état d'échec du décompte
-          (celui-ci ne peut plus se bloquer) mais une information sur la
-          DONNÉE : le worker n'a rien écrit depuis 10 min. Le décompte, lui,
-          continue de tourner derrière — on réessaie bel et bien. */}
+          ⚠️ « Dernière mise à jour » n'est pas un état d'échec du cycle (il ne
+          peut plus se bloquer) mais une information sur la DONNÉE : le worker
+          n'a rien écrit depuis 10 min. Le cycle, lui, continue de tourner
+          derrière — on réessaie bel et bien. */}
       {isRefreshing ? (
         <div className="flex items-center gap-1 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -533,9 +549,21 @@ export default function MainCard({
           {t("lastUpdate")}: {new Date(park.lastUpdate).toLocaleString()}
         </p>
       ) : (
-        <p>
-          {t("refreshingIn")} {secondsUntilRefresh}{" "}
-          {secondsUntilRefresh < 2 ? t("second") : t("seconds")}
+        <p className="flex items-center gap-1.5">
+          {/* Plein quand le flux est vivant (les temps arrivent d'eux-mêmes),
+              creux quand on est retombé sur le rafraîchissement périodique. Le
+              `title` porte l'explication : la couleur seule ne doit pas être le
+              seul véhicule de l'information. */}
+          <span
+            title={isLive ? t("liveConnected") : t("liveFallback")}
+            aria-label={isLive ? t("liveConnected") : t("liveFallback")}
+            className={
+              isLive
+                ? "h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"
+                : "h-1.5 w-1.5 shrink-0 rounded-full border border-current opacity-60"
+            }
+          />
+          {t("updatedAgo", { age: ageLabel })}
         </p>
       )}
       {park.shows.length > 0 && activeTab === "show-times" && (
