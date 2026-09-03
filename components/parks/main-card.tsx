@@ -550,16 +550,22 @@ export default function MainCard({
         </p>
       ) : (
         <p className="flex items-center gap-1.5">
-          {/* Plein quand le flux est vivant (les temps arrivent d'eux-mêmes),
-              creux quand on est retombé sur le rafraîchissement périodique. Le
-              `title` porte l'explication : la couleur seule ne doit pas être le
-              seul véhicule de l'information. */}
+          {/* Plein et pulsant quand le flux est vivant (les temps arrivent
+              d'eux-mêmes), creux et immobile quand on est retombé sur le
+              rafraîchissement périodique. La pulsation ne porte AUCUNE
+              information à elle seule — le `title` dit la même chose en mots,
+              parce que ni la couleur ni le mouvement ne doivent être le seul
+              véhicule de l'état.
+
+              `motion-reduce:animate-none` : le réglage système du visiteur
+              coupe l'animation, le point plein suffit alors à distinguer les
+              deux états. */}
           <span
             title={isLive ? t("liveConnected") : t("liveFallback")}
             aria-label={isLive ? t("liveConnected") : t("liveFallback")}
             className={
               isLive
-                ? "h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"
+                ? "h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-emerald-500 motion-reduce:animate-none"
                 : "h-1.5 w-1.5 shrink-0 rounded-full border border-current opacity-60"
             }
           />
