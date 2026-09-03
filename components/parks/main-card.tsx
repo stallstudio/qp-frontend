@@ -163,9 +163,10 @@ export default function MainCard({
 
   // La mise en pause quand l'onglet est caché (et le rattrapage au retour) est
   // gérée par le hook lui-même. ⚠️ L'échéance vient du SERVEUR (`nextUpdateIn`,
-  // mesurée sur la cadence réelle du worker) : ni `park.lastUpdate`, qui peut se
-  // figer, ni une minute en dur, qui n'a jamais correspondu à la réalité de la
-  // collecte. Voir `useAutoRefresh` et `lib/collection-cycle.ts`.
+  // calculée sur la cadence réelle du worker et sur la fraîcheur de la donnée
+  // servie) : ni `park.lastUpdate` seul, qui peut se figer et arrêtait le cycle,
+  // ni une minute en dur, qui tombait à côté de l'écriture une fois sur cinq.
+  // Voir `useAutoRefresh` et `lib/collection-cycle.ts`.
   const { secondsUntilRefresh, isRefreshing } = useAutoRefresh(
     onRefresh,
     park.nextUpdateIn,

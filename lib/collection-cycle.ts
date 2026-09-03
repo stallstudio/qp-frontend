@@ -1,89 +1,82 @@
 /**
- * Quand la prochaine écriture des temps d'attente est-elle attendue ?
+ * Quand le client doit-il redemander les temps d'attente ?
  *
  * ————————————————————————————————————————————————————————————————————————
- * POURQUOI CE MODULE EXISTE
+ * CE QUE FAIT LE WORKER, MESURÉ ET NON SUPPOSÉ
  * ————————————————————————————————————————————————————————————————————————
- * La page d'un parc affiche un décompte avant son prochain rafraîchissement.
- * Il a été calculé de deux façons, fausses toutes les deux, parce que toutes
- * deux DEVINAIENT côté client une cadence que seul le serveur connaît :
+ * Relevé sur 719 passages consécutifs (12 h de production, 2026-09-03) :
  *
- *   1. `lastUpdate + 60 s` — l'horodatage de la donnée. `parks.lastUpdatedAt`
- *      n'étant écrit QUE si le fetch réussit, il se figeait dès qu'une source
- *      tombait, le décompte plongeait dans le négatif et plus rien ne se
- *      rafraîchissait. Et comme cet horodatage est le MÊME pour tous les parcs
- *      (un `updateMany` unique en fin de passage), tous les onglets ouverts du
- *      site convergeaient vers la même seconde.
- *   2. `Date.now() + 60 s` — l'horloge du client. Increvable, mais désynchronisé
- *      de la base, et remis à zéro à chaque rechargement de page.
+ *   - une Schedule Dokploy le démarre à CHAQUE minute ronde, à 0,8 s près, et
+ *     719 des 720 minutes ont bien eu leur passage ;
+ *   - un passage dure 29 s en médiane (p90 45 s, p99 55 s, max 63 s) ;
+ *   - il termine donc dans SA minute dans 717 cas sur 718.
  *
- * Aucune des deux ne pouvait tomber juste, parce que **la base n'est pas écrite
- * toutes les minutes**. La Schedule Dokploy déclenche bien un passage par
- * minute, mais `withRunLock` fait sortir immédiatement tout passage qui en
- * trouve un autre en cours — et un passage dure couramment plus d'une minute,
- * avec une durée qui « varie d'un facteur cinq dans la journée » (cf.
- * `runFetchWaitTimesOnce.ts` du worker). La période réelle est donc variable et
- * inconnue du client.
+ * ⚠️ **Les commentaires du worker affirment le contraire** — « un passage dure
+ * couramment plus d'une minute », « varie d'un facteur cinq dans la journée » —
+ * et c'est sur cette croyance qu'une première version de ce module a été écrite,
+ * puis a mal fonctionné. Ces phrases décrivent un état ancien (elles datent des
+ * incidents du 2026-08-11, avant le verrou et la réduction du pool). Refaire la
+ * mesure avant de les croire.
  *
  * ————————————————————————————————————————————————————————————————————————
- * COMMENT ON LA CONNAÎT
+ * CE QU'ON EN FAIT
  * ————————————————————————————————————————————————————————————————————————
- * On la MESURE, au lieu de la supposer : `job_executions` porte un
- * `startedAt` / `completedAt` par passage de `fetchParkWaitTimes`. La période
- * entre deux écritures est l'écart entre deux `completedAt` — c'est exactement
- * la grandeur qu'on cherche à prédire, et la mesurer directement dispense de
- * raisonner sur les minutes rondes, les passages sautés ou le verrou.
+ * La donnée arrive donc à un instant très prévisible : **minute ronde + ~30 s**,
+ * avec une dispersion de ±15 s. Il suffit au client de venir un peu après, à
+ * PHASE fixe dans la minute, et de revenir toutes les minutes. Rien à deviner.
  *
- * ⚠️ **Un passage sauté ne laisse AUCUNE ligne** : `monitorJob` est appelé à
- * l'intérieur de `withRunLock`, donc un tick qui ne prend pas le verrou n'écrit
- * rien. Les écarts observés portent donc déjà l'effet du verrou, sans qu'on ait
- * à le modéliser.
+ * ⚠️ **On vise un quantile HAUT, pas la médiane.** Viser la médiane, c'est
+ * arriver trop tôt une fois sur deux, par construction. Les deux erreurs ne
+ * coûtent pas la même chose : arriver dix secondes trop tard, c'est dix secondes
+ * de fraîcheur ; arriver trop tôt, c'est une requête pour rien ET un décompte
+ * qui saute, parce que l'échéance manquée est aussitôt recalculée au plus court.
  *
- * ⚠️ **Médiane et non moyenne** : la distribution a une longue queue (une API
- * amont qui traîne suffit à tripler un passage) et une moyenne serait tirée par
- * ces valeurs isolées, au point de décaler tous les décomptes du site.
- *
- * ————————————————————————————————————————————————————————————————————————
- * CE QU'ON GARDE DU CORRECTIF PRÉCÉDENT
- * ————————————————————————————————————————————————————————————————————————
- * Sa propriété essentielle — **le cycle ne peut jamais s'arrêter** — est
- * conservée, mais obtenue par des BORNES plutôt qu'en ignorant l'état réel du
- * worker : quoi qu'on lise en base, y compris rien du tout, il sort d'ici un
- * délai compris entre `MIN_SECONDS` et `MAX_SECONDS`. Une collecte à l'arrêt
- * n'immobilise plus la page, elle la fait seulement sonder plus calmement.
+ * ⚠️ **Ce module ne prédit plus la fin du passage en cours.** La version
+ * précédente le faisait, à partir de l'écart médian entre deux fins, et se
+ * trompait dans les grandes largeurs : chaque estimation ratée renvoyait une
+ * échéance déjà dépassée, donc un plancher de 20 s, donc un sondage à vide
+ * toutes les 25 s jusqu'à la fin du passage. La grille des minutes rondes est
+ * une information DURE ; l'écart médian n'était qu'une statistique bruitée.
  */
 
-/** Cadence de repli, quand la base ne dit rien d'exploitable. C'est l'ancien
- *  comportement en dur : le pire cas est donc l'état antérieur, jamais pire. */
-export const FALLBACK_PERIOD_MS = 60_000;
+/** Repli quand aucune mesure n'est disponible : le worker a été observé
+ *  terminant à p99 = 55 s, on s'y tient sans donnée pour dire mieux. */
+const DEFAULT_PHASE_MS = 52_000;
 
-/** Délai de sécurité après l'écriture attendue. Sonder PILE à l'échéance, sur
- *  une estimation à quelques secondes près, c'est rater d'un cheveu une fois
- *  sur deux et attendre un cycle entier pour rien. */
-const SETTLE_SECONDS = 5;
+/** Repli pour la première écriture plausible dans la minute (p05 mesuré à
+ *  ~17 s, on prend un peu en dessous). */
+const DEFAULT_EARLIEST_MS = 15_000;
 
-/** Plancher : au-delà, on sonderait plus vite que la donnée ne bouge. Il ne
- *  sert qu'aux cas dégradés (écriture en retard), le cas normal étant toujours
- *  très au-dessus. */
-const MIN_SECONDS = 20;
+/** Quantile visé pour la phase de lecture : on lit la donnée de la minute
+ *  courante dans 95 % des cas ; sinon on lit celle d'avant et on la rattrape au
+ *  tour suivant, ce qui ne se voit pas.
+ *
+ *  ⚠️ **Ne pas monter plus haut sans agrandir l'échantillon.** Sur soixante
+ *  passages, 0,95 tombe sur le quatrième plus grand ; 0,99 tomberait sur le
+ *  MAXIMUM, l'estimateur le plus bruité qui soit — la phase sauterait à chaque
+ *  minute et ferait revenir le client dix secondes après son dernier appel. */
+const PHASE_QUANTILE = 0.95;
 
-/** Plafond : une page laissée ouverte doit se remettre à jour dans un délai
- *  humainement acceptable, même si le worker met dix minutes à répondre. */
-const MAX_SECONDS = 180;
+/** Marge ajoutée au quantile : l'écriture de `lastUpdatedAt` précède la fin du
+ *  passage de peu, et le réseau du visiteur ajoute son propre délai. */
+const PHASE_MARGIN_MS = 2_000;
 
-/** Étalement anti-rafale. Sans lui, tous les visiteurs d'un même parc
- *  reviendraient à la seconde près en même temps — la convergence que
- *  l'ancrage sur `lastUpdate` produisait à l'échelle du site entier. */
-const JITTER_SECONDS = 8;
+/** Bornes de la phase. Le plafond garde une marge avant la minute suivante :
+ *  au-delà, le jitter ferait déborder les lectures sur le passage d'après. */
+const MIN_PHASE_MS = 20_000;
+const MAX_PHASE_MS = 55_000;
 
-/** Retard, en multiples de période, au-delà duquel on cesse de croire à une
- *  écriture imminente et on repasse au rythme de repli. */
-const STALL_FACTOR = 3;
+/** Étalement des retours. Petit, et par construction sans risque : la fenêtre
+ *  sûre va de la fin d'un passage au début de l'écriture suivante (~13 s après
+ *  la minute), soit une vingtaine de secondes. */
+const JITTER_SECONDS = 5;
 
-/** Âge au-delà duquel un passage encore marqué `running` est tenu pour mort.
- *  Un worker tué en plein passage laisse sa ligne ouverte pour toujours : sans
- *  ce garde-fou, on attendrait indéfiniment une fin qui ne viendra pas. */
-const DEAD_RUN_MS = 10 * 60_000;
+/** Garde-fous du délai rendu. Le modèle produit toujours une valeur dans la
+ *  minute ; ils n'existent que contre une mesure aberrante. */
+const MIN_DELAY_SECONDS = 5;
+const MAX_DELAY_SECONDS = 120;
+
+const MINUTE_MS = 60_000;
 
 /** Un passage, réduit à ce qui sert ici. Volontairement sans type Prisma : la
  *  logique est pure et vérifiable sans base. */
@@ -95,87 +88,71 @@ export type CollectionRun = {
 };
 
 export type CycleEstimate = {
-  /** Instant estimé de la prochaine écriture, en ms epoch. */
+  /** Instant, dans la minute, où l'on peut lire sans risque (ms depuis la
+   *  minute ronde). */
+  phaseMs: number;
+  /** Prochain instant où il vaut la peine de relire. */
+  nextReadAt: number;
+  /** Première écriture possible à venir. Ne sert PAS au client : il borne la
+   *  durée de vie du cache, qui ne doit jamais enjamber une écriture. */
   nextWriteAt: number;
-  /** Période observée entre deux écritures, en ms. */
-  periodMs: number;
-  /** La collecte semble à l'arrêt : l'écriture attendue a trop de retard. */
-  stalled: boolean;
-  /** Faux quand l'estimation ne repose sur aucune mesure (table vide, panne) :
-   *  sert au diagnostic, la valeur reste utilisable dans tous les cas. */
+  /** Faux quand rien n'a pu être mesuré (table vide, base injoignable) : sert
+   *  au diagnostic, la valeur reste utilisable dans tous les cas. */
   measured: boolean;
 };
 
-function median(values: number[]): number | null {
+function quantile(values: number[], p: number): number | null {
   if (values.length === 0) return null;
   const sorted = [...values].sort((a, b) => a - b);
-  const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0
-    ? (sorted[middle - 1] + sorted[middle]) / 2
-    : sorted[middle];
+  const index = Math.min(sorted.length - 1, Math.floor(sorted.length * p));
+  return sorted[index];
+}
+
+/** Prochain instant `k × 60 s + offset` strictement après `now`. */
+function nextSlotAfter(now: number, offsetMs: number): number {
+  const slot = Math.floor((now - offsetMs) / MINUTE_MS) + 1;
+  return slot * MINUTE_MS + offsetMs;
 }
 
 /**
  * Estime le cycle à partir des derniers passages.
  *
- * `runs` est attendu du PLUS RÉCENT au plus ancien (l'ordre que rend la
+ * `runs` est attendu du plus récent au plus ancien (l'ordre que rend la
  * requête). Fonction pure : tout ce qui dépend de l'horloge passe par `now`.
  */
 export function estimateCycle(
   runs: CollectionRun[],
   now: number,
 ): CycleEstimate {
-  const completions = runs
-    .map((run) => run.completedAt)
-    .filter((date): date is Date => date != null)
-    .map((date) => date.getTime())
-    .sort((a, b) => b - a);
+  // Position de la FIN de chaque passage dans sa minute. C'est la grandeur
+  // qu'on cherche : « à quelle seconde la donnée est-elle prête ? »
+  const endOffsets = runs
+    .filter((run) => run.completedAt != null)
+    .map((run) => {
+      const started = run.startedAt.getTime();
+      const minute = Math.round(started / MINUTE_MS) * MINUTE_MS;
+      return run.completedAt!.getTime() - minute;
+    })
+    .filter((offset) => offset > 0 && offset < 2 * MINUTE_MS);
 
-  // Écarts entre deux écritures consécutives. C'est la période réelle, verrou
-  // et passages sautés compris.
-  const gaps: number[] = [];
-  for (let i = 0; i < completions.length - 1; i++) {
-    gaps.push(completions[i] - completions[i + 1]);
-  }
+  const measuredPhase = quantile(endOffsets, PHASE_QUANTILE);
+  const phaseMs =
+    measuredPhase == null
+      ? DEFAULT_PHASE_MS
+      : Math.min(
+          Math.max(measuredPhase + PHASE_MARGIN_MS, MIN_PHASE_MS),
+          MAX_PHASE_MS,
+        );
 
-  const measuredPeriod = median(gaps);
-  const periodMs = measuredPeriod ?? FALLBACK_PERIOD_MS;
-
-  // Durée d'un passage, pour situer la fin de celui qui tourne encore.
-  const durations = runs
-    .map((run) => run.durationMs)
-    .filter((value): value is number => value != null && value > 0);
-  const typicalDurationMs = median(durations) ?? FALLBACK_PERIOD_MS;
-
-  const lastCompletedAt = completions[0] ?? null;
-
-  // Un passage EN COURS donne la meilleure estimation possible : sa fin est
-  // l'écriture qu'on attend. Encore faut-il qu'il soit vivant — une ligne
-  // `running` peut n'être que la trace d'un processus tué.
-  const running = runs.find(
-    (run) =>
-      run.status === "running" &&
-      run.completedAt == null &&
-      now - run.startedAt.getTime() < DEAD_RUN_MS,
-  );
-
-  let nextWriteAt: number;
-  if (running) {
-    nextWriteAt = running.startedAt.getTime() + typicalDurationMs;
-  } else if (lastCompletedAt != null) {
-    nextWriteAt = lastCompletedAt + periodMs;
-  } else {
-    // Rien d'exploitable : on se comporte comme avant ce module.
-    nextWriteAt = now + FALLBACK_PERIOD_MS;
-  }
-
-  const stalled = now - nextWriteAt > STALL_FACTOR * periodMs;
+  // Borne basse de la même distribution : au plus tôt, la donnée de la minute
+  // en cours peut apparaître là.
+  const earliestMs = quantile(endOffsets, 0.05) ?? DEFAULT_EARLIEST_MS;
 
   return {
-    nextWriteAt,
-    periodMs,
-    stalled,
-    measured: measuredPeriod != null,
+    phaseMs,
+    nextReadAt: nextSlotAfter(now, phaseMs),
+    nextWriteAt: nextSlotAfter(now, Math.min(earliestMs, phaseMs)),
+    measured: measuredPhase != null,
   };
 }
 
@@ -183,22 +160,54 @@ export function estimateCycle(
  * Secondes à attendre avant de redemander les données, jitter compris.
  *
  * Séparée d'`estimateCycle` parce qu'elle doit être évaluée à CHAQUE réponse
- * servie : l'estimation, elle, est mise en cache dix secondes et partagée. Sans
- * cette séparation, tous les visiteurs servis dans la même fenêtre de cache
- * recevraient le même délai — et se retrouveraient au même instant, ce que le
- * jitter est précisément là pour éviter.
+ * servie : l'estimation, elle, est mise en cache et partagée. Sans cette
+ * séparation, tous les visiteurs servis dans la même fenêtre de cache
+ * recevraient le même délai — et reviendraient donc ensemble.
  */
 export function delayFromEstimate(
   estimate: CycleEstimate,
   now: number,
+  /**
+   * Horodatage de la donnée qu'on vient de servir (`parks.lastUpdatedAt`).
+   *
+   * ⚠️ **C'est l'ancrage du cycle, et c'est ce qui manquait.** Calculer
+   * l'échéance depuis `now` ignore ce que le serveur sait pourtant : quelle
+   * minute de collecte le client tient déjà en main. La donnée ne changeant
+   * qu'une fois par minute, celle d'après arrivera une minute après CELLE-CI —
+   * pas une minute après l'instant où la requête a été servie.
+   *
+   * ⚠️ **Ce n'est pas le retour du bug d'origine.** L'ancienne version faisait
+   * de cet horodatage la SEULE référence, si bien qu'il gelait tout en se
+   * figeant. Ici il ne fait que placer le cycle sur la grille des minutes ; dès
+   * qu'il a pris du retard, on repart de la grille absolue et le cycle continue.
+   */
+  lastUpdateMs: number | null,
   jitter: number = Math.random(),
 ): number {
-  const base = estimate.stalled
-    ? FALLBACK_PERIOD_MS / 1000
-    : (estimate.nextWriteAt - now) / 1000 + SETTLE_SECONDS;
+  // Le créneau visé est celui qui suit la donnée en main. À défaut d'ancrage
+  // (parc jamais collecté), la grille absolue fait aussi bien.
+  const anchored =
+    lastUpdateMs == null
+      ? null
+      : // `floor` et non `round` : la minute de collecte est celle qui PRÉCÈDE
+        // l'écriture. Un arrondi basculerait au-delà de 30 s — exactement la
+        // médiane des écritures observées, donc une fois sur deux.
+        Math.floor(lastUpdateMs / MINUTE_MS) * MINUTE_MS +
+        MINUTE_MS +
+        estimate.phaseMs;
 
+  // `anchored` déjà passé = l'écriture attendue a du retard, ou l'horodatage
+  // est figé depuis longtemps. Dans les deux cas la grille reprend la main :
+  // c'est ce qui rend l'arrêt du cycle impossible.
+  const target =
+    anchored != null && anchored > now ? anchored : estimate.nextReadAt;
+
+  const base = (target - now) / 1000;
   const spread = jitter * JITTER_SECONDS;
-  const clamped = Math.min(Math.max(base, MIN_SECONDS), MAX_SECONDS);
+  const clamped = Math.min(
+    Math.max(base, MIN_DELAY_SECONDS),
+    MAX_DELAY_SECONDS,
+  );
   return Math.round(clamped + spread);
 }
 
@@ -207,12 +216,9 @@ export function delayFromEstimate(
  *
  * ⚠️ **Un cache ne doit JAMAIS enjamber une écriture.** Rempli deux secondes
  * avant que le worker n'écrive, il resservirait la donnée précédente au premier
- * client arrivé après — précisément celui que `nextUpdateIn` a fait venir au bon
- * moment. Le décompte aurait l'air juste et la donnée serait vieille d'un cycle
- * entier : le pire des deux mondes.
- *
- * D'où la règle : avant l'écriture attendue, on ne met en cache que jusqu'à
- * elle ; après, la donnée fraîche est déjà là et le plafond habituel s'applique.
+ * client arrivé après — précisément celui que le décompte a fait venir au bon
+ * moment. Le décompte aurait l'air juste et la donnée serait vieille d'une
+ * minute : le pire des deux mondes.
  */
 export function snapshotTtlMs(
   estimate: CycleEstimate,

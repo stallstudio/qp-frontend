@@ -200,11 +200,26 @@ comme l'autre parce qu'elles devinaient une cadence côté navigateur :
 - `Date.now() + 60 s`, qui l'a remplacé, ne pouvait plus se bloquer mais n'avait
   plus aucun rapport avec la base — et repartait de zéro à chaque rechargement.
 
-Aucune des deux ne pouvait tomber juste : **la base n'est pas écrite toutes les
-minutes.** Le verrou du worker fait sortir tout passage qui en trouve un autre en
-cours, et un passage dure couramment plus d'une minute. La période réelle est
-donc variable, et on la MESURE sur `job_executions` (écart médian entre deux
-`completedAt`) au lieu de la supposer.
+⚠️ **Mesuré, pas supposé** (719 passages consécutifs, 12 h, 2026-09-03) : le
+worker démarre à CHAQUE minute ronde à 0,8 s près, un passage dure 29 s en
+médiane (p90 45 s, p99 55 s, max 63 s) et termine dans sa minute 717 fois sur
+718. La donnée arrive donc à **minute ronde + ~30 s**, avec ±15 s de dispersion.
+
+⚠️ **Les commentaires du worker affirment le contraire** (« un passage dure
+couramment plus d'une minute », « varie d'un facteur cinq ») : ils décrivent
+l'avant-verrou du 2026-08-11. Une première version de ce module les a crus et
+s'est trompée de modèle. Refaire la mesure avant de les croire.
+
+D'où le calcul : on lit à **phase fixe dans la minute** (p95 des fins + marge,
+borné à 55 s), et le créneau visé est celui qui suit **la donnée qu'on vient de
+servir** — pas l'instant de la requête. Ancrer sur `lastUpdatedAt` sans filet
+était le bug d'origine ; ici, dès que cet horodatage prend du retard, la grille
+absolue reprend la main et le cycle continue.
+
+⚠️ **Viser un quantile HAUT, jamais la médiane** : viser la médiane, c'est
+arriver trop tôt une fois sur deux. Rejeu sur les données réelles : 17,8 % de
+requêtes à vide avec l'estimation par écart médian, 2,9 % avec la grille et
+l'ancrage.
 
 Trois protections empilées contre les rafales, décrites dans
 `lib/park-live-data.ts` : `cache()` de React (une requête), `cachedForTtl` (dix

@@ -10,9 +10,10 @@ import { estimateCycle, type CycleEstimate } from "@/lib/collection-cycle";
 
 const WAIT_TIMES_JOB = "fetchParkWaitTimes";
 
-/** Passages examinés. Vingt couvrent ~20 à 40 min, assez pour une médiane
- *  stable sans porter l'état d'il y a deux heures. */
-const SAMPLE_SIZE = 20;
+/** Passages examinés : une heure. Le worker en fait un par minute, et le
+ *  quantile de la phase a besoin d'assez de points pour ne pas osciller d'un
+ *  appel à l'autre — une phase instable fait revenir le client trop tôt. */
+const SAMPLE_SIZE = 60;
 
 /** Durée de vie de l'état du cycle. Il est GLOBAL — une seule lecture pour tous
  *  les parcs et tous les visiteurs —, donc son coût est déjà négligeable ; dix

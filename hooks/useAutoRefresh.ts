@@ -23,10 +23,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
  *   fetch tombait à un instant arbitraire du cycle — souvent juste avant
  *   l'écriture qu'il attendait.
  *
- * Aucune des deux ne pouvait tomber juste : **la base n'est pas écrite toutes
- * les minutes.** Un passage dure couramment plus d'une minute et le verrou fait
- * sauter les ticks qui se chevauchent ; la période réelle varie dans la
- * journée. Seul le serveur la connaît, alors il la dit.
+ * Aucune des deux ne pouvait tomber juste, et la mesure dit pourquoi : le
+ * worker écrit bien à chaque minute, mais à un instant qui se promène —
+ * minute ronde + 30 s en médiane, avec ±15 s de dispersion. Deux choses
+ * échappent au navigateur : où il en est dans cette grille, et QUELLE minute de
+ * collecte il tient déjà en main. Le serveur, lui, sait les deux — alors il
+ * calcule le délai et le dit.
  *
  * Ce qui est conservé de la version précédente, et pourquoi :
  *

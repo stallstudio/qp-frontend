@@ -269,8 +269,15 @@ export const buildParkLiveData = cache(
     if (snapshot.status !== "ok") return snapshot;
 
     // Évalué ici, au plus tard : c'est un délai qui court, et son jitter doit
-    // être propre à cette réponse-ci.
-    const nextUpdateIn = delayFromEstimate(cycle, Date.now());
+    // être propre à cette réponse-ci. Ancré sur l'horodatage de la donnée qu'on
+    // s'apprête à servir — la suivante arrive une minute après CELLE-CI, pas une
+    // minute après l'instant de la requête.
+    const lastUpdateMs = Date.parse(snapshot.data.lastUpdate);
+    const nextUpdateIn = delayFromEstimate(
+      cycle,
+      Date.now(),
+      Number.isNaN(lastUpdateMs) ? null : lastUpdateMs,
+    );
     return { status: "ok", data: { ...snapshot.data, nextUpdateIn } };
   },
 );
