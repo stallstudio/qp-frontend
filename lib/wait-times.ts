@@ -1,5 +1,7 @@
 import { TimeSlot, WaitTime } from "@/types/waitTime";
 import { getPrisma } from "./prisma";
+import { readBanner, readPoiZone } from "@/lib/poi-banner";
+import { parsePoiKind } from "@/lib/poi-kinds";
 
 function parseTimeSlot(raw: unknown): TimeSlot | null {
   if (!raw || typeof raw !== "object") return null;
@@ -17,7 +19,21 @@ function parseTimeSlot(raw: unknown): TimeSlot | null {
 // afin de tolérer une panne totale de l'API du parc : si le cron ne
 // met plus le parc à jour, on continue d'afficher les dernières
 // données connues plutôt que tout faire disparaître.
-const STALE_WAIT_TIME_MS = 7 * 24 * 60 * 60 * 1000;
+//
+// ⚠️ **3 jours et non 7** (2026-08-19). Le délai ne protège PAS d'une panne
+// globale — dans ce cas `park.lastUpdatedAt` se fige aussi, donc `freshSince`
+// se fige avec lui et les données restent visibles quoi qu'il arrive. Il ne
+// joue que sur les entités qui disparaissent du flux PENDANT que le reste
+// continue d'être mis à jour, c'est-à-dire exactement le cas saisonnier.
+//
+// Mesuré sur Mirabilandia : son fetcher exclut délibérément les huit
+// attractions Halloween hors saison (`waitTimesService.ts`), mais cesser de les
+// émettre ne CLÔT pas leurs lignes `wait_times` — `saveWaitTimes` ne ferme un
+// intervalle que sur un changement d'état. Leurs lignes gardent donc
+// `endTime IS NULL` avec un `lastSeenAt` figé au dernier jour de l'événement
+// (2026-08-16), et à 7 jours elles s'affichaient encore « Fermé » sur la page
+// du parc trois jours après la fin de l'événement.
+const STALE_WAIT_TIME_MS = 3 * 24 * 60 * 60 * 1000;
 
 export async function getLatestWaitTimesByPark(
   parkId: number,
@@ -53,9 +69,23 @@ export async function getLatestWaitTimesByPark(
       const rideName = wt.poi?.name || "Unknown";
 
       if (!rideMap.has(rideId)) {
+        // ⚠️ **Repli sur `"ride"` et non sur un rejet.** Un `kind` inconnu — une
+        // valeur écrite par une version plus récente du worker — doit ranger le
+        // POI dans la carte principale, pas le faire disparaître de la page.
+        const kind = parsePoiKind(wt.poi?.kind) ?? "ride";
+
         rideMap.set(rideId, {
           rideId,
           rideName,
+          // Sans requête supplémentaire : `include: { poi: true }` ci-dessus
+          // ramène déjà la ligne complète du POI.
+          eventId: wt.poi?.eventId ?? null,
+          banner: readBanner(wt.poi?.additionalData),
+          // Quelques caractères seulement : une zone ne pèse rien dans le
+          // rafraîchissement de 60 s, et le popup qui l'affiche n'a pas à savoir
+          // d'où elle vient.
+          zone: readPoiZone(wt.poi?.additionalData),
+          kind,
           queues: [],
         });
       }

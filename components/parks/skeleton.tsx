@@ -4,10 +4,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Undo2 } from "lucide-react";
 import Footer from "../ui/footer";
 import Image from "next/image";
+import { PARK_PAGE_SHELL } from "./page-shell";
 
 export default function ParkSkeleton() {
   return (
-    <div className="flex min-h-[123vh] w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-3 sm:px-4 gap-8">
+    <div className={PARK_PAGE_SHELL}>
       <main className="flex-1 flex flex-col gap-1 mt-4">
         {/* Header Skeleton */}
         <>

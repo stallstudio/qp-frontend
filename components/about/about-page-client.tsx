@@ -10,14 +10,19 @@ import {
   Heart,
   Flag,
   Clock,
-  // TrendingUp, // SUSPENDU : carte « tendance » du guide masquée (historique désactivé).
   ListTree,
   Star,
-  Flame,
   Search,
   Drama,
+  Sparkles,
   Activity,
   SlidersHorizontal,
+  Bell,
+  CalendarClock,
+  Eye,
+  UserCircle,
+  LineChart,
+  CloudSun,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,12 +31,14 @@ import AboutHeader from "./about-header";
 import Vignette from "./vignette";
 import {
   LiveDemo,
-  // TrendDemo, // SUSPENDU : voir carte « tendance » masquée plus bas.
   QueuesDemo,
   FavoriteDemo,
   StatusDemo,
   SearchDemo,
   ShowsDemo,
+  AlertDemo,
+  ReminderDemo,
+  ForecastDemo,
 } from "./demos";
 
 export default function AboutPageClient() {
@@ -143,16 +150,6 @@ export default function AboutPageClient() {
                   demoLabel={demoLabel}
                   demo={<LiveDemo />}
                 />
-                {/* SUSPENDU : carte « tendance » masquée tant que l'historique
-                    est désactivé (voir HISTORY_ENABLED / TRENDS_ENABLED). À
-                    réafficher en même temps que la réactivation des tendances.
-                <Vignette
-                  icon={TrendingUp}
-                  title={tCards("trend.title")}
-                  body={tCards("trend.body")}
-                  demoLabel={demoLabel}
-                  demo={<TrendDemo />}
-                /> */}
                 <Vignette
                   icon={ListTree}
                   title={tCards("queues.title")}
@@ -174,6 +171,51 @@ export default function AboutPageClient() {
                   demoLabel={demoLabel}
                   demo={<ShowsDemo />}
                 />
+                {/* Pas de démo : la carte d'événement se raconte en deux
+                    phrases, et la mimer demanderait de rejouer une saison
+                    entière (repli hors fenêtre, teinte de famille) pour montrer
+                    ce que le texte dit déjà. */}
+                <Vignette
+                  icon={Sparkles}
+                  title={tCards("events.title")}
+                  body={tCards("events.body")}
+                />
+                <Vignette
+                  icon={Bell}
+                  title={tCards("alerts.title")}
+                  body={tCards("alerts.body")}
+                  demoLabel={demoLabel}
+                  demo={<AlertDemo />}
+                />
+                <Vignette
+                  icon={CalendarClock}
+                  title={tCards("reminders.title")}
+                  body={tCards("reminders.body")}
+                  demoLabel={demoLabel}
+                  demo={<ReminderDemo />}
+                />
+                <Vignette
+                  icon={Eye}
+                  title={tCards("detail.title")}
+                  body={tCards("detail.body")}
+                />
+                <Vignette
+                  icon={CloudSun}
+                  title={tCards("weather.title")}
+                  body={tCards("weather.body")}
+                />
+                {/* Vignette de taille NORMALE, comme les autres : elle était en
+                    `wide` pour laisser respirer le graphique, mais une seule
+                    carte à cheval sur deux colonnes cassait la grille. Le
+                    graphique de la démo est simplement rendu plus compact
+                    (`compact` -> hauteur réduite et moins de graduations). */}
+                <Vignette
+                  icon={LineChart}
+                  title={tCards("forecast.title")}
+                  body={tCards("forecast.body")}
+                  demoLabel={demoLabel}
+                  demo={<ForecastDemo />}
+                />
                 <Vignette
                   icon={Search}
                   title={tCards("search.title")}
@@ -182,9 +224,9 @@ export default function AboutPageClient() {
                   demo={<SearchDemo />}
                 />
                 <Vignette
-                  icon={Flame}
-                  title={tCards("popular.title")}
-                  body={tCards("popular.body")}
+                  icon={UserCircle}
+                  title={tCards("account.title")}
+                  body={tCards("account.body")}
                 />
                 <Vignette
                   icon={Activity}

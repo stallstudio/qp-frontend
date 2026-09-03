@@ -1,0 +1,134 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireUserId } from "@/lib/auth-helpers";
+import { getUserPrisma } from "@/lib/user-prisma";
+import { getPrisma } from "@/lib/prisma";
+import { toShowReminderDTO } from "@/lib/user-account";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+// Fuseaux des parcs cités, en UNE requête sur la base principale (la base
+// utilisateurs ne stocke que l'identifiant du parc). Sert à afficher l'heure des
+// représentations à l'heure DU PARC, pas à celle du lecteur.
+async function timezonesByIdentifier(
+  identifiers: string[],
+): Promise<Map<string, string>> {
+  if (identifiers.length === 0) return new Map();
+  const parks = await getPrisma().park.findMany({
+    where: { identifier: { in: identifiers } },
+    select: { identifier: true, timezone: true },
+  });
+  return new Map(parks.map((p) => [p.identifier, p.timezone]));
+}
+
+// Délais autorisés (minutes avant le début d'une représentation).
+const ALLOWED_LEADS = [10, 20, 30, 40, 50, 60];
+
+// GET : rappels de spectacle de l'utilisateur. Filtrables par parc + spectacle
+// (le popup d'un spectacle ne charge que ses propres rappels pour pré-remplir
+// l'état des vignettes). Les plus proches d'abord.
+export async function GET(request: NextRequest) {
+  const { userId, response } = await requireUserId();
+  if (!userId)
+    return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const parkIdentifier = request.nextUrl.searchParams.get("parkIdentifier");
+  const showName = request.nextUrl.searchParams.get("showName");
+
+  const rows = await getUserPrisma().showReminder.findMany({
+    where: {
+      userId,
+      ...(parkIdentifier ? { parkIdentifier } : {}),
+      ...(showName ? { showName } : {}),
+    },
+    orderBy: { startTime: "asc" },
+  });
+
+  const tzByPark = await timezonesByIdentifier([
+    ...new Set(rows.map((r) => r.parkIdentifier)),
+  ]);
+  return NextResponse.json(
+    rows.map((r) => toShowReminderDTO(r, tzByPark.get(r.parkIdentifier))),
+  );
+}
+
+// POST : crée (ou met à jour le délai d') un rappel pour une représentation
+// précise (parkIdentifier + showName + startTime). Re-soumettre met à jour le
+// délai et recalcule fireAt = startTime - leadMinutes.
+export async function POST(request: NextRequest) {
+  const { userId, response } = await requireUserId();
+  if (!userId)
+    return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = (await request.json().catch(() => null)) as Record<
+    string,
+    unknown
+  > | null;
+  if (!body) {
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  }
+
+  const parkIdentifier = body.parkIdentifier;
+  const parkName = body.parkName;
+  const showName = body.showName;
+  const leadMinutes = Number(body.leadMinutes);
+  const startTimeRaw = body.startTime;
+
+  if (
+    typeof parkIdentifier !== "string" ||
+    typeof parkName !== "string" ||
+    typeof showName !== "string" ||
+    typeof startTimeRaw !== "string" ||
+    !ALLOWED_LEADS.includes(leadMinutes)
+  ) {
+    return NextResponse.json(
+      { error: "Invalid reminder payload" },
+      { status: 400 },
+    );
+  }
+
+  const startTime = new Date(startTimeRaw);
+  if (Number.isNaN(startTime.getTime())) {
+    return NextResponse.json({ error: "Invalid startTime" }, { status: 400 });
+  }
+
+  const fireAt = new Date(startTime.getTime() - leadMinutes * 60_000);
+
+  // Garde-fou : un délai qui placerait le déclenchement dans le passé n'a pas de
+  // sens (ex. « 60 min avant » à 14h30 pour un spectacle à 15h00). On refuse —
+  // le client ne propose déjà que des délais valides, ceci couvre les requêtes
+  // directes et la course « le temps a passé pendant la sélection ».
+  if (fireAt.getTime() <= Date.now()) {
+    return NextResponse.json(
+      { error: "Lead time too long for the remaining time before the show" },
+      { status: 400 },
+    );
+  }
+
+  const reminder = await getUserPrisma().showReminder.upsert({
+    where: {
+      userId_parkIdentifier_showName_startTime: {
+        userId,
+        parkIdentifier,
+        showName,
+        startTime,
+      },
+    },
+    update: { leadMinutes, fireAt, parkName },
+    create: {
+      userId,
+      parkIdentifier,
+      parkName,
+      showName,
+      startTime,
+      leadMinutes,
+      fireAt,
+    },
+  });
+
+  const tzByPark = await timezonesByIdentifier([parkIdentifier]);
+  return NextResponse.json(
+    toShowReminderDTO(reminder, tzByPark.get(parkIdentifier)),
+    { status: 201 },
+  );
+}

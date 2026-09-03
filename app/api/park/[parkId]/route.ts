@@ -1,26 +1,33 @@
 import { NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
+import { buildParkLiveDataForViewer } from "@/lib/park-live-data";
 import {
-  calculateParkDate,
-  getOpeningHoursByParkAndDate,
-} from "@/lib/opening-hours";
-import { getLatestWaitTimesByPark } from "@/lib/wait-times";
-import { getShowTimesByParkAndDate } from "@/lib/show-times";
-import { ParkLiveData, CoverImage } from "@/types/api";
-import { getClientIp, isBlacklisted } from "@/lib/ip-rules";
+  getClientIp,
+  isBlacklisted,
+  isUserAgentBlacklisted,
+} from "@/lib/ip-rules";
+import { logParkRequest } from "@/lib/api-request-log";
+import {
+  BLOCKED_ERROR,
+  BLOCKED_MESSAGE,
+  DATA_DISCLAIMER,
+} from "@/lib/api-disclaimer";
 
-function normalizeCover(raw: unknown): CoverImage[] | null {
-  if (!raw || !Array.isArray(raw) || raw.length === 0) return null;
-  return raw.map((item: unknown) => {
-    if (typeof item === "string") return { url: item, credit: null };
-    if (typeof item === "object" && item !== null && "url" in item) {
-      const obj = item as { url: string; credit?: string | null };
-      return { url: obj.url, credit: obj.credit ?? null };
-    }
-    return { url: String(item), credit: null };
-  });
-}
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
+/**
+ * Données live d'un parc.
+ *
+ * Depuis le passage de la page parc en rendu serveur, cette route ne sert plus
+ * au PREMIER affichage (le composant serveur appelle `buildParkLiveData`
+ * directement) mais au **rafraîchissement automatique** côté client. La logique
+ * métier est partagée : une seule définition de ce qu'est « l'état d'un parc ».
+ *
+ * ⚠️ **C'est la réponse qui dicte la cadence**, par son `nextUpdateIn` : le
+ * client ne décide plus de son rythme, il applique celui qu'on lui annonce
+ * (voir `lib/collection-cycle.ts`). Une réponse servie sans ce champ ferait
+ * retomber la page sur son repli d'une minute.
+ */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ parkId: string }> },
@@ -30,153 +37,86 @@ export async function GET(
   const ipAddress = getClientIp(request);
   const userAgent = request.headers.get("user-agent");
   const referer = request.headers.get("referer");
+  const endpoint = `/api/park/${parkId}`;
+
+  // Le journal alimente le classement des parcs populaires. Il n'est JAMAIS
+  // attendu : la réponse ne doit pas dépendre d'un INSERT (voir lib/api-request-log).
+  const log = (statusCode: number) =>
+    logParkRequest({
+      endpoint,
+      parkId,
+      ipAddress,
+      userAgent,
+      referer,
+      statusCode,
+    });
 
   try {
-    const prisma = getPrisma();
-
-    if (await isBlacklisted(ipAddress)) {
-      await prisma.apiRequestLog.create({
-        data: {
-          endpoint: `/api/park/${parkId}`,
-          parkId,
-          ipAddress,
-          userAgent,
-          referer,
-          statusCode: 403,
-        },
-      });
-
+    // Deux critères indépendants : l'adresse et le user agent. Le second
+    // existe parce que le premier ne suffit plus — voir le modèle
+    // `UserAgentRule` du schéma : un robot passé derrière Cloudflare change
+    // d'IP en continu sur des adresses PARTAGÉES avec de vrais visiteurs, que
+    // bloquer l'IP couperait aussi.
+    if (
+      (await isBlacklisted(ipAddress)) ||
+      (await isUserAgentBlacklisted(userAgent))
+    ) {
+      log(403);
       return NextResponse.json(
-        {
-          error: "Access denied",
-          message:
-            "Your IP address has been blocked due to unauthorized use of this data. This data is authorized exclusively for thrills.world and queue-park.com. Any other use, reproduction, redistribution, or integration requires prior written permission. To request access or contest this block, please contact us at contact@queue-park.com.",
-        },
+        { error: BLOCKED_ERROR, message: BLOCKED_MESSAGE },
         { status: 403 },
       );
     }
 
-    const park = await prisma.park.findUnique({
-      where: { identifier: parkId, display: true },
-      select: {
-        id: true,
-        identifier: true,
-        name: true,
-        timezone: true,
-        cover: true,
-        queueTypeLabels: true,
-        lastUpdatedAt: true,
-      },
-    });
+    // Repli admin compris : sans lui, le rafraîchissement automatique d'un parc
+    // masqué recevrait un 404 et le client renverrait à l'accueil (cf.
+    // `fetchParkData` dans park-page-client) — la page s'ouvrirait pour se
+    // refermer soixante secondes plus tard.
+    const result = await buildParkLiveDataForViewer(parkId);
 
-    if (!park) {
-      await prisma.apiRequestLog.create({
-        data: {
-          endpoint: `/api/park/${parkId}`,
-          parkId,
-          ipAddress,
-          userAgent,
-          referer,
-          statusCode: 404,
-        },
-      });
-
+    if (result.status === "not-found") {
+      log(404);
       return NextResponse.json(
-        {
-          error: "Not found",
-          message: `Park not found: ${parkId}`,
-        },
+        { error: "Not found", message: `Park not found: ${parkId}` },
         { status: 404 },
       );
     }
 
-    const today = await calculateParkDate(park.id, park.timezone);
-
-    if (!today) {
-      await prisma.apiRequestLog.create({
-        data: {
-          endpoint: `/api/park/${parkId}`,
-          parkId,
-          ipAddress,
-          userAgent,
-          referer,
-          statusCode: 500,
-        },
-      });
-
+    if (result.status === "error") {
+      log(500);
       return NextResponse.json(
-        {
-          error: "An error occurred while calculating the park date",
-          message: `Timezone seems incorrect: ${park.timezone}`,
-        },
+        { error: "Internal server error", message: result.reason },
         { status: 500 },
       );
     }
 
-    const waitTimes = await getLatestWaitTimesByPark(
-      park.id,
-      park.lastUpdatedAt,
+    log(200);
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: `Park data for ${result.data.name} retrieved successfully`,
+        disclaimer: DATA_DISCLAIMER,
+        data: result.data,
+        counts: {
+          waitTimes: result.data.waitTimes.length,
+          openingHours: result.data.openingHours.length,
+          showTimes: result.data.shows.length,
+        },
+      },
+      {
+        headers: {
+          // PAS de cache partagé, volontairement : chaque appel alimente le
+          // journal qui sert à calculer les « parcs populaires ». Une réponse
+          // servie depuis un CDN ne serait jamais comptée et fausserait le
+          // classement (sans parler de la fraîcheur des temps d'attente).
+          "Cache-Control": "no-store",
+        },
+      },
     );
-    const showTimes = await getShowTimesByParkAndDate(park.id, today);
-    const openingHours = await getOpeningHoursByParkAndDate(park.id, today);
-
-    const lastUpdate =
-      park.lastUpdatedAt?.toISOString() || new Date().toISOString();
-
-    await prisma.apiRequestLog.create({
-      data: {
-        endpoint: `/api/park/${parkId}`,
-        parkId,
-        ipAddress,
-        userAgent,
-        referer,
-        statusCode: 200,
-      },
-    });
-
-    const parkLiveData: ParkLiveData = {
-      identifier: park.identifier,
-      name: park.name,
-      timezone: park.timezone,
-      cover: normalizeCover(park.cover),
-      queueTypeLabels: park.queueTypeLabels as Record<string, string> | null,
-      openingHours: openingHours ?? [],
-      waitTimes,
-      shows: showTimes ?? [],
-      lastUpdate,
-    };
-
-    return NextResponse.json({
-      success: true,
-      message: `Park data for ${park.name} retrieved successfully`,
-      disclaimer:
-        "This data is provided by the TWTS (Thrills Wait Times Service) and is strictly intended for authorized use only. Access and usage are exclusively permitted for thrills.world and queue-park.com. Any unauthorized access, use, reproduction, or distribution is strictly prohibited. If you wish to use or integrate this data, you must obtain prior written permission by contacting contact@queue-park.com. Unauthorized usage may result in immediate actions including permanent IP banning and revocation of access without notice. We actively monitor access to ensure compliance. By accessing this data, you agree to these terms.",
-      data: parkLiveData,
-      counts: {
-        waitTimes: waitTimes.length,
-        openingHours: openingHours.length,
-        showTimes: showTimes.length,
-      },
-    });
   } catch (error) {
     console.error(`Error serving wait times for park ${parkId}`, error);
-
-    try {
-      const prisma = getPrisma();
-      await prisma.apiRequestLog.create({
-        data: {
-          endpoint: `/api/park/${parkId}`,
-          parkId,
-          ipAddress,
-          userAgent,
-          referer,
-          statusCode: 500,
-        },
-      });
-    } catch (logError) {
-      console.error("Failed to log API request", logError);
-    }
-
+    log(500);
     return NextResponse.json(
       {
         error: "Internal server error",

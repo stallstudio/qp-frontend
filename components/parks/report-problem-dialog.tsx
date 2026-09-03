@@ -27,8 +27,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
-import { AlertTriangle, Bug } from "lucide-react";
+import { AlertTriangle, Bug, Mail } from "lucide-react";
 import { PROBLEM_CATEGORIES } from "@/lib/report-config";
+import { useUser } from "@/components/providers/user-provider";
 import {
   Form,
   FormControl,
@@ -53,15 +54,34 @@ export default function ReportProblemDialog({
   const t = useTranslations("reportProblem");
   const locale = useLocale();
   const [open, setOpen] = useState(false);
+  // Connecté : l'e-mail n'est plus demandé — c'est celui du compte qui est
+  // transmis (résolu côté serveur depuis la session, jamais depuis le client).
+  const { isAuthenticated } = useUser();
 
-  const formSchema = z.object({
-    category: z.string().min(1, { message: t("validation.categoryRequired") }),
-    subcategory: z
-      .string()
-      .min(1, { message: t("validation.subcategoryRequired") }),
-    details: z.string().min(10, { message: t("validation.detailsRequired") }),
-    email: z.string().email({ message: t("validation.emailRequired") }),
-  });
+  const formSchema = z
+    .object({
+      category: z.string().min(1, { message: t("validation.categoryRequired") }),
+      subcategory: z
+        .string()
+        .min(1, { message: t("validation.subcategoryRequired") }),
+      details: z.string().min(10, { message: t("validation.detailsRequired") }),
+      email: z.string(),
+      // Honeypot : invisible pour un humain, rempli par les robots (voir plus
+      // bas). Jamais validé — le serveur se contente d'ignorer la requête.
+      website: z.string(),
+    })
+    // L'e-mail n'est obligatoire que pour un visiteur non connecté : le champ
+    // n'étant plus rendu quand on a un compte, il ne doit pas bloquer l'envoi.
+    .superRefine((values, ctx) => {
+      if (isAuthenticated) return;
+      if (!z.string().email().safeParse(values.email).success) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["email"],
+          message: t("validation.emailRequired"),
+        });
+      }
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,6 +90,7 @@ export default function ReportProblemDialog({
       subcategory: "",
       details: "",
       email: "",
+      website: "",
     },
   });
 
@@ -95,13 +116,21 @@ export default function ReportProblemDialog({
         category: values.category,
         subcategory: values.subcategory,
         details: values.details,
-        email: values.email,
+        // Connecté : rien n'est envoyé, le serveur lit l'e-mail de la session.
+        ...(isAuthenticated ? {} : { email: values.email }),
+        website: values.website,
         locale,
       });
       toast.success(t("success"));
       setOpen(false);
       form.reset();
-    } catch {
+    } catch (error) {
+      // 429 : message explicite plutôt que « une erreur est survenue », qui
+      // pousserait l'utilisateur à réessayer en boucle.
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        toast.error(t("rateLimited"));
+        return;
+      }
       toast.error(t("error"));
     }
   };
@@ -216,26 +245,51 @@ export default function ReportProblemDialog({
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("emailLabel")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="john.doe@mail.com"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>{t("emailDescription")}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {isAuthenticated ? (
+                  // Compte connecté : ni champ ni saisie — juste l'information
+                  // que l'e-mail du compte accompagnera le signalement.
+                  <p className="flex items-start gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                    <Mail className="mt-0.5 size-4 shrink-0" />
+                    {t("emailAccountNotice")}
+                  </p>
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("emailLabel")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="john.doe@mail.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {t("emailDescription")}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </>
             )}
+
+            {/* Honeypot : hors écran et hors tabulation, donc invisible pour un
+                humain comme pour un lecteur d'écran. Les robots qui remplissent
+                tous les champs d'un formulaire se trahissent en le renseignant. */}
+            <div aria-hidden className="absolute left-[-9999px] opacity-0">
+              <label htmlFor="report-website">Website</label>
+              <input
+                id="report-website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                {...form.register("website")}
+              />
+            </div>
 
             <div className="flex justify-end gap-2 pt-4">
               <Button

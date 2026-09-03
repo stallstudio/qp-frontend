@@ -1,145 +1,631 @@
 {
   "home": {
     "title": "Queue Park",
-    "subtitle": "实时掌握您最喜爱的游乐园排队时间！"
+    "subtitle": "实时掌握你喜爱的主题公园排队时间！"
   },
   "search": {
-    "placeholder": "按名称、集团或国家搜索乐园...",
-    "noResults": "未找到匹配的乐园。请重试！",
-    "randomParkToast": "骰子结果为："
+    "placeholder": "按名称、集团或国家搜索乐园……",
+    "noResults": "没有找到符合条件的乐园，请再试一次！",
+    "randomParkToast": "骰子选中了："
   },
   "parksList": {
-    "title": "所有主题乐园",
+    "title": "全部主题公园",
     "sortByGroup": "按集团",
     "sortByCountry": "按国家",
-    "hideClosedParks": "隐藏已闭园的乐园"
+    "hideClosedParks": "隐藏闭园的乐园",
+    "seeMoreParks": "查看其余 {count} 个乐园",
+    "seeLess": "收起"
   },
   "popularParks": {
     "title": "热门乐园",
-    "trendingText": "近几小时的趋势",
-    "visitsNote": "访问量"
+    "trendingText": "最近几小时的热门",
+    "visitsNote": "次浏览"
+  },
+  "weather": {
+    "clear": "晴朗",
+    "mainlyClear": "大致晴朗",
+    "partlyCloudy": "多云",
+    "overcast": "阴天",
+    "fog": "雾",
+    "drizzle": "毛毛雨",
+    "rain": "雨",
+    "snow": "雪",
+    "thunderstorm": "雷雨",
+    "unknown": "暂无天气信息",
+    "min": "最低",
+    "max": "最高"
   },
   "parkPage": {
     "backHome": "返回首页",
-    "localTime": "当地时间",
     "todayHours": "今日营业时间",
-    "extraOpeningHours": "额外开放时间",
-    "extendedHours": "延长营业时间",
+    "extraOpeningHours": "提前入园",
+    "extendedHours": "延长营业",
     "closedToday": "今日闭园",
-    "hoursUnavailable": "暂无营业时间信息",
-    "privateEvent": "包场活动",
-    "privateEventNoHours": "今日包场活动"
+    "hoursUnavailable": "暂时无法获取营业时间",
+    "privateEvent": "乐园被包场",
+    "privateEventNoHours": "今日乐园被包场",
+    "eventHours": "活动",
+    "hoursOther": "开放时间",
+    "cards": {
+      "attractions": "项目",
+      "shows": "演出"
+    }
   },
   "parkStatus": {
-    "open": "开园中",
-    "closed": "已闭园"
+    "open": "营业中",
+    "closed": "闭园"
   },
   "attractionStatus": {
-    "open": "运营中",
-    "closed": "已关闭",
+    "open": "开放",
+    "closed": "关闭",
     "down": "故障",
     "maintenance": "维护中",
-    "unavailable": "暂无信息"
+    "unavailable": "暂无数据",
+    "unavailableShort": "暂无"
   },
   "tabs": {
-    "waitTimes": "排队时间",
-    "shows": "演出"
+    "live": "实时",
+    "schedule": "今日营业时间"
   },
   "shows": {
     "show": "演出",
-    "schedules": "时间表",
-    "updateInfo": "演出每小时更新一次",
-    "noMoreToday": "今天没有更多演出"
+    "schedules": "演出场次",
+    "updateInfo": "演出信息每小时更新一次",
+    "noMoreToday": "今天没有更多演出了",
+    "legendPast": "已结束",
+    "legendOngoing": "进行中",
+    "legendUpcoming": "即将开始"
+  },
+  "showDetail": {
+    "openFor": "查看 {show} 的详情",
+    "notifTitle": "提醒",
+    "duration": "时长：{duration}",
+    "continuousAccess": "全时段开放 · {range}",
+    "signInIntro": "登录后可在演出开始前收到提醒。",
+    "reminderIntro": "先选择场次，再选择提前多久提醒你。",
+    "leadLabel": "希望在演出开始前多久收到提醒？",
+    "leadOption": "提前 {minutes} 分钟",
+    "reminderActive": "提前 {minutes} 分钟提醒",
+    "reminderScheduled": "提醒已设置",
+    "save": "设置提醒",
+    "update": "更新",
+    "remove": "删除",
+    "reminderSaved": "提醒已保存",
+    "reminderRemoved": "提醒已删除",
+    "reminderError": "出了点问题，请再试一次。",
+    "pushBlocked": "提醒已保存，但此设备不会收到通知（未允许通知）。",
+    "noUpcoming": "今天没有更多演出了。",
+    "leadTooLate": "该场次即将开始，来不及设置提醒了。",
+    "reminderActivate": "开启提醒",
+    "reminderModify": "修改提醒"
   },
   "favorites": {
     "myFavorites": "我的收藏",
-    "add": "添加到收藏",
-    "remove": "从收藏中移除",
-    "addPark": "将此乐园添加到收藏",
-    "removePark": "将此乐园从收藏中移除"
+    "yours": "你的收藏",
+    "add": "加入收藏",
+    "remove": "取消收藏",
+    "addPark": "把这个乐园加入收藏",
+    "removePark": "把这个乐园移出收藏",
+    "parkLimit": "最多可以收藏 {max} 个乐园。",
+    "seeMore": "再看 {count} 个",
+    "seeLess": "收起",
+    "needAccount": "登录后即可添加收藏。"
+  },
+  "cookies": {
+    "message": "我们使用分析 Cookie 来改进网站，你可以选择接受或拒绝。",
+    "learnMore": "了解更多",
+    "accept": "接受",
+    "refuse": "拒绝",
+    "manage": "管理 Cookie",
+    "legalNotice": "法律声明",
+    "privacyPolicy": "隐私",
+    "cookiePolicy": "Cookie"
+  },
+  "manifest": {
+    "name": "Queue Park",
+    "description": "你喜爱的主题公园的实时排队时间与演出信息。",
+    "shortcutAllParks": "全部乐园",
+    "shortcutParksShort": "乐园"
   },
   "waitTimeTable": {
-    "attraction": "游乐设施",
+    "name": "名称",
     "waitTime": "排队时间",
     "status": "状态",
-    "noWaitTimes": "暂无排队时间信息",
-    "refreshingIn": "刷新倒计时",
+    "noWaitTimes": "暂无排队时间数据",
+    "tableLabel": "排队时间 — {park}",
+    "toggleQueues": "显示 {ride} 的其他队列",
     "second": "秒",
     "seconds": "秒",
-    "nowRefreshing": "正在刷新...",
-    "lastUpdate": "最后更新"
+    "minute": "分钟",
+    "minutes": "分钟",
+    "nowRefreshing": "正在刷新……",
+    "lastUpdate": "最后更新",
+    "updatedAgo": "{age}前更新",
+    "liveConnected": "实时",
+    "liveFallback": "自动刷新"
   },
   "footer": {
     "copyright": "© {year} Queue Park. 保留所有权利。",
-    "contactText": "联系我："
+    "contactText": "联系我"
   },
   "noData": {
-    "title": "哎呀，抱歉！",
-    "message": "我们目前没有此乐园的信息可显示。请稍后再来！"
+    "title": "抱歉！",
+    "message": "目前没有该乐园的信息可以显示，请稍后再来看看！"
   },
   "errors": {
-    "configError": "配置错误。请联系支持人员。",
-    "fetchError": "无法获取乐园信息：",
-    "parkNotFound": "您寻找的乐园不存在",
+    "configError": "配置错误，请联系客服。",
+    "fetchError": "获取乐园数据失败：",
+    "parkNotFound": "你要找的乐园不存在",
     "networkErrorRefresh": "刷新数据时发生网络错误",
-    "networkError": "发生网络错误。请检查您的网络连接并重试。"
+    "networkError": "发生网络错误，请检查网络连接后重试。"
+  },
+  "og": {
+    "subtitle": "实时排队时间",
+    "averageWait": "平均排队时间",
+    "openAttractions": "开放中的项目",
+    "busiest": "此刻最热门",
+    "noLiveData": "当前没有实时排队数据",
+    "currentWait": "当前排队时间",
+    "rideClosed": "该项目目前关闭"
+  },
+  "errorPages": {
+    "notFoundTitle": "找不到页面",
+    "notFoundMessage": "该页面不存在或已被移动，你要找的乐园可能更换了地址。",
+    "errorTitle": "出了点问题",
+    "errorMessage": "无法显示此页面，请稍后再试。如果问题持续，请发邮件到 contact@queue-park.com 告诉我们。",
+    "retry": "重试",
+    "backHome": "返回首页"
+  },
+  "about": {
+    "metaTitle": "关于",
+    "metaDescription": "了解 Queue Park：排队时间的来源、收藏功能、排队时间预测、天气以及全部功能。",
+    "backHome": "返回首页",
+    "heroTitle": "关于 Queue Park",
+    "heroSubtitle": "你喜爱的乐园的排队时间，实时呈现，人人免费。",
+    "tabs": {
+      "about": "关于",
+      "guide": "使用指南"
+    },
+    "sectionAboutTitle": "我们的项目",
+    "sectionGuideTitle": "如何使用",
+    "demoLabel": "示例",
+    "cards": {
+      "intro": {
+        "title": "Queue Park 是什么？",
+        "body": "Queue Park 把全球 200 多个主题公园的实时排队时间汇集到一处。我们的目标是：让你一眼就知道现在该去玩哪些项目，把一天安排得更好，而不必一直盯着园区地图。"
+      },
+      "data": {
+        "title": "数据从哪里来？",
+        "body": "排队时间直接来自各乐园的官方系统。我们抓取、清洗并统一这些数据，让 Walibi、Disney、Europa-Park 或 Six Flags 呈现方式一致，颜色相同、颗粒度相同。"
+      },
+      "worker": {
+        "title": "幕后是怎样运作的",
+        "body": "一个自动化服务持续运行，几乎实时地向各乐园请求数据。它会校验每一个数值，把每条队列与正确的项目关联，记录当天的历史，同时抓取营业时间和演出信息。一旦某个数据源出现异常，团队会自动收到告警。"
+      },
+      "free": {
+        "title": "免费，无广告",
+        "body": "Queue Park 完全免费且没有广告。查看排队时间无需账号。若要收藏项目并接收提醒，只需一个免费且无需密码的账号（Google 或魔法链接），所有内容都会在你的设备之间同步。"
+      },
+      "independent": {
+        "title": "一个独立项目",
+        "body": "Queue Park v2 由两位主题公园爱好者 Lilian 和 Gaspard 开发。它既不是官方应用，也与任何乐园没有从属关系。有意见、有想法，或者希望增加某个乐园？欢迎写信到 contact@queue-park.com。"
+      },
+      "report": {
+        "title": "发现数据不对？",
+        "body": "数据依赖各乐园，有时可能不完整或存在延迟。在每个乐园页面上，「发现问题？告诉我们」按钮可以让你反馈异常，这是帮助我们提升可靠性最快的方式。"
+      },
+      "live": {
+        "title": "实时排队时间",
+        "body": "每个项目都会显示当前排队时间，大约每分钟自动更新一次——你无需刷新页面，Queue Park 每 60 秒替你完成。颜色让你一眼看懂：绿色表示快，橙色表示一般，红色表示久。"
+      },
+      "queues": {
+        "title": "队列类型",
+        "body": "同一个项目可能有多条队列：普通排队（Standby），以及 Fastlane（快速通道）、Single Rider（单人座）或 Virtual Queue 等选项。点击有多条队列的项目，即可展开全部时间。"
+      },
+      "favorites": {
+        "title": "收藏",
+        "body": "点击星标即可把乐园、项目或演出加入收藏。收藏的乐园会置顶显示在首页；收藏的项目和演出会在个人资料打开的窗口里按乐园分组。收藏保存在账号中，并在所有设备间同步。",
+        "parksLabel": "收藏的乐园",
+        "ridesLabel": "收藏的项目（个人资料）",
+        "hint": "点击星标，该乐园会跳到首页最上方。"
+      },
+      "forecast": {
+        "title": "排队时间预测",
+        "body": "在项目页面上，实线表示自开园以来实测的排队时间，虚线则预估直到闭园前的剩余时段。预测参考条件相近的过往日期（星期、学校假期、天气、营业时长）。图表下方会标出我们真实的误差范围：我们每天都会把预测与实际情况进行比对。"
+      },
+      "search": {
+        "title": "搜索与随机乐园",
+        "body": "输入乐园名称、所属集团（Disney、Walibi……）或国家即可找到任意乐园。想来点惊喜？点击骰子按钮，随机前往一个乐园。你还可以按国家或集团筛选列表，并隐藏闭园的乐园。"
+      },
+      "shows": {
+        "title": "演出",
+        "body": "在提供演出信息的乐园中，「今日营业时间」标签页会以时间轴形式展示当天的场次。这些时间每小时更新一次。"
+      },
+      "events": {
+        "title": "季节性活动",
+        "body": "万圣节或圣诞节期间，属于活动的项目和演出会集中在一张带有节日配色的独立卡片中：卡片在活动开始时展开，其余时间保持收起。「需另购门票」的提示表示乐园门票不含该活动。"
+      },
+      "status": {
+        "title": "状态一目了然",
+        "body": "每个乐园都会显示是营业还是闭园，每个项目也会显示自身状态：开放、关闭、故障或维护中。彩色圆点让你不用读一行字就能掌握情况。"
+      },
+      "preferences": {
+        "title": "按你的习惯来",
+        "body": "Queue Park 会适应你的偏好：浅色、深色或自动主题（跟随系统）、12 小时或 24 小时制、摄氏度或华氏度，以及 14 种语言的界面。你的选择会被记住，下次访问依然有效。"
+      },
+      "alerts": {
+        "title": "排队时间提醒",
+        "body": "在项目页面选择一个阈值：排队时间一旦低于该值，你就会收到通知。通知发出后，这条提醒就完成了使命：它会消失并进入历史记录。需要的话再从项目页面新建一条即可。需要账号并允许通知。"
+      },
+      "reminders": {
+        "title": "演出提醒",
+        "body": "在演出页面点击即将开始的场次，再选择提前多久收到提示。通知会在开演前不久送达。需要账号并允许通知。"
+      },
+      "detail": {
+        "title": "详情视图",
+        "body": "每行末尾的眼睛图标会打开详情视图：图片、收藏、提醒，以及当天排队时间与预测的图表。"
+      },
+      "account": {
+        "title": "你的账号",
+        "body": "账号是可选的：排队时间、营业时间和演出信息无需登录即可查看。当你想保存某些内容时，账号才派上用场。登录不需要密码——使用 Google 或我们发到你邮箱的链接即可。之后你的收藏、提醒和偏好设置就会跟着你在各个设备之间流转。"
+      },
+      "weather": {
+        "title": "乐园天气",
+        "body": "每个乐园的页头都会显示当前气温和一个概括天气的图标，每小时更新一次。既方便预判客流，也能帮你决定该带帽子还是雨衣。"
+      }
+    }
   },
   "metadata": {
-    "title": "Queue Park - 主题乐园实时排队时间",
+    "title": "Queue Park - 主题公园实时排队时间",
     "titleTemplate": "%s | Queue Park",
-    "description": "全球100多个主题乐园的实时排队时间。通过直接来自乐园API的实时数据，追踪游乐设施排队情况，规划您的游览，最大化您的乐趣。",
-    "keywords": "主题乐园排队时间, 游乐园排队, 过山车排队时间, 主题乐园应用, 实时排队时间, 游乐设施排队, 迪士尼排队时间, 环球影城排队时间, 六旗排队时间, 主题乐园规划",
-    "ogTitle": "Queue Park - 主题乐园实时排队时间",
-    "ogDescription": "全球100多个主题乐园的实时排队时间。通过实时数据追踪排队情况并规划您的游览。",
-    "twitterTitle": "Queue Park - 主题乐园实时排队时间",
-    "twitterDescription": "全球100多个主题乐园的实时排队时间。通过实时数据追踪排队情况并规划您的游览。",
-    "liveWaitTimes": "实时排队时间"
+    "description": "全球 200 多个主题公园的实时排队时间。追踪各项目的队列，规划你的行程，用来自乐园官方接口的实时数据把这一天玩到尽兴。",
+    "keywords": "主题公园排队时间, 游乐园排队, 过山车排队时间, 主题公园应用, 实时排队时间, 项目排队, 迪士尼排队时间, 环球影城排队时间, Six Flags 排队时间, 主题公园行程规划",
+    "ogTitle": "Queue Park - 主题公园实时排队时间",
+    "ogDescription": "全球 200 多个主题公园的实时排队时间。追踪队列，用实时数据规划你的行程。",
+    "twitterTitle": "Queue Park - 主题公园实时排队时间",
+    "twitterDescription": "全球 200 多个主题公园的实时排队时间。追踪队列，规划你的行程。",
+    "liveWaitTimes": "实时排队时间",
+    "rideDescription": "{park} 的 {ride} 实时排队时间：当前队列、当天走势与预测。创建提醒，排队时间下降时第一时间通知你。"
   },
   "settings": {
-    "timeFormat": "时间格式"
+    "timeFormat": "时间格式",
+    "temperatureUnit": "温度单位"
   },
-  "welcome": {
-    "welcomeTo": "欢迎来到",
-    "title": "欢迎使用 v2！🕝",
-    "description": "我们完全重新设计了应用程序，为您提供更好的体验。探索全新界面、新功能等更多精彩内容！",
-    "button": "好的，太棒了！",
-    "features": {
-      "showsTimeline": "演出时间线",
-      "newParks": "新乐园",
-      "darkMode": "深色模式",
-      "brandNewUI": "全新界面",
-      "fastlaneWaitTimes": "快速通道时间",
-      "autoRefresh": "自动刷新",
-      "rotatingParkCovers": "轮播封面",
-      "parkStatusIndicator": "乐园状态指示",
-      "singleRiderWaitTimes": "单人通道时间",
-      "multiLanguage": "多语言",
-      "improvedPerformance": "性能提升",
-      "countryParkFiltering": "国家筛选",
-      "groupParkFiltering": "集团筛选"
+  "whatsNew": {
+    "srTitle": "Queue Park v3 新功能",
+    "srDescription": "介绍 Queue Park 第 3 版的新功能。",
+    "hero": {
+      "eyebrow": "{count} 项新功能",
+      "title": "Queue Park 升级到 v3",
+      "body": "跨设备同步的账号、恰到好处的提醒、排队时间预测：这些就是新的变化。"
+    },
+    "nav": {
+      "scrollHint": "向下滚动",
+      "finish": "开始体验",
+      "close": "关闭公告"
+    },
+    "badges": {
+      "beta": "测试版"
+    },
+    "slides": {
+      "account": {
+        "title": "你的 Queue Park 账号",
+        "body": "用 Google 或邮箱收到的链接即可登录，无需密码。收藏、提醒和偏好设置会随你同步，从园内的手机到家里的电脑都一样。"
+      },
+      "favorites": {
+        "title": "收藏内容，所有设备通用",
+        "body": "星标现在支持乐园、项目和演出。收藏的乐园会置顶显示在首页，收藏的项目和演出会排在乐园列表的最前面，在个人资料里也能一并查看，并在所有设备间同步。"
+      },
+      "notifications": {
+        "title": "在合适的时刻提醒你",
+        "body": "把 Queue Park 安装成应用，让它替你盯着乐园。",
+        "install": "安装应用",
+        "points": {
+          "threshold": "某个项目的排队时间降到你设定的阈值以下。",
+          "reopened": "某个项目在故障或关闭后重新开放。",
+          "show": "演出即将开始，提前多久通知由你决定。"
+        }
+      },
+      "forecast": {
+        "title": "排队时间预测",
+        "body": "实线显示开园以来的排队时间，虚线预测到闭园为止的走势，方便你找准出发的时机。"
+      },
+      "detail": {
+        "title": "每个项目的详情页",
+        "body": "点击项目或演出，照片、所在园区、当天带预测的曲线以及提醒设置，全都集中在同一个页面。"
+      },
+      "events": {
+        "title": "乐园活动",
+        "body": "万圣节或圣诞节期间，活动专属的项目和演出会有独立的卡片，配上当季配色；若门票不含该项目，会标注「需另购门票」。"
+      },
+      "weather": {
+        "title": "乐园天气，实时更新",
+        "body": "乐园的气温和天况显示在页头，每小时更新一次。既方便预判客流，也能决定要不要带雨衣。"
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "排队时间已降至 15 分钟",
+        "reopened": "该项目刚刚重新开放",
+        "show": "15 分钟后开始"
+      },
+      "events": {
+        "halloween": "万圣节",
+        "christmas": "圣诞节"
+      }
+    },
+    "finale": {
+      "title": "祝你玩得开心！",
+      "body": "一切就绪。新增的「关于」页面介绍了排队时间的来源，并详细说明每项功能，想深入了解可以看看。",
+      "aboutLink": "查看「关于」页面"
     }
   },
   "reportProblem": {
-    "trigger": "发现问题？向我们报告",
-    "title": "报告问题",
-    "description": "通过报告您发现的问题，帮助我们提高数据质量。",
-    "categoryLabel": "问题涉及什么？",
-    "categoryPlaceholder": "选择一个选项",
-    "subcategoryLabel": "是什么问题？",
-    "subcategoryPlaceholder": "选择一个选项",
-    "detailsLabel": "详细描述问题",
-    "detailsPlaceholder": "请尽可能详细地描述问题，以便我们更好地分析和解决。",
-    "emailLabel": "您的电子邮件地址",
+    "trigger": "发现问题？告诉我们",
+    "title": "反馈问题",
+    "description": "把你发现的问题告诉我们，帮助我们提升数据质量。",
+    "categoryLabel": "问题涉及哪方面？",
+    "categoryPlaceholder": "请选择",
+    "subcategoryLabel": "具体是什么问题？",
+    "subcategoryPlaceholder": "请选择",
+    "detailsLabel": "描述问题",
+    "detailsPlaceholder": "请尽可能详细地描述问题，以便我们有效分析并解决。",
+    "emailLabel": "你的邮箱地址",
+    "emailDescription": "我们会通过你的邮箱地址告知处理进展。",
+    "emailAccountNotice": "你账号的邮箱地址会随本次反馈一并发送，以便我们向你反馈处理进展。",
     "cancel": "取消",
-    "submit": "提交报告",
-    "success": "感谢您的报告！我们将进行审核。",
-    "error": "提交报告时发生错误。请重试。",
-    "emailDescription": "我们将使用您的电子邮件地址向您通报报告的解决情况。",
+    "submit": "提交反馈",
+    "success": "感谢你的反馈，我们会认真查看。",
+    "error": "提交反馈时出错，请再试一次。",
+    "rateLimited": "你最近已提交多次反馈，请稍等片刻再提交。",
     "validation": {
-      "categoryRequired": "请选择一个类别",
-      "subcategoryRequired": "请选择一个子类别",
-      "detailsRequired": "请提供至少10个字符",
-      "emailRequired": "请输入有效的电子邮件地址"
+      "categoryRequired": "请选择一个分类",
+      "subcategoryRequired": "请选择一个子分类",
+      "detailsRequired": "请至少输入 10 个字符",
+      "emailRequired": "请输入有效的邮箱地址"
     }
+  },
+  "userBlock": {
+    "loggedOutTitle": "你尚未登录",
+    "loggedOutSubtitle": "登录后可同步你的收藏和提醒",
+    "signIn": "登录",
+    "signUp": "创建账号",
+    "account": "我的账号",
+    "welcomeBack": "欢迎回来",
+    "profile": "个人资料",
+    "signOut": "退出登录"
+  },
+  "auth": {
+    "title": "登录",
+    "subtitle": "登录或创建账号——无需密码。",
+    "continueWithGoogle": "使用 Google 继续",
+    "or": "或",
+    "emailPlaceholder": "you@example.com",
+    "emailInvalid": "请输入有效的邮箱地址",
+    "sendMagicLink": "给我发送登录链接",
+    "sendError": "发送失败，请再试一次。",
+    "emailSentTitle": "请查收邮件",
+    "emailSentDescription": "我们已向 {email} 发送了登录链接。",
+    "useAnotherEmail": "使用其他邮箱",
+    "noPassword": "无需密码。"
+  },
+  "profile": {
+    "title": "个人资料",
+    "back": "返回",
+    "heroTitle": "你的个人资料",
+    "heroSubtitle": "你的偏好设置、排队时间提醒及其历史记录。",
+    "backHome": "返回首页",
+    "tabs": {
+      "preferences": "偏好设置",
+      "alerts": "提醒"
+    },
+    "alertsDailyNote": "提醒仅在当天有效：通知发出后即会消失，最晚到午夜也会清空。所有设置都在项目或演出的页面进行。",
+    "favoritesCount": "收藏",
+    "favoritesParksCount": "{count, plural, other {收藏的乐园}}",
+    "favoritesRidesCount": "{count, plural, other {收藏的项目}}",
+    "favoritesShowsCount": "{count, plural, other {收藏的演出}}",
+    "favoritesParksTitle": "收藏的乐园",
+    "favoritesRidesTitle": "收藏的项目",
+    "favoritesShowsTitle": "收藏的演出",
+    "favoritesListEmpty": "暂无收藏。",
+    "favoritesRemove": "把 {name} 移出收藏",
+    "activeAlertsCount": "{count, plural, other {生效中的提醒}}",
+    "preferencesTitle": "偏好设置",
+    "displayName": "显示名称",
+    "displayNamePlaceholder": "你的名字",
+    "displayNameSave": "保存",
+    "displayNameSaved": "名称已更新",
+    "displayNameError": "无法更新名称",
+    "language": "语言",
+    "theme": "主题",
+    "themeSystem": "跟随系统",
+    "themeLight": "浅色",
+    "themeDark": "深色",
+    "timeFormat": "时间格式",
+    "timeFormat24": "24 小时制",
+    "timeFormat12": "12 小时制",
+    "temperatureUnit": "温度单位",
+    "temperatureCelsius": "摄氏度",
+    "temperatureFahrenheit": "华氏度",
+    "alertsTitle": "生效中的提醒",
+    "alertsEmpty": "暂无提醒，可从项目页面创建。",
+    "threshold": "低于 {minutes} 分钟",
+    "activate": "启用",
+    "deactivate": "停用",
+    "validate": "保存阈值",
+    "thresholdSaved": "阈值已更新",
+    "delete": "删除",
+    "deleted": "提醒已删除",
+    "historyTitle": "提醒历史",
+    "historyEmpty": "还没有发送过通知。",
+    "historyRetentionNote": "超过 30 天的提醒不再显示。",
+    "historyLine": "降到 {actual} 分钟（≤ {threshold} 分钟）",
+    "loadError": "无法加载提醒。",
+    "updateError": "更新失败。",
+    "deleteError": "删除失败。",
+    "privacyTitle": "隐私",
+    "alertsHeading": "{count, plural, other {你的提醒}}",
+    "historyHeading": "{count, plural, other {已发送的通知}}",
+    "historyAttractions": "项目",
+    "historyShows": "演出",
+    "historyShowLine": "{time} 的场次 · 提前 {lead} 分钟",
+    "alertsEmptyRides": "尚未设置提醒，可从项目页面创建。",
+    "alertsEmptyShows": "尚未设置提醒，可从演出页面创建。",
+    "historyEmptyRides": "还没有发送过项目通知。",
+    "historyEmptyShows": "还没有发送过演出通知。",
+    "edit": "修改阈值",
+    "subTabActive": "生效中",
+    "subTabHistory": "历史",
+    "filterAll": "全部",
+    "activeEmptyAll": "今天没有生效中的提醒。",
+    "leadBadge": "提前 {lead} 分钟",
+    "leadSaved": "提前时间已更新",
+    "validateLead": "保存提前时间",
+    "editLead": "修改提前时间",
+    "leadTooLate": "演出即将开始，来不及修改提前时间了。",
+    "reopenBadge": "重新开放",
+    "historyReopenLine": "已恢复运营"
+  },
+  "privacy": {
+    "emailLabel": "邮箱地址",
+    "emailSave": "修改",
+    "emailNote": "修改后你会被退出登录，需要用新邮箱重新登录。",
+    "emailChangedSignOut": "邮箱已修改，正在退出登录……",
+    "emailTaken": "该邮箱地址已被使用。",
+    "emailInvalid": "邮箱地址无效。",
+    "exportLabel": "我的数据",
+    "exportButton": "下载",
+    "resetAlertsLabel": "重置我的提醒",
+    "resetAlertsNote": "清除尚未触发的提醒，以及全部已收到的通知历史。你的账号和收藏会保留。",
+    "resetAlertsButton": "重置",
+    "resetAlertsConfirmTitle": "全部重置吗？",
+    "resetAlertsConfirmDescription": "你的排队时间提醒、演出提醒以及已收到的通知历史都会被删除。此操作无法撤销。",
+    "resetAlertsConfirmButton": "重置",
+    "resetAlertsDone": "提醒与历史记录已删除",
+    "deleteLabel": "删除我的账号",
+    "deleteNote": "此操作不可逆：偏好设置、收藏和提醒都会被清除。",
+    "deleteButton": "删除",
+    "deleteConfirmTitle": "永久删除账号？",
+    "deleteConfirmDescription": "请输入你的邮箱地址（{email}）以确认。此操作无法撤销。",
+    "deleteConfirmButton": "永久删除",
+    "cancel": "取消",
+    "accountDeleted": "账号已删除，正在退出登录……",
+    "genericError": "出了点问题，请再试一次。",
+    "exportNote": "下载账号数据副本：邮箱、偏好设置、收藏、提醒以及演出提醒。"
+  },
+  "alerts": {
+    "createTitle": "创建提醒",
+    "createDescription": "当 {ride} 的排队时间低于设定阈值时通知你。",
+    "createFor": "为 {ride} 创建提醒",
+    "thresholdLabel": "排队时间低于多少时通知你？",
+    "thresholdOption": "{minutes} 分钟",
+    "thresholdHint": "排队时间一旦低于该阈值，我们就会通知你。",
+    "cancel": "取消",
+    "create": "创建",
+    "created": "已为 {ride} 创建提醒",
+    "createError": "无法创建提醒。"
+  },
+  "attractionDetail": {
+    "openFor": "查看 {ride} 的详情",
+    "alertsTitle": "提醒",
+    "chartTitle": "今日排队时间",
+    "chartToday": "今天",
+    "chartActual": "排队时间",
+    "chartForecast": "预测",
+    "chartNow": "现在",
+    "chartEmpty": "今天还没有数据。",
+    "chartUnavailable": "该项目暂时无法使用。",
+    "chartUnavailablePermanent": "该项目不提供排队时间：既没有实时数据，也没有预测。",
+    "alertsUnavailable": "该项目不提供排队时间，因此没有可监测的内容，也无法创建提醒。",
+    "chartForecastNote": "对今天剩余时段的粗略估计。",
+    "chartForecastPreOpeningNote": "基于往日数据的估计，开园后会更新。",
+    "estimateTooltip": "根据条件相近的过往日期估算，实际情况可能有出入。",
+    "marginNote": "最近几天，我们的预测平均偏差 <v>{minutes} 分钟</v>。",
+    "marginNoteTooltip": "过去 14 天内，预测值与实测排队时间之间的平均差距。",
+    "installTitle": "安装 Queue Park",
+    "installIntro": "使用提醒功能需要先在设备上安装应用。",
+    "installButton": "安装应用",
+    "installAndroidSteps": "打开浏览器的 ⋮ 菜单，选择「添加到主屏幕」。",
+    "installIosSteps": "点击分享，然后选择「添加到主屏幕」。",
+    "installDesktopSteps": "使用浏览器地址栏中的安装图标。",
+    "installAccountNote": "创建提醒还需要一个账号。",
+    "signInTitle": "登录",
+    "signInIntro": "登录后，排队时间下降时会收到通知。",
+    "notifActive": "提醒已生效",
+    "save": "保存",
+    "update": "更新",
+    "delete": "删除",
+    "saved": "提醒已保存",
+    "deleted": "提醒已删除",
+    "pushBlocked": "提醒已保存，但此设备不会收到通知（未允许通知）。",
+    "pushDenied": "本站的通知已被阻止。请在浏览器设置中允许通知，才能在此设备上收到提醒。",
+    "pushUnsupported": "此浏览器不支持推送通知。提醒仍会显示在你的个人资料和历史记录中。",
+    "reopenLabel": "该项目目前暂停运营。恢复运营后我们会立即通知你。",
+    "reopenSave": "恢复运营时通知我",
+    "reopenActive": "重开提醒已启用",
+    "reopenSaved": "重开提醒已保存",
+    "reopenTooLate": "乐园已闭园，提醒功能不可用。请在下次开园时再来。",
+    "statusChanged": "该项目的状态刚刚发生变化。请重新打开页面以创建合适的提醒。"
+  },
+  "legal": {
+    "backHome": "返回首页",
+    "updated": "最后更新：2026 年 7 月 21 日",
+    "privacy": {
+      "metaTitle": "隐私政策",
+      "title": "隐私政策",
+      "intro": "本政策说明 Queue Park 如何处理你的个人数据。数据控制者：本网站的运营方（见<mentions>法律声明</mentions>），联系方式：<mail>contact@queue-park.com</mail>。",
+      "dataTitle": "处理的数据、目的与法律依据",
+      "data1": "<b>账号</b>（邮箱地址，以及在适用情况下通过 Google 获取的姓名和头像）：创建并管理你的账号 —— <i>服务的履行／你的同意</i>。",
+      "data2": "<b>偏好设置</b>（语言、主题、时间格式）与<b>收藏</b>（乐园、项目、演出）：个性化你的使用体验 —— <i>服务的履行</i>。",
+      "data3": "<b>排队时间提醒</b>与<b>演出提醒</b>，以及你各设备的<b>通知订阅信息</b>：发送你所请求的通知 —— <i>你的同意</i>。",
+      "data4": "<b>访问统计</b>（Google Analytics）：流量统计 —— <i>你的同意</i>（见 <cookies>Cookie 政策</cookies>）。",
+      "recipientsTitle": "接收方与受托处理方",
+      "recipients1": "我们不会出售你的数据。数据由代表我们行事的服务商处理：Google（身份验证与访问统计）、Resend（发送登录邮件）、IONOS（托管，欧盟境内）。",
+      "recipients2": "部分服务商（Google、Resend）位于美国；如发生数据传输，将依照 GDPR 规定的机制进行（Data Privacy Framework 和／或标准合同条款）。",
+      "retentionTitle": "保存期限",
+      "retention1": "账号数据：直至账号被删除。",
+      "retention2": "提醒：仅当天有效；历史记录保留 30 天。",
+      "retention3": "演出提醒：场次结束后删除。",
+      "retention4": "登录会话：在会话有效期内。",
+      "rightsTitle": "你的权利",
+      "rights1": "你享有访问、更正、删除、可携带、反对和限制处理的权利。在<profile>个人资料</profile>（偏好设置 → 隐私标签页）中，你可以直接修改邮箱、下载你的数据（JSON）并删除账号。其他请求请发送至 <mail>contact@queue-park.com</mail>。",
+      "rights2": "你也可以向所在地的数据保护机构投诉（在法国为 CNIL —— cnil.fr）。",
+      "securityTitle": "安全与未成年人",
+      "security1": "通信均经过加密（HTTPS），身份验证无需密码。我们只收集严格必要的数据。未经监护人同意，本服务不面向 15 岁以下的未成年人。"
+    },
+    "cookies": {
+      "metaTitle": "Cookie 政策",
+      "title": "Cookie 政策",
+      "intro": "Cookie 是你访问网站时存放在设备上的小文件。Queue Park 仅使用下列极少量的 Cookie。",
+      "necessaryTitle": "严格必要的 Cookie",
+      "necessaryIntro": "它们是网站正常运行所必需的，无需你的同意：",
+      "necessary1": "<b>身份验证会话</b>：让你保持账号登录状态。",
+      "necessary2": "<b>语言偏好</b>：记住你的显示语言。",
+      "audienceTitle": "访问统计 Cookie",
+      "audience1": "我们使用 Google Analytics 了解网站流量并加以改进。这些 Cookie（例如 <c>_ga</c>、<c>_ga_*</c>）仅在<b>你同意之后</b>才会写入，最长保存 13 个月。",
+      "manageTitle": "管理你的选择",
+      "manage1": "你可以通过首次访问时显示的横幅接受或拒绝这些 Cookie，并可随时通过页面底部的<b>「管理 Cookie」</b>链接更改选择。你也可以在浏览器中设置阻止 Cookie。"
+    },
+    "legalNotice": {
+      "metaTitle": "法律声明",
+      "title": "法律声明",
+      "editorTitle": "运营方",
+      "editor1": "Queue Park 网站（queue-park.com）由 Lilian G. 与 Gaspard D. 运营。",
+      "editor2": "发布负责人：Lilian G. 联系方式：<mail>contact@queue-park.com</mail>。",
+      "hostingTitle": "托管",
+      "hosting1": "本网站由 IONOS SARL 托管，地址：7, place de la Gare, BP 70109, 57201 SARREGUEMINES Cedex, 法国（ionos.fr）。",
+      "ipTitle": "知识产权",
+      "ip1": "除另有说明外，本网站的结构、文字和图形元素均归运营方所有，禁止未经授权的复制。乐园、项目及演出的名称归各自权利人所有。",
+      "liabilityTitle": "责任",
+      "liability1": "排队时间与演出场次来自第三方数据源，仅供参考，不对其准确性或可用性作任何保证。运营方对因使用这些信息而产生的损失不承担责任。"
+    }
+  },
+  "events": {
+    "opensAt": "{time} 开始",
+    "closesAt": "{time} 结束",
+    "running": "进行中",
+    "scheduled": "即将开始",
+    "separateTicket": "需另购门票",
+    "noAttractions": "目前没有项目提供等待时间"
   }
 }

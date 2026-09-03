@@ -1,34 +1,55 @@
 {
   "home": {
     "title": "Queue Park",
-    "subtitle": "Ventetider for dine yndlingsforlystelsesparker live!"
+    "subtitle": "Ventetider i dine yndlingsforlystelsesparker – live!"
   },
   "search": {
-    "placeholder": "Søg efter en park ved navn, gruppe eller land...",
-    "noResults": "Ingen parker fundet, der matcher din søgning. Prøv igen!",
-    "randomParkToast": "Terningen landede på:"
+    "placeholder": "Søg efter en park på navn, gruppe eller land...",
+    "noResults": "Ingen parker matcher din søgning. Prøv igen!",
+    "randomParkToast": "Din terning landede på:"
   },
   "parksList": {
     "title": "Alle forlystelsesparker",
     "sortByGroup": "Efter gruppe",
     "sortByCountry": "Efter land",
-    "hideClosedParks": "Skjul lukkede parker"
+    "hideClosedParks": "Skjul lukkede parker",
+    "seeMoreParks": "Se {count} parker mere",
+    "seeLess": "Se mindre"
   },
   "popularParks": {
     "title": "Populære parker",
-    "trendingText": "Trender i de seneste timer",
+    "trendingText": "Populært de seneste timer",
     "visitsNote": "besøg"
+  },
+  "weather": {
+    "clear": "Klar himmel",
+    "mainlyClear": "Overvejende klart",
+    "partlyCloudy": "Delvist skyet",
+    "overcast": "Overskyet",
+    "fog": "Tåge",
+    "drizzle": "Støvregn",
+    "rain": "Regn",
+    "snow": "Sne",
+    "thunderstorm": "Tordenvejr",
+    "unknown": "Vejret er ikke tilgængeligt",
+    "min": "Min.",
+    "max": "Maks."
   },
   "parkPage": {
     "backHome": "Tilbage til forsiden",
-    "localTime": "Lokal tid",
     "todayHours": "Dagens åbningstider",
-    "extraOpeningHours": "Ekstra åbningstider",
-    "extendedHours": "Udvidede åbningstider",
+    "extraOpeningHours": "Tidlig adgang",
+    "extendedHours": "Forlænget åbningstid",
     "closedToday": "Lukket i dag",
-    "hoursUnavailable": "Åbningstider er i øjeblikket utilgængelige",
-    "privateEvent": "Park privat booket",
-    "privateEventNoHours": "Park privat booket i dag"
+    "hoursUnavailable": "Åbningstiderne er ikke tilgængelige lige nu",
+    "privateEvent": "Parken er lukket for privat arrangement",
+    "privateEventNoHours": "Parken er lukket for privat arrangement i dag",
+    "eventHours": "Event",
+    "hoursOther": "Åbningstider",
+    "cards": {
+      "attractions": "Forlystelser",
+      "shows": "Shows"
+    }
   },
   "parkStatus": {
     "open": "Åben",
@@ -37,109 +58,574 @@
   "attractionStatus": {
     "open": "Åben",
     "closed": "Lukket",
-    "down": "Ude af drift",
+    "down": "Nedbrud",
     "maintenance": "Vedligeholdelse",
-    "unavailable": "Utilgængelig"
+    "unavailable": "Ikke tilgængelig",
+    "unavailableShort": "Utilgæng."
   },
   "tabs": {
-    "waitTimes": "Ventetider",
-    "shows": "Shows"
+    "live": "Live",
+    "schedule": "Åbningstider"
   },
   "shows": {
     "show": "Show",
-    "schedules": "Tider",
+    "schedules": "Spilletider",
     "updateInfo": "Shows opdateres hver time",
-    "noMoreToday": "Ikke flere shows i dag"
+    "noMoreToday": "Ikke flere shows i dag",
+    "legendPast": "Afsluttet",
+    "legendOngoing": "I gang",
+    "legendUpcoming": "Kommende"
+  },
+  "showDetail": {
+    "openFor": "Se detaljer for {show}",
+    "notifTitle": "Notifikationer",
+    "duration": "Varighed: {duration}",
+    "continuousAccess": "Løbende adgang · {range}",
+    "signInIntro": "Log ind for at få en påmindelse, før et show begynder.",
+    "reminderIntro": "Vælg en forestilling, og derefter hvor lang tid før du vil mindes om den.",
+    "leadLabel": "Hvor lang tid før showet vil du mindes om det?",
+    "leadOption": "{minutes} min. før",
+    "reminderActive": "Påmindelse {minutes} min. før",
+    "reminderScheduled": "Påmindelse oprettet",
+    "save": "Opret påmindelse",
+    "update": "Opdater",
+    "remove": "Fjern",
+    "reminderSaved": "Påmindelse gemt",
+    "reminderRemoved": "Påmindelse fjernet",
+    "reminderError": "Noget gik galt. Prøv igen.",
+    "pushBlocked": "Påmindelsen er gemt, men denne enhed modtager ikke noget (notifikationer er ikke tilladt).",
+    "noUpcoming": "Der er ikke flere shows i dag.",
+    "leadTooLate": "Denne forestilling begynder for snart til at oprette en påmindelse.",
+    "reminderActivate": "Aktivér påmindelse",
+    "reminderModify": "Rediger påmindelse"
   },
   "favorites": {
     "myFavorites": "Mine favoritter",
+    "yours": "Dine favoritter",
     "add": "Føj til favoritter",
     "remove": "Fjern fra favoritter",
     "addPark": "Føj denne park til favoritter",
-    "removePark": "Fjern denne park fra favoritter"
+    "removePark": "Fjern denne park fra favoritter",
+    "parkLimit": "Du kan have op til {max} yndlingsparker.",
+    "seeMore": "Se {count} mere",
+    "seeLess": "Se mindre",
+    "needAccount": "Log ind for at tilføje favoritter."
+  },
+  "cookies": {
+    "message": "Vi bruger analysecookies til at forbedre siden. Du kan acceptere eller afvise dem.",
+    "learnMore": "Læs mere",
+    "accept": "Acceptér",
+    "refuse": "Afvis",
+    "manage": "Administrer cookies",
+    "legalNotice": "Juridiske oplysninger",
+    "privacyPolicy": "Privatliv",
+    "cookiePolicy": "Cookies"
+  },
+  "manifest": {
+    "name": "Queue Park",
+    "description": "Live ventetider og shows fra dine yndlingsforlystelsesparker.",
+    "shortcutAllParks": "Alle parker",
+    "shortcutParksShort": "Parker"
   },
   "waitTimeTable": {
-    "attraction": "Forlystelse",
+    "name": "Navn",
     "waitTime": "Ventetid",
     "status": "Status",
     "noWaitTimes": "Ingen ventetider tilgængelige lige nu",
-    "refreshingIn": "Opdaterer om",
+    "tableLabel": "Ventetider — {park}",
+    "toggleQueues": "Vis de andre køer for {ride}",
     "second": "sekund",
     "seconds": "sekunder",
-    "nowRefreshing": "Opdaterer nu...",
-    "lastUpdate": "Sidste opdatering"
+    "minute": "minut",
+    "minutes": "minutter",
+    "nowRefreshing": "Opdaterer...",
+    "lastUpdate": "Senest opdateret",
+    "updatedAgo": "Opdateret for {age} siden",
+    "liveConnected": "Live",
+    "liveFallback": "Automatisk opdatering"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Alle rettigheder forbeholdes.",
     "contactText": "Kontakt mig på"
   },
   "noData": {
-    "title": "Ups, undskyld!",
-    "message": "Vi har i øjeblikket ingen information at vise for denne park. Kom tilbage senere!"
+    "title": "Ups, beklager!",
+    "message": "Vi har i øjeblikket ingen oplysninger at vise for denne park. Kom tilbage senere!"
   },
   "errors": {
-    "configError": "Konfigurationsfejl. Kontakt venligst support.",
-    "fetchError": "Kunne ikke hente parker:",
-    "parkNotFound": "Parken, du leder efter, findes ikke",
-    "networkErrorRefresh": "Der opstod en netværksfejl under opdatering af data",
-    "networkError": "Der opstod en netværksfejl. Tjek din forbindelse og prøv igen."
+    "configError": "Konfigurationsfejl. Kontakt supporten.",
+    "fetchError": "Kunne ikke hente parkerne:",
+    "parkNotFound": "Den park, du leder efter, findes ikke",
+    "networkErrorRefresh": "Der opstod en netværksfejl under opdatering af dataene",
+    "networkError": "Der opstod en netværksfejl. Tjek din forbindelse, og prøv igen."
+  },
+  "og": {
+    "subtitle": "Live ventetider",
+    "averageWait": "Gennemsnitlig ventetid",
+    "openAttractions": "Åbne forlystelser",
+    "busiest": "Mest besøgt lige nu",
+    "noLiveData": "Ingen live ventetider lige nu",
+    "currentWait": "Aktuel ventetid",
+    "rideClosed": "Forlystelsen er lukket lige nu"
+  },
+  "errorPages": {
+    "notFoundTitle": "Siden blev ikke fundet",
+    "notFoundMessage": "Denne side findes ikke eller er blevet flyttet. Den park, du ledte efter, har måske skiftet adresse.",
+    "errorTitle": "Noget gik galt",
+    "errorMessage": "Vi kunne ikke vise denne side. Prøv igen om et øjeblik – hvis problemet fortsætter, så skriv til os på contact@queue-park.com.",
+    "retry": "Prøv igen",
+    "backHome": "Tilbage til forsiden"
+  },
+  "about": {
+    "metaTitle": "Om os",
+    "metaDescription": "Oplev Queue Park: hvor ventetiderne kommer fra, hvordan favoritter fungerer, ventetidsprognoser, vejret og alle funktionerne.",
+    "backHome": "Tilbage til forsiden",
+    "heroTitle": "Om Queue Park",
+    "heroSubtitle": "Ventetiderne i dine yndlingsparker, live og gratis for alle.",
+    "tabs": {
+      "about": "Om os",
+      "guide": "Guiden"
+    },
+    "sectionAboutTitle": "Vores projekt",
+    "sectionGuideTitle": "Sådan fungerer det",
+    "demoLabel": "Eksempel",
+    "cards": {
+      "intro": {
+        "title": "Hvad er Queue Park?",
+        "body": "Queue Park samler live ventetider fra over 200 forlystelsesparker verden over ét sted. Vores mål: at du med et enkelt blik kan se, hvilke forlystelser du skal tage nu, og planlægge din dag bedre uden at have næsen begravet i parkkortet."
+      },
+      "data": {
+        "title": "Hvor kommer dataene fra?",
+        "body": "Ventetiderne kommer direkte fra parkernes officielle systemer. Vi henter dem, renser dem og ensretter dem, så Walibi, Disney, Europa-Park eller Six Flags ser ens ud, med samme farver og samme detaljeniveau."
+      },
+      "worker": {
+        "title": "Bag kulisserne",
+        "body": "En automatiseret tjeneste kører uafbrudt og spørger parkerne næsten i realtid. Den kontrollerer hver værdi, kobler hver kø til den rigtige forlystelse, registrerer dagens historik og henter også åbningstider og shows. Opfører en datakilde sig unormalt, får holdet automatisk besked."
+      },
+      "free": {
+        "title": "Gratis og uden reklamer",
+        "body": "Queue Park er helt gratis og reklamefrit. Du behøver ingen konto for at se ventetider. For at gemme favoritter og få notifikationer er en gratis konto uden adgangskode (Google eller magisk link) nok – og alt forbliver synkroniseret på tværs af dine enheder."
+      },
+      "independent": {
+        "title": "Et uafhængigt projekt",
+        "body": "Queue Park v2 er bygget af to parkentusiaster, Lilian og Gaspard. Det er hverken en officiel app eller en tjeneste tilknyttet nogen park. En kommentar, en idé, en park der mangler? Skriv til os på contact@queue-park.com."
+      },
+      "report": {
+        "title": "Er der noget galt?",
+        "body": "Dataene afhænger af parkerne og kan af og til være ufuldstændige eller forsinkede. På hver parkside kan du med knappen »Fundet et problem? Sig til« melde en uregelmæssighed: det er den hurtigste måde at hjælpe os med at forbedre pålideligheden."
+      },
+      "live": {
+        "title": "Live ventetider",
+        "body": "Hver forlystelse viser sin aktuelle ventetid, opdateret automatisk cirka én gang i minuttet – du behøver ikke genindlæse siden, Queue Park gør det for dig hvert 60. sekund. Farven siger det hele med det samme: grøn for kort, orange for middel, rød for lang."
+      },
+      "queues": {
+        "title": "Kø-typer",
+        "body": "Én forlystelse kan have flere køer: den klassiske kø (Standby) plus muligheder som Fastlane (spring køen over), Single Rider (enkeltplads) eller Virtual Queue. Tryk på en forlystelse med flere køer for at folde alle tiderne ud."
+      },
+      "favorites": {
+        "title": "Favoritter",
+        "body": "Tryk på stjernen for at føje en park, en forlystelse eller et show til dine favoritter. Yndlingsparker sidder øverst på forsiden; dine yndlingsforlystelser og -shows er grupperet efter park i et vindue fra din profil. Gemt på din konto og synkroniseret på alle dine enheder.",
+        "parksLabel": "Yndlingsparker",
+        "ridesLabel": "Yndlingsforlystelser (profil)",
+        "hint": "Tryk på en stjerne: yndlingsparken hopper op øverst på forsiden."
+      },
+      "forecast": {
+        "title": "Ventetidsprognose",
+        "body": "På en forlystelses side tegner den fuldt optrukne linje ventetiden målt siden åbningen, mens den stiplede linje anslår resten af dagen frem til lukketid. Den bygger på sammenlignelige tidligere dage (ugedag, skoleferier, vejr, åbningstider). Under grafen oplyser vi vores reelle fejlmargin: hver dag sammenligner vi vores prognoser med det, der faktisk skete."
+      },
+      "search": {
+        "title": "Søgning og tilfældig park",
+        "body": "Find enhver park ved at skrive dens navn, dens gruppe (Disney, Walibi…) eller dens land. Lyst til eventyr? Terningeknappen fører dig til en tilfældigt valgt park. Du kan også filtrere listen efter land eller gruppe og skjule lukkede parker."
+      },
+      "shows": {
+        "title": "Shows",
+        "body": "For de relevante parker viser fanen »Åbningstider« dagens forestillinger som en tidslinje. Disse tider opdateres hver time."
+      },
+      "events": {
+        "title": "Sæsonens events",
+        "body": "Til Halloween og jul får eventets forlystelser og shows deres eget kort i sæsonens farver: det folder sig ud, når eventet åbner, og forbliver foldet sammen resten af tiden. Teksten »Separat billet« fortæller dig, når adgangen ikke er inkluderet i parkens entré."
+      },
+      "status": {
+        "title": "Status med ét blik",
+        "body": "Hver park viser, om den er åben eller lukket, og hver forlystelse viser sin tilstand: åben, lukket, nedbrud eller vedligeholdelse. De farvede prikker lader dig forstå situationen uden at læse en eneste linje."
+      },
+      "preferences": {
+        "title": "På din måde",
+        "body": "Queue Park tilpasser sig dig: lyst, mørkt eller automatisk tema (efter dit system), 12- eller 24-timers format, temperatur i °C eller °F, og en grænseflade på 14 sprog. Dine valg huskes til dine næste besøg."
+      },
+      "alerts": {
+        "title": "Ventetidsnotifikationer",
+        "body": "Vælg en grænse på en forlystelses side: du får en notifikation, så snart ventetiden falder under den. Når notifikationen er sendt, har den gjort sit arbejde: den forsvinder og flytter til din historik. Opret blot en ny fra forlystelsens side. Kræver en konto og tilladelse til notifikationer."
+      },
+      "reminders": {
+        "title": "Show-påmindelser",
+        "body": "Tryk på en kommende forestilling på et shows side, og vælg hvor lang tid før du vil have besked. Du får notifikationen lige inden start. Kræver en konto og tilladelse til notifikationer."
+      },
+      "detail": {
+        "title": "Detaljevisning",
+        "body": "Øjet for enden af hver række åbner en detaljevisning: billede, favorit, notifikationer og en graf over dagens ventetid med prognosen."
+      },
+      "account": {
+        "title": "Din konto",
+        "body": "En konto er valgfri: ventetider, åbningstider og shows kan ses uden at logge ind. Den bliver nyttig i det øjeblik, du vil gemme noget. Du behøver ingen adgangskode for at logge ind – brug Google eller et link sendt til din indbakke. Dine favoritter, notifikationer, påmindelser og indstillinger følger dig så fra én enhed til den næste."
+      },
+      "weather": {
+        "title": "Vejret i parken",
+        "body": "Hver parks overskrift viser den aktuelle temperatur og et ikon, der opsummerer vejret, opdateret hver time. Praktisk til at forudse travlheden – og til at vide, om du skal pakke kasket eller regnjakke."
+      }
+    }
   },
   "metadata": {
-    "title": "Queue Park - Live Ventetider for Forlystelsesparker",
+    "title": "Queue Park - Live ventetider i forlystelsesparker",
     "titleTemplate": "%s | Queue Park",
-    "description": "Ventetider i realtid for over 100 forlystelsesparker verden over. Spor køer til attraktioner, planlæg dit besøg og maksimer din fornøjelse med live data direkte fra park-API'er.",
-    "keywords": "forlystelsespark ventetider, forlystelsespark køer, rutsjebane ventetider, forlystelsespark app, live ventetider, attraktions køer, Disney ventetider, Universal ventetider, Six Flags ventetider, forlystelsespark planlægning",
-    "ogTitle": "Queue Park - Live Ventetider for Forlystelsesparker",
-    "ogDescription": "Ventetider i realtid for over 100 forlystelsesparker verden over. Spor køer og planlæg dit besøg med live data.",
-    "twitterTitle": "Queue Park - Live Ventetider for Forlystelsesparker",
-    "twitterDescription": "Ventetider i realtid for over 100 forlystelsesparker verden over. Spor køer og planlæg dit besøg.",
-    "liveWaitTimes": "Live ventetider"
+    "description": "Ventetider i realtid for over 200 forlystelsesparker verden over. Følg køerne ved forlystelserne, planlæg dit besøg, og få mest muligt ud af dagen med live data direkte fra parkernes API'er.",
+    "keywords": "ventetider forlystelsespark, køer forlystelsespark, ventetider rutsjebane, forlystelsespark app, live ventetider, køer forlystelser, Disney ventetider, Universal ventetider, Six Flags ventetider, planlæg parkbesøg",
+    "ogTitle": "Queue Park - Live ventetider i forlystelsesparker",
+    "ogDescription": "Ventetider i realtid for over 200 forlystelsesparker verden over. Følg køerne, og planlæg dit besøg med live data.",
+    "twitterTitle": "Queue Park - Live ventetider i forlystelsesparker",
+    "twitterDescription": "Ventetider i realtid for over 200 forlystelsesparker verden over. Følg køerne, og planlæg dit besøg.",
+    "liveWaitTimes": "Live ventetider",
+    "rideDescription": "Live ventetid for {ride} i {park}: aktuel kø, dagens udvikling og prognose. Opret en notifikation for at få besked, når ventetiden falder."
   },
   "settings": {
-    "timeFormat": "Tidsformat"
+    "timeFormat": "Tidsformat",
+    "temperatureUnit": "Temperaturenhed"
   },
-  "welcome": {
-    "welcomeTo": "Velkommen til",
-    "title": "Velkommen til v2! 🕝",
-    "description": "Vi har fuldstændigt redesignet appen for at give dig en bedre oplevelse. Oplev en ny grænseflade, nye funktioner og meget mere!",
-    "button": "Ok, fedt!",
-    "features": {
-      "showsTimeline": "Show-tidslinje",
-      "newParks": "Nye parker",
-      "darkMode": "Mørk tilstand",
-      "brandNewUI": "Ny grænseflade",
-      "fastlaneWaitTimes": "Fastlane ventetider",
-      "autoRefresh": "Auto-opdatering",
-      "rotatingParkCovers": "Roterende park-covers",
-      "parkStatusIndicator": "Park-statusindikator",
-      "singleRiderWaitTimes": "Single Rider ventetider",
-      "multiLanguage": "Flersproget",
-      "improvedPerformance": "Forbedret ydeevne",
-      "countryParkFiltering": "Landefilter",
-      "groupParkFiltering": "Gruppefilter"
+  "whatsNew": {
+    "srTitle": "Nyhederne i Queue Park v3",
+    "srDescription": "En præsentation af nyhederne i version 3 af Queue Park.",
+    "hero": {
+      "eyebrow": "{count} nyheder",
+      "title": "Queue Park bliver til v3",
+      "body": "En konto, der følger dig fra den ene enhed til den næste, notifikationer på det rigtige tidspunkt, ventetidsprognoser: Det er det, der ændrer sig."
+    },
+    "nav": {
+      "scrollHint": "Rul ned",
+      "finish": "Så er vi i gang",
+      "close": "Luk meddelelsen"
+    },
+    "badges": {
+      "beta": "Beta"
+    },
+    "slides": {
+      "account": {
+        "title": "Din Queue Park-konto",
+        "body": "Log ind på et øjeblik med Google eller et enkelt link i din indbakke — helt uden adgangskode. Dine favoritter, dine notifikationer og dine indstillinger følger dig så fra telefonen i parken til computeren derhjemme."
+      },
+      "favorites": {
+        "title": "Dine favoritter på alle dine enheder",
+        "body": "Stjernen virker nu på parker, forlystelser og shows. Dine yndlingsparker sidder øverst på forsiden, dine yndlingsforlystelser og -shows rykker op i toppen af parkens tabeller, og du finder dem alle igen i din profil — synkroniseret på alle dine enheder."
+      },
+      "notifications": {
+        "title": "Besked på det rigtige tidspunkt",
+        "body": "Installer Queue Park som en app, og lad den holde øje med parken for dig.",
+        "install": "Installer appen",
+        "points": {
+          "threshold": "Ventetiden på en forlystelse falder under den grænse, du har valgt.",
+          "reopened": "En forlystelse åbner igen efter et nedbrud eller en lukning.",
+          "show": "Et show er ved at begynde, med så meget varsel, som du ønsker."
+        }
+      },
+      "forecast": {
+        "title": "Ventetidsprognoser",
+        "body": "Den fuldt optrukne linje viser ventetiden siden åbning, den stiplede anslår den frem til lukketid. Nok til at finde det rigtige tidspunkt at gå."
+      },
+      "detail": {
+        "title": "Siden for hver forlystelse",
+        "body": "Tryk på en forlystelse eller et show: billedet, området i parken, dagens kurve med sin prognose og indstillingen af dine notifikationer — det hele er samlet ét sted."
+      },
+      "events": {
+        "title": "Parkens events",
+        "body": "Under Halloween eller jul får eventets egne forlystelser og shows deres eget kort i sæsonens farver — med bemærkningen »Separat billet«, når adgangen ikke er inkluderet i entréen."
+      },
+      "weather": {
+        "title": "Vejret i parken, live",
+        "body": "Parkens temperatur og himmel står i toppen af siden og opdateres hver time. Praktisk til at forudse travlheden — og til at vide, om regnjakken skal med."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "Ventetiden er faldet til 15 min",
+        "reopened": "Forlystelsen er lige åbnet igen",
+        "show": "Begynder om 15 minutter"
+      },
+      "events": {
+        "halloween": "Halloween",
+        "christmas": "Jul"
+      }
+    },
+    "finale": {
+      "title": "God fornøjelse!",
+      "body": "Alt er på plads. En ny side, »Om os«, fortæller, hvor ventetiderne kommer fra, og gennemgår hver funktion, hvis du vil grave dybere.",
+      "aboutLink": "Se siden Om os"
     }
   },
   "reportProblem": {
-    "trigger": "Et problem? Rapporter det til os",
-    "title": "Rapporter et Problem",
-    "description": "Hjælp os med at forbedre datakvaliteten ved at rapportere et problem, du har bemærket.",
-    "categoryLabel": "Hvad angår problemet?",
+    "trigger": "Fundet et problem? Sig til",
+    "title": "Meld et problem",
+    "description": "Hjælp os med at forbedre datakvaliteten ved at melde et problem, du har bemærket.",
+    "categoryLabel": "Hvad handler problemet om?",
     "categoryPlaceholder": "Vælg en mulighed",
     "subcategoryLabel": "Hvad er problemet?",
     "subcategoryPlaceholder": "Vælg en mulighed",
     "detailsLabel": "Beskriv problemet",
-    "detailsPlaceholder": "Beskriv problemet så detaljeret som muligt, så vi kan analysere og løse det bedst muligt.",
+    "detailsPlaceholder": "Beskriv problemet så detaljeret som muligt, så vi kan analysere og løse det effektivt.",
     "emailLabel": "Din e-mailadresse",
+    "emailDescription": "Vi bruger din e-mailadresse til at holde dig orienteret om løsningen af din henvendelse.",
+    "emailAccountNotice": "E-mailadressen på din konto sendes sammen med denne henvendelse, så vi kan holde dig orienteret om løsningen.",
     "cancel": "Annuller",
-    "submit": "Send rapport",
-    "success": "Tak for din rapport! Vi vil gennemgå den.",
-    "error": "Der opstod en fejl ved afsendelse af rapporten. Prøv venligst igen.",
-    "emailDescription": "Vi bruger din e-mailadresse til at holde dig informeret om løsningen på din rapport.",
+    "submit": "Send henvendelse",
+    "success": "Tak for din henvendelse! Vi kigger på den.",
+    "error": "Der opstod en fejl under afsendelsen. Prøv igen.",
+    "rateLimited": "Du har sendt flere henvendelser for nylig. Vent et øjeblik, før du sender en ny.",
     "validation": {
-      "categoryRequired": "Vælg venligst en kategori",
-      "subcategoryRequired": "Vælg venligst en underkategori",
-      "detailsRequired": "Angiv venligst mindst 10 tegn",
-      "emailRequired": "Indtast venligst en gyldig e-mailadresse"
+      "categoryRequired": "Vælg en kategori",
+      "subcategoryRequired": "Vælg en underkategori",
+      "detailsRequired": "Skriv mindst 10 tegn",
+      "emailRequired": "Indtast en gyldig e-mailadresse"
     }
+  },
+  "userBlock": {
+    "loggedOutTitle": "Du er ikke logget ind",
+    "loggedOutSubtitle": "Log ind for at synkronisere dine favoritter og notifikationer",
+    "signIn": "Log ind",
+    "signUp": "Opret konto",
+    "account": "Min konto",
+    "welcomeBack": "Velkommen tilbage",
+    "profile": "Profil",
+    "signOut": "Log ud"
+  },
+  "auth": {
+    "title": "Log ind",
+    "subtitle": "Log ind, eller opret din konto – helt uden adgangskode.",
+    "continueWithGoogle": "Fortsæt med Google",
+    "or": "eller",
+    "emailPlaceholder": "dig@eksempel.dk",
+    "emailInvalid": "Indtast en gyldig e-mailadresse",
+    "sendMagicLink": "Send mig et login-link",
+    "sendError": "Afsendelsen mislykkedes. Prøv igen.",
+    "emailSentTitle": "Tjek din mail",
+    "emailSentDescription": "Vi har sendt et login-link til {email}.",
+    "useAnotherEmail": "Brug en anden adresse",
+    "noPassword": "Ingen adgangskode nødvendig."
+  },
+  "profile": {
+    "title": "Profil",
+    "back": "Tilbage",
+    "heroTitle": "Din profil",
+    "heroSubtitle": "Dine indstillinger, dine ventetidsnotifikationer og deres historik.",
+    "backHome": "Tilbage til forsiden",
+    "tabs": {
+      "preferences": "Indstillinger",
+      "alerts": "Notifikationer"
+    },
+    "alertsDailyNote": "Notifikationer og påmindelser gælder kun for den aktuelle dag: de forsvinder, så snart notifikationen er sendt, og senest ved midnat. Alt indstilles fra forlystelsens eller showets side.",
+    "favoritesCount": "Favoritter",
+    "favoritesParksCount": "{count, plural, one {Yndlingspark} other {Yndlingsparker}}",
+    "favoritesRidesCount": "{count, plural, one {Yndlingsforlystelse} other {Yndlingsforlystelser}}",
+    "favoritesShowsCount": "{count, plural, one {Yndlingsshow} other {Yndlingsshows}}",
+    "favoritesParksTitle": "Yndlingsparker",
+    "favoritesRidesTitle": "Yndlingsforlystelser",
+    "favoritesShowsTitle": "Yndlingsshows",
+    "favoritesListEmpty": "Ingen favoritter endnu.",
+    "favoritesRemove": "Fjern {name} fra favoritter",
+    "activeAlertsCount": "{count, plural, one {Aktiv notifikation} other {Aktive notifikationer}}",
+    "preferencesTitle": "Indstillinger",
+    "displayName": "Vist navn",
+    "displayNamePlaceholder": "Dit fornavn",
+    "displayNameSave": "Gem",
+    "displayNameSaved": "Navnet er opdateret",
+    "displayNameError": "Navnet kunne ikke opdateres",
+    "language": "Sprog",
+    "theme": "Tema",
+    "themeSystem": "System",
+    "themeLight": "Lyst",
+    "themeDark": "Mørkt",
+    "timeFormat": "Tidsformat",
+    "timeFormat24": "24 timer",
+    "timeFormat12": "12 timer",
+    "temperatureUnit": "Temperaturenhed",
+    "temperatureCelsius": "Celsius",
+    "temperatureFahrenheit": "Fahrenheit",
+    "alertsTitle": "Aktive notifikationer",
+    "alertsEmpty": "Ingen notifikationer endnu. Opret en fra en forlystelse.",
+    "threshold": "Under {minutes} min.",
+    "activate": "Aktivér",
+    "deactivate": "Deaktivér",
+    "validate": "Gem grænse",
+    "thresholdSaved": "Grænsen er opdateret",
+    "delete": "Slet",
+    "deleted": "Notifikationen er slettet",
+    "historyTitle": "Notifikationshistorik",
+    "historyEmpty": "Der er endnu ikke sendt nogen notifikation.",
+    "historyRetentionNote": "Notifikationer ældre end 30 dage vises ikke.",
+    "historyLine": "Faldt til {actual} min. (≤ {threshold} min.)",
+    "loadError": "Notifikationerne kunne ikke hentes.",
+    "updateError": "Opdateringen mislykkedes.",
+    "deleteError": "Sletningen mislykkedes.",
+    "privacyTitle": "Privatliv",
+    "alertsHeading": "{count, plural, one {Din notifikation} other {Dine notifikationer}}",
+    "historyHeading": "{count, plural, one {Sendt notifikation} other {Sendte notifikationer}}",
+    "historyAttractions": "Forlystelser",
+    "historyShows": "Shows",
+    "historyShowLine": "forestilling kl. {time} · {lead} min. før",
+    "alertsEmptyRides": "Ingen notifikation oprettet. Opret en fra en forlystelse.",
+    "alertsEmptyShows": "Ingen påmindelse oprettet. Opret en fra et show.",
+    "historyEmptyRides": "Der er endnu ikke sendt nogen notifikation om forlystelser.",
+    "historyEmptyShows": "Der er endnu ikke sendt nogen notifikation om shows.",
+    "edit": "Rediger grænse",
+    "subTabActive": "Aktive",
+    "subTabHistory": "Historik",
+    "filterAll": "Alle",
+    "activeEmptyAll": "Ingen aktiv notifikation eller påmindelse i dag.",
+    "leadBadge": "{lead} min. før",
+    "leadSaved": "Varslingstiden er opdateret",
+    "validateLead": "Gem varslingstid",
+    "editLead": "Rediger varslingstid",
+    "leadTooLate": "Showet begynder for snart til at ændre varslingstiden.",
+    "reopenBadge": "Genåbning",
+    "historyReopenLine": "Genåbnede"
+  },
+  "privacy": {
+    "emailLabel": "E-mailadresse",
+    "emailSave": "Skift",
+    "emailNote": "Efter ændringen bliver du logget ud og skal logge ind igen med den nye adresse.",
+    "emailChangedSignOut": "E-mailen er ændret. Logger ud…",
+    "emailTaken": "Denne e-mailadresse er allerede i brug.",
+    "emailInvalid": "Ugyldig e-mailadresse.",
+    "exportLabel": "Mine data",
+    "exportButton": "Download",
+    "resetAlertsLabel": "Nulstil mine notifikationer",
+    "resetAlertsNote": "Sletter dine ventende notifikationer og påmindelser sammen med hele historikken over modtagne notifikationer. Din konto og dine favoritter bevares.",
+    "resetAlertsButton": "Nulstil",
+    "resetAlertsConfirmTitle": "Nulstil det hele?",
+    "resetAlertsConfirmDescription": "Dine ventetidsnotifikationer, show-påmindelser og historikken over modtagne notifikationer bliver slettet. Dette kan ikke fortrydes.",
+    "resetAlertsConfirmButton": "Nulstil",
+    "resetAlertsDone": "Notifikationer, påmindelser og historik er slettet",
+    "deleteLabel": "Slet min konto",
+    "deleteNote": "Det er permanent: indstillinger, favoritter, notifikationer og påmindelser bliver slettet.",
+    "deleteButton": "Slet",
+    "deleteConfirmTitle": "Slet kontoen permanent?",
+    "deleteConfirmDescription": "Skriv din e-mailadresse ({email}) for at bekræfte. Dette kan ikke fortrydes.",
+    "deleteConfirmButton": "Slet permanent",
+    "cancel": "Annuller",
+    "accountDeleted": "Kontoen er slettet. Logger ud…",
+    "genericError": "Noget gik galt. Prøv igen.",
+    "exportNote": "Download en kopi af din konto: e-mail, indstillinger, favoritter, notifikationer og show-påmindelser."
+  },
+  "alerts": {
+    "createTitle": "Opret en notifikation",
+    "createDescription": "Få besked, når ventetiden for {ride} falder under en grænse.",
+    "createFor": "Opret en notifikation for {ride}",
+    "thresholdLabel": "Under hvilken ventetid vil du have besked?",
+    "thresholdOption": "{minutes} min.",
+    "thresholdHint": "Du får besked, så snart ventetiden falder under denne grænse.",
+    "cancel": "Annuller",
+    "create": "Opret",
+    "created": "Notifikation oprettet for {ride}",
+    "createError": "Notifikationen kunne ikke oprettes."
+  },
+  "attractionDetail": {
+    "openFor": "Se detaljer for {ride}",
+    "alertsTitle": "Notifikationer",
+    "chartTitle": "Ventetid i dag",
+    "chartToday": "I dag",
+    "chartActual": "Ventetid",
+    "chartForecast": "Prognose",
+    "chartNow": "Nu",
+    "chartEmpty": "Ingen data for i dag endnu.",
+    "chartUnavailable": "Forlystelsen er ikke tilgængelig lige nu.",
+    "chartUnavailablePermanent": "Denne forlystelse oplyser ingen ventetid: hverken live eller som prognose.",
+    "alertsUnavailable": "Denne forlystelse oplyser ingen ventetid, så der er intet at holde øje med, og en notifikation er ikke mulig.",
+    "chartForecastNote": "Groft skøn for resten af dagen.",
+    "chartForecastPreOpeningNote": "Skøn baseret på tidligere dage – opdateres, når parken åbner.",
+    "estimateTooltip": "Anslået ud fra sammenlignelige tidligere dage. Virkeligheden kan afvige.",
+    "marginNote": "De seneste dage har vores prognoser i gennemsnit ramt <v>{minutes} min.</v> ved siden af.",
+    "marginNoteTooltip": "Gennemsnitlig forskel mellem vores prognoser og den faktisk målte ventetid over de seneste 14 dage.",
+    "installTitle": "Installer Queue Park",
+    "installIntro": "Notifikationer kræver, at appen er installeret på din enhed.",
+    "installButton": "Installer appen",
+    "installAndroidSteps": "Åbn browserens ⋮-menu, og vælg »Føj til startskærm«.",
+    "installIosSteps": "Tryk på Del, og derefter på »Føj til hjemmeskærm«.",
+    "installDesktopSteps": "Brug installationsikonet i browserens adresselinje.",
+    "installAccountNote": "Der kræves også en konto for at oprette notifikationer.",
+    "signInTitle": "Log ind",
+    "signInIntro": "Log ind for at få besked, når ventetiden falder.",
+    "notifActive": "Notifikation aktiv",
+    "save": "Gem",
+    "update": "Opdater",
+    "delete": "Slet",
+    "saved": "Notifikationen er gemt",
+    "deleted": "Notifikationen er slettet",
+    "pushBlocked": "Notifikationen er gemt, men denne enhed modtager ikke noget (notifikationer er ikke tilladt).",
+    "pushDenied": "Notifikationer er blokeret for dette websted. Tillad dem i browserens indstillinger for at modtage dem på denne enhed.",
+    "pushUnsupported": "Denne browser understøtter ikke push-notifikationer. Notifikationen vises stadig i din profil og i historikken.",
+    "reopenLabel": "Denne forlystelse står stille. Få besked, så snart den åbner igen.",
+    "reopenSave": "Giv mig besked ved genåbning",
+    "reopenActive": "Genåbningsalarm aktiv",
+    "reopenSaved": "Genåbningsalarm gemt",
+    "reopenTooLate": "Parken er lukket, alarmer er ikke tilgængelige. Kom tilbage ved parkens næste åbning.",
+    "statusChanged": "Forlystelsens status er lige ændret. Åbn siden igen for at oprette den rigtige alarm."
+  },
+  "legal": {
+    "backHome": "Tilbage til forsiden",
+    "updated": "Senest opdateret: 21. juli 2026",
+    "privacy": {
+      "metaTitle": "Privatlivspolitik",
+      "title": "Privatlivspolitik",
+      "intro": "Denne politik beskriver, hvordan Queue Park behandler dine personoplysninger. Dataansvarlig: webstedets udgiver (se <mentions>Juridiske oplysninger</mentions>), kontakt: <mail>contact@queue-park.com</mail>.",
+      "dataTitle": "Behandlede oplysninger, formål og retsgrundlag",
+      "data1": "<b>Konto</b> (e-mailadresse og i givet fald navn og profilbillede via Google): oprettelse og administration af din konto — <i>opfyldelse af tjenesten / dit samtykke</i>.",
+      "data2": "<b>Indstillinger</b> (sprog, tema, tidsformat) og <b>favoritter</b> (parker, forlystelser, shows): personalisering af din oplevelse — <i>opfyldelse af tjenesten</i>.",
+      "data3": "<b>Ventetidsnotifikationer</b> og <b>show-påmindelser</b> samt <b>notifikationsabonnementerne</b> på dine enheder: afsendelse af de notifikationer, du har bedt om — <i>dit samtykke</i>.",
+      "data4": "<b>Trafikmåling</b> (Google Analytics): besøgsstatistik — <i>dit samtykke</i> (se <cookies>Cookiepolitikken</cookies>).",
+      "recipientsTitle": "Modtagere og databehandlere",
+      "recipients1": "Dine oplysninger sælges ikke. De behandles af leverandører, der handler på vores vegne: Google (godkendelse og trafikmåling), Resend (afsendelse af login-e-mails), IONOS (hosting, EU).",
+      "recipients2": "Nogle leverandører (Google, Resend) er etableret i USA; eventuelle overførsler sker efter de mekanismer, der er fastsat i GDPR (Data Privacy Framework og/eller standardkontraktbestemmelser).",
+      "retentionTitle": "Opbevaringsperioder",
+      "retention1": "Kontooplysninger: indtil kontoen slettes.",
+      "retention2": "Notifikationer: gælder for den aktuelle dag; historik opbevares i 30 dage.",
+      "retention3": "Show-påmindelser: slettes, når forestillingen er forbi.",
+      "retention4": "Login-sessioner: i sessionens gyldighedsperiode.",
+      "rightsTitle": "Dine rettigheder",
+      "rights1": "Du har ret til indsigt, berigtigelse, sletning, dataportabilitet, indsigelse og begrænsning. Fra din <profile>profil</profile> (Indstillinger → fanen Privatliv) kan du ændre din e-mail direkte, downloade dine data (JSON) og slette din konto. For alle andre henvendelser, skriv til <mail>contact@queue-park.com</mail>.",
+      "rights2": "Du kan også klage til din databeskyttelsesmyndighed (i Danmark Datatilsynet — datatilsynet.dk).",
+      "securityTitle": "Sikkerhed og mindreårige",
+      "security1": "Kommunikationen er krypteret (HTTPS), og godkendelsen sker uden adgangskode. Vi begrænser de indsamlede oplysninger til det strengt nødvendige. Tjenesten er ikke beregnet til mindreårige under 15 år uden samtykke fra en forælder eller værge."
+    },
+    "cookies": {
+      "metaTitle": "Cookiepolitik",
+      "title": "Cookiepolitik",
+      "intro": "En cookie er en lille fil, der lægges på din enhed, når du besøger et websted. Queue Park bruger et minimalt sæt, som beskrives nedenfor.",
+      "necessaryTitle": "Strengt nødvendige cookies",
+      "necessaryIntro": "De er afgørende for webstedets funktion og kræver ikke dit samtykke:",
+      "necessary1": "<b>Login-session</b>: holder dig logget ind på din konto.",
+      "necessary2": "<b>Sprogindstilling</b>: husker dit visningssprog.",
+      "audienceTitle": "Cookies til trafikmåling",
+      "audience1": "Vi bruger Google Analytics til at forstå trafikken på webstedet og forbedre det. Disse cookies (f.eks. <c>_ga</c>, <c>_ga_*</c>) sættes kun <b>efter dit samtykke</b> og opbevares i højst 13 måneder.",
+      "manageTitle": "Administrer dit valg",
+      "manage1": "Du kan acceptere eller afvise disse cookies via banneret, der vises ved dit første besøg, og ændre dit valg når som helst via linket <b>»Administrer cookies«</b> nederst på siden. Du kan også indstille din browser til at blokere cookies."
+    },
+    "legalNotice": {
+      "metaTitle": "Juridiske oplysninger",
+      "title": "Juridiske oplysninger",
+      "editorTitle": "Udgiver",
+      "editor1": "Webstedet Queue Park (queue-park.com) udgives af Lilian G. og Gaspard D.",
+      "editor2": "Ansvarshavende udgiver: Lilian G. Kontakt: <mail>contact@queue-park.com</mail>.",
+      "hostingTitle": "Hosting",
+      "hosting1": "Webstedet hostes af IONOS SARL, 7, place de la Gare, BP 70109, 57201 SARREGUEMINES Cedex, Frankrig (ionos.fr).",
+      "ipTitle": "Immaterielle rettigheder",
+      "ip1": "Webstedets struktur, tekster og grafiske elementer tilhører udgiveren, medmindre andet er angivet. Enhver uautoriseret gengivelse er forbudt. Navne på parker, forlystelser og shows tilhører deres respektive ejere.",
+      "liabilityTitle": "Ansvar",
+      "liability1": "Ventetider og spilletider oplyses udelukkende til information ud fra tredjepartskilder og uden nogen garanti for nøjagtighed eller tilgængelighed. Udgiveren kan ikke holdes ansvarlig for skader, der følger af brugen af dem."
+    }
+  },
+  "events": {
+    "opensAt": "Åbner kl. {time}",
+    "closesAt": "Lukker kl. {time}",
+    "running": "I gang nu",
+    "scheduled": "Kommer snart",
+    "separateTicket": "Separat billet",
+    "noAttractions": "Ingen forlystelser melder ventetid lige nu"
   }
 }

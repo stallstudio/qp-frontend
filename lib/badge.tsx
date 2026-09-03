@@ -101,13 +101,35 @@ function getStatusLabel(status: WaitTimeStatus, labels?: Record<string, string>)
   }
 }
 
-function getStatusBadge(status: WaitTimeStatus, labels?: Record<string, string>) {
+/**
+ * Pastille d'état.
+ *
+ * `dense` resserre le rembourrage sur MOBILE uniquement (`px-1.5`/`gap-1` au
+ * lieu de `px-2`/`gap-1.5`). Réservé aux listes en colonnes serrées : dans le
+ * tableau des temps d'attente, « Maintenance » — le plus long des quatre
+ * libellés — remplissait exactement les 6rem de sa colonne et venait coller la
+ * pastille « Indispo » d'à côté. La cellule étant en `justify-end`, les ~8 px
+ * rendus ici se transforment directement en écart, sans rien retirer au nom de
+ * l'attraction.
+ *
+ * ⚠️ Hors de ce cas, garder le rembourrage par défaut : `ParkStatusBadge`
+ * (`name-status.tsx`) recopie ce style à la main pour l'état « ouvert », les
+ * deux se désaligneraient.
+ */
+function getStatusBadge(
+  status: WaitTimeStatus,
+  labels?: Record<string, string>,
+  dense = false,
+) {
   const colorClass = getStatusColorClass(status);
   const dotColorClass = getStatusDotColorClass(status);
+  const spacingClass = dense
+    ? "gap-1 px-1.5 sm:gap-1.5 sm:px-2"
+    : "gap-1.5 px-2";
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${colorClass}`}
+      className={`inline-flex items-center ${spacingClass} py-1 rounded-full text-xs font-medium whitespace-nowrap ${colorClass}`}
     >
       <div className={`w-2 h-2 ${dotColorClass} rounded-full`}></div>
       {getStatusLabel(status, labels)}

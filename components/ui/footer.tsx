@@ -1,12 +1,16 @@
 import { useTranslations } from "next-intl";
+import { Info } from "lucide-react";
 import LanguageSwitcher from "./language-switcher";
+import FooterAuth from "./footer-auth";
 import { AnimatedThemeToggler } from "./animated-theme-toggler";
 import { buttonVariants } from "./button";
+import CookieSettingsButton from "./cookie-settings-button";
 import { Link } from "@/i18n/routing";
 
 export default function Footer() {
   const t = useTranslations("footer");
   const tAbout = useTranslations("about");
+  const tCookies = useTranslations("cookies");
   const currentYear = new Date().getFullYear();
   return (
     <footer
@@ -28,17 +32,46 @@ export default function Footer() {
           </a>
           .
         </p>
+
+        {/* Liens légaux discrets (RGPD/CNIL). */}
+        <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground sm:justify-start">
+          <Link
+            href="/legal-notice"
+            className="transition-colors hover:text-foreground"
+          >
+            {tCookies("legalNotice")}
+          </Link>
+          <span aria-hidden>·</span>
+          <Link
+            href="/privacy"
+            className="transition-colors hover:text-foreground"
+          >
+            {tCookies("privacyPolicy")}
+          </Link>
+          <span aria-hidden>·</span>
+          <Link
+            href="/cookies"
+            className="transition-colors hover:text-foreground"
+          >
+            {tCookies("cookiePolicy")}
+          </Link>
+          <span aria-hidden>·</span>
+          <CookieSettingsButton />
+        </div>
       </div>
-      <div className="flex items-center justify-center sm:justify-end gap-2 order-1 sm:order-2">
+      {/* Ordre : À propos | compte, langue, thème. Le « | » sépare la navigation
+          des réglages (compte/langue/thème). */}
+      <div className="flex flex-wrap items-center justify-center gap-2 order-1 sm:order-2 sm:justify-end">
         <Link
           href="/about"
-          className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
+          className={buttonVariants({ variant: "secondary" })}
         >
+          <Info className="size-4" />
           {tAbout("metaTitle")}
         </Link>
-        <span>|</span>
+        <span className="text-muted-foreground">|</span>
+        <FooterAuth />
         <LanguageSwitcher />
-        <span>|</span>
         <AnimatedThemeToggler
           className={buttonVariants({ variant: "secondary" })}
         />

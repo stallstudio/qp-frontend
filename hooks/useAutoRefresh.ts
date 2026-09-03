@@ -1,91 +1,186 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+/**
+ * Décompte + rafraîchissement automatique des données d'un parc.
+ *
+ * ————————————————————————————————————————————————————————————————————————
+ * **C'EST LE SERVEUR QUI DIT QUAND REVENIR.** Ce hook ne calcule plus de
+ * cadence, il obéit à celle qu'on lui annonce (`ParkLiveData.nextUpdateIn`,
+ * mesurée sur les passages réels du worker — voir `lib/collection-cycle.ts`).
+ * ————————————————————————————————————————————————————————————————————————
+ *
+ * Deux versions ont échoué avant, l'une comme l'autre parce qu'elles
+ * DEVINAIENT ici une cadence que le client ne peut pas connaître :
+ *
+ * - **`lastUpdate + 60 s`** — l'horodatage de la donnée. Le worker ne l'écrit
+ *   que si son fetch réussit : dès qu'une source tombait, il se figeait, le
+ *   décompte plongeait dans le négatif, sortait de la fenêtre de déclenchement
+ *   et plus RIEN ne se rafraîchissait, y compris au retour d'onglet. L'écran
+ *   restait bloqué sur « Dernière mise à jour ».
+ * - **`Date.now() + 60 s`** — l'horloge du client, qui a corrigé ce blocage
+ *   mais en a créé un autre, plus discret : le décompte n'avait plus aucun
+ *   rapport avec la base. Un rechargement de page repartait de soixante, et le
+ *   fetch tombait à un instant arbitraire du cycle — souvent juste avant
+ *   l'écriture qu'il attendait.
+ *
+ * Aucune des deux ne pouvait tomber juste, et la mesure dit pourquoi : le
+ * worker écrit bien à chaque minute, mais à un instant qui se promène —
+ * minute ronde + 30 s en médiane, avec ±15 s de dispersion. Deux choses
+ * échappent au navigateur : où il en est dans cette grille, et QUELLE minute de
+ * collecte il tient déjà en main. Le serveur, lui, sait les deux — alors il
+ * calcule le délai et le dit.
+ *
+ * ⚠️ **Le décompte n'est plus AFFICHÉ** (voir `main-card`). Depuis que le flux
+ * SSE devance l'échéance, il annonçait une attente qui n'arrivait jamais : on
+ * pouvait lire « 28 secondes », voir la page se rafraîchir aussitôt, puis lire
+ * « 90 secondes » — le calcul était juste (le créneau suivant celui qu'on venait
+ * de servir) mais il répondait à une question que plus personne ne se pose. La
+ * page affiche désormais l'ÂGE de la donnée, qui se vérifie. Ce hook reste le
+ * filet : il déclenche le rafraîchissement quand le flux est mort.
+ *
+ * Ce qui est conservé de la version précédente, et pourquoi :
+ *
+ * - **Le cycle ne peut jamais s'arrêter.** Une échéance est reposée dans le
+ *   `finally` de CHAQUE tentative, succès comme échec, et toute valeur venue du
+ *   serveur est bornée avant usage. Sans réponse exploitable, on retombe sur
+ *   une minute — c'est-à-dire sur l'ancien comportement, jamais sur l'arrêt.
+ * - **Un seul intervalle** (1 s), à la fois décompte affiché et déclencheur.
+ * - **Rien ne tourne quand l'onglet est caché.** C'est le cas d'usage principal
+ *   du produit (téléphone en poche dans un parc) : laisser un `setInterval`
+ *   battre à la seconde y consomme de la batterie pour un écran que personne ne
+ *   regarde. Au retour, si l'échéance est passée pendant l'absence, on
+ *   rafraîchit immédiatement puis on repart.
+ */
+
+/** Cadence de repli : le serveur n'a rien annoncé d'exploitable. C'est
+ *  exactement ce que faisait le code d'avant, en dur. */
+const FALLBACK_SECONDS = 60;
+
+/** Garde-fous sur ce que le serveur annonce. Ils ne servent qu'au cas où une
+ *  version d'API renverrait `0`, du texte ou un négatif : le client ne doit
+ *  jamais pouvoir être transformé en marteau par une réponse malformée. */
+const MIN_SECONDS = 5;
+const MAX_SECONDS = 300;
+
+/** Plafond du recul après échecs répétés. Assez haut pour ne pas entretenir une
+ *  panne de serveur à coups de sondages, assez bas pour qu'un réseau revenu ne
+ *  laisse pas l'écran figé plus de deux minutes. */
+const MAX_BACKOFF_SECONDS = 120;
+
+function clampSeconds(value: number): number {
+  if (!Number.isFinite(value)) return FALLBACK_SECONDS;
+  return Math.min(Math.max(value, MIN_SECONDS), MAX_SECONDS);
+}
 
 export function useAutoRefresh(
-  lastUpdate: string,
-  onRefresh?: () => Promise<void>,
-  refreshInterval: number = 60000,
+  /**
+   * Recharge les données et rend le `nextUpdateIn` que le serveur vient
+   * d'annoncer.
+   *
+   * ⚠️ **La valeur est RENDUE, pas lue dans les props au rendu suivant.** Le
+   * `finally` s'exécute avant que React ait re-rendu avec les données fraîches :
+   * aller chercher l'échéance dans une prop y donnerait celle du cycle
+   * PRÉCÉDENT, et le décalage s'accumulerait à chaque tour.
+   */
+  onRefresh?: () => Promise<number | null | undefined>,
+  /** Échéance du premier cycle, telle que servie avec les données initiales
+   *  (rendu serveur). C'est elle qui fait qu'un rechargement de page ne remet
+   *  pas le décompte à soixante mais le reprend là où le cycle en est. */
+  initialDelaySeconds?: number,
 ) {
-  const [timeSinceLastUpdate, setTimeSinceLastUpdate] = useState(0);
+  const firstDelay = clampSeconds(initialDelaySeconds ?? FALLBACK_SECONDS);
+
+  // Battement de rendu, incrémenté chaque seconde tant que l'onglet est visible.
+  // ⚠️ Il ne sert PAS à décompter : c'est l'horloge d'affichage de la page —
+  // l'âge de la donnée, et l'ouverture des cartes d'événement à leur heure.
+  const [tick, setTick] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [justUpdated, setJustUpdated] = useState(false);
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Refs plutôt que dépendances : l'effet de planification ne doit pas se
+  // relancer à chaque rendu, sinon l'intervalle serait recréé en boucle.
+  const refreshingRef = useRef(false);
+  const onRefreshRef = useRef(onRefresh);
+  onRefreshRef.current = onRefresh;
+
+  // Échecs consécutifs, pour le recul progressif. Remis à zéro dès qu'une
+  // tentative aboutit.
+  const failuresRef = useRef(0);
+
+  // Échéance du prochain rafraîchissement. En ref (et non en state) : le tick
+  // la lit chaque seconde, elle ne doit pas re-planifier l'effet en changeant.
+  const nextRefreshAt = useRef(Date.now() + firstDelay * 1000);
 
   const handleRefresh = useCallback(async () => {
-    if (!onRefresh || isRefreshing) return;
+    const refresh = onRefreshRef.current;
+    if (!refresh || refreshingRef.current) return;
 
+    refreshingRef.current = true;
     setIsRefreshing(true);
+
+    let nextDelay = FALLBACK_SECONDS;
     try {
-      await onRefresh();
-      // Trigger animation on successful update
-      setJustUpdated(true);
-      setTimeout(() => setJustUpdated(false), 1000);
+      const announced = await refresh();
+      failuresRef.current = 0;
+      nextDelay = clampSeconds(announced ?? FALLBACK_SECONDS);
     } catch (error) {
       console.error("Refresh failed:", error);
+      failuresRef.current += 1;
+      // Recul progressif : réessayer à la même cadence pendant une panne
+      // ajoute du trafic exactement quand le serveur en a le moins besoin.
+      nextDelay = Math.min(
+        FALLBACK_SECONDS * 2 ** (failuresRef.current - 1),
+        MAX_BACKOFF_SECONDS,
+      );
     } finally {
+      // Reposée dans TOUS les cas : c'est ce qui rend l'arrêt définitif du
+      // cycle impossible, quoi que raconte le serveur ou le réseau.
+      nextRefreshAt.current = Date.now() + nextDelay * 1000;
+      refreshingRef.current = false;
       setIsRefreshing(false);
-    }
-  }, [onRefresh, isRefreshing]);
-
-  const clearIntervals = useCallback(() => {
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-    if (refreshIntervalRef.current) {
-      clearInterval(refreshIntervalRef.current);
-      refreshIntervalRef.current = null;
     }
   }, []);
 
-  const startIntervals = useCallback(
-    (calculateRemainingSeconds: () => number) => {
-      clearIntervals();
-
-      // Immediate update
-      setTimeSinceLastUpdate(calculateRemainingSeconds());
-
-      // Countdown interval (every second)
-      countdownIntervalRef.current = setInterval(() => {
-        setTimeSinceLastUpdate(calculateRemainingSeconds());
-      }, 1000);
-
-      // Refresh interval (every 2 seconds)
-      refreshIntervalRef.current = setInterval(() => {
-        const newTimeSinceLastUpdate = calculateRemainingSeconds();
-
-        // If time has elapsed and not too far past
-        if (newTimeSinceLastUpdate <= 0 && newTimeSinceLastUpdate > -20) {
-          handleRefresh();
-        }
-      }, 2000);
-    },
-    [clearIntervals, handleRefresh],
-  );
-
   useEffect(() => {
-    const calculateRemainingSeconds = () => {
-      const lastUpdateTime = new Date(lastUpdate).getTime();
-      const targetTime = lastUpdateTime + refreshInterval;
-      const currentTime = Date.now();
+    let timer: ReturnType<typeof setInterval> | null = null;
 
-      const remainingMs = targetTime - currentTime;
-      const remainingSeconds = Math.ceil(remainingMs / 1000);
-
-      return remainingSeconds;
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
     };
 
-    startIntervals(calculateRemainingSeconds);
+    const beat = () => {
+      setTick((value) => value + 1);
+      if (Date.now() >= nextRefreshAt.current) handleRefresh();
+    };
 
-    return clearIntervals;
-  }, [lastUpdate, refreshInterval, startIntervals, clearIntervals]);
+    const start = () => {
+      stop();
+      beat();
+      timer = setInterval(beat, 1000);
+    };
 
-  return {
-    timeSinceLastUpdate,
-    isRefreshing,
-    justUpdated,
-    handleRefresh,
-    startIntervals,
-    clearIntervals,
-  };
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        // Onglet repris : si l'échéance est passée pendant l'absence, on
+        // rafraîchit tout de suite au lieu de laisser des temps d'attente
+        // périmés à l'écran en attendant le prochain cycle.
+        if (Date.now() >= nextRefreshAt.current) handleRefresh();
+        start();
+      } else {
+        stop();
+      }
+    };
+
+    if (document.visibilityState === "visible") start();
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [handleRefresh]);
+
+  return { tick, isRefreshing, handleRefresh };
 }

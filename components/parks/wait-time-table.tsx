@@ -1,17 +1,27 @@
 "use client";
 
-import { WaitTime, QueueTime } from "@/types/waitTime";
+import { WaitTime } from "@/types/waitTime";
 import { motion } from "motion/react";
 import { getStatusBadge, getTimeSlotBadge, getWaitTimeBadge } from "@/lib/badge";
-import { useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useWaitTimeChanges } from "@/hooks/useWaitTimeChanges";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useFavorites } from "@/hooks/useFavorites";
-import FavoriteStar from "@/components/ui/favorite-star";
-import WaitTrend from "@/components/parks/wait-trend";
+import { useNotifications } from "@/components/providers/notifications-provider";
+import AttractionDetailDialog from "@/components/parks/attraction-detail/attraction-detail-dialog";
 import { cn } from "@/lib/utils";
+// ⚠️ Extraits ici pour être PARTAGÉS avec la liste d'état des autres familles de
+// POI (reportée en V4, voir `lib/poi-kinds.ts`) : deux listes du même onglet ne
+// peuvent pas trier les états ni couper les libellés différemment. `poi-list.ts`
+// reste donc un module à part, même s'il n'a plus qu'un appelant ici.
 import {
+  STATUS_ORDER,
+  getPrimaryQueue,
+  splitGluedTail,
+} from "@/lib/poi-list";
+import {
+  BellRing,
   ChevronRight,
   ChevronUp,
   ChevronDown,
@@ -19,6 +29,7 @@ import {
   Clock,
   FastForward,
   CornerDownRight,
+  Star,
 } from "lucide-react";
 
 type QueueTypeInfo = {
@@ -55,56 +66,70 @@ type WaitTimeTableProps = {
   waitTimes: WaitTime[];
   queueTypeLabels?: Record<string, string> | null;
   parkIdentifier: string;
-  history?: Record<number, number[]>;
-  // Vrai quand le parc a des horaires connus et qu'il est actuellement fermé.
-  // Dans ce cas on masque les flèches de tendance (les temps sont figés / la
-  // tendance n'a plus de sens). Voir usage plus bas.
-  parkClosed?: boolean;
+  parkName: string;
+  // Le parc laisse-t-il encore le temps à une alerte de réouverture de servir ?
+  // Calculé depuis ses horaires par la carte parente, simplement transmis au
+  // popup. Non fourni = on autorise.
+  reopenAllowed?: boolean;
+  // Lien profond `/park/{parc}/ride/{slug}` : attraction dont le popup doit
+  // s'ouvrir dès l'arrivée sur la page.
+  initialRideId?: number | null;
 };
 
-const STATUS_ORDER = { open: 0, down: 1, closed: 2, maintenance: 3 } as const;
-
-// SUSPENDU : les flèches de tendance dépendent de l'historique, désactivé pour
-// le moment (voir HISTORY_ENABLED dans park-page-client.tsx). On garde tout le
-// code de rendu ci-dessous ; repasser ce drapeau à `true` pour réactiver.
-const TRENDS_ENABLED = false;
-
-// Grille partagée par l'en-tête et chaque ligne pour aligner les 3 colonnes.
-// Chaque ligne est une grille indépendante : impossible de laisser les pistes
-// s'auto-dimensionner au contenu (elles ne seraient plus alignées d'une ligne à
-// l'autre). Comme l'ancienne table, on privilégie les colonnes Temps/État
-// (badge + flèche de tendance, « En panne » sur une ligne) et le nom prend le
-// reste (donc plus étroit) :
-// - mobile : Temps en largeur fixe (4rem, resserré : la flèche de tendance étant
-//   suspendue, le badge seul n'a plus besoin de place) et État (6rem, assez pour
-//   « Maintenance »). Tracks volontairement étroites pour laisser le MAXIMUM de
-//   largeur au nom de l'attraction (moins de retours à la ligne). Le badge Temps
-//   reste aligné à GAUCHE (défaut) ;
-// - ≥ sm : mêmes proportions que l'ancienne table (4/6 · 1/6 · 1/6).
+// Grille partagée par l'en-tête et chaque ligne pour aligner les colonnes.
+// Le chevron d'expand est collé À LA FIN DU NOM (dans la 1re colonne), donc pas
+// de piste d'action dédiée : 3 colonnes.
+// - mobile : Temps (4rem) et État (6rem, « Maintenance ») resserrés pour laisser
+//   le MAXIMUM de largeur au nom ;
+// - ≥ sm : proportions 4/1/1 comme l'ancienne table.
+//
+// ⚠️ `gap-x-2` : sans gouttière, « Indispo » et « Maintenance » se TOUCHAIENT
+// sur mobile, et les deux pastilles se lisaient comme une seule. Le cas n'est
+// pas anodin — ce sont les deux libellés les plus longs de leurs colonnes
+// respectives, donc chacun occupe la sienne entièrement : « Indispo » finit à
+// 4 px du bord de ses 4rem, « Maintenance » commence pile au début de ses 6rem
+// (la cellule est en `justify-end`, la pastille remplit tout).
+// La gouttière coûte 8 px au nom sur mobile ; la pastille d'état en rend
+// autant (voir son `px-1.5 sm:px-2` dans `lib/badge.tsx`), d'où un écart
+// visible d'une quinzaine de pixels pour une largeur de nom inchangée.
 const GRID_COLS =
-  "grid items-center grid-cols-[minmax(0,1fr)_4rem_6rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)]";
-
-function getPrimaryQueue(wt: WaitTime): QueueTime | undefined {
-  return wt.queues.find((q) => q.type === "standby") || wt.queues[0];
-}
+  "grid items-center gap-x-2 grid-cols-[minmax(0,1fr)_4rem_6rem] sm:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)]";
 
 export default function ParkWaitTimeTable({
   waitTimes,
   queueTypeLabels,
   parkIdentifier,
-  history = {},
-  parkClosed = false,
+  parkName,
+  reopenAllowed = true,
+  initialRideId = null,
 }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const tStatus = useTranslations("attractionStatus");
+  const tDetail = useTranslations("attractionDetail");
   const tFav = useTranslations("favorites");
   const { is12Hour } = useTimeFormat();
+  // Popup « détail » : on retient l'IDENTIFIANT de l'attraction, pas son objet.
+  //
+  // ⚠️ Stocker l'objet en faisait une PHOTO prise au clic, que le
+  // rafraîchissement 60 s ne mettait jamais à jour. Le popup pouvait donc
+  // afficher « En panne » alors que l'attraction avait rouvert entre-temps — et
+  // surtout proposer l'alerte correspondant à cet état périmé (voir
+  // `AlertSection` : la nature de l'alerte se déduit du statut). En repartant de
+  // l'identifiant, le contenu du popup suit le direct, y compris le formulaire
+  // d'alerte qui bascule tout seul de « réouverture » à « seuil ».
+  const [detailRideId, setDetailRideId] = useState<number | null>(null);
   const [expandedRides, setExpandedRides] = useState<Set<number>>(new Set());
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  const { isFavorite, toggle } = useFavorites("rides");
+  // Les favoris ne sont plus (dé)marqués depuis la liste (ça passe par le popup)
+  // mais restent épinglés en tête, d'où l'usage de `isFavorite` pour le tri.
+  const { isFavorite } = useFavorites("rides");
   const favKey = (rideId: number) => `${parkIdentifier}:${rideId}`;
+
+  // Attractions sous alerte de temps d'attente : une cloche les signale dans la
+  // liste (le réglage lui-même reste dans le popup).
+  const { alertRideIds } = useNotifications();
 
   const statusLabels: Record<string, string> = {
     open: tStatus("open"),
@@ -122,6 +147,42 @@ export default function ParkWaitTimeTable({
   );
 
   const changedRides = useWaitTimeChanges(waitTimes, 3000);
+
+  // Lien profond : on ouvre le popup une seule fois, à l'arrivée. Sans ce garde,
+  // le rafraîchissement 60 s (nouvelle référence de `waitTimes`) le rouvrirait
+  // indéfiniment après chaque fermeture.
+  const deepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (deepLinkHandled.current || initialRideId == null) return;
+    const target = waitTimes.find((wt) => wt.rideId === initialRideId);
+    // Attraction absente du flux du moment (fermée pour la saison, retirée par
+    // le fournisseur) : on reste simplement sur la page du parc.
+    if (target) setDetailRideId(initialRideId);
+    deepLinkHandled.current = true;
+  }, [initialRideId, waitTimes]);
+
+  // Données VIVES de l'attraction ouverte dans le popup, relues à chaque
+  // rafraîchissement de la liste.
+  const foundDetailTarget =
+    detailRideId != null
+      ? (waitTimes.find((wt) => wt.rideId === detailRideId) ?? null)
+      : null;
+
+  // Dernière version connue, mémorisée APRÈS le rendu (jamais pendant : écrire
+  // une ref en plein rendu n'est pas sûr en mode concurrent). Elle sert de filet
+  // si l'attraction disparaît du flux — l'API du parc cesse de la renvoyer, ou
+  // le fetch échoue : le popup garde alors ce qu'on avait au lieu de se vider
+  // brutalement sous les doigts de l'utilisateur.
+  const lastDetailTarget = useRef<WaitTime | null>(null);
+  useEffect(() => {
+    if (foundDetailTarget) lastDetailTarget.current = foundDetailTarget;
+    else if (detailRideId == null) lastDetailTarget.current = null;
+  }, [foundDetailTarget, detailRideId]);
+
+  const liveDetailTarget =
+    detailRideId != null
+      ? (foundDetailTarget ?? lastDetailTarget.current)
+      : null;
 
   const getQueueLabel = (queueType: string): string => {
     if (queueTypeLabels && queueTypeLabels[queueType]) {
@@ -201,14 +262,24 @@ export default function ParkWaitTimeTable({
   const sortButtonClass =
     "inline-flex items-center gap-1 cursor-pointer select-none hover:text-foreground transition-colors";
 
+  // La liste n'est plus un `<table>` (les lignes sont des blocs animés), mais
+  // elle en garde la SÉMANTIQUE via les rôles ARIA : sans eux, un lecteur
+  // d'écran n'annoncerait qu'une suite de `<div>` sans en-têtes ni colonnes.
+  const ariaSort = (key: SortKey) =>
+    key === sortKey
+      ? sortDir === "asc"
+        ? ("ascending" as const)
+        : ("descending" as const)
+      : ("none" as const);
+
   // Signature de l'ordre courant : on ne (ré)anime le `layout` QUE quand cet
   // ordre change (reclassement réel). Ainsi, déplier une attraction ne déclenche
   // aucune animation de position (plus d'effet d'étirement à l'ouverture).
   const orderKey = sortedWaitTimes.map((w) => w.rideId).join(",");
 
   // Frontière entre les favoris (épinglés en tête) et les attractions
-  // classiques : on marque la 1re attraction non-favorite d'un séparateur plus
-  // franc pour que les deux groupes se mélangent visuellement moins.
+  // classiques : on encadre le groupe des favoris de deux séparateurs ondulés
+  // ambrés (celui du haut porte le libellé « Vos favoris »).
   const favCount = sortedWaitTimes.filter((w) =>
     isFavorite(favKey(w.rideId)),
   ).length;
@@ -216,52 +287,62 @@ export default function ParkWaitTimeTable({
 
   return (
     <div className="w-full text-sm">
-      {/* En-tête (colonnes triables) — hors zone animée. */}
-      <div
-        className={cn(
-          GRID_COLS,
-          "h-10 border-b font-medium text-muted-foreground",
-        )}
-      >
-        <div className="flex items-center gap-1.5">
-          {/* Espace de la largeur de l'étoile (w-5) + même gap que les lignes,
-              pour aligner "Attraction" avec les noms des attractions. */}
-          <span className="w-5 shrink-0" aria-hidden />
-          <button
-            type="button"
-            onClick={() => handleSort("name")}
-            className={sortButtonClass}
+      <div role="table" aria-label={t("tableLabel", { park: parkName })}>
+        {/* En-tête (colonnes triables) — hors zone animée. */}
+        <div role="rowgroup">
+          <div
+            role="row"
+            className={cn(
+              GRID_COLS,
+              "h-10 border-b font-medium text-muted-foreground",
+            )}
           >
-            {t("attraction")}
-            {sortIndicator("name")}
-          </button>
+            <div
+              role="columnheader"
+              aria-sort={ariaSort("name")}
+              className="justify-self-start"
+            >
+              <button
+                type="button"
+                onClick={() => handleSort("name")}
+                className={sortButtonClass}
+              >
+                {t("name")}
+                {sortIndicator("name")}
+              </button>
+            </div>
+            <div role="columnheader" aria-sort={ariaSort("wait")}>
+              <button
+                type="button"
+                onClick={() => handleSort("wait")}
+                className={sortButtonClass}
+              >
+                {t("waitTime")}
+                {sortIndicator("wait")}
+              </button>
+            </div>
+            <div
+              role="columnheader"
+              aria-sort={ariaSort("status")}
+              className="justify-self-end sm:justify-self-start"
+            >
+              <button
+                type="button"
+                onClick={() => handleSort("status")}
+                className={cn(sortButtonClass, "pe-0")}
+              >
+                {t("status")}
+                {sortIndicator("status")}
+              </button>
+            </div>
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={() => handleSort("wait")}
-          className={sortButtonClass}
-        >
-          {t("waitTime")}
-          {sortIndicator("wait")}
-        </button>
-        <button
-          type="button"
-          onClick={() => handleSort("status")}
-          className={cn(
-            sortButtonClass,
-            "justify-self-end pe-0 sm:justify-self-start",
-          )}
-        >
-          {t("status")}
-          {sortIndicator("status")}
-        </button>
-      </div>
 
-      {/* Corps : une ligne standby par attraction (+ files dépliées). Chaque
-          attraction est un bloc `motion` animé en `layout` pour que le reclassement
-          (tri, favoris épinglés, changements de temps) glisse au lieu de sauter. */}
-      {sortedWaitTimes.length > 0 ? (
-        sortedWaitTimes.map((waitTime, index) => {
+        {/* Corps : une ligne standby par attraction (+ files dépliées). Chaque
+            attraction est un bloc `motion` animé en `layout` pour que le
+            reclassement (tri, favoris épinglés, changements de temps) glisse au
+            lieu de sauter. */}
+        {sortedWaitTimes.map((waitTime, index) => {
           // Files triées : standby en premier, puis les autres par ordre alpha.
           const sortedQueues = [...waitTime.queues].sort((a, b) => {
             if (a.type === "standby") return -1;
@@ -273,161 +354,259 @@ export default function ParkWaitTimeTable({
           const otherQueues = sortedQueues.filter((q) => q.type !== "standby");
           const isExpanded = expandedRides.has(waitTime.rideId);
           const hasMultipleQueues = sortedQueues.length > 1;
-          const fav = isFavorite(favKey(waitTime.rideId));
-          const rideHistory = history[waitTime.rideId];
+          // Frontière favoris / reste : séparateur ondulé (sans libellé) inséré
+          // avant la 1re attraction classique.
+          const isBoundary = hasFavBoundary && index === favCount;
+
+          // Nom découpé en « début » + « dernier mot » : ce dernier est rendu
+          // dans le même bloc insécable que le chevron et la cloche (voir
+          // `splitGluedTail`).
+          const { head: nameHead, tail: nameTail } = splitGluedTail(
+            waitTime.rideName,
+          );
 
           return (
-            <motion.div
-              layout="position"
-              layoutDependency={orderKey}
-              key={waitTime.rideId}
-              transition={{ type: "spring", stiffness: 320, damping: 36 }}
-              // Séparateur entre attractions uniquement (pas de trait final en bas).
-              // La 1re attraction classique après les favoris reçoit un trait plus
-              // épais + un petit espace pour distinguer nettement les deux groupes.
-              className={cn(
-                index > 0 && "border-t",
-                hasFavBoundary &&
-                  index === favCount &&
-                  "mt-2 border-t-2 border-border",
+            <Fragment key={waitTime.rideId}>
+              {/* Frontière basse des favoris : trait plein nettement plus épais
+                  (3px) pour bien séparer les favoris des autres attractions.
+                  Purement visuel -> retiré de l'arbre d'accessibilité, sans quoi
+                  il casserait la structure `table > rowgroup > row`. */}
+              {isBoundary && (
+                <div role="presentation" className="border-t-[3px] border-border" />
               )}
-            >
-              {/* Ligne standby (toujours affichée) */}
-              {standbyQueue && (
-                <div
-                  className={cn(
-                    GRID_COLS,
-                    "group transition-colors duration-500",
-                    changedRides.has(`${waitTime.rideId}-standby`) &&
-                      "bg-accent",
-                    hasMultipleQueues && "cursor-pointer hover:bg-accent/50",
-                  )}
-                  onClick={() =>
-                    hasMultipleQueues && toggleExpand(waitTime.rideId)
-                  }
-                >
-                  <div className="flex min-w-0 items-center gap-1.5 py-2 pe-2 font-medium wrap-break-word">
-                    <FavoriteStar
-                      active={fav}
-                      onToggle={() => toggle(favKey(waitTime.rideId))}
-                      label={fav ? tFav("remove") : tFav("add")}
-                      className={cn(
-                        "transition-opacity",
-                        fav
-                          ? "opacity-100"
-                          : "opacity-40 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100",
-                      )}
-                    />
-                    <span className="min-w-0">
-                      {hasMultipleQueues ? (
-                        (() => {
-                          const words = waitTime.rideName.trim().split(" ");
-                          const lastWord = words.pop();
-                          const beginning = words.join(" ");
-                          return (
-                            <>
-                              {beginning}{" "}
-                              <span className="inline-flex items-center gap-1 whitespace-nowrap">
-                                {lastWord}
-                                <ChevronRight
-                                  className={cn(
-                                    "size-3.5 transition-transform duration-200",
-                                    isExpanded && "rotate-90",
-                                  )}
-                                />
-                              </span>
-                            </>
-                          );
-                        })()
-                      ) : (
-                        waitTime.rideName
-                      )}
-                    </span>
-                  </div>
-                  <div className="py-2">
-                    {(() => {
-                      const showTrend =
-                        TRENDS_ENABLED &&
-                        !parkClosed &&
-                        !standbyQueue.timeSlot &&
-                        standbyQueue.status === "open" &&
-                        standbyQueue.waitTime >= 0;
-                      if (standbyQueue.timeSlot) {
-                        return getTimeSlotBadge(standbyQueue.timeSlot, is12Hour);
-                      }
-                      if (!showTrend) {
-                        // Indispo / fermé : badge à sa largeur naturelle, pas de flèche.
-                        return getWaitTimeBadge(
-                          standbyQueue.waitTime,
-                          unavailableLabel,
-                        );
-                      }
-                      // Badge dans une boîte à largeur minimale (min-w-14) pour
-                      // que les flèches d'une ligne à l'autre repartent du même x
-                      // (colonne alignée). C'est un *minimum* : les badges 1–2
-                      // chiffres collent la flèche, « +90 min » élargit juste sa
-                      // boîte au lieu de déborder.
-                      return (
-                        <div className="flex items-center gap-1">
-                          <span className="inline-flex min-w-14">
-                            {getWaitTimeBadge(
-                              standbyQueue.waitTime,
-                              unavailableLabel,
-                            )}
-                          </span>
-                          <WaitTrend
-                            history={rideHistory ?? []}
-                            current={standbyQueue.waitTime}
-                          />
-                        </div>
-                      );
-                    })()}
-                  </div>
-                  <div className="flex justify-end py-2 pe-0 sm:block">
-                    {getStatusBadge(standbyQueue.status, statusLabels)}
-                  </div>
-                </div>
-              )}
-
-              {/* Files secondaires (visibles seulement si dépliées) */}
-              {isExpanded &&
-                otherQueues.map((queue) => (
+              <motion.div
+                role="rowgroup"
+                layout="position"
+                layoutDependency={orderKey}
+                transition={{ type: "spring", stiffness: 320, damping: 36 }}
+                // Séparateur entre attractions (pas de trait au niveau de la
+                // frontière favoris, remplacé par le séparateur ondulé).
+                className={cn(index > 0 && !isBoundary && "border-t")}
+              >
+                {/* Ligne standby (toujours affichée) */}
+                {standbyQueue && (
                   <div
-                    key={`${waitTime.rideId}-${queue.type}`}
+                    role="row"
                     className={cn(
                       GRID_COLS,
-                      "border-t transition-colors duration-500",
-                      changedRides.has(`${waitTime.rideId}-${queue.type}`) &&
-                        "bg-accent",
+                      "cursor-pointer transition-colors duration-500",
+                      // Survol et clignotement de changement passent par des
+                      // RÔLES, pas par `bg-accent` : dans une carte
+                      // d'événement, la teinte de la famille les redéfinit
+                      // (`event-accents.tsx`), ailleurs ils valent exactement
+                      // l'ancien gris (`app/globals.css`).
+                      "hover:bg-[var(--table-row-hover)]",
+                      changedRides.has(`${waitTime.rideId}-standby`) &&
+                        "bg-[var(--table-row-accent)]",
                     )}
+                    // Toute la ligne ouvre le popup de détail ; seul le chevron
+                    // (qui stoppe la propagation) déplie les files secondaires.
+                    onClick={() => setDetailRideId(waitTime.rideId)}
+                    // La ligne remplace l'ancienne icône « œil » : elle doit
+                    // rester atteignable au clavier, d'où le tabIndex et la
+                    // gestion d'Entrée / Espace.
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" && e.key !== " ") return;
+                      e.preventDefault();
+                      setDetailRideId(waitTime.rideId);
+                    }}
                   >
-                    <div className="flex items-center gap-1 py-2 pe-2 ps-6 font-medium text-muted-foreground">
-                      <CornerDownRight className="size-3.5" />
-                      <span>{getQueueLabel(queue.type)}</span>
-                      {QUEUE_TYPE_MAP[queue.type] &&
-                        (() => {
-                          const Icon = QUEUE_TYPE_MAP[queue.type].icon;
-                          return <Icon className="size-3.5" />;
-                        })()}
+                    {/* Nom + chevron d'expand (si files multiples) accolé À LA
+                        FIN DU NOM. Le nom peut passer à la ligne (min-w-0 +
+                        wrap), le chevron reste sur la dernière ligne. */}
+                    {/* pe resserré (surtout mobile) + chevron collé au nom :
+                        marge réduite pour que le nom garde le MAXIMUM de largeur
+                        et passe moins vite à la ligne. */}
+                    {/* Rendu EN FLUX INLINE (pas de flex) : le nom coule et peut
+                        passer sur plusieurs lignes ; le chevron suit directement
+                        le dernier mot → il reste COLLÉ À LA FIN DU TEXTE, sur la
+                        dernière ligne, quel que soit le nombre de lignes. Il est
+                        `inline-flex align-middle`. */}
+                    {/* `rowheader` (et non `cell`) : le nom identifie la ligne,
+                        ce qui permet aux lecteurs d'écran de le rappeler en
+                        naviguant d'une colonne à l'autre. */}
+                    <div
+                      role="rowheader"
+                      className="min-w-0 py-2 pe-1 font-medium sm:pe-2"
+                    >
+                      {/* Étoile jaune devant les favoris pour les repérer d'un
+                          coup d'œil (les favoris sont épinglés en tête). */}
+                      {isFavorite(favKey(waitTime.rideId)) && (
+                        <Star
+                          aria-label={tFav("myFavorites")}
+                          className="mr-1 inline-block size-3.5 align-[-2px] fill-amber-400 text-amber-400"
+                        />
+                      )}
+                      <span className="wrap-break-word">{nameHead}</span>
+                      {/* Dernier mot + chevron : bloc insécable (voir plus haut). */}
+                      <span className="whitespace-nowrap">
+                        {nameTail}
+                        {hasMultipleQueues && (
+                          <button
+                            type="button"
+                            // Seule zone de la ligne qui NE déclenche PAS le
+                            // popup : le clic doit être précis sur le chevron,
+                            // d'où l'arrêt de la propagation vers la ligne.
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpand(waitTime.rideId);
+                            }}
+                            // La ligne écoute Entrée/Espace pour ouvrir le popup :
+                            // sans ça, une validation au clavier sur le chevron
+                            // déplierait ET ouvrirait le popup.
+                            onKeyDown={(e) => e.stopPropagation()}
+                            aria-expanded={isExpanded}
+                            aria-label={t("toggleQueues", {
+                              ride: waitTime.rideName,
+                            })}
+                            // p-1 (+ -my-1 pour ne pas grandir la ligne) : cible
+                            // de clic confortable au doigt malgré une icône de
+                            // 16 px, avec un fond au survol qui montre bien que
+                            // le chevron est une commande distincte de la ligne.
+                            // ms-1.5 : le pavé de survol ne doit pas toucher le
+                            // texte (avec p-1, une simple marge de 2 px collait
+                            // le fond au dernier caractère).
+                            // `align-middle` cale le milieu de la boîte sur
+                            // baseline + demi-hauteur d'x, soit ~1 px SOUS le
+                            // centre optique de la ligne : d'où le `-top-px`, qui
+                            // le recentre sans toucher au flux.
+                            className="relative -top-px -my-1 ms-1.5 inline-flex rounded-md p-1 align-middle text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                          >
+                            <ChevronRight
+                              className={cn(
+                                "size-4 transition-transform duration-200",
+                                isExpanded && "rotate-90",
+                              )}
+                            />
+                          </button>
+                        )}
+                        {/* Cloche : alerte de temps d'attente active sur cette
+                            attraction. Purement informative (le réglage est dans
+                            le popup) et affichée à la place de l'ancien œil. */}
+                        {alertRideIds.has(waitTime.rideId) && (
+                          <BellRing
+                            aria-label={tDetail("notifActive")}
+                            className={cn(
+                              "inline-block size-3.5 align-[-2px] text-primary",
+                              // Après le chevron, son padding fait déjà l'espace :
+                              // la cloche s'y recolle pour rester un même bloc
+                              // d'icônes. Sans chevron, elle doit se décoller du
+                              // texte comme le ferait le chevron lui-même.
+                              hasMultipleQueues ? "ms-0.5" : "ms-1.5",
+                            )}
+                          />
+                        )}
+                      </span>
                     </div>
-                    <div className="py-2">
-                      {queue.timeSlot
-                        ? getTimeSlotBadge(queue.timeSlot, is12Hour)
-                        : getWaitTimeBadge(queue.waitTime, unavailableLabel)}
+                    <div role="cell" className="py-2">
+                      {standbyQueue.timeSlot
+                        ? getTimeSlotBadge(standbyQueue.timeSlot, is12Hour)
+                        : getWaitTimeBadge(
+                            standbyQueue.waitTime,
+                            unavailableLabel,
+                          )}
                     </div>
-                    <div className="flex justify-end py-2 pe-0 sm:block">
-                      {getStatusBadge(queue.status, statusLabels)}
+                    <div
+                      role="cell"
+                      className="flex justify-end py-2 pe-0 sm:block"
+                    >
+                      {getStatusBadge(standbyQueue.status, statusLabels, true)}
                     </div>
                   </div>
-                ))}
-            </motion.div>
+                )}
+
+                {/* Files secondaires (visibles seulement si dépliées) */}
+                {isExpanded &&
+                  otherQueues.map((queue) => {
+                    const queueLabel = getQueueLabel(queue.type);
+                    const { head: queueHead, tail: queueTail } =
+                      splitGluedTail(queueLabel);
+                    const QueueIcon = QUEUE_TYPE_MAP[queue.type]?.icon;
+                    return (
+                    <div
+                      key={`${waitTime.rideId}-${queue.type}`}
+                      role="row"
+                      className={cn(
+                        GRID_COLS,
+                        "cursor-pointer border-t transition-colors duration-500",
+                        "hover:bg-[var(--table-row-hover)]",
+                        changedRides.has(`${waitTime.rideId}-${queue.type}`) &&
+                          "bg-[var(--table-row-accent)]",
+                      )}
+                      // Les files secondaires appartiennent à la même attraction :
+                      // elles ouvrent le même popup que la ligne standby.
+                      onClick={() => setDetailRideId(waitTime.rideId)}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter" && e.key !== " ") return;
+                        e.preventDefault();
+                        setDetailRideId(waitTime.rideId);
+                      }}
+                    >
+                      {/* Rendu EN FLUX INLINE, comme la ligne standby au-dessus,
+                          et non plus en `flex items-center` : un libellé sur
+                          deux lignes laissait sinon son icône de type de file
+                          centrée verticalement à côté du bloc, détachée du
+                          texte (surtout sur mobile).
+
+                          Plus de retrait `ps-6` non plus : la flèche part du
+                          MÊME bord gauche que les noms d'attraction, et le
+                          libellé se colle à elle. La hiérarchie se lit à la
+                          flèche et à la couleur atténuée, pas à un décalage qui
+                          désalignait la colonne. */}
+                      <div
+                        role="rowheader"
+                        className="min-w-0 py-2 pe-2 font-medium text-muted-foreground"
+                      >
+                        <CornerDownRight className="me-0.5 inline-block size-3.5 align-[-2px]" />
+                        <span className="wrap-break-word">{queueHead}</span>
+                        {/* Dernier mot + icône de type : bloc insécable. */}
+                        <span className="whitespace-nowrap">
+                          {queueTail}
+                          {QueueIcon && (
+                            <QueueIcon className="ms-1 inline-block size-3.5 align-[-2px]" />
+                          )}
+                        </span>
+                      </div>
+                      <div role="cell" className="py-2">
+                        {queue.timeSlot
+                          ? getTimeSlotBadge(queue.timeSlot, is12Hour)
+                          : getWaitTimeBadge(queue.waitTime, unavailableLabel)}
+                      </div>
+                      <div
+                        role="cell"
+                        className="flex justify-end py-2 pe-0 sm:block"
+                      >
+                        {getStatusBadge(queue.status, statusLabels, true)}
+                      </div>
+                    </div>
+                    );
+                  })}
+              </motion.div>
+            </Fragment>
           );
-        })
-      ) : (
+        })}
+      </div>
+
+      {/* Message d'absence de données : HORS du `role="table"`, qui n'accepte
+          que des lignes. */}
+      {sortedWaitTimes.length === 0 && (
         <div className="py-4 text-center text-muted-foreground">
           {t("noWaitTimes")}
         </div>
       )}
+
+      {/* Popup « détail attraction », ouvert par un clic sur une ligne. */}
+      <AttractionDetailDialog
+        target={liveDetailTarget}
+        parkIdentifier={parkIdentifier}
+        parkName={parkName}
+        reopenAllowed={reopenAllowed}
+        onOpenChange={(open) => {
+          if (!open) setDetailRideId(null);
+        }}
+      />
     </div>
   );
 }

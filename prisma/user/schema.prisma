@@ -1,0 +1,352 @@
+// Base de données UTILISATEURS — séparée de la base principale (parcs, attractions,
+// temps d'attente, historiques…). On n'y stocke QUE des données de compte, et les
+// références aux attractions se font par identifiant (rideId / parkIdentifier),
+// sans clé étrangère inter-bases : c'est suffisant et ça garde les deux bases
+// totalement découplées.
+//
+// Le client généré est isolé dans `lib/generated/user-client` pour cohabiter avec
+// le client `@prisma/client` de la base principale (voir lib/user-prisma.ts).
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../lib/generated/user-client"
+}
+
+datasource db {
+  // Prisma 7 : plus d'`url` ici. La connexion CLI (migrate / db push) est fournie
+  // par prisma.user.config.ts ; à l'exécution, l'app passe par l'adapter MariaDB
+  // construit dans lib/user-prisma.ts.
+  provider = "mysql"
+}
+
+//
+// AUTHENTIFICATION (modèles standard Auth.js / @auth/prisma-adapter)
+//
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?   @db.VarChar(255)
+  email         String?   @unique @db.VarChar(255)
+  emailVerified DateTime?
+  image         String?   @db.Text
+  // Aperçu des parcs masqués (`parks.display = false`) sur le site public : un
+  // admin ouvre l'URL normale du parc au lieu d'avoir à le publier pour voir son
+  // rendu. Aucun rapport avec la table `users` de la base PRINCIPALE, qui est
+  // celle des comptes de l'admin panel — les deux bases sont disjointes.
+  isAdmin       Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts          Account[]
+  sessions          Session[]
+  preferences       UserPreferences?
+  favorites         Favorite[]
+  alerts              Alert[]
+  alertHistory        AlertHistory[]
+  pushSubscriptions   PushSubscription[]
+  showReminders       ShowReminder[]
+  showReminderHistory ShowReminderHistory[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String  @db.VarChar(50)
+  provider          String  @db.VarChar(50)
+  providerAccountId String  @db.VarChar(255)
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String? @db.VarChar(50)
+  scope             String? @db.VarChar(255)
+  id_token          String? @db.Text
+  session_state     String? @db.VarChar(255)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @db.VarChar(255)
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String   @db.VarChar(255)
+  token      String   @unique @db.VarChar(255)
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+//
+// PRÉFÉRENCES
+//
+// Le compte fait autorité et se synchronise entre appareils. Les 3 préférences
+// connues sont des colonnes dédiées ; en ajouter d'autres = une colonne de plus,
+// sans changer le contrat des routes/UI (voir lib/user-preferences.ts).
+
+enum Theme {
+  light
+  dark
+  system
+}
+
+enum TimeFormat {
+  h12
+  h24
+}
+
+enum TemperatureUnit {
+  celsius
+  fahrenheit
+}
+
+model UserPreferences {
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  locale          String          @default("fr") @db.VarChar(10)
+  theme           Theme           @default(system)
+  timeFormat      TimeFormat      @default(h24)
+  temperatureUnit TemperatureUnit @default(celsius)
+  // false tant que l'utilisateur n'a jamais enregistré de préférence. Permet, au
+  // premier login, de fusionner ses réglages locaux dans un compte « vierge »
+  // plutôt que d'écraser ses choix par les valeurs par défaut du compte.
+  initialized Boolean   @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+//
+// FAVORIS
+//
+// On reprend exactement les namespaces du localStorage (hooks/useFavorites.ts) :
+//   - type `park` → key = park.identifier
+//   - type `ride` → key = "{parkIdentifier}:{rideId}"
+// Ainsi la synchro compte <-> localStorage est un simple miroir, sans traduction.
+
+enum FavoriteType {
+  park
+  ride
+  show
+}
+
+model Favorite {
+  id        String       @id @default(cuid())
+  userId    String
+  type      FavoriteType
+  key       String       @db.VarChar(255)
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, key])
+  @@index([userId])
+  @@map("favorites")
+}
+
+//
+// ALERTES (temps d'attente ET réouverture)
+//
+// Référence l'attraction par `rideId` (base principale). Les champs *Name /
+// parkIdentifier sont des instantanés d'affichage : le profil et l'historique
+// restent lisibles sans jointure inter-bases, même si l'attraction disparaît.
+// Le moteur de vérification des temps d'attente (/api/cron/alerts) lit les
+// alertes `active = true` par rideId et écrit dans l'historique.
+
+// DEUX natures d'alerte, mutuellement exclusives sur une même attraction (voir
+// la contrainte @@unique plus bas) — c'est l'ÉTAT COURANT de l'attraction qui
+// détermine laquelle a un sens, et l'UI ne propose donc jamais les deux :
+//   - `threshold` : l'attraction est OUVERTE, on surveille son temps d'attente
+//     et on prévient quand il descend à ≤ seuil.
+//   - `reopen`    : l'attraction est en panne / maintenance / fermée, il n'y a
+//     aucun temps d'attente à surveiller — la seule nouvelle utile est sa
+//     RÉOUVERTURE. Proposer un seuil ici n'aurait aucun sens (on ne peut pas
+//     descendre sous un seuil quand rien n'est publié), d'où le refus de créer
+//     une alerte `reopen` sur une attraction déjà ouverte (et inversement).
+enum AlertType {
+  threshold
+  reopen
+}
+
+model Alert {
+  id             String   @id @default(cuid())
+  userId         String
+  rideId         Int
+  parkIdentifier String   @db.VarChar(100)
+  rideName       String   @db.VarChar(255)
+  parkName       String   @db.VarChar(255)
+  type           AlertType @default(threshold)
+  // NULL pour une alerte `reopen` : elle n'a pas de seuil. Volontairement
+  // NULLABLE plutôt que « 0 par convention » — un 0 s'afficherait « ≤ 0 min »
+  // partout où l'on oublierait de traiter le cas, alors que `null` force le
+  // compilateur à trancher à chaque point d'affichage.
+  threshold      Int?
+  active         Boolean  @default(true)
+  // État anti-spam du moteur (déclenchement sur FRONT, pas sur niveau) : `armed`
+  // = true tant que le temps est resté au-dessus du seuil, donc prêt à alerter
+  // quand il redescendra à ≤ seuil. Passe à false juste après l'envoi, et se
+  // réarme quand le temps repasse nettement au-dessus (seuil + hystérésis) ou que
+  // l'attraction n'est plus ouverte. Sans ça, on ré-alerterait à chaque passage
+  // du cron tant que la file reste courte.
+  // Pour une alerte `reopen`, `armed` n'a pas de rôle d'hystérésis : le
+  // déclenchement est déjà un FRONT par construction (l'alerte ne peut naître
+  // que sur une attraction non ouverte, donc tout `open` observé EST la
+  // réouverture attendue).
+  armed          Boolean   @default(true)
+  // Instant du dernier envoi. Pour une alerte `reopen`, il sert AUSSI de borne
+  // à la fenêtre de réarmement automatique : si l'attraction retombe en panne
+  // dans l'heure qui suit, le moteur la réarme seul (voir /api/cron/alerts).
+  lastAlertedAt  DateTime?
+  // Jour de validité de l'alerte. Une alerte ne vaut QUE pour la journée où elle
+  // a été (ré)activée : on considère qu'on quitte le parc le soir. Le moteur
+  // SUPPRIME toute alerte dont ce jour — évalué dans le FUSEAU DU PARC — est
+  // antérieur à aujourd'hui, qu'elle soit encore active ou déjà consommée (une
+  // alerte `reopen` survit à son envoi, cf. plus haut : sans ce balayage sur les
+  // lignes inactives, elle traînerait jusqu'à la purge de rétention à 7 jours).
+  // Rempli à la création et à chaque réactivation. Null (anciennes lignes) =
+  // pas d'expiration.
+  activeDate     DateTime? @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  history AlertHistory[]
+
+  @@unique([userId, rideId])
+  @@index([userId])
+  @@index([rideId, active])
+  @@map("alerts")
+}
+
+model AlertHistory {
+  id             String   @id @default(cuid())
+  userId         String
+  alertId        String?
+  rideId         Int
+  rideName       String   @db.VarChar(255)
+  parkIdentifier String   @db.VarChar(100)
+  // Nature de la notification envoyée, recopiée de l'alerte : le fil du profil
+  // ne peut pas la déduire de `threshold` seul (voir AlertType).
+  type           AlertType @default(threshold)
+  // NULL pour une notification de réouverture (pas de seuil), comme sur Alert.
+  threshold      Int?
+  // Temps d'attente au moment de l'envoi. Pour une réouverture, c'est celui
+  // publié à la réouverture (souvent 0) : l'information utile est l'événement,
+  // pas la valeur.
+  actualWaitTime Int
+  sentAt         DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alert Alert? @relation(fields: [alertId], references: [id], onDelete: SetNull)
+
+  @@index([userId, sentAt])
+  @@index([alertId])
+  @@map("alert_history")
+}
+
+//
+// RAPPELS DE SPECTACLES (notifications programmées)
+//
+// Contrairement aux alertes (déclenchées par un SEUIL de temps d'attente), un
+// rappel de spectacle est TEMPOREL : envoyé `leadMinutes` avant le début d'une
+// représentation. Le spectacle est référencé par (parkIdentifier, showName,
+// startTime) — pas de clé étrangère inter-bases, comme pour les alertes. Les
+// *Name / parkIdentifier sont des instantanés d'affichage (push lisible sans
+// jointure). `fireAt` = startTime - leadMinutes est PRÉCALCULÉ pour que le moteur
+// (/api/cron/alerts) ne fasse qu'un simple `fireAt <= now && !sent`.
+
+model ShowReminder {
+  id             String    @id @default(cuid())
+  userId         String
+  parkIdentifier String    @db.VarChar(100)
+  parkName       String    @db.VarChar(255)
+  showName       String    @db.VarChar(255)
+  // Instant absolu de la représentation (le fuseau est déjà encodé dans le
+  // DateTime). `leadMinutes` ∈ {10,20,30,40,50,60}.
+  startTime      DateTime
+  leadMinutes    Int
+  // Précalculé à la création/mise à jour : startTime - leadMinutes.
+  fireAt         DateTime
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Un seul rappel par (utilisateur, représentation) : re-soumettre met à jour le
+  // délai. Un rappel n'existe que tant qu'il est EN ATTENTE : à l'envoi, le moteur
+  // écrit dans `ShowReminderHistory` puis supprime la ligne (plus de flag `sent`).
+  @@unique([userId, parkIdentifier, showName, startTime])
+  @@index([userId])
+  @@index([fireAt])
+  @@map("show_reminders")
+}
+
+//
+// HISTORIQUE DES RAPPELS DE SPECTACLES ENVOYÉS
+//
+// Journal append-only, indépendant des `ShowReminder` : quand un rappel part
+// (moteur cron), on écrit ICI un instantané permanent, puis on supprime le
+// `ShowReminder` consommé. Ainsi l'historique SURVIT à toute (ré)édition ou
+// suppression du rappel — pendant fonctionnel de `AlertHistory` pour les
+// attractions. RÉTENTION : on ne purge JAMAIS ; le front borne juste l'affichage
+// à 30 jours (`sentAt`).
+model ShowReminderHistory {
+  id             String   @id @default(cuid())
+  userId         String
+  parkIdentifier String   @db.VarChar(100)
+  parkName       String   @db.VarChar(255)
+  showName       String   @db.VarChar(255)
+  startTime      DateTime
+  leadMinutes    Int
+  sentAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sentAt])
+  @@map("show_reminder_history")
+}
+
+//
+// ABONNEMENTS PUSH (Web Push)
+//
+// Un abonnement par APPAREIL/navigateur (un utilisateur peut en avoir plusieurs :
+// téléphone, desktop…). Produit par PushManager.subscribe() côté client, envoyé
+// à /api/user/push. Le moteur (/api/cron/notifications) envoie un message Web Push
+// signé VAPID à chaque abonnement de l'utilisateur. Un endpoint mort (410/404 au
+// moment de l'envoi) est supprimé automatiquement.
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  // `endpoint` identifie de façon unique l'abonnement (URL du service push du
+  // navigateur). Unique pour permettre l'upsert (ré-abonnement du même appareil).
+  endpoint  String   @unique @db.VarChar(500)
+  p256dh    String   @db.VarChar(255)
+  auth      String   @db.VarChar(255)
+  // Purement informatif (debug / futur affichage « vos appareils »).
+  userAgent String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}

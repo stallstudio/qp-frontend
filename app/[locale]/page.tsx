@@ -1,67 +1,43 @@
-"use client";
-
-import axios from "axios";
-import { useEffect, useState, useCallback } from "react";
-import HomeHeader from "@/components/home/header";
-import Footer from "@/components/ui/footer";
-import SearchBar from "@/components/search/search-bar";
-import PopularParks from "@/components/home/popular-parks";
-import FavoriteParks from "@/components/home/favorite-parks";
-import ParksList from "@/components/home/parks-list";
+import { getLocale } from "next-intl/server";
+import HomePageClient from "@/components/home/home-page-client";
 import HomeSkeleton from "@/components/home/home-skeleton";
-import { useTranslations } from "next-intl";
-import { ParkList, ParkListData } from "@/types/api";
+import { getHomeData, localizeCountries } from "@/lib/parks-list";
+import type { ParkList } from "@/types/api";
 
-export default function Home() {
-  const t = useTranslations("errors");
-  const [parks, setParks] = useState<ParkList[]>([]);
-  const [popularParks, setPopularParks] = useState<ParkList[]>([]);
-  const [loading, setLoading] = useState(true);
+// Le classement des « parcs populaires » reflète les 2 dernières heures : la
+// page est donc rendue à la demande (la liste des parcs, elle, est mémorisée
+// 5 min côté `lib/parks-list.ts`).
+export const dynamic = "force-dynamic";
 
-  const fetchParks = useCallback(async () => {
-    setLoading(true);
+export default async function Home() {
+  // Chargement côté SERVEUR, en appelant la couche métier directement : le HTML
+  // contient la liste des parcs (contrairement à l'ancien composant client qui
+  // affichait un squelette puis appelait `/api/parks`).
+  let parks: ParkList[] = [];
+  let popularParks: ParkList[] = [];
+  let failed = false;
 
-    try {
-      const response = await axios.get<{ data: ParkListData }>("/api/parks");
-      setParks(response.data.data.parks);
+  try {
+    const data = await getHomeData();
+    // Les noms de pays sont traduits ICI, après le cache partagé de la liste :
+    // c'est la seule étape qui connaît la langue de la requête, et la seule qui
+    // ne doit surtout pas être mémorisée (voir `localizeCountries`).
+    parks = localizeCountries(data.parks, await getLocale());
+    popularParks = data.popularParks
+      .map((identifier) =>
+        parks.find((park) => park.identifier === identifier),
+      )
+      .filter((park): park is ParkList => park !== undefined);
+  } catch (error) {
+    console.error("Failed to load home data", error);
+    failed = true;
+  }
 
-      const popularParksData = response.data.data.popularParks
-        .map((identifier) =>
-          response.data.data.parks.find(
-            (park) => park.identifier === identifier,
-          ),
-        )
-        .filter((park): park is ParkList => park !== undefined);
-      setPopularParks(popularParksData);
-    } catch (error) {
-      console.error(t("fetchError"), error);
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
-  useEffect(() => {
-    fetchParks();
-  }, [fetchParks]);
-
-  if (loading) {
+  // Base injoignable : on garde le squelette plutôt qu'une page vide. Il
+  // disparaîtra au prochain chargement, la page étant rendue à chaque requête.
+  if (failed) {
     return <HomeSkeleton />;
   }
 
-  return (
-    <div className="flex min-h-screen w-full mx-auto max-w-4xl lg:max-w-6xl flex-col px-3 sm:px-4 gap-8">
-      <main className="flex-1 flex flex-col gap-8">
-        <HomeHeader />
-
-        <SearchBar parks={parks} />
-
-        <FavoriteParks parks={parks} />
-
-        <PopularParks popularParks={popularParks} />
-
-        <ParksList parks={parks} />
-      </main>
-      <Footer />
-    </div>
-  );
+  return <HomePageClient parks={parks} popularParks={popularParks} />;
 }

@@ -106,8 +106,13 @@ export default function ParkCoverImage({
         priority
       />
 
+      {/* ⚠️ `pointer-events-none` : un crédit n'est pas une cible. Le même bloc,
+          dans le popup de détail d'une attraction, se posait sur la croix de
+          fermeture et lui volait ses clics. Rien ne le recouvre ICI aujourd'hui,
+          mais les deux crédits sont censés rester identiques — et le prochain
+          bouton posé dans ce coin retrouverait le même piège. */}
       {selectedCover.credit && (
-        <div className="absolute top-3 right-4 z-50">
+        <div className="pointer-events-none absolute top-3 right-4 z-50">
           <span className="text-[10px] text-white/60">
             © {selectedCover.credit}
           </span>

@@ -1,6 +1,9 @@
+import { AnimatePresence, motion } from "motion/react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ParkCategoryCard from "../parks/park-category-card";
-import { getCountryName, getParkStatus } from "@/lib/utils";
+import ParkCategoryCard, {
+  CATEGORY_COLLAPSE_LIMIT,
+} from "../parks/park-category-card";
+import { getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { ParkList } from "@/types/api";
 import { Switch } from "../ui/switch";
@@ -10,6 +13,15 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 interface ParksListProps {
   parks: ParkList[];
 }
+
+// ⚠️ Le repli est VOLONTAIREMENT limité à deux catégories, en dur : le groupe
+// Fantawild (华强方特, 49 parcs) en tri « par groupe », et la Chine en tri « par
+// pays » — ce sont les mêmes parcs, vus des deux façons, et les seuls à écraser
+// une colonne de l'accueil. Choix assumé plutôt qu'un seuil générique : partout
+// ailleurs on préfère la liste complète, ne serait-ce que pour les liens
+// internes (les parcs repliés ne sont pas dans le HTML, voir park-category-card).
+const COLLAPSED_GROUP_MATCH = "fantawild";
+const COLLAPSED_COUNTRY_CODE = "CN";
 
 export default function ParksList({ parks }: ParksListProps) {
   const t = useTranslations("parksList");
@@ -41,6 +53,17 @@ export default function ParksList({ parks }: ParksListProps) {
     ? parks.filter((park) => getParkStatus(park.openingHours) === "open")
     : parks;
 
+  // Le test porte sur les DONNÉES d'un parc de la catégorie, pas sur le libellé
+  // affiché : en tri par pays, `groupName` est un nom résolu par
+  // `Intl.DisplayNames` (« China »), qu'on ne veut pas comparer en dur.
+  const isCollapsibleCategory = (groupParks: ParkList[]) => {
+    const sample = groupParks[0];
+    if (!sample) return false;
+    return sortBy === "group"
+      ? sample.group.name.toLowerCase().includes(COLLAPSED_GROUP_MATCH)
+      : sample.country === COLLAPSED_COUNTRY_CODE;
+  };
+
   const groupParksByGroup = () => {
     const grouped: Record<string, ParkList[]> = {};
     filteredParks.forEach((park) => {
@@ -65,17 +88,29 @@ export default function ParksList({ parks }: ParksListProps) {
   const groupParksByCountry = () => {
     const grouped: Record<string, ParkList[]> = {};
     filteredParks.forEach((park) => {
-      const countryName = getCountryName(park.country || "Unknown Country");
+      // ⚠️ `countryLabel` (traduit) et NON `countryName` (anglais, réservé à la
+      // classe du drapeau). Les deux sont résolus côté serveur : les recalculer
+      // ici donnerait un libellé différent au SSR et à l'hydratation.
+      const countryName =
+        park.countryLabel || park.countryName || "Unknown Country";
       if (!grouped[countryName]) {
         grouped[countryName] = [];
       }
       grouped[countryName].push(park);
     });
 
-    // Sort groups alphabetically
+    // Ordre alphabétique, accents ignorés — « Émirats arabes unis » se range à
+    // E et non après Z, où le tri par point de code le renvoyait.
+    //
+    // ⚠️ Volontairement PAS `localeCompare` : la comparaison passerait par les
+    // données de collation du runtime, et c'est exactement l'écart Node ↔
+    // navigateur qui nous a déjà valu des erreurs d'hydratation sur ces mêmes
+    // noms de pays. Un dépliage NFD est déterministe partout.
+    const sortKey = (s: string) =>
+      s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
     const sortedGrouped: Record<string, ParkList[]> = {};
     Object.keys(grouped)
-      .sort()
+      .sort((a, b) => (sortKey(a) < sortKey(b) ? -1 : sortKey(a) > sortKey(b) ? 1 : 0))
       .forEach((key) => {
         sortedGrouped[key] = grouped[key];
       });
@@ -103,7 +138,15 @@ export default function ParksList({ parks }: ParksListProps) {
         if (counts[i] < counts[minIdx]) minIdx = i;
       }
       columns[minIdx].push([groupName, groupParks]);
-      counts[minIdx] += groupParks.length;
+      // On compte la hauteur RÉELLEMENT affichée, pas le nombre de parcs : une
+      // catégorie repliée n'occupe que ses 10 lignes + celle du bouton. Sinon
+      // Fantawild pesait 49 dans la balance et sa colonne finissait bien plus
+      // courte que les autres.
+      counts[minIdx] +=
+        isCollapsibleCategory(groupParks) &&
+        groupParks.length > CATEGORY_COLLAPSE_LIMIT
+          ? CATEGORY_COLLAPSE_LIMIT + 1
+          : groupParks.length;
     });
 
     return columns;
@@ -165,50 +208,67 @@ export default function ParksList({ parks }: ParksListProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* `layout` sur la grille + AnimatePresence dans chaque colonne : filtrer
+          (masquer les fermés) ou changer de tri (groupe/pays) fait glisser,
+          apparaître et disparaître les catégories en douceur au lieu de sauter. */}
+      <motion.div
+        layout
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+      >
         {/* Desktop (lg+): 3 columns */}
         {threeColumns.map((column, columnIndex) => (
-          <div
+          <motion.div
+            layout
             key={`lg-col-${columnIndex}`}
             className="space-y-8 hidden lg:block"
           >
-            {column.map(([groupName, groupParks]) => (
-              <ParkCategoryCard
-                key={groupName}
-                groupName={groupName}
-                parks={groupParks}
-              />
-            ))}
-          </div>
+            <AnimatePresence initial={false}>
+              {column.map(([groupName, groupParks]) => (
+                <ParkCategoryCard
+                  key={groupName}
+                  groupName={groupName}
+                  parks={groupParks}
+                  collapsible={isCollapsibleCategory(groupParks)}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
         ))}
 
         {/* Tablet (md only): 2 columns */}
         {twoColumns.map((column, columnIndex) => (
-          <div
+          <motion.div
+            layout
             key={`md-col-${columnIndex}`}
             className="space-y-8 hidden md:block lg:hidden"
           >
-            {column.map(([groupName, groupParks]) => (
+            <AnimatePresence initial={false}>
+              {column.map(([groupName, groupParks]) => (
+                <ParkCategoryCard
+                  key={groupName}
+                  groupName={groupName}
+                  parks={groupParks}
+                  collapsible={isCollapsibleCategory(groupParks)}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        ))}
+
+        {/* Mobile: single column */}
+        <motion.div layout className="space-y-8 block md:hidden">
+          <AnimatePresence initial={false}>
+            {getMobileParks().map(([groupName, groupParks]) => (
               <ParkCategoryCard
                 key={groupName}
                 groupName={groupName}
                 parks={groupParks}
+                collapsible={isCollapsibleCategory(groupParks)}
               />
             ))}
-          </div>
-        ))}
-
-        {/* Mobile: single column */}
-        <div className="space-y-8 block md:hidden">
-          {getMobileParks().map(([groupName, groupParks]) => (
-            <ParkCategoryCard
-              key={groupName}
-              groupName={groupName}
-              parks={groupParks}
-            />
-          ))}
-        </div>
-      </div>
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

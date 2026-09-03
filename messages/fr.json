@@ -12,23 +12,44 @@
     "title": "Tous les parcs",
     "sortByGroup": "Par groupe",
     "sortByCountry": "Par pays",
-    "hideClosedParks": "Masquer les parcs fermés"
+    "hideClosedParks": "Masquer les parcs fermés",
+    "seeMoreParks": "Voir les {count} autres parcs",
+    "seeLess": "Voir moins"
   },
   "popularParks": {
     "title": "Parcs populaires",
     "trendingText": "Tendances des dernières heures",
     "visitsNote": "vues"
   },
+  "weather": {
+    "clear": "Ciel dégagé",
+    "mainlyClear": "Plutôt dégagé",
+    "partlyCloudy": "Partiellement nuageux",
+    "overcast": "Couvert",
+    "fog": "Brouillard",
+    "drizzle": "Bruine",
+    "rain": "Pluie",
+    "snow": "Neige",
+    "thunderstorm": "Orage",
+    "unknown": "Météo indisponible",
+    "min": "Min",
+    "max": "Max"
+  },
   "parkPage": {
     "backHome": "Retour à l'accueil",
-    "localTime": "Heure locale",
     "todayHours": "Horaires du jour",
     "extraOpeningHours": "Accès anticipé",
     "extendedHours": "Horaires prolongés",
     "closedToday": "Fermé aujourd'hui",
     "hoursUnavailable": "Les horaires d'ouverture sont actuellement indisponibles",
     "privateEvent": "Parc privatisé",
-    "privateEventNoHours": "Parc privatisé aujourd'hui"
+    "privateEventNoHours": "Parc privatisé aujourd'hui",
+    "eventHours": "Événement",
+    "hoursOther": "Horaires",
+    "cards": {
+      "attractions": "Attractions",
+      "shows": "Spectacles"
+    }
   },
   "parkStatus": {
     "open": "Ouvert",
@@ -43,8 +64,8 @@
     "unavailableShort": "Indispo"
   },
   "tabs": {
-    "waitTimes": "Temps d'attente",
-    "shows": "Spectacles"
+    "live": "En direct",
+    "schedule": "Horaires du jour"
   },
   "shows": {
     "show": "Spectacle",
@@ -55,23 +76,73 @@
     "legendOngoing": "En cours",
     "legendUpcoming": "À venir"
   },
+  "showDetail": {
+    "openFor": "Voir le détail de {show}",
+    "notifTitle": "Alertes",
+    "duration": "Durée : {duration}",
+    "continuousAccess": "En continu · {range}",
+    "signInIntro": "Connectez-vous pour être prévenu avant le début d'un spectacle.",
+    "reminderIntro": "Choisissez un horaire, puis le délai avant lequel être prévenu.",
+    "leadLabel": "Combien de temps avant le spectacle souhaites-tu être prévenu ?",
+    "leadOption": "{minutes} min avant",
+    "reminderActive": "Rappel {minutes} min avant",
+    "reminderScheduled": "Rappel programmé",
+    "save": "Activer le rappel",
+    "update": "Mettre à jour",
+    "remove": "Supprimer",
+    "reminderSaved": "Rappel enregistré",
+    "reminderRemoved": "Rappel supprimé",
+    "reminderError": "Une erreur est survenue. Réessayez.",
+    "pushBlocked": "Rappel enregistré, mais cet appareil ne recevra rien (notifications non autorisées).",
+    "noUpcoming": "Plus de représentation à venir aujourd'hui.",
+    "leadTooLate": "Ce créneau est trop proche pour programmer un rappel.",
+    "reminderActivate": "Activer le rappel",
+    "reminderModify": "Modifier le rappel"
+  },
   "favorites": {
     "myFavorites": "Mes favoris",
+    "yours": "Vos favoris",
     "add": "Ajouter aux favoris",
     "remove": "Retirer des favoris",
     "addPark": "Ajouter ce parc aux favoris",
-    "removePark": "Retirer ce parc des favoris"
+    "removePark": "Retirer ce parc des favoris",
+    "parkLimit": "Vous pouvez avoir {max} parcs favoris au maximum.",
+    "seeMore": "Voir les {count} autres",
+    "seeLess": "Voir moins",
+    "needAccount": "Connectez-vous pour ajouter des favoris."
+  },
+  "cookies": {
+    "message": "Nous utilisons des cookies de mesure d'audience pour améliorer le site. Vous pouvez les accepter ou les refuser.",
+    "learnMore": "En savoir plus",
+    "accept": "Accepter",
+    "refuse": "Refuser",
+    "manage": "Gérer les cookies",
+    "legalNotice": "Mentions légales",
+    "privacyPolicy": "Confidentialité",
+    "cookiePolicy": "Cookies"
+  },
+  "manifest": {
+    "name": "Queue Park",
+    "description": "Temps d'attente en direct et spectacles de vos parcs d'attractions préférés.",
+    "shortcutAllParks": "Tous les parcs",
+    "shortcutParksShort": "Parcs"
   },
   "waitTimeTable": {
-    "attraction": "Attraction",
+    "name": "Nom",
     "waitTime": "Temps",
     "status": "État",
     "noWaitTimes": "Aucun temps d'attente disponible pour le moment",
-    "refreshingIn": "Actualisation dans",
+    "tableLabel": "Temps d'attente — {park}",
+    "toggleQueues": "Afficher les autres files de {ride}",
     "second": "seconde",
     "seconds": "secondes",
+    "minute": "minute",
+    "minutes": "minutes",
     "nowRefreshing": "Actualisation en cours...",
-    "lastUpdate": "Dernière mise à jour"
+    "lastUpdate": "Dernière mise à jour",
+    "updatedAgo": "Mis à jour il y a {age}",
+    "liveConnected": "En direct",
+    "liveFallback": "Actualisation automatique"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Tous droits réservés.",
@@ -88,9 +159,26 @@
     "networkErrorRefresh": "Un problème réseau est survenu lors de l'actualisation des données",
     "networkError": "Une erreur réseau est survenue. Vérifiez votre connexion et réessayez."
   },
+  "og": {
+    "subtitle": "Temps d'attente en direct",
+    "averageWait": "Attente moyenne",
+    "openAttractions": "Attractions ouvertes",
+    "busiest": "La plus demandée",
+    "noLiveData": "Aucun temps d'attente en direct pour le moment",
+    "currentWait": "Attente actuelle",
+    "rideClosed": "Attraction fermée pour le moment"
+  },
+  "errorPages": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundMessage": "Cette page n'existe pas ou a été déplacée. Le parc que vous cherchiez a peut-être changé d'adresse.",
+    "errorTitle": "Une erreur est survenue",
+    "errorMessage": "Nous n'avons pas réussi à afficher cette page. Réessayez dans un instant — si le problème persiste, écrivez-nous à contact@queue-park.com.",
+    "retry": "Réessayer",
+    "backHome": "Retour à l'accueil"
+  },
   "about": {
     "metaTitle": "À propos",
-    "metaDescription": "Découvrez Queue Park : d'où viennent les temps d'attente, comment fonctionnent les favoris, les flèches de tendance, les parcs populaires et toutes les fonctionnalités.",
+    "metaDescription": "Découvrez Queue Park : d'où viennent les temps d'attente, comment fonctionnent les favoris, les prévisions d'affluence, la météo et toutes les fonctionnalités.",
     "backHome": "Retour à l'accueil",
     "heroTitle": "À propos de Queue Park",
     "heroSubtitle": "Les temps d'attente de vos parcs préférés, en direct et pour tous.",
@@ -104,7 +192,7 @@
     "cards": {
       "intro": {
         "title": "Qu'est-ce que Queue Park ?",
-        "body": "Queue Park rassemble en un seul endroit les temps d'attente en direct de plus de 100 parcs d'attractions à travers le monde. Notre but : vous aider à repérer d'un coup d'œil les attractions à faire tout de suite et à mieux organiser votre journée, sans passer votre temps le nez sur un plan."
+        "body": "Queue Park rassemble en un seul endroit les temps d'attente en direct de plus de 200 parcs d'attractions à travers le monde. Notre but : vous aider à repérer d'un coup d'œil les attractions à faire tout de suite et à mieux organiser votre journée, sans passer votre temps le nez sur un plan."
       },
       "data": {
         "title": "D'où viennent les données ?",
@@ -115,8 +203,8 @@
         "body": "Un service automatique tourne en continu et interroge les parcs quasiment en temps réel. Il vérifie chaque valeur, associe chaque file à la bonne attraction, enregistre l'historique de la journée et récupère aussi les horaires d'ouverture et les spectacles. Si une source de données se comporte anormalement, l'équipe est alertée automatiquement."
       },
       "free": {
-        "title": "Gratuit et sans compte",
-        "body": "Queue Park est entièrement gratuit et ne demande aucune inscription. Vos favoris et vos préférences (langue, thème, format d'heure) restent enregistrés dans votre navigateur, sur votre appareil — nous n'avons pas besoin de vos données personnelles pour fonctionner."
+        "title": "Gratuit, sans pub",
+        "body": "Queue Park est entièrement gratuit et sans publicité. Consulter les temps d'attente ne demande aucun compte. Pour épingler des favoris et recevoir des alertes, un compte gratuit et sans mot de passe (Google ou lien magique) suffit — et vous retrouvez tout, synchronisé, sur tous vos appareils."
       },
       "independent": {
         "title": "Un projet indépendant",
@@ -130,27 +218,20 @@
         "title": "Temps d'attente en direct",
         "body": "Chaque attraction affiche son temps d'attente actuel, mis à jour automatiquement environ toutes les minutes — pas besoin de rafraîchir la page, Queue Park le fait automatiquement pour vous toutes les 60 secondes. La couleur donne le ton en un instant : vert pour rapide, orange pour moyen, rouge pour long."
       },
-      "trend": {
-        "title": "Les tendances",
-        "body": "À côté d'un temps d'attente, une petite flèche indique la direction récente de la file : elle monte (rouge) si l'attente s'allonge, elle descend (verte) si elle se réduit, et reste horizontale (grise) quand c'est stable. Pratique pour décider d'y aller maintenant… ou d'attendre un peu.",
-        "up": "En hausse",
-        "stable": "Stable",
-        "down": "En baisse"
-      },
       "queues": {
         "title": "Les types de files",
         "body": "Une même attraction peut proposer plusieurs files : la file classique (Standby), ainsi que des options comme Fastlane (coupe-file), Single Rider (personne seule) ou Virtual Queue (file virtuelle). Touchez une attraction qui en propose plusieurs pour déplier tous ses temps."
       },
       "favorites": {
         "title": "Les favoris",
-        "body": "Touchez l'étoile pour ajouter un parc ou une attraction à vos favoris. Vos favoris sont épinglés en haut des listes pour les retrouver immédiatement, et ils sont conservés dans votre navigateur. Aucun compte requis, et ça se synchronise entre vos onglets ouverts.",
+        "body": "Touchez l'étoile pour ajouter un parc, une attraction ou un spectacle à vos favoris. Les parcs favoris sont épinglés en haut de l'accueil ; vos attractions et spectacles favoris se retrouvent, regroupés par parc, dans une fenêtre depuis votre profil. Enregistrés sur votre compte et synchronisés sur tous vos appareils.",
         "parksLabel": "Parcs favoris",
-        "ridesLabel": "Attractions favorites",
-        "hint": "Touchez une étoile : le favori remonte en tête."
+        "ridesLabel": "Attractions favorites (profil)",
+        "hint": "Touchez une étoile : le parc favori remonte en tête de l'accueil."
       },
-      "popular": {
-        "title": "Les parcs populaires",
-        "body": "La section « Parcs populaires » met en avant les parcs les plus consultés sur Queue Park au cours des dernières heures. C'est un bon reflet de là où l'affluence — et l'intérêt — se concentrent en ce moment."
+      "forecast": {
+        "title": "Prévision d'affluence",
+        "body": "Sur la fiche d'une attraction, la courbe pleine retrace le temps d'attente observé depuis l'ouverture, et le pointillé une estimation jusqu'à la fermeture. Elle s'appuie sur les journées passées comparables (jour de la semaine, vacances, météo, horaires). Sous le graphique, nous annonçons notre marge d'erreur réelle : chaque jour, nous comparons nos prévisions à ce qui s'est vraiment passé."
       },
       "search": {
         "title": "Recherche & parc au hasard",
@@ -158,7 +239,11 @@
       },
       "shows": {
         "title": "Les spectacles",
-        "body": "Pour les parcs concernés, un onglet « Spectacles » affiche les horaires des représentations de la journée sous forme de timeline. Ces horaires sont mis à jour toutes les heures."
+        "body": "Pour les parcs concernés, l'onglet « Horaires du jour » affiche les horaires des représentations de la journée sous forme de timeline. Ces horaires sont mis à jour toutes les heures."
+      },
+      "events": {
+        "title": "Les événements saisonniers",
+        "body": "Pendant Halloween ou Noël, les attractions et spectacles propres à l'événement ont leur propre carte, aux couleurs de la saison : elle se déplie à l'heure d'ouverture de l'événement et reste repliée en dehors. La mention « Billet séparé » vous prévient quand l'accès n'est pas compris dans l'entrée du parc."
       },
       "status": {
         "title": "Statuts en un coup d'œil",
@@ -166,43 +251,113 @@
       },
       "preferences": {
         "title": "À votre main",
-        "body": "Queue Park s'adapte à vous : mode clair ou sombre, format d'heure 12h ou 24h, et une interface disponible en 14 langues. Vos choix sont mémorisés pour vos prochaines visites."
+        "body": "Queue Park s'adapte à vous : thème clair, sombre ou automatique (selon votre système), format d'heure 12h ou 24h, unité de température °C ou °F, et une interface disponible en 14 langues. Vos choix sont mémorisés pour vos prochaines visites."
+      },
+      "alerts": {
+        "title": "Alertes de temps d'attente",
+        "body": "Depuis la fiche d'une attraction, choisissez un seuil : vous êtes prévenu par notification dès que l'attente passe en dessous. Une fois envoyée, l'alerte a fait son travail : elle disparaît et rejoint votre historique. Il suffit d'en reposer une depuis la fiche de l'attraction. Nécessite un compte et l'autorisation des notifications."
+      },
+      "reminders": {
+        "title": "Rappels de spectacles",
+        "body": "Depuis la fiche d'un spectacle, touchez une représentation à venir puis choisissez combien de temps à l'avance être prévenu. Vous recevez la notification juste avant le début. Nécessite un compte et l'autorisation des notifications."
+      },
+      "detail": {
+        "title": "Fiche détaillée",
+        "body": "L'œil au bout de chaque ligne ouvre une fiche : image, favori, alertes, et un graphique du temps d'attente de la journée avec sa prévision."
+      },
+      "account": {
+        "title": "Votre compte",
+        "body": "Le compte est facultatif : temps d'attente, horaires et spectacles s'affichent sans se connecter. Il devient utile dès que vous voulez garder quelque chose. Connexion sans mot de passe, par Google ou par un lien reçu par e-mail. Vos favoris, alertes, rappels et préférences vous suivent alors d'un appareil à l'autre."
+      },
+      "weather": {
+        "title": "La météo du parc",
+        "body": "L'en-tête de chaque parc affiche la température actuelle et une icône résumant le temps qu'il fait, mises à jour chaque heure. Pratique pour anticiper l'affluence — et savoir s'il faut prévoir la casquette ou le K-way."
       }
     }
   },
   "metadata": {
     "title": "Queue Park - Temps d'attente des parcs en direct",
     "titleTemplate": "%s | Queue Park",
-    "description": "Temps d'attente en temps réel pour plus de 100 parcs d'attractions dans le monde. Suivez les files d'attente, planifiez votre visite et maximisez votre plaisir avec des données en direct des API des parcs.",
+    "description": "Temps d'attente en temps réel pour plus de 200 parcs d'attractions dans le monde. Suivez les files d'attente, planifiez votre visite et maximisez votre plaisir avec des données en direct des API des parcs.",
     "keywords": "temps d'attente parcs, files d'attente parcs d'attractions, temps d'attente montagnes russes, application parcs, temps d'attente en direct, files d'attente attractions, temps d'attente Disney, temps d'attente Universal, temps d'attente Six Flags, planification parc",
     "ogTitle": "Queue Park - Temps d'attente des parcs en direct",
-    "ogDescription": "Temps d'attente en temps réel pour plus de 100 parcs d'attractions dans le monde. Suivez les files d'attente et planifiez votre visite avec des données en direct.",
+    "ogDescription": "Temps d'attente en temps réel pour plus de 200 parcs d'attractions dans le monde. Suivez les files d'attente et planifiez votre visite avec des données en direct.",
     "twitterTitle": "Queue Park - Temps d'attente des parcs en direct",
-    "twitterDescription": "Temps d'attente en temps réel pour plus de 100 parcs d'attractions dans le monde. Suivez les files d'attente et planifiez votre visite.",
-    "liveWaitTimes": "Temps d'attente en direct"
+    "twitterDescription": "Temps d'attente en temps réel pour plus de 200 parcs d'attractions dans le monde. Suivez les files d'attente et planifiez votre visite.",
+    "liveWaitTimes": "Temps d'attente en direct",
+    "rideDescription": "Temps d'attente en direct de {ride} à {park} : file actuelle, évolution de la journée et prévision. Activez une alerte pour être prévenu quand l'attente baisse."
   },
   "settings": {
-    "timeFormat": "Format de l'heure"
+    "timeFormat": "Format de l'heure",
+    "temperatureUnit": "Unité de température"
   },
-  "welcome": {
-    "welcomeTo": "Bienvenue sur",
-    "title": "Bienvenue sur la v2 ! 🕝",
-    "description": "Nous avons entièrement repensé l'application pour vous offrir une meilleure expérience. Découvrez une nouvelle interface, de nouvelles fonctionnalités et bien plus encore !",
-    "button": "Ok, super !",
-    "features": {
-      "showsTimeline": "Timeline des spectacles",
-      "newParks": "Nouveaux parcs",
-      "darkMode": "Mode sombre",
-      "brandNewUI": "Nouvelle interface",
-      "fastlaneWaitTimes": "Temps d'attente Fastlane",
-      "autoRefresh": "Actualisation auto",
-      "rotatingParkCovers": "Couvertures rotatives",
-      "parkStatusIndicator": "Indicateur de statut du parc",
-      "singleRiderWaitTimes": "Temps d'attente Single Rider",
-      "multiLanguage": "Multi-langues",
-      "improvedPerformance": "Performances améliorées",
-      "countryParkFiltering": "Filtrage par pays",
-      "groupParkFiltering": "Filtrage par groupe"
+  "whatsNew": {
+    "srTitle": "Les nouveautés de Queue Park v3",
+    "srDescription": "Présentation des nouveautés de la version 3 de Queue Park.",
+    "hero": {
+      "eyebrow": "{count} nouveautés",
+      "title": "Queue Park passe en v3",
+      "body": "Un compte qui vous suit d'un appareil à l'autre, des notifications au bon moment, des prévisions d'affluence : voici ce qui change."
+    },
+    "nav": {
+      "scrollHint": "Faites défiler",
+      "finish": "C'est parti",
+      "close": "Fermer l'annonce"
+    },
+    "badges": {
+      "beta": "Bêta"
+    },
+    "slides": {
+      "account": {
+        "title": "Votre compte Queue Park",
+        "body": "Connectez-vous en un instant, avec Google ou un simple lien reçu par e-mail — sans mot de passe. Vos favoris, vos alertes et vos préférences vous suivent alors du téléphone au parc à l'ordinateur à la maison."
+      },
+      "favorites": {
+        "title": "Vos favoris, sur tous vos appareils",
+        "body": "L'étoile fonctionne désormais sur les parcs, les attractions et les spectacles. Vos parcs favoris s'épinglent en haut de l'accueil, vos attractions et spectacles remontent en tête des tableaux du parc, et vous les retrouvez tous dans votre profil — synchronisés sur tous vos appareils."
+      },
+      "notifications": {
+        "title": "Prévenu au bon moment",
+        "body": "Installez Queue Park comme une application, et laissez-la surveiller le parc à votre place.",
+        "install": "Installer l'application",
+        "points": {
+          "threshold": "L'attente d'une attraction passe sous le seuil que vous avez choisi.",
+          "reopened": "Une attraction rouvre après une panne ou une fermeture.",
+          "show": "Un spectacle va commencer, avec le temps d'avance qui vous convient."
+        }
+      },
+      "forecast": {
+        "title": "Prévisions d'affluence",
+        "body": "La courbe pleine retrace l'attente depuis l'ouverture, le pointillé l'estime jusqu'à la fermeture. De quoi repérer le bon moment pour y aller."
+      },
+      "detail": {
+        "title": "La fiche de chaque attraction",
+        "body": "Touchez une attraction ou un spectacle : sa photo, son quartier dans le parc, la courbe de la journée avec sa prévision et le réglage de vos alertes, tout est réuni au même endroit."
+      },
+      "events": {
+        "title": "Les événements du parc",
+        "body": "Pendant Halloween ou Noël, les attractions et spectacles propres à l'événement ont leur propre carte, aux couleurs de la saison — avec la mention « Billet séparé » quand l'accès n'est pas compris dans l'entrée."
+      },
+      "weather": {
+        "title": "La météo du parc, en direct",
+        "body": "La température et le ciel du parc s'affichent dans son en-tête, mis à jour chaque heure. Pratique pour anticiper l'affluence — et savoir s'il faut prendre le K-way."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "L'attente est descendue à 15 min",
+        "reopened": "L'attraction vient de rouvrir",
+        "show": "Commence dans 15 minutes"
+      },
+      "events": {
+        "halloween": "Halloween",
+        "christmas": "Noël"
+      }
+    },
+    "finale": {
+      "title": "Bonne visite !",
+      "body": "Tout est en place. Une nouvelle page « À propos » raconte d'où viennent les temps d'attente et détaille chaque fonctionnalité, si vous voulez creuser.",
+      "aboutLink": "Découvrir la page À propos"
     }
   },
   "reportProblem": {
@@ -217,15 +372,260 @@
     "detailsPlaceholder": "Décrivez le problème avec le plus de détails possible afin que nous puissions l'analyser et le résoudre au mieux.",
     "emailLabel": "Votre adresse e-mail",
     "emailDescription": "Nous utiliserons votre adresse e-mail pour vous tenir informé de la résolution de votre signalement.",
+    "emailAccountNotice": "L'adresse e-mail de votre compte sera transmise avec ce signalement, afin que nous puissions vous tenir informé de sa résolution.",
     "cancel": "Annuler",
     "submit": "Envoyer le signalement",
     "success": "Merci pour votre signalement ! Nous allons l'analyser.",
     "error": "Une erreur est survenue lors de l'envoi du signalement. Veuillez réessayer.",
+    "rateLimited": "Vous avez envoyé plusieurs signalements récemment. Merci de patienter avant d'en envoyer un nouveau.",
     "validation": {
       "categoryRequired": "Veuillez sélectionner une catégorie",
       "subcategoryRequired": "Veuillez sélectionner une sous-catégorie",
       "detailsRequired": "Veuillez fournir au moins 10 caractères",
       "emailRequired": "Veuillez entrer une adresse e-mail valide"
     }
+  },
+  "userBlock": {
+    "loggedOutTitle": "Vous n'êtes pas connecté",
+    "loggedOutSubtitle": "Connectez-vous pour synchroniser vos favoris et alertes",
+    "signIn": "Se connecter",
+    "signUp": "Créer un compte",
+    "account": "Mon compte",
+    "welcomeBack": "Content de vous revoir",
+    "profile": "Profil",
+    "signOut": "Déconnexion"
+  },
+  "auth": {
+    "title": "Connexion",
+    "subtitle": "Connectez-vous ou créez votre compte, sans mot de passe.",
+    "continueWithGoogle": "Continuer avec Google",
+    "or": "ou",
+    "emailPlaceholder": "vous@exemple.com",
+    "emailInvalid": "Veuillez entrer une adresse e-mail valide",
+    "sendMagicLink": "Recevoir un lien de connexion",
+    "sendError": "Échec de l'envoi. Veuillez réessayer.",
+    "emailSentTitle": "Vérifiez vos e-mails",
+    "emailSentDescription": "Nous avons envoyé un lien de connexion à {email}.",
+    "useAnotherEmail": "Utiliser une autre adresse",
+    "noPassword": "Aucun mot de passe requis."
+  },
+  "profile": {
+    "title": "Profil",
+    "back": "Retour",
+    "heroTitle": "Votre profil",
+    "heroSubtitle": "Vos préférences, vos alertes de temps d'attente et leur historique.",
+    "backHome": "Retour à l'accueil",
+    "tabs": {
+      "preferences": "Préférences",
+      "alerts": "Alertes"
+    },
+    "alertsDailyNote": "Les alertes et rappels ne valent que pour la journée en cours : ils disparaissent dès que la notification est envoyée, et au plus tard à minuit. Tout se règle depuis la fiche de l'attraction ou du spectacle.",
+    "favoritesCount": "Favoris",
+    "favoritesParksCount": "{count, plural, one {Parc favori} other {Parcs favoris}}",
+    "favoritesRidesCount": "{count, plural, one {Attraction favorite} other {Attractions favorites}}",
+    "favoritesShowsCount": "{count, plural, one {Spectacle favori} other {Spectacles favoris}}",
+    "favoritesParksTitle": "Parcs favoris",
+    "favoritesRidesTitle": "Attractions favorites",
+    "favoritesShowsTitle": "Spectacles favoris",
+    "favoritesListEmpty": "Aucun favori pour le moment.",
+    "favoritesRemove": "Retirer {name} des favoris",
+    "activeAlertsCount": "{count, plural, one {Alerte active} other {Alertes actives}}",
+    "preferencesTitle": "Préférences",
+    "displayName": "Nom affiché",
+    "displayNamePlaceholder": "Votre prénom",
+    "displayNameSave": "Enregistrer",
+    "displayNameSaved": "Nom mis à jour",
+    "displayNameError": "La mise à jour du nom a échoué",
+    "language": "Langue",
+    "theme": "Thème",
+    "themeSystem": "Système",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "timeFormat": "Format horaire",
+    "timeFormat24": "24 heures",
+    "timeFormat12": "12 heures",
+    "temperatureUnit": "Unité de température",
+    "temperatureCelsius": "Celsius",
+    "temperatureFahrenheit": "Fahrenheit",
+    "alertsTitle": "Alertes actives",
+    "alertsEmpty": "Aucune alerte pour le moment. Créez-en une depuis une attraction.",
+    "threshold": "Sous {minutes} min",
+    "activate": "Activer",
+    "deactivate": "Désactiver",
+    "validate": "Valider le seuil",
+    "thresholdSaved": "Seuil mis à jour",
+    "delete": "Supprimer",
+    "deleted": "Alerte supprimée",
+    "historyTitle": "Historique des alertes",
+    "historyEmpty": "Aucune notification envoyée pour l’instant.",
+    "historyRetentionNote": "Les alertes de plus de 30 jours ne sont pas affichées.",
+    "historyLine": "Descendu à {actual} min (≤ {threshold} min)",
+    "loadError": "Impossible de charger les alertes.",
+    "updateError": "La mise à jour a échoué.",
+    "deleteError": "La suppression a échoué.",
+    "privacyTitle": "Confidentialité",
+    "alertsHeading": "{count, plural, one {Votre alerte} other {Vos alertes}}",
+    "historyHeading": "{count, plural, one {Notification envoyée} other {Notifications envoyées}}",
+    "historyAttractions": "Attractions",
+    "historyShows": "Spectacles",
+    "historyShowLine": "représentation à {time} · {lead} min avant",
+    "alertsEmptyRides": "Aucune alerte configurée. Créez-en une depuis une attraction.",
+    "alertsEmptyShows": "Aucun rappel configuré. Créez-en un depuis un spectacle.",
+    "historyEmptyRides": "Aucune notification d'attraction envoyée.",
+    "historyEmptyShows": "Aucune notification de spectacle envoyée.",
+    "edit": "Modifier le seuil",
+    "subTabActive": "Actives",
+    "subTabHistory": "Historique",
+    "filterAll": "Tout",
+    "activeEmptyAll": "Aucune alerte ni rappel actif pour aujourd'hui.",
+    "leadBadge": "{lead} min avant",
+    "leadSaved": "Délai mis à jour",
+    "validateLead": "Valider le délai",
+    "editLead": "Modifier le délai",
+    "leadTooLate": "Le spectacle est trop proche pour modifier le délai.",
+    "reopenBadge": "Réouverture",
+    "historyReopenLine": "A rouvert"
+  },
+  "privacy": {
+    "emailLabel": "Adresse e-mail",
+    "emailSave": "Modifier",
+    "emailNote": "Après modification, vous serez déconnecté et devrez vous reconnecter avec la nouvelle adresse.",
+    "emailChangedSignOut": "Adresse modifiée. Déconnexion…",
+    "emailTaken": "Cette adresse e-mail est déjà utilisée.",
+    "emailInvalid": "Adresse e-mail invalide.",
+    "exportLabel": "Mes données",
+    "exportButton": "Télécharger",
+    "resetAlertsLabel": "Réinitialiser mes alertes",
+    "resetAlertsNote": "Efface vos alertes et rappels en cours ainsi que tout l'historique des notifications reçues. Votre compte et vos favoris sont conservés.",
+    "resetAlertsButton": "Réinitialiser",
+    "resetAlertsConfirmTitle": "Tout remettre à zéro ?",
+    "resetAlertsConfirmDescription": "Vos alertes de temps d'attente, vos rappels de spectacles et l'historique des notifications reçues seront supprimés. Cette action est irréversible.",
+    "resetAlertsConfirmButton": "Réinitialiser",
+    "resetAlertsDone": "Alertes, rappels et historique supprimés",
+    "deleteLabel": "Supprimer mon compte",
+    "deleteNote": "Cette action est définitive : préférences, favoris, alertes et rappels seront effacés.",
+    "deleteButton": "Supprimer",
+    "deleteConfirmTitle": "Supprimer définitivement le compte ?",
+    "deleteConfirmDescription": "Saisissez votre adresse e-mail ({email}) pour confirmer. Cette action est irréversible.",
+    "deleteConfirmButton": "Supprimer définitivement",
+    "cancel": "Annuler",
+    "accountDeleted": "Compte supprimé. Déconnexion…",
+    "genericError": "Une erreur est survenue. Réessayez.",
+    "exportNote": "Téléchargez une copie de votre compte : e-mail, préférences, favoris, alertes et rappels de spectacles."
+  },
+  "alerts": {
+    "createTitle": "Créer une alerte",
+    "createDescription": "Soyez prévenu lorsque l'attente de {ride} passe sous un seuil.",
+    "createFor": "Créer une alerte pour {ride}",
+    "thresholdLabel": "En dessous de quel temps d'attente souhaites-tu être prévenu ?",
+    "thresholdOption": "{minutes} min",
+    "thresholdHint": "Vous recevrez une alerte dès que le temps d'attente descend sous ce seuil.",
+    "cancel": "Annuler",
+    "create": "Créer",
+    "created": "Alerte créée pour {ride}",
+    "createError": "La création de l'alerte a échoué."
+  },
+  "attractionDetail": {
+    "openFor": "Voir le détail de {ride}",
+    "alertsTitle": "Alertes",
+    "chartTitle": "Temps d'attente aujourd'hui",
+    "chartToday": "Aujourd'hui",
+    "chartActual": "Temps d'attente",
+    "chartForecast": "Prévision",
+    "chartNow": "Maintenant",
+    "chartEmpty": "Pas encore de données pour aujourd'hui.",
+    "chartUnavailable": "Attraction indisponible pour le moment.",
+    "chartUnavailablePermanent": "Cette attraction ne communique pas de temps d'attente : ni suivi en direct, ni prévision.",
+    "alertsUnavailable": "Cette attraction ne communique pas de temps d'attente : il n'y a donc rien à surveiller, et aucune alerte n'est possible.",
+    "chartForecastNote": "Estimation indicative de la fin de journée.",
+    "chartForecastPreOpeningNote": "Estimation basée sur les jours précédents — mise à jour à l'ouverture du parc.",
+    "estimateTooltip": "Estimation d'après les journées passées comparables. La réalité peut varier.",
+    "marginNote": "Sur les derniers jours, nos prévisions se sont trompées de <v>{minutes} min</v> en moyenne.",
+    "marginNoteTooltip": "Écart moyen entre nos prévisions et l'attente réellement constatée, sur les 14 derniers jours.",
+    "installTitle": "Installez Queue Park",
+    "installIntro": "Les alertes nécessitent que l'application soit installée sur votre appareil.",
+    "installButton": "Installer l'application",
+    "installAndroidSteps": "Ouvrez le menu ⋮ de votre navigateur, puis « Ajouter à l'écran d'accueil ».",
+    "installIosSteps": "Appuyez sur Partager, puis « Sur l'écran d'accueil ».",
+    "installDesktopSteps": "Utilisez l'icône d'installation dans la barre d'adresse de votre navigateur.",
+    "installAccountNote": "Un compte sera également nécessaire pour créer des alertes.",
+    "signInTitle": "Connectez-vous",
+    "signInIntro": "Connectez-vous pour être prévenu quand l'attente baisse.",
+    "notifActive": "Alerte active",
+    "save": "Enregistrer",
+    "update": "Mettre à jour",
+    "delete": "Supprimer",
+    "saved": "Alerte enregistrée",
+    "deleted": "Alerte supprimée",
+    "pushBlocked": "Alerte enregistrée, mais cet appareil ne recevra rien (notifications non autorisées).",
+    "pushDenied": "Notifications bloquées pour ce site. Autorisez-les dans les réglages de votre navigateur pour recevoir les alertes sur cet appareil.",
+    "pushUnsupported": "Ce navigateur ne prend pas en charge les notifications push. L'alerte sera visible dans votre profil et l'historique.",
+    "reopenLabel": "Cette attraction est à l'arrêt. Sois prévenu dès qu'elle rouvre.",
+    "reopenSave": "Me prévenir à la réouverture",
+    "reopenActive": "Alerte de réouverture active",
+    "reopenSaved": "Alerte de réouverture enregistrée",
+    "reopenTooLate": "Le parc est fermé, les alertes ne sont pas disponibles. Revenez à la prochaine ouverture du parc.",
+    "statusChanged": "L'état de l'attraction vient de changer. Rouvre la fiche pour créer la bonne alerte."
+  },
+  "legal": {
+    "backHome": "Retour à l’accueil",
+    "updated": "Dernière mise à jour : 21 juillet 2026",
+    "privacy": {
+      "metaTitle": "Politique de confidentialité",
+      "title": "Politique de confidentialité",
+      "intro": "Cette politique décrit comment Queue Park traite vos données personnelles. Responsable de traitement : l’éditeur du site (voir <mentions>Mentions légales</mentions>), contact : <mail>contact@queue-park.com</mail>.",
+      "dataTitle": "Données traitées, finalités et bases légales",
+      "data1": "<b>Compte</b> (adresse e-mail, et le cas échéant nom et photo de profil via Google) : création et gestion de votre compte — <i>exécution du service / votre consentement</i>.",
+      "data2": "<b>Préférences</b> (langue, thème, format horaire) et <b>favoris</b> (parcs, attractions, spectacles) : personnalisation de votre expérience — <i>exécution du service</i>.",
+      "data3": "<b>Alertes de temps d’attente</b> et <b>rappels de spectacles</b>, avec les <b>abonnements de notification</b> de vos appareils : vous envoyer les notifications demandées — <i>votre consentement</i>.",
+      "data4": "<b>Mesure d’audience</b> (Google Analytics) : statistiques de fréquentation — <i>votre consentement</i> (voir la <cookies>Politique cookies</cookies>).",
+      "recipientsTitle": "Destinataires et sous-traitants",
+      "recipients1": "Vos données ne sont pas vendues. Elles sont traitées par des prestataires agissant pour notre compte : Google (authentification et mesure d’audience), Resend (envoi d’e-mails de connexion), IONOS (hébergement, Union européenne).",
+      "recipients2": "Certains prestataires (Google, Resend) sont établis aux États-Unis ; les transferts éventuels sont encadrés par les mécanismes prévus par le RGPD (Data Privacy Framework et/ou clauses contractuelles types).",
+      "retentionTitle": "Durées de conservation",
+      "retention1": "Données de compte : jusqu’à la suppression du compte.",
+      "retention2": "Alertes : valables pour la journée en cours ; historique conservé 30 jours.",
+      "retention3": "Rappels de spectacles : supprimés une fois la représentation passée.",
+      "retention4": "Sessions de connexion : selon la durée de validité de la session.",
+      "rightsTitle": "Vos droits",
+      "rights1": "Vous disposez d’un droit d’accès, de rectification, d’effacement, de portabilité, d’opposition et de limitation. Depuis votre <profile>profil</profile> (onglet Préférences → Confidentialité), vous pouvez directement modifier votre e-mail, télécharger vos données (JSON) et supprimer votre compte. Pour toute autre demande, écrivez à <mail>contact@queue-park.com</mail>.",
+      "rights2": "Vous pouvez également introduire une réclamation auprès de la CNIL (cnil.fr).",
+      "securityTitle": "Sécurité et mineurs",
+      "security1": "Les échanges sont chiffrés (HTTPS) et l’authentification se fait sans mot de passe. Nous limitons les données collectées au strict nécessaire. Le service n’est pas destiné aux mineurs de moins de 15 ans sans l’accord d’un titulaire de l’autorité parentale."
+    },
+    "cookies": {
+      "metaTitle": "Politique cookies",
+      "title": "Politique cookies",
+      "intro": "Un cookie est un petit fichier déposé sur votre appareil lors de la visite d’un site. Queue Park en utilise un minimum, décrits ci-dessous.",
+      "necessaryTitle": "Cookies strictement nécessaires",
+      "necessaryIntro": "Indispensables au fonctionnement du site, ils ne requièrent pas votre consentement :",
+      "necessary1": "<b>Session d’authentification</b> : vous maintient connecté à votre compte.",
+      "necessary2": "<b>Préférence de langue</b> : mémorise la langue d’affichage.",
+      "audienceTitle": "Cookies de mesure d’audience",
+      "audience1": "Nous utilisons Google Analytics pour comprendre la fréquentation du site et l’améliorer. Ces cookies (par ex. <c>_ga</c>, <c>_ga_*</c>) ne sont déposés <b>qu’après votre consentement</b> et sont conservés jusqu’à 13 mois maximum.",
+      "manageTitle": "Gérer votre choix",
+      "manage1": "Vous pouvez accepter ou refuser ces cookies via le bandeau affiché lors de votre première visite, et modifier votre choix à tout moment grâce au lien <b>« Gérer les cookies »</b> en bas de page. Vous pouvez aussi configurer votre navigateur pour bloquer les cookies."
+    },
+    "legalNotice": {
+      "metaTitle": "Mentions légales",
+      "title": "Mentions légales",
+      "editorTitle": "Éditeur",
+      "editor1": "Le site Queue Park (queue-park.com) est édité par Lilian G. et Gaspard D.",
+      "editor2": "Responsable de la publication : Lilian G. Contact : <mail>contact@queue-park.com</mail>.",
+      "hostingTitle": "Hébergement",
+      "hosting1": "Le site est hébergé par IONOS SARL, 7, place de la Gare, BP 70109, 57201 SARREGUEMINES Cedex, France (ionos.fr).",
+      "ipTitle": "Propriété intellectuelle",
+      "ip1": "La structure, les textes et les éléments graphiques du site sont la propriété de leur éditeur, sauf mention contraire. Toute reproduction non autorisée est interdite. Les noms de parcs, d’attractions et de spectacles appartiennent à leurs titulaires respectifs.",
+      "liabilityTitle": "Responsabilité",
+      "liability1": "Les temps d’attente et horaires de spectacles sont fournis à titre indicatif, à partir de sources tierces, sans garantie d’exactitude ou de disponibilité. L’éditeur ne saurait être tenu responsable d’un préjudice lié à leur utilisation."
+    }
+  },
+  "events": {
+    "opensAt": "Ouvre à {time}",
+    "closesAt": "Ferme à {time}",
+    "running": "En cours",
+    "scheduled": "Prochainement",
+    "separateTicket": "Billet séparé",
+    "noAttractions": "Aucune attraction ne communique de temps d’attente pour le moment"
   }
 }

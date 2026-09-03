@@ -1,12 +1,15 @@
 "use client";
 
 import { Link } from "@/i18n/routing";
-import { getCountryName, getParkLink, getParkStatus } from "@/lib/utils";
+import { getCountryFlagClass, getParkLink, getParkStatus } from "@/lib/utils";
 import TitleWithStatus from "./title-with-status";
 import { ParkList } from "@/types/api";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useUser } from "@/components/providers/user-provider";
+import { PARK_FAVORITES_LIMIT } from "@/lib/favorites-storage";
 import FavoriteStar from "@/components/ui/favorite-star";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 
@@ -66,7 +69,18 @@ export default function ParkCard({
   const searchParams = useSearchParams();
   const tFav = useTranslations("favorites");
   const { isFavorite, toggle } = useFavorites("parks");
+  const { isAuthenticated } = useUser();
   const isFav = isFavorite(park.identifier);
+  const flagClass = getCountryFlagClass(park.country);
+
+  const handleToggle = async () => {
+    // toggle() renvoie false aussi bien si l'utilisateur n'est pas connecté (le
+    // garde a déjà ouvert le modal) que si le plafond est atteint : on ne montre
+    // le toast « plafond » que dans ce dernier cas (connecté).
+    if (!(await toggle(park.identifier)) && isAuthenticated) {
+      toast.error(tFav("parkLimit", { max: PARK_FAVORITES_LIMIT }));
+    }
+  };
 
   const parkHref = (() => {
     const base = getParkLink(park);
@@ -85,7 +99,7 @@ export default function ParkCard({
         <div className="flex items-center gap-1.5">
           <FavoriteStar
             active={isFav}
-            onToggle={() => toggle(park.identifier)}
+            onToggle={handleToggle}
             label={isFav ? tFav("removePark") : tFav("addPark")}
             className={`transition-opacity ${
               isFav
@@ -116,9 +130,10 @@ export default function ParkCard({
             </div>
           )}
 
-          <div
-            className={`twa twa-flag-${getCountryName(park.country).toLocaleLowerCase().replace(/\s+/g, "-")} twa-lg`}
-          />
+          {/* Le drapeau vient du CODE ISO, pas du nom anglais du pays : voir
+              `getCountryFlagClass`. Rien ne s'affiche pour un code sans
+              drapeau, plutôt qu'un carré vide. */}
+          {flagClass && <div className={flagClass} />}
         </div>
       </div>
     </Link>

@@ -13,12 +13,31 @@ type ProblemCategory = {
   }[];
 };
 
-type ResolutionOption = {
-  value: string;
-  label: LocalizedString;
-  message: LocalizedString;
-  color: string;
-};
+// ⚠️ Les RÉPONSES de résolution ne vivent PAS ici. Elles appartiennent à
+// l'admin (table `report_templates`, éditable depuis /report-templates) et le
+// frontend n'en a jamais lu une seule ligne : ce fichier n'en gardait qu'une
+// copie morte, vouée à diverger du texte réellement envoyé aux utilisateurs.
+// Seules les CATÉGORIES ci-dessous sont partagées — elles servent au formulaire
+// public et à la notification Discord de `app/api/report/route.ts`.
+//
+// ⚠️ **Les motifs, eux, restent DÉLIBÉRÉMENT dans le code.** Ce n'est pas du
+// texte éditorial mais une STRUCTURE : les `id` sont écrits tels quels dans
+// `reports.category` / `reports.subcategory`, alimentent les filtres de l'admin,
+// et doivent être connus du frontend pour construire le formulaire. Les mettre
+// en base les rendrait modifiables sans redéploiement — un motif ajouté ne
+// s'afficherait alors nulle part, et l'admin filtrerait sur une catégorie que
+// personne ne peut choisir. La copie de l'admin (`lib/report-config.ts`) doit
+// donc rester alignée sur celle-ci ; en cas d'écart, l'admin retombe sur
+// l'identifiant brut plutôt que de casser.
+//
+// ⚠️ **Limite connue : ces libellés n'existent qu'en `fr` et `en`** alors que le
+// site parle 14 langues. `getLocalizedString()` de `report-problem-dialog.tsx`
+// retombe sur l'anglais : un visiteur japonais lit donc un formulaire en
+// japonais (`messages/ja.json` traduit bien `categoryLabel`,
+// `categoryPlaceholder`…) dont la LISTE DÉROULANTE est en anglais. Le correctif
+// n'est pas de déplacer ces motifs en base — ce serait 14 colonnes ou une table
+// de traductions — mais de les passer à next-intl, dont le merge
+// `{ ...en, ...locale }` (voir `i18n/request.ts`) fournit déjà le repli EN.
 
 export const PROBLEM_CATEGORIES: ProblemCategory[] = [
   {
@@ -214,70 +233,6 @@ export const PROBLEM_CATEGORIES: ProblemCategory[] = [
   },
 ];
 
-export const RESOLUTION_OPTIONS: ResolutionOption[] = [
-  {
-    value: "not-enough-info",
-    label: {
-      fr: "Pas assez d'informations",
-      en: "Insufficient information",
-    },
-    message: {
-      fr: "Nous n'avons pas pu traiter votre signalement car les informations fournies étaient insuffisantes. N'hésitez pas à soumettre un nouveau signalement avec plus de détails.",
-      en: "We were unable to process your report due to insufficient information. Feel free to submit a new report with more details.",
-    },
-    color:
-      "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
-  },
-  {
-    value: "fixed",
-    label: {
-      fr: "Problème résolu",
-      en: "Issue fixed",
-    },
-    message: {
-      fr: "Le problème que vous avez signalé a été corrigé. Merci de nous avoir aidés à améliorer Queue Park !",
-      en: "The issue you reported has been fixed. Thank you for helping us improve Queue Park!",
-    },
-    color: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-  },
-  {
-    value: "not-our-side",
-    label: {
-      fr: "Problème externe",
-      en: "External issue",
-    },
-    message: {
-      fr: "Après vérification, le problème signalé ne provient pas de nos données. Il peut s'agir d'une information directement fournie par le parc.",
-      en: "After investigation, the reported issue does not originate from our data. It may be information provided directly by the park.",
-    },
-    color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
-  },
-  {
-    value: "duplicate",
-    label: {
-      fr: "Doublon",
-      en: "Duplicate",
-    },
-    message: {
-      fr: "Votre signalement a déjà été pris en compte via un autre report. Merci pour votre vigilance !",
-      en: "Your report has already been addressed through another report. Thank you for your vigilance!",
-    },
-    color: "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300",
-  },
-  {
-    value: "wont-fix",
-    label: {
-      fr: "Ne sera pas corrigé",
-      en: "Won't fix",
-    },
-    message: {
-      fr: "Après analyse, nous avons décidé de ne pas donner suite à ce signalement. Merci de votre compréhension.",
-      en: "After review, we have decided not to act on this report. Thank you for your understanding.",
-    },
-    color: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
-  },
-];
-
 export function getCategoryLabel(categoryId: string, locale = "en"): string {
   const category = PROBLEM_CATEGORIES.find((cat) => cat.id === categoryId);
   return category?.label[locale] || category?.label.en || categoryId;
@@ -295,40 +250,10 @@ export function getSubcategoryLabel(
   return subcategory?.label[locale] || subcategory?.label.en || subcategoryId;
 }
 
-export function getResolutionLabel(
-  resolutionValue: string,
-  locale = "en",
-): string {
-  const resolution = RESOLUTION_OPTIONS.find(
-    (res) => res.value === resolutionValue,
-  );
-  return resolution?.label[locale] || resolution?.label.en || resolutionValue;
-}
-
-export function getResolutionMessage(
-  resolutionValue: string,
-  locale = "en",
-): string {
-  const resolution = RESOLUTION_OPTIONS.find(
-    (res) => res.value === resolutionValue,
-  );
-  return resolution?.message[locale] || resolution?.message.en || "";
-}
-
 export function getCategoryColor(categoryId: string): string {
   const category = PROBLEM_CATEGORIES.find((cat) => cat.id === categoryId);
   return (
     category?.color ||
-    "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300"
-  );
-}
-
-export function getResolutionColor(resolutionValue: string): string {
-  const resolution = RESOLUTION_OPTIONS.find(
-    (res) => res.value === resolutionValue,
-  );
-  return (
-    resolution?.color ||
     "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300"
   );
 }

@@ -3,6 +3,7 @@
 import ParkCoverImage from "./cover-image";
 import ParkOpeningHours from "./opening-hours";
 import ParkLocalTime from "./local-time";
+import ParkWeather from "./park-weather";
 import Link from "next/link";
 import { Undo2 } from "lucide-react";
 import { ParkStatusBadge } from "./name-status";
@@ -10,8 +11,11 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getParkStatus } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { ParkLiveData } from "@/types/api";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useUser } from "@/components/providers/user-provider";
+import { PARK_FAVORITES_LIMIT } from "@/lib/favorites-storage";
 import FavoriteStar from "@/components/ui/favorite-star";
 
 const EXPANDED_HEIGHT = 288;
@@ -33,7 +37,16 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
   const backParam = searchParams.get("back");
   const homeHref = backParam ? `/?${decodeURIComponent(backParam)}` : "/";
   const { isFavorite, toggle } = useFavorites("parks");
+  const { isAuthenticated } = useUser();
   const isFav = isFavorite(park.identifier);
+
+  const handleToggle = async () => {
+    // false = non connecté (modal déjà ouvert par le garde) ou plafond atteint :
+    // on ne montre le toast « plafond » que si connecté.
+    if (!(await toggle(park.identifier)) && isAuthenticated) {
+      toast.error(tFav("parkLimit", { max: PARK_FAVORITES_LIMIT }));
+    }
+  };
 
   // Distance (px) entre le centre du nom et le bas de la carte, en flux normal
   // (donc indépendante de la hauteur de la carte et du transform appliqué).
@@ -53,7 +66,7 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [park.name, park.openingHours]);
+  }, [park.name, park.openingHours, park.weather]);
 
   useEffect(() => {
     let rafId = 0;
@@ -157,7 +170,21 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
                   timezone={park.timezone}
                   openingHours={park.openingHours}
                 />
-                <ParkLocalTime timezone={park.timezone} />
+                {/* « Actuellement : 17:52 • ☀ 32°C » — l'heure sur place et la
+                    météo décrivent le MÊME instant, elles tiennent donc sur une
+                    seule ligne, séparées par une puce. `flex-wrap` : si la place
+                    manque, la météo passe à la ligne plutôt que d'être rognée. */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <ParkLocalTime timezone={park.timezone} />
+                  {park.weather?.currentTemp != null && (
+                    <>
+                      <span className="text-white" aria-hidden>
+                        •
+                      </span>
+                      <ParkWeather weather={park.weather} />
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -187,7 +214,7 @@ export default function ParkHeader({ park }: ParkHeaderProps) {
             >
               <FavoriteStar
                 active={isFav}
-                onToggle={() => toggle(park.identifier)}
+                onToggle={handleToggle}
                 label={isFav ? tFav("removePark") : tFav("addPark")}
                 size="md"
                 className={`p-1.5 bg-black/25 backdrop-blur-sm hover:bg-black/35 ${

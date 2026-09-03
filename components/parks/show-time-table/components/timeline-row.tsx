@@ -2,7 +2,7 @@
 
 import { DateTime } from "luxon";
 import { cn, getLuxonFormat } from "@/lib/utils";
-import { ClickableTooltip } from "./clickable-tooltip";
+import { ClickableTooltip } from "@/components/ui/clickable-tooltip";
 import {
   ScheduleWithPosition,
   PIXEL_PER_MINUTE,
@@ -17,12 +17,17 @@ type TimelineRowProps = {
   rowHeight: number;
   parkHours: number[];
   timezone: string;
-  now: DateTime;
   currentHourPosition: number;
   is12Hour: boolean;
   // Trait plus franc en haut : marque la 1re ligne classique après les favoris.
   dividerTop?: boolean;
   rowRef: (el: HTMLDivElement | null) => void;
+  // Survol MUTUALISÉ avec la colonne des noms : les deux moitiés d'une même
+  // ligne s'allument ensemble, comme une ligne d'attraction.
+  highlighted?: boolean;
+  onHoverChange?: (hovered: boolean) => void;
+  // Clic sur la ligne = ouverture du popup du spectacle (idem colonne des noms).
+  onActivate?: () => void;
 };
 
 export function TimelineRow({
@@ -31,11 +36,13 @@ export function TimelineRow({
   rowHeight,
   parkHours,
   timezone,
-  now,
   currentHourPosition,
   is12Hour,
   dividerTop = false,
   rowRef,
+  highlighted = false,
+  onHoverChange,
+  onActivate,
 }: TimelineRowProps) {
   const contentHeight = totalLanes * LANE_HEIGHT;
   const verticalPadding = (rowHeight - contentHeight) / 2;
@@ -44,10 +51,18 @@ export function TimelineRow({
     <div
       ref={rowRef}
       className={cn(
-        "border-b relative",
+        // duration-500 : même fondu que la colonne des noms et que les lignes
+        // d'attraction, pour que les deux moitiés s'allument à l'unisson.
+        "border-b relative cursor-pointer transition-colors duration-500",
         dividerTop && "border-t-2 border-border",
+        // Rôle partagé avec les lignes d'attraction : dans une carte
+        // d'événement, la teinte de la famille remplace le gris.
+        highlighted && "bg-[var(--table-row-hover)]",
       )}
       style={{ height: `${rowHeight}px` }}
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
+      onClick={onActivate}
     >
       {parkHours.map((hour, index) => (
         <div
@@ -90,7 +105,13 @@ export function TimelineRow({
 
         const getBadgeClasses = () => {
           if (isPast) {
-            return "bg-muted/50 text-muted-foreground/50";
+            // La bordure reprend celle de la pastille « terminé » de la légende :
+            // sans elle, un créneau passé se fondait dans la grille (le fond
+            // `muted/50` est presque celui des lignes d'heures) alors que les
+            // deux autres états, eux, sont cernés. C'est aussi ce qui garde les
+            // trois états à la MÊME taille intérieure — `border` compte dans la
+            // boîte, un seul état sans bordure serait 1 px plus haut.
+            return "bg-muted/50 text-muted-foreground/50 border border-border";
           }
           if (isOngoing) {
             return "bg-primary/10 text-primary border border-primary/30 border-dashed";
@@ -117,17 +138,25 @@ export function TimelineRow({
 
         if (!showTimeText) {
           return (
-            <ClickableTooltip key={schedIndex} content={timeText}>
-              {badgeContent}
-            </ClickableTooltip>
+            // Le créneau trop étroit pour afficher son heure porte une info au
+            // clic (tactile) : ce clic-là ne doit pas AUSSI ouvrir le popup,
+            // d'où l'arrêt de la propagation vers la ligne.
+            <span key={schedIndex} onClick={(e) => e.stopPropagation()}>
+              <ClickableTooltip content={timeText}>
+                {badgeContent}
+              </ClickableTooltip>
+            </span>
           );
         }
 
         return <div key={schedIndex}>{badgeContent}</div>;
       })}
 
-      {now.hour >= parkHours[0] &&
-        now.hour <= parkHours[parkHours.length - 1] && (
+      {/* Repère « maintenant » : visible tant que la position tombe DANS la
+          grille. Le test sur `now.hour` faisait disparaître le trait après
+          minuit alors que la journée du parc n'est pas finie. */}
+      {currentHourPosition >= 0 &&
+        currentHourPosition <= parkHours.length * 60 && (
           <div
             className="absolute top-0 bottom-0 w-0.5 bg-primary z-10 pointer-events-none"
             style={{

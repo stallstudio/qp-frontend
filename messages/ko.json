@@ -1,145 +1,631 @@
 {
   "home": {
     "title": "Queue Park",
-    "subtitle": "즐겨 찾는 놀이공원의 대기 시간을 실시간으로 확인하세요!"
+    "subtitle": "좋아하는 테마파크의 대기 시간을 실시간으로!"
   },
   "search": {
     "placeholder": "파크 이름, 그룹 또는 국가로 검색...",
-    "noResults": "검색 결과와 일치하는 파크가 없습니다. 다시 시도해 주세요!",
-    "randomParkToast": "주사위의 결과:"
+    "noResults": "검색 조건에 맞는 파크가 없습니다. 다시 시도해 보세요!",
+    "randomParkToast": "주사위가 고른 파크:"
   },
   "parksList": {
     "title": "모든 테마파크",
     "sortByGroup": "그룹별",
     "sortByCountry": "국가별",
-    "hideClosedParks": "휴장 중인 파크 숨기기"
+    "hideClosedParks": "휴장 중인 파크 숨기기",
+    "seeMoreParks": "파크 {count}곳 더 보기",
+    "seeLess": "간략히 보기"
   },
   "popularParks": {
     "title": "인기 파크",
-    "trendingText": "최근 몇 시간 동안의 트렌드",
-    "visitsNote": "방문 수"
+    "trendingText": "최근 몇 시간 동안의 인기",
+    "visitsNote": "회 조회"
+  },
+  "weather": {
+    "clear": "맑음",
+    "mainlyClear": "대체로 맑음",
+    "partlyCloudy": "구름 조금",
+    "overcast": "흐림",
+    "fog": "안개",
+    "drizzle": "이슬비",
+    "rain": "비",
+    "snow": "눈",
+    "thunderstorm": "뇌우",
+    "unknown": "날씨 정보 없음",
+    "min": "최저",
+    "max": "최고"
   },
   "parkPage": {
     "backHome": "홈으로 돌아가기",
-    "localTime": "현지 시간",
     "todayHours": "오늘의 운영 시간",
-    "extraOpeningHours": "추가 운영 시간",
+    "extraOpeningHours": "얼리 입장",
     "extendedHours": "연장 운영",
     "closedToday": "오늘 휴장",
-    "hoursUnavailable": "운영 시간을 현재 확인할 수 없습니다",
-    "privateEvent": "전세 운영",
-    "privateEventNoHours": "오늘 전세 운영"
+    "hoursUnavailable": "현재 운영 시간 정보를 확인할 수 없습니다",
+    "privateEvent": "단독 대관으로 휴장",
+    "privateEventNoHours": "오늘은 단독 대관으로 휴장",
+    "eventHours": "이벤트",
+    "hoursOther": "운영 시간",
+    "cards": {
+      "attractions": "어트랙션",
+      "shows": "공연"
+    }
   },
   "parkStatus": {
     "open": "운영 중",
-    "closed": "운영 종료"
+    "closed": "휴장"
   },
   "attractionStatus": {
     "open": "운영 중",
-    "closed": "운영 종료",
+    "closed": "운행 중지",
     "down": "고장",
     "maintenance": "점검 중",
-    "unavailable": "정보 없음"
+    "unavailable": "정보 없음",
+    "unavailableShort": "정보 없음"
   },
   "tabs": {
-    "waitTimes": "대기 시간",
-    "shows": "쇼"
+    "live": "실시간",
+    "schedule": "오늘의 운영 시간"
   },
   "shows": {
-    "show": "쇼",
-    "schedules": "일정",
-    "updateInfo": "쇼는 매시간 업데이트됩니다",
-    "noMoreToday": "오늘은 더 이상 쇼가 없습니다"
+    "show": "공연",
+    "schedules": "공연 시간",
+    "updateInfo": "공연 정보는 매시간 갱신됩니다",
+    "noMoreToday": "오늘 남은 공연이 없습니다",
+    "legendPast": "종료",
+    "legendOngoing": "진행 중",
+    "legendUpcoming": "예정"
+  },
+  "showDetail": {
+    "openFor": "{show} 상세 보기",
+    "notifTitle": "알림",
+    "duration": "소요 시간: {duration}",
+    "continuousAccess": "상시 입장 · {range}",
+    "signInIntro": "로그인하면 공연 시작 전에 알림을 받을 수 있습니다.",
+    "reminderIntro": "회차를 고른 다음, 몇 분 전에 알림을 받을지 선택하세요.",
+    "leadLabel": "공연 몇 분 전에 알림을 받으시겠어요?",
+    "leadOption": "{minutes}분 전",
+    "reminderActive": "{minutes}분 전 알림",
+    "reminderScheduled": "알림 설정됨",
+    "save": "알림 설정",
+    "update": "수정",
+    "remove": "삭제",
+    "reminderSaved": "알림을 저장했습니다",
+    "reminderRemoved": "알림을 삭제했습니다",
+    "reminderError": "문제가 발생했습니다. 다시 시도해 주세요.",
+    "pushBlocked": "알림은 저장했지만 이 기기에서는 받을 수 없습니다(알림이 허용되지 않음).",
+    "noUpcoming": "오늘 남은 공연이 없습니다.",
+    "leadTooLate": "이 회차는 시작이 너무 임박해 알림을 설정할 수 없습니다.",
+    "reminderActivate": "알림 켜기",
+    "reminderModify": "알림 수정"
   },
   "favorites": {
     "myFavorites": "내 즐겨찾기",
+    "yours": "내 즐겨찾기",
     "add": "즐겨찾기에 추가",
-    "remove": "즐겨찾기에서 제거",
-    "addPark": "이 공원을 즐겨찾기에 추가",
-    "removePark": "이 공원을 즐겨찾기에서 제거"
+    "remove": "즐겨찾기에서 삭제",
+    "addPark": "이 파크를 즐겨찾기에 추가",
+    "removePark": "이 파크를 즐겨찾기에서 삭제",
+    "parkLimit": "즐겨찾기한 파크는 최대 {max}곳까지 등록할 수 있습니다.",
+    "seeMore": "{count}개 더 보기",
+    "seeLess": "간략히 보기",
+    "needAccount": "즐겨찾기를 추가하려면 로그인하세요."
+  },
+  "cookies": {
+    "message": "사이트 개선을 위해 분석용 쿠키를 사용합니다. 동의하거나 거부할 수 있습니다.",
+    "learnMore": "자세히 보기",
+    "accept": "동의",
+    "refuse": "거부",
+    "manage": "쿠키 관리",
+    "legalNotice": "사업자 정보",
+    "privacyPolicy": "개인정보",
+    "cookiePolicy": "쿠키"
+  },
+  "manifest": {
+    "name": "Queue Park",
+    "description": "좋아하는 테마파크의 실시간 대기 시간과 공연 정보.",
+    "shortcutAllParks": "모든 파크",
+    "shortcutParksShort": "파크"
   },
   "waitTimeTable": {
-    "attraction": "어트랙션",
+    "name": "이름",
     "waitTime": "대기 시간",
     "status": "상태",
     "noWaitTimes": "현재 이용 가능한 대기 시간 정보가 없습니다",
-    "refreshingIn": "새로고침까지",
+    "tableLabel": "대기 시간 — {park}",
+    "toggleQueues": "{ride}의 다른 대기열 보기",
     "second": "초",
     "seconds": "초",
-    "nowRefreshing": "새로고침 중...",
-    "lastUpdate": "마지막 업데이트"
+    "minute": "분",
+    "minutes": "분",
+    "nowRefreshing": "갱신 중...",
+    "lastUpdate": "마지막 갱신",
+    "updatedAgo": "{age} 전 업데이트",
+    "liveConnected": "실시간",
+    "liveFallback": "자동 새로 고침"
   },
   "footer": {
     "copyright": "© {year} Queue Park. 모든 권리 보유.",
-    "contactText": "문의하기:"
+    "contactText": "문의는 이곳으로"
   },
   "noData": {
     "title": "죄송합니다!",
-    "message": "현재 이 파크에 대한 정보가 없습니다. 나중에 다시 방문해 주세요!"
+    "message": "현재 이 파크에 대해 표시할 정보가 없습니다. 나중에 다시 확인해 주세요!"
   },
   "errors": {
-    "configError": "설정 오류가 발생했습니다. 고객 지원에 문의하세요.",
-    "fetchError": "파크 정보를 가져오는 데 실패했습니다:",
+    "configError": "설정 오류입니다. 고객 지원에 문의해 주세요.",
+    "fetchError": "파크 정보를 가져오지 못했습니다:",
     "parkNotFound": "찾으시는 파크가 존재하지 않습니다",
-    "networkErrorRefresh": "데이터를 새로고침하는 중 네트워크 오류가 발생했습니다",
-    "networkError": "네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도해 주세요."
+    "networkErrorRefresh": "데이터를 갱신하는 중 네트워크 오류가 발생했습니다",
+    "networkError": "네트워크 오류가 발생했습니다. 연결을 확인한 뒤 다시 시도해 주세요."
+  },
+  "og": {
+    "subtitle": "실시간 대기 시간",
+    "averageWait": "평균 대기 시간",
+    "openAttractions": "운영 중인 어트랙션",
+    "busiest": "지금 가장 붐비는 곳",
+    "noLiveData": "현재 실시간 대기 시간 정보가 없습니다",
+    "currentWait": "현재 대기 시간",
+    "rideClosed": "어트랙션 현재 운행 중지"
+  },
+  "errorPages": {
+    "notFoundTitle": "페이지를 찾을 수 없습니다",
+    "notFoundMessage": "이 페이지는 존재하지 않거나 이동되었습니다. 찾으시던 파크의 주소가 바뀌었을 수 있습니다.",
+    "errorTitle": "문제가 발생했습니다",
+    "errorMessage": "이 페이지를 표시할 수 없습니다. 잠시 후 다시 시도해 주세요. 문제가 계속되면 contact@queue-park.com 으로 알려주세요.",
+    "retry": "다시 시도",
+    "backHome": "홈으로 돌아가기"
+  },
+  "about": {
+    "metaTitle": "소개",
+    "metaDescription": "Queue Park 소개: 대기 시간의 출처, 즐겨찾기 사용법, 대기 시간 예측, 날씨 등 모든 기능을 알아보세요.",
+    "backHome": "홈으로 돌아가기",
+    "heroTitle": "Queue Park 소개",
+    "heroSubtitle": "좋아하는 파크의 대기 시간을 실시간으로, 누구나 무료로.",
+    "tabs": {
+      "about": "소개",
+      "guide": "이용 가이드"
+    },
+    "sectionAboutTitle": "우리의 프로젝트",
+    "sectionGuideTitle": "이용 방법",
+    "demoLabel": "예시",
+    "cards": {
+      "intro": {
+        "title": "Queue Park란?",
+        "body": "Queue Park는 전 세계 200곳이 넘는 테마파크의 실시간 대기 시간을 한곳에 모았습니다. 목표는 단 하나, 지금 어떤 어트랙션을 타야 할지 한눈에 보이도록 해서 지도만 들여다보지 않고도 하루를 잘 계획할 수 있게 하는 것입니다."
+      },
+      "data": {
+        "title": "데이터는 어디에서 오나요?",
+        "body": "대기 시간은 각 파크의 공식 시스템에서 직접 가져옵니다. 이를 수집하고 정리해 형식을 통일하므로 Walibi, Disney, Europa-Park, Six Flags가 모두 같은 색상과 같은 수준의 정보로 표시됩니다."
+      },
+      "worker": {
+        "title": "무대 뒤에서는",
+        "body": "자동화된 서비스가 쉬지 않고 돌아가며 거의 실시간으로 각 파크에 데이터를 요청합니다. 값을 하나하나 검증하고, 각 대기열을 올바른 어트랙션에 연결하며, 그날의 기록을 남기고 운영 시간과 공연 정보도 함께 가져옵니다. 데이터 출처에 이상이 생기면 팀에 자동으로 알림이 갑니다."
+      },
+      "free": {
+        "title": "무료, 광고 없음",
+        "body": "Queue Park는 완전 무료이며 광고가 없습니다. 대기 시간을 확인하는 데는 계정이 필요 없습니다. 즐겨찾기를 저장하고 알림을 받으려면 비밀번호 없는 무료 계정(Google 또는 매직 링크)이면 충분하고, 모든 설정은 기기 간에 동기화됩니다."
+      },
+      "independent": {
+        "title": "독립적인 프로젝트",
+        "body": "Queue Park v2는 테마파크를 좋아하는 두 사람, Lilian과 Gaspard가 만들고 있습니다. 공식 앱도 아니고 어떤 파크와도 제휴하지 않았습니다. 의견이나 아이디어가 있거나 추가했으면 하는 파크가 있다면 contact@queue-park.com 으로 알려주세요."
+      },
+      "report": {
+        "title": "정보가 이상한가요?",
+        "body": "데이터는 각 파크에 의존하므로 때때로 불완전하거나 지연될 수 있습니다. 각 파크 페이지의 «문제를 발견하셨나요? 알려주세요» 버튼으로 이상을 신고할 수 있습니다. 신뢰도를 높이는 데 가장 빠른 방법입니다."
+      },
+      "live": {
+        "title": "실시간 대기 시간",
+        "body": "각 어트랙션이 현재 대기 시간을 표시하며 약 1분마다 자동으로 갱신됩니다. 페이지를 새로 고칠 필요 없이 Queue Park가 60초마다 대신 처리합니다. 색으로 상황을 바로 알 수 있습니다: 초록은 짧음, 주황은 보통, 빨강은 김."
+      },
+      "queues": {
+        "title": "대기열 종류",
+        "body": "하나의 어트랙션에 여러 대기열이 있을 수 있습니다: 일반 줄(Standby)과 Fastlane(우선 탑승), Single Rider(1인 좌석), Virtual Queue 등의 선택지입니다. 여러 대기열이 있는 어트랙션을 누르면 모든 대기 시간이 펼쳐집니다."
+      },
+      "favorites": {
+        "title": "즐겨찾기",
+        "body": "별을 눌러 파크, 어트랙션, 공연을 즐겨찾기에 추가하세요. 즐겨찾기한 파크는 홈 화면 맨 위에 고정되고, 즐겨찾기한 어트랙션과 공연은 프로필에서 여는 창에 파크별로 묶여 표시됩니다. 계정에 저장되어 모든 기기에서 동기화됩니다.",
+        "parksLabel": "즐겨찾기한 파크",
+        "ridesLabel": "즐겨찾기한 어트랙션(프로필)",
+        "hint": "별을 누르면 해당 파크가 홈 화면 맨 위로 올라갑니다."
+      },
+      "forecast": {
+        "title": "대기 시간 예측",
+        "body": "어트랙션 페이지에서 실선은 개장 이후 실제로 측정된 대기 시간을, 점선은 폐장까지 남은 시간대의 예상치를 나타냅니다. 요일, 방학, 날씨, 운영 시간 등 조건이 비슷한 과거의 날들을 참고합니다. 그래프 아래에는 실제 오차 범위를 표시합니다. 매일 예측과 실제 결과를 비교하고 있기 때문입니다."
+      },
+      "search": {
+        "title": "검색 & 랜덤 파크",
+        "body": "파크 이름, 그룹(Disney, Walibi 등), 국가를 입력해 어떤 파크든 찾을 수 있습니다. 모험을 원하시나요? 주사위 버튼을 누르면 무작위로 고른 파크로 이동합니다. 국가나 그룹으로 목록을 걸러내고 휴장 중인 파크를 숨길 수도 있습니다."
+      },
+      "shows": {
+        "title": "공연",
+        "body": "해당 파크에서는 «오늘의 운영 시간» 탭에 그날의 공연 일정이 타임라인 형태로 표시됩니다. 이 시간은 매시간 갱신됩니다."
+      },
+      "events": {
+        "title": "시즌 이벤트",
+        "body": "핼러윈이나 크리스마스 기간에는 이벤트 전용 어트랙션과 공연이 시즌 색상의 전용 카드에 모입니다. 카드는 이벤트 시작 시각에 펼쳐지고 그 외 시간에는 접혀 있습니다. «별도 티켓» 표시는 파크 입장권에 포함되지 않는다는 뜻입니다."
+      },
+      "status": {
+        "title": "한눈에 보는 상태",
+        "body": "각 파크는 운영 중인지 휴장인지 알려주고, 각 어트랙션도 운영 중·중지·고장·점검 중 상태를 표시합니다. 색깔 점만 봐도 한 줄 읽지 않고 상황을 파악할 수 있습니다."
+      },
+      "preferences": {
+        "title": "나에게 맞게",
+        "body": "Queue Park는 취향에 맞게 조정됩니다: 라이트·다크·자동(시스템 연동) 테마, 12시간제 또는 24시간제, °C 또는 °F 온도 단위, 그리고 14개 언어 인터페이스. 선택한 설정은 다음 방문에도 유지됩니다."
+      },
+      "alerts": {
+        "title": "대기 시간 알림",
+        "body": "어트랙션 페이지에서 기준값을 고르면 대기 시간이 그 아래로 내려가는 즉시 알림이 도착합니다. 한 번 발송된 알림은 역할을 다한 것이므로 사라지고 기록으로 옮겨집니다. 필요하면 어트랙션 페이지에서 새로 만들면 됩니다. 계정과 알림 권한이 필요합니다."
+      },
+      "reminders": {
+        "title": "공연 알림",
+        "body": "공연 페이지에서 다가오는 회차를 누르고 몇 분 전에 알려줄지 선택하세요. 시작 직전에 알림이 도착합니다. 계정과 알림 권한이 필요합니다."
+      },
+      "detail": {
+        "title": "상세 보기",
+        "body": "각 줄 끝의 눈 아이콘을 누르면 상세 화면이 열립니다: 이미지, 즐겨찾기, 알림, 그리고 그날의 대기 시간과 예측 그래프."
+      },
+      "account": {
+        "title": "내 계정",
+        "body": "계정은 선택 사항입니다. 대기 시간, 운영 시간, 공연 정보는 로그인 없이도 볼 수 있습니다. 무언가를 저장하고 싶어지는 순간부터 유용해집니다. 로그인에 비밀번호는 필요 없고, Google이나 메일로 받은 링크를 사용합니다. 그러면 즐겨찾기, 알림, 리마인더, 설정이 기기를 옮겨도 따라옵니다."
+      },
+      "weather": {
+        "title": "파크 날씨",
+        "body": "각 파크 상단에 현재 기온과 날씨를 요약한 아이콘이 표시되며 매시간 갱신됩니다. 혼잡도를 가늠하고, 모자와 우비 중 무엇을 챙길지 정하는 데 유용합니다."
+      }
+    }
   },
   "metadata": {
     "title": "Queue Park - 테마파크 실시간 대기 시간",
     "titleTemplate": "%s | Queue Park",
-    "description": "전 세계 100개 이상의 테마파크의 실시간 대기 시간. 파크 API에서 직접 제공하는 라이브 데이터로 어트랙션 대기열을 추적하고 방문을 계획하며 즐거움을 극대화하세요.",
-    "keywords": "테마파크 대기 시간, 놀이공원 대기열, 롤러코스터 대기 시간, 테마파크 앱, 실시간 대기 시간, 어트랙션 대기열, 디즈니 대기 시간, 유니버설 대기 시간, 식스 플래그 대기 시간, 테마파크 계획",
+    "description": "전 세계 200곳이 넘는 테마파크의 대기 시간을 실시간으로 확인하세요. 어트랙션 대기열을 살펴보고 방문 계획을 세우며, 파크 공식 API의 실시간 데이터로 하루를 알차게 보내세요.",
+    "keywords": "테마파크 대기 시간, 놀이공원 대기 시간, 롤러코스터 대기 시간, 테마파크 앱, 실시간 대기 시간, 어트랙션 대기열, 디즈니 대기 시간, 유니버설 대기 시간, Six Flags 대기 시간, 테마파크 계획",
     "ogTitle": "Queue Park - 테마파크 실시간 대기 시간",
-    "ogDescription": "전 세계 100개 이상의 테마파크의 실시간 대기 시간. 라이브 데이터로 대기열을 추적하고 방문을 계획하세요.",
+    "ogDescription": "전 세계 200곳이 넘는 테마파크의 대기 시간을 실시간으로. 대기열을 살펴보고 실시간 데이터로 방문 계획을 세우세요.",
     "twitterTitle": "Queue Park - 테마파크 실시간 대기 시간",
-    "twitterDescription": "전 세계 100개 이상의 테마파크의 실시간 대기 시간. 라이브 데이터로 대기열을 추적하고 방문을 계획하세요.",
-    "liveWaitTimes": "실시간 대기 시간"
+    "twitterDescription": "전 세계 200곳이 넘는 테마파크의 대기 시간을 실시간으로. 대기열을 살펴보고 방문 계획을 세우세요.",
+    "liveWaitTimes": "실시간 대기 시간",
+    "rideDescription": "{park}의 {ride} 실시간 대기 시간: 현재 대기열, 오늘의 추이, 예측. 대기 시간이 줄어들 때 알림을 받으려면 알림을 만들어 보세요."
   },
   "settings": {
-    "timeFormat": "시간 형식"
+    "timeFormat": "시간 표시",
+    "temperatureUnit": "온도 단위"
   },
-  "welcome": {
-    "welcomeTo": "환영합니다",
-    "title": "v2에 오신 것을 환영합니다! 🕝",
-    "description": "더 나은 경험을 제공하기 위해 앱을 완전히 새롭게 디자인했습니다. 새로운 인터페이스, 새로운 기능 등 다양한 개선 사항을 확인해 보세요!",
-    "button": "좋아요!",
-    "features": {
-      "showsTimeline": "쇼 타임라인",
-      "newParks": "새로운 파크",
-      "darkMode": "다크 모드",
-      "brandNewUI": "새로운 UI",
-      "fastlaneWaitTimes": "패스트레인 대기 시간",
-      "autoRefresh": "자동 새로고침",
-      "rotatingParkCovers": "회전 커버",
-      "parkStatusIndicator": "파크 상태 표시",
-      "singleRiderWaitTimes": "싱글 라이더 대기 시간",
-      "multiLanguage": "다국어 지원",
-      "improvedPerformance": "향상된 성능",
-      "countryParkFiltering": "국가별 필터",
-      "groupParkFiltering": "그룹별 필터"
+  "whatsNew": {
+    "srTitle": "Queue Park v3의 새로운 기능",
+    "srDescription": "Queue Park 버전 3의 새로운 기능을 소개합니다.",
+    "hero": {
+      "eyebrow": "새로운 기능 {count}가지",
+      "title": "Queue Park가 v3로",
+      "body": "기기를 옮겨 다녀도 이어지는 계정, 딱 맞는 순간에 오는 알림, 대기 시간 예측. 무엇이 달라졌는지 살펴보세요."
+    },
+    "nav": {
+      "scrollHint": "스크롤하세요",
+      "finish": "시작하기",
+      "close": "안내 닫기"
+    },
+    "badges": {
+      "beta": "베타"
+    },
+    "slides": {
+      "account": {
+        "title": "나의 Queue Park 계정",
+        "body": "Google 또는 이메일로 받은 링크만으로, 비밀번호 없이 바로 로그인할 수 있습니다. 즐겨찾기와 알림, 설정은 파크에서 쓰는 휴대폰부터 집의 컴퓨터까지 그대로 이어집니다."
+      },
+      "favorites": {
+        "title": "즐겨찾기를 모든 기기에서",
+        "body": "이제 별표를 파크와 어트랙션, 공연에 모두 사용할 수 있습니다. 즐겨찾기한 파크는 홈 화면 맨 위에 고정되고, 즐겨찾기한 어트랙션과 공연은 파크 목록의 위쪽에 표시됩니다. 프로필에서 한눈에 모아 볼 수 있으며, 모든 기기에서 동기화됩니다."
+      },
+      "notifications": {
+        "title": "딱 맞는 순간에 알림",
+        "body": "Queue Park를 앱으로 설치하면 파크 상황을 대신 지켜봅니다.",
+        "install": "앱 설치",
+        "points": {
+          "threshold": "어트랙션의 대기 시간이 설정한 기준 아래로 내려갔을 때.",
+          "reopened": "어트랙션이 고장이나 중단 후 다시 운영을 시작했을 때.",
+          "show": "공연이 곧 시작할 때. 원하는 만큼 미리 알려 드립니다."
+        }
+      },
+      "forecast": {
+        "title": "대기 시간 예측",
+        "body": "실선은 개장 이후의 대기 시간을, 점선은 폐장까지의 예측을 보여 줍니다. 언제 가면 좋을지 한눈에 알 수 있습니다."
+      },
+      "detail": {
+        "title": "어트랙션마다 마련된 상세 페이지",
+        "body": "어트랙션이나 공연을 누르면 사진, 파크 내 구역, 예측이 담긴 하루 그래프, 알림 설정까지 한곳에 모여 있습니다."
+      },
+      "events": {
+        "title": "파크의 이벤트",
+        "body": "핼러윈이나 크리스마스 기간에는 이벤트 전용 어트랙션과 공연이 계절 색을 입은 별도의 카드에 모입니다. 입장권에 포함되지 않는 경우에는 «별도 티켓»으로 표시됩니다."
+      },
+      "weather": {
+        "title": "파크 날씨를 실시간으로",
+        "body": "파크의 기온과 하늘 상태가 헤더에 표시되며 매시간 갱신됩니다. 혼잡을 예상할 때도, 우비를 챙길지 정할 때도 유용합니다."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "대기 시간이 15분으로 줄었습니다",
+        "reopened": "어트랙션이 방금 다시 열렸습니다",
+        "show": "15분 뒤에 시작합니다"
+      },
+      "events": {
+        "halloween": "핼러윈",
+        "christmas": "크리스마스"
+      }
+    },
+    "finale": {
+      "title": "즐거운 방문 되세요!",
+      "body": "준비가 끝났습니다. 새로 만든 «소개» 페이지에서 대기 시간의 출처와 각 기능을 자세히 확인할 수 있습니다.",
+      "aboutLink": "소개 페이지 보기"
     }
   },
   "reportProblem": {
-    "trigger": "문제가 있나요? 신고해 주세요",
-    "title": "문제 신고",
-    "description": "발견하신 문제를 신고하여 데이터 품질 개선에 도움을 주세요.",
-    "categoryLabel": "문제가 무엇에 관한 것인가요?",
-    "categoryPlaceholder": "옵션 선택",
+    "trigger": "문제를 발견하셨나요? 알려주세요",
+    "title": "문제 신고하기",
+    "description": "발견한 문제를 알려주시면 데이터 품질을 높이는 데 큰 도움이 됩니다.",
+    "categoryLabel": "어떤 정보에 관한 문제인가요?",
+    "categoryPlaceholder": "항목을 선택하세요",
     "subcategoryLabel": "어떤 문제인가요?",
-    "subcategoryPlaceholder": "옵션 선택",
+    "subcategoryPlaceholder": "항목을 선택하세요",
     "detailsLabel": "문제 설명",
-    "detailsPlaceholder": "문제를 최대한 자세히 설명해 주시면 분석하고 해결하는 데 도움이 됩니다.",
+    "detailsPlaceholder": "효과적으로 분석하고 해결할 수 있도록 가능한 한 자세히 설명해 주세요.",
     "emailLabel": "이메일 주소",
+    "emailDescription": "신고 처리 상황을 알려드리기 위해 이메일 주소를 사용합니다.",
+    "emailAccountNotice": "처리 상황을 알려드릴 수 있도록 계정의 이메일 주소가 이 신고와 함께 전송됩니다.",
     "cancel": "취소",
-    "submit": "신고 제출",
-    "success": "신고해 주셔서 감사합니다! 검토하겠습니다.",
-    "error": "신고를 제출하는 중 오류가 발생했습니다. 다시 시도해 주세요.",
-    "emailDescription": "귀하의 신고 해결 상황을 알려드리기 위해 이메일 주소를 사용합니다.",
+    "submit": "신고 보내기",
+    "success": "신고해 주셔서 감사합니다! 확인하겠습니다.",
+    "error": "신고를 보내는 중 오류가 발생했습니다. 다시 시도해 주세요.",
+    "rateLimited": "최근에 여러 건의 신고를 보내셨습니다. 잠시 후에 다시 시도해 주세요.",
     "validation": {
-      "categoryRequired": "카테고리를 선택해주세요",
-      "subcategoryRequired": "하위 카테고리를 선택해주세요",
-      "detailsRequired": "최소 10자 이상 입력해주세요",
-      "emailRequired": "유효한 이메일 주소를 입력해주세요"
+      "categoryRequired": "카테고리를 선택하세요",
+      "subcategoryRequired": "하위 카테고리를 선택하세요",
+      "detailsRequired": "10자 이상 입력하세요",
+      "emailRequired": "유효한 이메일 주소를 입력하세요"
     }
+  },
+  "userBlock": {
+    "loggedOutTitle": "로그인되어 있지 않습니다",
+    "loggedOutSubtitle": "로그인하면 즐겨찾기와 알림이 동기화됩니다",
+    "signIn": "로그인",
+    "signUp": "계정 만들기",
+    "account": "내 계정",
+    "welcomeBack": "다시 오셨군요",
+    "profile": "프로필",
+    "signOut": "로그아웃"
+  },
+  "auth": {
+    "title": "로그인",
+    "subtitle": "로그인하거나 계정을 만드세요 — 비밀번호는 필요 없습니다.",
+    "continueWithGoogle": "Google로 계속하기",
+    "or": "또는",
+    "emailPlaceholder": "you@example.com",
+    "emailInvalid": "유효한 이메일 주소를 입력하세요",
+    "sendMagicLink": "로그인 링크 보내기",
+    "sendError": "전송에 실패했습니다. 다시 시도해 주세요.",
+    "emailSentTitle": "메일함을 확인하세요",
+    "emailSentDescription": "{email} 로 로그인 링크를 보냈습니다.",
+    "useAnotherEmail": "다른 주소 사용",
+    "noPassword": "비밀번호가 필요 없습니다."
+  },
+  "profile": {
+    "title": "프로필",
+    "back": "뒤로",
+    "heroTitle": "내 프로필",
+    "heroSubtitle": "환경설정, 대기 시간 알림과 그 기록.",
+    "backHome": "홈으로 돌아가기",
+    "tabs": {
+      "preferences": "환경설정",
+      "alerts": "알림"
+    },
+    "alertsDailyNote": "알림과 리마인더는 당일에만 유효합니다. 알림이 발송되면 사라지며, 늦어도 자정에는 없어집니다. 설정은 모두 어트랙션 또는 공연 페이지에서 합니다.",
+    "favoritesCount": "즐겨찾기",
+    "favoritesParksCount": "{count, plural, other {즐겨찾기한 파크}}",
+    "favoritesRidesCount": "{count, plural, other {즐겨찾기한 어트랙션}}",
+    "favoritesShowsCount": "{count, plural, other {즐겨찾기한 공연}}",
+    "favoritesParksTitle": "즐겨찾기한 파크",
+    "favoritesRidesTitle": "즐겨찾기한 어트랙션",
+    "favoritesShowsTitle": "즐겨찾기한 공연",
+    "favoritesListEmpty": "아직 즐겨찾기가 없습니다.",
+    "favoritesRemove": "{name} 을(를) 즐겨찾기에서 삭제",
+    "activeAlertsCount": "{count, plural, other {활성 알림}}",
+    "preferencesTitle": "환경설정",
+    "displayName": "표시 이름",
+    "displayNamePlaceholder": "이름",
+    "displayNameSave": "저장",
+    "displayNameSaved": "이름이 업데이트되었습니다",
+    "displayNameError": "이름을 업데이트하지 못했습니다",
+    "language": "언어",
+    "theme": "테마",
+    "themeSystem": "시스템",
+    "themeLight": "라이트",
+    "themeDark": "다크",
+    "timeFormat": "시간 표시",
+    "timeFormat24": "24시간제",
+    "timeFormat12": "12시간제",
+    "temperatureUnit": "온도 단위",
+    "temperatureCelsius": "섭씨",
+    "temperatureFahrenheit": "화씨",
+    "alertsTitle": "활성 알림",
+    "alertsEmpty": "아직 알림이 없습니다. 어트랙션 페이지에서 만들어 보세요.",
+    "threshold": "{minutes}분 미만",
+    "activate": "켜기",
+    "deactivate": "끄기",
+    "validate": "기준값 저장",
+    "thresholdSaved": "기준값을 수정했습니다",
+    "delete": "삭제",
+    "deleted": "알림을 삭제했습니다",
+    "historyTitle": "알림 기록",
+    "historyEmpty": "아직 발송된 알림이 없습니다.",
+    "historyRetentionNote": "30일이 지난 알림은 표시되지 않습니다.",
+    "historyLine": "{actual}분까지 내려감 (≤ {threshold}분)",
+    "loadError": "알림을 불러오지 못했습니다.",
+    "updateError": "수정하지 못했습니다.",
+    "deleteError": "삭제하지 못했습니다.",
+    "privacyTitle": "개인정보",
+    "alertsHeading": "{count, plural, other {내 알림}}",
+    "historyHeading": "{count, plural, other {발송된 알림}}",
+    "historyAttractions": "어트랙션",
+    "historyShows": "공연",
+    "historyShowLine": "{time} 회차 · {lead}분 전",
+    "alertsEmptyRides": "설정된 알림이 없습니다. 어트랙션 페이지에서 만들어 보세요.",
+    "alertsEmptyShows": "설정된 리마인더가 없습니다. 공연 페이지에서 만들어 보세요.",
+    "historyEmptyRides": "아직 어트랙션 알림이 발송되지 않았습니다.",
+    "historyEmptyShows": "아직 공연 알림이 발송되지 않았습니다.",
+    "edit": "기준값 수정",
+    "subTabActive": "활성",
+    "subTabHistory": "기록",
+    "filterAll": "전체",
+    "activeEmptyAll": "오늘 활성화된 알림이나 리마인더가 없습니다.",
+    "leadBadge": "{lead}분 전",
+    "leadSaved": "알림 시점을 수정했습니다",
+    "validateLead": "알림 시점 저장",
+    "editLead": "알림 시점 수정",
+    "leadTooLate": "공연 시작이 너무 임박해 알림 시점을 바꿀 수 없습니다.",
+    "reopenBadge": "재개장",
+    "historyReopenLine": "다시 열림"
+  },
+  "privacy": {
+    "emailLabel": "이메일 주소",
+    "emailSave": "변경",
+    "emailNote": "변경하면 로그아웃되며, 새 주소로 다시 로그인해야 합니다.",
+    "emailChangedSignOut": "이메일을 변경했습니다. 로그아웃합니다…",
+    "emailTaken": "이미 사용 중인 이메일 주소입니다.",
+    "emailInvalid": "올바르지 않은 이메일 주소입니다.",
+    "exportLabel": "내 데이터",
+    "exportButton": "다운로드",
+    "resetAlertsLabel": "알림 초기화",
+    "resetAlertsNote": "대기 중인 알림과 리마인더, 그리고 수신한 알림 기록 전체를 삭제합니다. 계정과 즐겨찾기는 그대로 유지됩니다.",
+    "resetAlertsButton": "초기화",
+    "resetAlertsConfirmTitle": "모두 초기화할까요?",
+    "resetAlertsConfirmDescription": "대기 시간 알림, 공연 리마인더, 수신한 알림 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+    "resetAlertsConfirmButton": "초기화",
+    "resetAlertsDone": "알림·리마인더·기록을 삭제했습니다",
+    "deleteLabel": "계정 삭제",
+    "deleteNote": "되돌릴 수 없습니다. 환경설정, 즐겨찾기, 알림, 리마인더가 모두 삭제됩니다.",
+    "deleteButton": "삭제",
+    "deleteConfirmTitle": "계정을 영구 삭제할까요?",
+    "deleteConfirmDescription": "확인을 위해 이메일 주소({email})를 입력하세요. 이 작업은 되돌릴 수 없습니다.",
+    "deleteConfirmButton": "영구 삭제",
+    "cancel": "취소",
+    "accountDeleted": "계정을 삭제했습니다. 로그아웃합니다…",
+    "genericError": "문제가 발생했습니다. 다시 시도해 주세요.",
+    "exportNote": "계정 사본을 내려받으세요: 이메일, 환경설정, 즐겨찾기, 알림, 공연 리마인더."
+  },
+  "alerts": {
+    "createTitle": "알림 만들기",
+    "createDescription": "{ride}의 대기 시간이 기준값 아래로 내려가면 알려드립니다.",
+    "createFor": "{ride} 알림 만들기",
+    "thresholdLabel": "대기 시간이 몇 분 아래로 내려가면 알려드릴까요?",
+    "thresholdOption": "{minutes}분",
+    "thresholdHint": "대기 시간이 이 기준값 아래로 내려가는 즉시 알려드립니다.",
+    "cancel": "취소",
+    "create": "만들기",
+    "created": "{ride} 알림을 만들었습니다",
+    "createError": "알림을 만들지 못했습니다."
+  },
+  "attractionDetail": {
+    "openFor": "{ride} 상세 보기",
+    "alertsTitle": "알림",
+    "chartTitle": "오늘의 대기 시간",
+    "chartToday": "오늘",
+    "chartActual": "대기 시간",
+    "chartForecast": "예측",
+    "chartNow": "현재",
+    "chartEmpty": "오늘 데이터가 아직 없습니다.",
+    "chartUnavailable": "어트랙션을 현재 이용할 수 없습니다.",
+    "chartUnavailablePermanent": "이 어트랙션은 대기 시간을 제공하지 않습니다: 실시간 정보도, 예측도 없습니다.",
+    "alertsUnavailable": "이 어트랙션은 대기 시간을 제공하지 않으므로 지켜볼 대상이 없고 알림도 만들 수 없습니다.",
+    "chartForecastNote": "남은 시간에 대한 대략적인 추정치입니다.",
+    "chartForecastPreOpeningNote": "지난 날들을 바탕으로 한 추정치이며, 개장 후 갱신됩니다.",
+    "estimateTooltip": "조건이 비슷한 과거의 날들을 바탕으로 추정했습니다. 실제와 다를 수 있습니다.",
+    "marginNote": "최근 며칠간 저희 예측은 평균 <v>{minutes}분</v> 어긋났습니다.",
+    "marginNoteTooltip": "최근 14일 동안 예측값과 실제 측정된 대기 시간의 평균 차이입니다.",
+    "installTitle": "Queue Park 설치",
+    "installIntro": "알림을 사용하려면 기기에 앱이 설치되어 있어야 합니다.",
+    "installButton": "앱 설치",
+    "installAndroidSteps": "브라우저의 ⋮ 메뉴를 열고 «홈 화면에 추가»를 선택하세요.",
+    "installIosSteps": "공유를 누른 뒤 «홈 화면에 추가»를 선택하세요.",
+    "installDesktopSteps": "브라우저 주소창의 설치 아이콘을 사용하세요.",
+    "installAccountNote": "알림을 만들려면 계정도 필요합니다.",
+    "signInTitle": "로그인",
+    "signInIntro": "로그인하면 대기 시간이 줄어들 때 알림을 받을 수 있습니다.",
+    "notifActive": "알림 활성",
+    "save": "저장",
+    "update": "수정",
+    "delete": "삭제",
+    "saved": "알림을 저장했습니다",
+    "deleted": "알림을 삭제했습니다",
+    "pushBlocked": "알림은 저장했지만 이 기기에서는 받을 수 없습니다(알림이 허용되지 않음).",
+    "pushDenied": "이 사이트의 알림이 차단되어 있습니다. 이 기기에서 받으려면 브라우저 설정에서 허용해 주세요.",
+    "pushUnsupported": "이 브라우저는 푸시 알림을 지원하지 않습니다. 알림은 프로필과 기록에는 그대로 표시됩니다.",
+    "reopenLabel": "이 어트랙션은 현재 운행이 중단되었습니다. 다시 운행되면 알려드립니다.",
+    "reopenSave": "다시 열리면 알림 받기",
+    "reopenActive": "재개장 알림 활성",
+    "reopenSaved": "재개장 알림이 저장되었습니다",
+    "reopenTooLate": "공원이 문을 닫아 알림을 사용할 수 없습니다. 다음 개장 때 다시 방문해 주세요.",
+    "statusChanged": "어트랙션 상태가 방금 변경되었습니다. 페이지를 다시 열어 알맞은 알림을 만들어 주세요."
+  },
+  "legal": {
+    "backHome": "홈으로 돌아가기",
+    "updated": "최종 수정: 2026년 7월 21일",
+    "privacy": {
+      "metaTitle": "개인정보 처리방침",
+      "title": "개인정보 처리방침",
+      "intro": "본 방침은 Queue Park가 개인정보를 어떻게 처리하는지 설명합니다. 개인정보 관리자: 본 사이트 운영자(<mentions>사업자 정보</mentions> 참조), 연락처: <mail>contact@queue-park.com</mail>.",
+      "dataTitle": "처리하는 정보, 목적 및 법적 근거",
+      "data1": "<b>계정</b>(이메일 주소, 해당하는 경우 Google을 통한 이름과 프로필 사진): 계정 생성 및 관리 — <i>서비스 제공 / 이용자의 동의</i>.",
+      "data2": "<b>환경설정</b>(언어, 테마, 시간 표시)과 <b>즐겨찾기</b>(파크, 어트랙션, 공연): 이용 경험의 개인화 — <i>서비스 제공</i>.",
+      "data3": "<b>대기 시간 알림</b>과 <b>공연 리마인더</b>, 그리고 기기별 <b>알림 구독 정보</b>: 요청하신 알림의 발송 — <i>이용자의 동의</i>.",
+      "data4": "<b>이용 현황 측정</b>(Google Analytics): 트래픽 통계 — <i>이용자의 동의</i>(<cookies>쿠키 정책</cookies> 참조).",
+      "recipientsTitle": "수신자 및 수탁자",
+      "recipients1": "이용자의 정보는 판매되지 않습니다. 당사를 대신해 업무를 수행하는 사업자가 처리합니다: Google(인증 및 이용 현황 측정), Resend(로그인 메일 발송), IONOS(호스팅, 유럽연합).",
+      "recipients2": "일부 사업자(Google, Resend)는 미국에 소재합니다. 이전이 발생하는 경우 GDPR이 정한 장치(Data Privacy Framework 및/또는 표준계약조항)에 따릅니다.",
+      "retentionTitle": "보관 기간",
+      "retention1": "계정 정보: 계정 삭제 시까지.",
+      "retention2": "알림: 당일에만 유효하며, 기록은 30일간 보관.",
+      "retention3": "공연 리마인더: 해당 회차가 지나면 삭제.",
+      "retention4": "로그인 세션: 세션 유효 기간 동안.",
+      "rightsTitle": "이용자의 권리",
+      "rights1": "열람, 정정, 삭제, 이동, 반대 및 처리 제한을 요구할 권리가 있습니다. <profile>프로필</profile>(환경설정 → 개인정보 탭)에서 이메일을 직접 변경하고, 데이터(JSON)를 내려받고, 계정을 삭제할 수 있습니다. 그 밖의 요청은 <mail>contact@queue-park.com</mail> 으로 보내주세요.",
+      "rights2": "개인정보 감독기관에 진정을 제기할 수도 있습니다(프랑스의 경우 CNIL — cnil.fr).",
+      "securityTitle": "보안 및 미성년자",
+      "security1": "통신은 암호화되며(HTTPS) 인증은 비밀번호 없이 이루어집니다. 수집하는 정보는 꼭 필요한 범위로 제한합니다. 본 서비스는 친권자의 동의 없는 15세 미만 미성년자를 대상으로 하지 않습니다."
+    },
+    "cookies": {
+      "metaTitle": "쿠키 정책",
+      "title": "쿠키 정책",
+      "intro": "쿠키란 사이트를 방문할 때 기기에 저장되는 작은 파일입니다. Queue Park는 아래에 설명한 최소한의 쿠키만 사용합니다.",
+      "necessaryTitle": "필수 쿠키",
+      "necessaryIntro": "사이트 동작에 반드시 필요하며 동의가 필요하지 않습니다:",
+      "necessary1": "<b>인증 세션</b>: 계정 로그인 상태를 유지합니다.",
+      "necessary2": "<b>언어 설정</b>: 표시 언어를 기억합니다.",
+      "audienceTitle": "이용 현황 측정 쿠키",
+      "audience1": "사이트 트래픽을 파악하고 개선하기 위해 Google Analytics를 사용합니다. 이 쿠키(예: <c>_ga</c>, <c>_ga_*</c>)는 <b>이용자가 동의한 후에만</b> 저장되며 최대 13개월간 보관됩니다.",
+      "manageTitle": "선택 관리",
+      "manage1": "첫 방문 시 표시되는 배너에서 이 쿠키에 동의하거나 거부할 수 있으며, 페이지 하단의 <b>«쿠키 관리»</b> 링크로 언제든 선택을 바꿀 수 있습니다. 브라우저에서 쿠키를 차단하도록 설정할 수도 있습니다."
+    },
+    "legalNotice": {
+      "metaTitle": "사업자 정보",
+      "title": "사업자 정보",
+      "editorTitle": "운영자",
+      "editor1": "Queue Park 사이트(queue-park.com)는 Lilian G.와 Gaspard D.가 운영합니다.",
+      "editor2": "발행 책임자: Lilian G. 연락처: <mail>contact@queue-park.com</mail>.",
+      "hostingTitle": "호스팅",
+      "hosting1": "본 사이트는 IONOS SARL(7, place de la Gare, BP 70109, 57201 SARREGUEMINES Cedex, 프랑스, ionos.fr)에서 호스팅합니다.",
+      "ipTitle": "지식재산권",
+      "ip1": "본 사이트의 구성, 문구, 그래픽 요소는 별도의 표시가 없는 한 운영자에게 귀속됩니다. 무단 복제를 금합니다. 파크·어트랙션·공연의 명칭은 각 권리자에게 귀속됩니다.",
+      "liabilityTitle": "책임의 한계",
+      "liability1": "대기 시간과 공연 일정은 제3자 출처를 바탕으로 한 참고 정보이며, 정확성이나 이용 가능성을 보장하지 않습니다. 이를 이용해 발생한 손해에 대해 운영자는 책임지지 않습니다."
+    }
+  },
+  "events": {
+    "opensAt": "{time} 시작",
+    "closesAt": "{time} 종료",
+    "running": "진행 중",
+    "scheduled": "곧 시작",
+    "separateTicket": "별도 티켓",
+    "noAttractions": "현재 대기 시간을 제공하는 어트랙션이 없습니다"
   }
 }
