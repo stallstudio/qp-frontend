@@ -90,10 +90,57 @@ export default function ParkOpeningHours({
   // Check if there's a sold-out day (park is open but tickets are sold out)
   const hasSoldOut = sortedOpeningHours.some((hour) => hour.type === "sold_out");
 
-  // Check if all opening hours have null openTime and closeTime (truly closed)
-  const allTimesNull =
-    sortedOpeningHours.length > 0 &&
-    sortedOpeningHours.every((hour) => !hour.openTime && !hour.closeTime);
+  // ————————————————————————————————————————————————————————————————
+  // C'EST LA LIGNE `standard` QUI DIT SI LE PARC EST FERMÉ
+  //
+  // ⚠️ Le test était `every` : TOUTES les lignes devaient être vides. Une seule
+  // ligne encore horodatée suffisait donc à faire disparaître « Fermé
+  // aujourd'hui » — et comme le `.filter()` plus bas écarte les lignes sans
+  // horaires, la ligne `standard` vide s'évaporait sans rien afficher. La page
+  // ne montrait plus qu'« Horaires anticipés : 9 h 30 – 10 h » d'un parc fermé.
+  //
+  // Constaté le 2026-09-03 sur Parc Astérix, qui a fermé en cours de journée en
+  // laissant derrière lui l'`early_access` écrite pendant la nuit. Le fetcher
+  // annule désormais cette ligne à la source ; ce test est le filet pour les
+  // sources qu'on n'a pas auditées, et pour le jour où la ligne traîne avant
+  // que le worker ne repasse.
+  //
+  // `standard` est la ligne qui décrit la journée d'exploitation : vide, elle
+  // dit que le parc ne fait pas sa journée — à ceci près qu'une SESSION
+  // autonome peut quand même avoir lieu ce soir-là (voir juste en dessous).
+  // Sans ligne `standard` du tout, on retombe sur l'ancien test.
+  // ————————————————————————————————————————————————————————————————
+  const standardHours = sortedOpeningHours.find(
+    (hour) => hour.type === "standard",
+  );
+
+  // ⚠️ **`early_access` est le SEUL type qu'on ignore ici, et la liste ne doit
+  // pas s'allonger.** Il n'existe que comme préambule à la journée standard :
+  // sans journée, il ne veut rien dire, et c'est précisément la ligne qui reste
+  // en arrière quand un parc ferme après coup.
+  //
+  // Les autres types sont des SESSIONS À PART ENTIÈRE, qui se tiennent debout
+  // sans journée de jour : la nocturne d'Halloween à billet séparé, la
+  // privatisation. Les ignorer ferait dire « Fermé aujourd'hui » à une page qui
+  // annonce une soirée — deux motifs déjà en base : Plopsaland le 2026-04-04
+  // (journée vide + `private_event` 10 h – 18 h) et les 64 nuits de Halloween
+  // Horror Nights d'Universal Studios Florida, qui n'ont aujourd'hui aucune
+  // ligne `standard` mais en auront une le jour où la source décrira la journée
+  // fermée.
+  const hasOtherSessionWithHours = sortedOpeningHours.some(
+    (hour) =>
+      hour.type !== "standard" &&
+      hour.type !== "early_access" &&
+      hour.openTime &&
+      hour.closeTime,
+  );
+
+  const isClosedToday = standardHours
+    ? !standardHours.openTime &&
+      !standardHours.closeTime &&
+      !hasOtherSessionWithHours
+    : sortedOpeningHours.length > 0 &&
+      sortedOpeningHours.every((hour) => !hour.openTime && !hour.closeTime);
 
   return (
     <div>
@@ -102,12 +149,12 @@ export default function ParkOpeningHours({
           <Lock className="w-4 h-4" />
           <p>{t("privateEventNoHours")}</p>
         </div>
-      ) : hasSoldOut && allTimesNull ? (
+      ) : hasSoldOut && isClosedToday ? (
         <div className="flex items-center gap-2 text-white">
           <CalendarClock className="w-4 h-4" />
           <p>{t("hoursUnavailable")}</p>
         </div>
-      ) : allTimesNull ? (
+      ) : isClosedToday ? (
         <div className="flex items-center gap-2 text-white">
           <CalendarX2 className="w-4 h-4" />
           <p>{t("closedToday")}</p>
