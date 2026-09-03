@@ -48,7 +48,10 @@
     "hoursOther": "Godziny otwarcia",
     "cards": {
       "attractions": "Atrakcje",
-      "shows": "Pokazy"
+      "shows": "Pokazy",
+      "restaurants": "Restauracje",
+      "shops": "Sklepy",
+      "hotels": "Hotele"
     }
   },
   "parkStatus": {
@@ -136,8 +139,13 @@
     "toggleQueues": "Pokaż pozostałe kolejki dla {ride}",
     "second": "sekunda",
     "seconds": "sekund",
+    "minute": "minuta",
+    "minutes": "minuty",
     "nowRefreshing": "Odświeżanie...",
-    "lastUpdate": "Ostatnia aktualizacja"
+    "lastUpdate": "Ostatnia aktualizacja",
+    "updatedAgo": "Zaktualizowano {age} temu",
+    "liveConnected": "Na żywo",
+    "liveFallback": "Automatyczne odświeżanie"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Wszelkie prawa zastrzeżone.",
@@ -286,25 +294,73 @@
     "timeFormat": "Format godziny",
     "temperatureUnit": "Jednostka temperatury"
   },
-  "welcome": {
-    "welcomeTo": "Witamy w",
-    "title": "Witamy w wersji 2! 🕝",
-    "description": "Całkowicie przeprojektowaliśmy aplikację, aby zapewnić Ci lepsze wrażenia. Odkryj nowy interfejs, nowe funkcje i znacznie więcej!",
-    "button": "Świetnie!",
-    "features": {
-      "showsTimeline": "Oś czasu pokazów",
-      "newParks": "Nowe parki",
-      "darkMode": "Tryb ciemny",
-      "brandNewUI": "Zupełnie nowy interfejs",
-      "fastlaneWaitTimes": "Czasy Fastlane",
-      "autoRefresh": "Automatyczne odświeżanie",
-      "rotatingParkCovers": "Zmieniające się zdjęcia parków",
-      "parkStatusIndicator": "Wskaźnik statusu parku",
-      "singleRiderWaitTimes": "Czasy Single Rider",
-      "multiLanguage": "Wiele języków",
-      "improvedPerformance": "Lepsza wydajność",
-      "countryParkFiltering": "Filtrowanie według kraju",
-      "groupParkFiltering": "Filtrowanie według grupy"
+  "whatsNew": {
+    "srTitle": "Nowości w Queue Park v3",
+    "srDescription": "Przegląd nowości w wersji 3 aplikacji Queue Park.",
+    "hero": {
+      "eyebrow": "{count} nowości",
+      "title": "Queue Park przechodzi na v3",
+      "body": "Konto, które podąża za tobą z jednego urządzenia na drugie, powiadomienia w odpowiednim momencie, prognozy czasu oczekiwania: oto co się zmienia."
+    },
+    "nav": {
+      "scrollHint": "Przewiń",
+      "finish": "Zaczynamy",
+      "close": "Zamknij ogłoszenie"
+    },
+    "badges": {
+      "beta": "Beta"
+    },
+    "slides": {
+      "account": {
+        "title": "Twoje konto Queue Park",
+        "body": "Zaloguj się w mgnieniu oka — przez Google albo zwykłym linkiem otrzymanym e-mailem, bez hasła. Twoje ulubione, twoje powiadomienia i twoje ustawienia podążają wtedy za tobą, od telefonu w parku po komputer w domu."
+      },
+      "favorites": {
+        "title": "Twoje ulubione, na wszystkich urządzeniach",
+        "body": "Gwiazdka działa teraz na parkach, atrakcjach i pokazach. Ulubione parki są przypięte na górze strony głównej, ulubione atrakcje i pokazy trafiają na początek tabel parku, a wszystkie znajdziesz w swoim profilu — zsynchronizowane na wszystkich urządzeniach."
+      },
+      "notifications": {
+        "title": "Powiadomienie w odpowiednim momencie",
+        "body": "Zainstaluj Queue Park jako aplikację i pozwól jej pilnować parku za ciebie.",
+        "install": "Zainstaluj aplikację",
+        "points": {
+          "threshold": "Czas oczekiwania na atrakcję spada poniżej wybranego przez ciebie progu.",
+          "reopened": "Atrakcja otwiera się ponownie po awarii lub zamknięciu.",
+          "show": "Pokaz zaraz się zacznie — z takim wyprzedzeniem, jakie ci odpowiada."
+        }
+      },
+      "forecast": {
+        "title": "Prognozy czasu oczekiwania",
+        "body": "Linia ciągła pokazuje czas oczekiwania od otwarcia, przerywana szacuje go aż do zamknięcia. Tyle, ile trzeba, by wybrać właściwy moment."
+      },
+      "detail": {
+        "title": "Karta każdej atrakcji",
+        "body": "Dotknij atrakcji lub pokazu: zdjęcie, strefa parku, wykres dnia wraz z prognozą i ustawienia twoich powiadomień — wszystko w jednym miejscu."
+      },
+      "events": {
+        "title": "Wydarzenia w parku",
+        "body": "Podczas Halloween czy świąt Bożego Narodzenia atrakcje i pokazy związane z wydarzeniem mają własną kartę w barwach sezonu — z adnotacją «Osobny bilet», gdy wstęp nie jest wliczony w cenę biletu."
+      },
+      "weather": {
+        "title": "Pogoda w parku, na żywo",
+        "body": "Temperatura i niebo nad parkiem pojawiają się w jego nagłówku i są aktualizowane co godzinę. Przydatne, by przewidzieć tłumy — i wiedzieć, czy zabrać kurtkę przeciwdeszczową."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "Czas oczekiwania spadł do 15 min",
+        "reopened": "Atrakcja właśnie otwarta ponownie",
+        "show": "Zaczyna się za 15 minut"
+      },
+      "events": {
+        "halloween": "Halloween",
+        "christmas": "Boże Narodzenie"
+      }
+    },
+    "finale": {
+      "title": "Udanej wizyty!",
+      "body": "Wszystko gotowe. Nowa strona «O nas» opowiada, skąd biorą się czasy oczekiwania, i opisuje każdą funkcję, jeśli chcesz zgłębić temat.",
+      "aboutLink": "Poznaj stronę O nas"
     }
   },
   "reportProblem": {
@@ -513,6 +569,13 @@
     "reopenSaved": "Alert o ponownym otwarciu zapisany",
     "reopenTooLate": "Park jest zamknięty, alerty są niedostępne. Wróć przy następnym otwarciu parku.",
     "statusChanged": "Status atrakcji właśnie się zmienił. Otwórz kartę ponownie, aby utworzyć właściwy alert."
+  },
+  "poiDetail": {
+    "openFor": "Zobacz szczegóły: {poi}",
+    "thrillsLink": "Zobacz na Thrills",
+    "statusTitle": "Status",
+    "menuTitle": "Menu",
+    "menuAction": "Zobacz menu"
   },
   "legal": {
     "backHome": "Powrót na stronę główną",

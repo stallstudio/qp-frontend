@@ -48,7 +48,10 @@
     "hoursOther": "Giờ mở cửa",
     "cards": {
       "attractions": "Trò chơi",
-      "shows": "Chương trình"
+      "shows": "Chương trình",
+      "restaurants": "Nhà hàng",
+      "shops": "Cửa hàng",
+      "hotels": "Khách sạn"
     }
   },
   "parkStatus": {
@@ -136,8 +139,13 @@
     "toggleQueues": "Hiển thị các hàng chờ khác của {ride}",
     "second": "giây",
     "seconds": "giây",
+    "minute": "phút",
+    "minutes": "phút",
     "nowRefreshing": "Đang làm mới...",
-    "lastUpdate": "Cập nhật lần cuối"
+    "lastUpdate": "Cập nhật lần cuối",
+    "updatedAgo": "Cập nhật {age} trước",
+    "liveConnected": "Trực tiếp",
+    "liveFallback": "Tự động làm mới"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Bảo lưu mọi quyền.",
@@ -286,25 +294,73 @@
     "timeFormat": "Định dạng giờ",
     "temperatureUnit": "Đơn vị nhiệt độ"
   },
-  "welcome": {
-    "welcomeTo": "Chào mừng đến với",
-    "title": "Chào mừng đến với phiên bản 2! 🕝",
-    "description": "Chúng tôi đã thiết kế lại hoàn toàn ứng dụng để mang đến trải nghiệm tốt hơn. Hãy khám phá giao diện mới, tính năng mới và nhiều điều thú vị khác!",
-    "button": "Tuyệt, hiểu rồi!",
-    "features": {
-      "showsTimeline": "Dòng thời gian chương trình",
-      "newParks": "Công viên mới",
-      "darkMode": "Chế độ tối",
-      "brandNewUI": "Giao diện hoàn toàn mới",
-      "fastlaneWaitTimes": "Thời gian chờ Fastlane",
-      "autoRefresh": "Tự động làm mới",
-      "rotatingParkCovers": "Ảnh bìa công viên luân phiên",
-      "parkStatusIndicator": "Chỉ báo trạng thái công viên",
-      "singleRiderWaitTimes": "Thời gian chờ Single Rider",
-      "multiLanguage": "Đa ngôn ngữ",
-      "improvedPerformance": "Hiệu năng tốt hơn",
-      "countryParkFiltering": "Lọc theo quốc gia",
-      "groupParkFiltering": "Lọc theo tập đoàn"
+  "whatsNew": {
+    "srTitle": "Những điểm mới của Queue Park v3",
+    "srDescription": "Giới thiệu những điểm mới trong phiên bản 3 của Queue Park.",
+    "hero": {
+      "eyebrow": "{count} điểm mới",
+      "title": "Queue Park lên phiên bản 3",
+      "body": "Một tài khoản theo bạn từ thiết bị này sang thiết bị khác, nhắc nhở đúng lúc, dự báo thời gian chờ: đây là những gì thay đổi."
+    },
+    "nav": {
+      "scrollHint": "Cuộn xuống",
+      "finish": "Bắt đầu thôi",
+      "close": "Đóng thông báo"
+    },
+    "badges": {
+      "beta": "Bản thử nghiệm"
+    },
+    "slides": {
+      "account": {
+        "title": "Tài khoản Queue Park của bạn",
+        "body": "Đăng nhập chỉ trong chốc lát, bằng Google hoặc một liên kết gửi qua e-mail — không cần mật khẩu. Mục yêu thích, nhắc nhở và tuỳ chọn của bạn sẽ theo bạn từ điện thoại trong công viên đến máy tính ở nhà."
+      },
+      "favorites": {
+        "title": "Mục yêu thích trên mọi thiết bị",
+        "body": "Ngôi sao giờ đây dùng được cho công viên, trò chơi và chương trình. Công viên yêu thích được ghim lên đầu trang chủ, trò chơi và chương trình yêu thích được đưa lên đầu bảng của công viên, và bạn tìm lại tất cả trong hồ sơ của mình — đồng bộ trên mọi thiết bị."
+      },
+      "notifications": {
+        "title": "Được báo đúng lúc",
+        "body": "Cài Queue Park như một ứng dụng và để nó trông chừng công viên thay bạn.",
+        "install": "Cài đặt ứng dụng",
+        "points": {
+          "threshold": "Thời gian chờ của một trò chơi xuống dưới ngưỡng bạn đã chọn.",
+          "reopened": "Một trò chơi mở lại sau khi hỏng hóc hoặc tạm ngừng.",
+          "show": "Một chương trình sắp bắt đầu, báo trước bao lâu là tuỳ bạn."
+        }
+      },
+      "forecast": {
+        "title": "Dự báo thời gian chờ",
+        "body": "Đường liền vẽ lại thời gian chờ từ lúc mở cửa, đường đứt nét ước tính đến lúc đóng cửa. Vừa đủ để chọn đúng thời điểm nên đi."
+      },
+      "detail": {
+        "title": "Trang riêng cho từng trò chơi",
+        "body": "Chạm vào một trò chơi hoặc chương trình: ảnh, khu vực trong công viên, biểu đồ trong ngày kèm dự báo và phần cài đặt nhắc nhở, tất cả gom về một chỗ."
+      },
+      "events": {
+        "title": "Sự kiện của công viên",
+        "body": "Vào dịp Halloween hay Giáng sinh, các trò chơi và chương trình riêng của sự kiện có thẻ riêng, mang màu sắc của mùa — kèm ghi chú «Vé riêng» khi vé vào cửa không bao gồm phần này."
+      },
+      "weather": {
+        "title": "Thời tiết công viên, theo thời gian thực",
+        "body": "Nhiệt độ và bầu trời của công viên hiển thị ngay ở phần đầu trang, cập nhật mỗi giờ. Tiện để đoán trước lượng khách — và để biết có nên mang áo mưa hay không."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "Thời gian chờ đã giảm còn 15 phút",
+        "reopened": "Trò chơi vừa mở lại",
+        "show": "Bắt đầu sau 15 phút"
+      },
+      "events": {
+        "halloween": "Halloween",
+        "christmas": "Giáng sinh"
+      }
+    },
+    "finale": {
+      "title": "Chúc bạn có chuyến đi vui vẻ!",
+      "body": "Mọi thứ đã sẵn sàng. Trang «Giới thiệu» mới kể về nguồn gốc của thời gian chờ và mô tả chi tiết từng tính năng, nếu bạn muốn tìm hiểu thêm.",
+      "aboutLink": "Khám phá trang Giới thiệu"
     }
   },
   "reportProblem": {
@@ -513,6 +569,13 @@
     "reopenSaved": "Đã lưu cảnh báo mở lại",
     "reopenTooLate": "Công viên đã đóng cửa, cảnh báo không khả dụng. Hãy quay lại vào lần mở cửa tới.",
     "statusChanged": "Trạng thái của trò chơi vừa thay đổi. Hãy mở lại trang để tạo đúng loại cảnh báo."
+  },
+  "poiDetail": {
+    "openFor": "Xem chi tiết {poi}",
+    "thrillsLink": "Xem trên Thrills",
+    "statusTitle": "Trạng thái",
+    "menuTitle": "Thực đơn",
+    "menuAction": "Xem thực đơn"
   },
   "legal": {
     "backHome": "Về trang chủ",

@@ -48,7 +48,10 @@
     "hoursOther": "営業時間",
     "cards": {
       "attractions": "アトラクション",
-      "shows": "ショー"
+      "shows": "ショー",
+      "restaurants": "レストラン",
+      "shops": "ショップ",
+      "hotels": "ホテル"
     }
   },
   "parkStatus": {
@@ -136,11 +139,16 @@
     "toggleQueues": "{ride} の他の列を表示",
     "second": "秒",
     "seconds": "秒",
+    "minute": "分",
+    "minutes": "分",
     "nowRefreshing": "更新中...",
-    "lastUpdate": "最終更新"
+    "lastUpdate": "最終更新",
+    "updatedAgo": "{age}前に更新",
+    "liveConnected": "ライブ",
+    "liveFallback": "自動更新"
   },
   "footer": {
-    "copyright": "© {year} Queue Park. All rights reserved.",
+    "copyright": "© {year} Queue Park. 無断転載を禁じます。",
     "contactText": "お問い合わせはこちら"
   },
   "noData": {
@@ -286,25 +294,73 @@
     "timeFormat": "時刻表示",
     "temperatureUnit": "温度の単位"
   },
-  "welcome": {
-    "welcomeTo": "ようこそ",
-    "title": "v2 へようこそ！🕝",
-    "description": "より快適にお使いいただけるよう、アプリを全面的に刷新しました。新しいインターフェース、新機能、そしてさらに多くの改善をお試しください。",
-    "button": "了解！",
-    "features": {
-      "showsTimeline": "ショーのタイムライン",
-      "newParks": "新しいパーク",
-      "darkMode": "ダークモード",
-      "brandNewUI": "刷新されたUI",
-      "fastlaneWaitTimes": "Fastlane の待ち時間",
-      "autoRefresh": "自動更新",
-      "rotatingParkCovers": "切り替わるパーク画像",
-      "parkStatusIndicator": "パークの営業状況表示",
-      "singleRiderWaitTimes": "Single Rider の待ち時間",
-      "multiLanguage": "多言語対応",
-      "improvedPerformance": "パフォーマンス向上",
-      "countryParkFiltering": "国での絞り込み",
-      "groupParkFiltering": "グループでの絞り込み"
+  "whatsNew": {
+    "srTitle": "Queue Park v3 の新機能",
+    "srDescription": "Queue Park バージョン 3 の新機能のご紹介。",
+    "hero": {
+      "eyebrow": "{count} 件の新機能",
+      "title": "Queue Park が v3 に",
+      "body": "端末をまたいで引き継がれるアカウント、ちょうどよいタイミングでの通知、待ち時間予測。変わったところをご紹介します。"
+    },
+    "nav": {
+      "scrollHint": "スクロール",
+      "finish": "はじめる",
+      "close": "お知らせを閉じる"
+    },
+    "badges": {
+      "beta": "ベータ"
+    },
+    "slides": {
+      "account": {
+        "title": "Queue Park のアカウント",
+        "body": "Google またはメールで届くリンクだけで、パスワードなしですぐにログインできます。お気に入り・通知・設定は、パークで使うスマホから自宅のパソコンまで、そのまま引き継がれます。"
+      },
+      "favorites": {
+        "title": "お気に入りを、すべての端末で",
+        "body": "星マークがパーク・アトラクション・ショーに対応しました。お気に入りのパークはホーム画面の先頭に固定表示され、お気に入りのアトラクションとショーはパークの一覧の上部に並びます。プロフィールからはそのすべてをまとめて確認でき、すべての端末で同期されます。"
+      },
+      "notifications": {
+        "title": "ちょうどよいタイミングでお知らせ",
+        "body": "Queue Park をアプリとしてインストールすれば、パークの様子を代わりに見張ってくれます。",
+        "install": "アプリをインストール",
+        "points": {
+          "threshold": "アトラクションの待ち時間が、設定したしきい値を下回ったとき。",
+          "reopened": "アトラクションが、停止や休止のあとに再開したとき。",
+          "show": "ショーの開始が近づいたとき。お好みの時間だけ前もってお知らせします。"
+        }
+      },
+      "forecast": {
+        "title": "待ち時間予測",
+        "body": "実線は開園からの待ち時間、点線は閉園までの予測です。出かけるのにちょうどよいタイミングが見つかります。"
+      },
+      "detail": {
+        "title": "アトラクションごとの詳細ページ",
+        "body": "アトラクションやショーをタップすると、写真、パーク内のエリア、予測付きの当日のグラフ、通知の設定まで、すべてが一か所にまとまっています。"
+      },
+      "events": {
+        "title": "パークのイベント",
+        "body": "ハロウィーンやクリスマスの期間は、そのイベント限定のアトラクションとショーが、季節の色をまとった専用のカードに並びます。入園料に含まれない場合は「別途チケット」と表示されます。"
+      },
+      "weather": {
+        "title": "パークの天気を、リアルタイムで",
+        "body": "パークの気温と空模様がヘッダーに表示され、1 時間ごとに更新されます。混雑の予想にも、雨具が要るかの判断にも便利です。"
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "待ち時間が 15 分になりました",
+        "reopened": "アトラクションが再開しました",
+        "show": "15 分後に開演します"
+      },
+      "events": {
+        "halloween": "ハロウィーン",
+        "christmas": "クリスマス"
+      }
+    },
+    "finale": {
+      "title": "どうぞお楽しみください！",
+      "body": "準備は整いました。新しい「Queue Park について」のページでは、待ち時間の取得元や各機能の詳細をご紹介しています。",
+      "aboutLink": "「Queue Park について」を見る"
     }
   },
   "reportProblem": {
@@ -513,6 +569,13 @@
     "reopenSaved": "再開アラートを保存しました",
     "reopenTooLate": "パークは閉園中のため、アラートはご利用いただけません。次の開園時にお越しください。",
     "statusChanged": "アトラクションの状態が変わりました。ページを開き直して、適切なアラートを作成してください。"
+  },
+  "poiDetail": {
+    "openFor": "{poi} の詳細を見る",
+    "thrillsLink": "Thrills で見る",
+    "statusTitle": "状況",
+    "menuTitle": "メニュー",
+    "menuAction": "メニューを見る"
   },
   "legal": {
     "backHome": "ホームに戻る",

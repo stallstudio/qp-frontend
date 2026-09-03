@@ -48,7 +48,10 @@
     "hoursOther": "Orari",
     "cards": {
       "attractions": "Attrazioni",
-      "shows": "Spettacoli"
+      "shows": "Spettacoli",
+      "restaurants": "Ristoranti",
+      "shops": "Negozi",
+      "hotels": "Hotel"
     }
   },
   "parkStatus": {
@@ -136,8 +139,13 @@
     "toggleQueues": "Mostra le altre file di {ride}",
     "second": "secondo",
     "seconds": "secondi",
+    "minute": "minuto",
+    "minutes": "minuti",
     "nowRefreshing": "Aggiornamento in corso...",
-    "lastUpdate": "Ultimo aggiornamento"
+    "lastUpdate": "Ultimo aggiornamento",
+    "updatedAgo": "Aggiornato {age} fa",
+    "liveConnected": "In diretta",
+    "liveFallback": "Aggiornamento automatico"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Tutti i diritti riservati.",
@@ -286,25 +294,73 @@
     "timeFormat": "Formato ora",
     "temperatureUnit": "Unità di temperatura"
   },
-  "welcome": {
-    "welcomeTo": "Benvenuto su",
-    "title": "Benvenuto nella v2! 🕝",
-    "description": "Abbiamo ridisegnato completamente l'app per offrirti un'esperienza migliore. Scopri una nuova interfaccia, nuove funzioni e molto altro!",
-    "button": "Ok, ottimo!",
-    "features": {
-      "showsTimeline": "Linea del tempo degli spettacoli",
-      "newParks": "Nuovi parchi",
-      "darkMode": "Modalità scura",
-      "brandNewUI": "Interfaccia tutta nuova",
-      "fastlaneWaitTimes": "Tempi Fastlane",
-      "autoRefresh": "Aggiornamento automatico",
-      "rotatingParkCovers": "Copertine dei parchi a rotazione",
-      "parkStatusIndicator": "Indicatore di stato del parco",
-      "singleRiderWaitTimes": "Tempi Single Rider",
-      "multiLanguage": "Multilingua",
-      "improvedPerformance": "Prestazioni migliorate",
-      "countryParkFiltering": "Filtro per paese",
-      "groupParkFiltering": "Filtro per gruppo"
+  "whatsNew": {
+    "srTitle": "Le novità di Queue Park v3",
+    "srDescription": "Una presentazione delle novità della versione 3 di Queue Park.",
+    "hero": {
+      "eyebrow": "{count} novità",
+      "title": "Queue Park passa alla v3",
+      "body": "Un account che ti segue da un dispositivo all'altro, avvisi al momento giusto, previsioni di attesa: ecco cosa cambia."
+    },
+    "nav": {
+      "scrollHint": "Scorri",
+      "finish": "Si parte",
+      "close": "Chiudi l'annuncio"
+    },
+    "badges": {
+      "beta": "Beta"
+    },
+    "slides": {
+      "account": {
+        "title": "Il tuo account Queue Park",
+        "body": "Accedi in un attimo, con Google o con un semplice link ricevuto per e-mail — senza password. I tuoi preferiti, i tuoi avvisi e le tue preferenze ti seguono così dal telefono al parco al computer di casa."
+      },
+      "favorites": {
+        "title": "I tuoi preferiti, su tutti i tuoi dispositivi",
+        "body": "La stella ora funziona su parchi, attrazioni e spettacoli. I tuoi parchi preferiti restano in cima alla home, le tue attrazioni e i tuoi spettacoli salgono in testa alle tabelle del parco, e li ritrovi tutti nel tuo profilo — sincronizzati su tutti i dispositivi."
+      },
+      "notifications": {
+        "title": "Avvisato al momento giusto",
+        "body": "Installa Queue Park come app e lascia che tenga d'occhio il parco per te.",
+        "install": "Installa l'app",
+        "points": {
+          "threshold": "L'attesa di un'attrazione scende sotto la soglia che hai scelto.",
+          "reopened": "Un'attrazione riapre dopo un guasto o una chiusura.",
+          "show": "Uno spettacolo sta per iniziare, con l'anticipo che preferisci."
+        }
+      },
+      "forecast": {
+        "title": "Previsioni di attesa",
+        "body": "La linea continua ripercorre l'attesa dall'apertura, quella tratteggiata la stima fino alla chiusura. Quanto basta per individuare il momento giusto per andarci."
+      },
+      "detail": {
+        "title": "La scheda di ogni attrazione",
+        "body": "Tocca un'attrazione o uno spettacolo: la foto, l'area del parco, la curva della giornata con la sua previsione e la regolazione dei tuoi avvisi, tutto riunito nello stesso posto."
+      },
+      "events": {
+        "title": "Gli eventi del parco",
+        "body": "Durante Halloween o Natale, le attrazioni e gli spettacoli propri dell'evento hanno una scheda dedicata, nei colori della stagione — con la dicitura «Biglietto separato» quando l'accesso non è compreso nell'ingresso."
+      },
+      "weather": {
+        "title": "Il meteo del parco, in diretta",
+        "body": "La temperatura e il cielo del parco compaiono nella sua intestazione, aggiornati ogni ora. Utile per anticipare l'affluenza — e per sapere se serve la giacca antipioggia."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "L'attesa è scesa a 15 min",
+        "reopened": "L'attrazione ha appena riaperto",
+        "show": "Inizia tra 15 minuti"
+      },
+      "events": {
+        "halloween": "Halloween",
+        "christmas": "Natale"
+      }
+    },
+    "finale": {
+      "title": "Buona visita!",
+      "body": "È tutto pronto. Una nuova pagina «Chi siamo» racconta da dove arrivano i tempi di attesa e descrive ogni funzione, se vuoi approfondire.",
+      "aboutLink": "Scopri la pagina Chi siamo"
     }
   },
   "reportProblem": {
@@ -513,6 +569,13 @@
     "reopenSaved": "Avviso di riapertura salvato",
     "reopenTooLate": "Il parco è chiuso, gli avvisi non sono disponibili. Torna alla prossima apertura del parco.",
     "statusChanged": "Lo stato dell'attrazione è appena cambiato. Riapri la scheda per creare l'avviso giusto."
+  },
+  "poiDetail": {
+    "openFor": "Vedi la scheda di {poi}",
+    "thrillsLink": "Vedi su Thrills",
+    "statusTitle": "Stato",
+    "menuTitle": "Menu",
+    "menuAction": "Vedi il menu"
   },
   "legal": {
     "backHome": "Torna alla home",

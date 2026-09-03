@@ -294,25 +294,73 @@
     "timeFormat": "Time format",
     "temperatureUnit": "Temperature unit"
   },
-  "welcome": {
-    "welcomeTo": "Welcome to",
-    "title": "Welcome to v2! 🕝",
-    "description": "We have completely redesigned the app to offer you a better experience. Discover a new interface, new features, and much more!",
-    "button": "Ok, great!",
-    "features": {
-      "showsTimeline": "Shows Timeline",
-      "newParks": "New parks",
-      "darkMode": "Dark mode",
-      "brandNewUI": "Brand new UI",
-      "fastlaneWaitTimes": "Fastlane wait times",
-      "autoRefresh": "Auto-refresh",
-      "rotatingParkCovers": "Rotating park covers",
-      "parkStatusIndicator": "Park status indicator",
-      "singleRiderWaitTimes": "Single rider wait times",
-      "multiLanguage": "Multi language",
-      "improvedPerformance": "Improved performance",
-      "countryParkFiltering": "Country park filtering",
-      "groupParkFiltering": "Group park filtering"
+  "whatsNew": {
+    "srTitle": "What's new in Queue Park v3",
+    "srDescription": "An overview of what's new in version 3 of Queue Park.",
+    "hero": {
+      "eyebrow": "{count} new features",
+      "title": "Queue Park goes v3",
+      "body": "An account that follows you from one device to the next, notifications at the right moment, wait-time forecasts: here's what's changing."
+    },
+    "nav": {
+      "scrollHint": "Scroll",
+      "finish": "Let's go",
+      "close": "Close announcement"
+    },
+    "badges": {
+      "beta": "Beta"
+    },
+    "slides": {
+      "account": {
+        "title": "Your Queue Park account",
+        "body": "Sign in in seconds, with Google or a simple link sent to your inbox — no password. Your favorites, your alerts and your preferences then follow you from your phone at the park to your computer at home."
+      },
+      "favorites": {
+        "title": "Your favorites, on all your devices",
+        "body": "The star now works on parks, rides and shows. Your favorite parks are pinned to the top of the home page, your favorite rides and shows move to the top of the park's tables, and you'll find them all again in your profile — synced across all your devices."
+      },
+      "notifications": {
+        "title": "Notified at the right moment",
+        "body": "Install Queue Park as an app, and let it keep an eye on the park for you.",
+        "install": "Install the app",
+        "points": {
+          "threshold": "A ride's wait drops below the threshold you chose.",
+          "reopened": "A ride reopens after a breakdown or a closure.",
+          "show": "A show is about to start, with as much notice as suits you."
+        }
+      },
+      "forecast": {
+        "title": "Wait-time forecasts",
+        "body": "The solid line traces the wait since opening, the dotted one estimates it through to closing. Just what you need to spot the right moment to go."
+      },
+      "detail": {
+        "title": "A page for every ride",
+        "body": "Tap a ride or a show: its photo, its land in the park, the day's curve with its forecast and the settings for your alerts — it's all gathered in one place."
+      },
+      "events": {
+        "title": "The park's events",
+        "body": "During Halloween or Christmas, the rides and shows specific to the event get their own card, in the colors of the season — with a “Separate ticket” note when access isn't included with admission."
+      },
+      "weather": {
+        "title": "Park weather, live",
+        "body": "The park's temperature and sky appear in its header, updated every hour. Handy for anticipating the crowds — and for knowing whether to pack a raincoat."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "The wait is down to 15 min",
+        "reopened": "The ride has just reopened",
+        "show": "Starts in 15 minutes"
+      },
+      "events": {
+        "halloween": "Halloween",
+        "christmas": "Christmas"
+      }
+    },
+    "finale": {
+      "title": "Enjoy your visit!",
+      "body": "Everything is in place. A new “About” page explains where the wait times come from and details every feature, if you want to dig deeper.",
+      "aboutLink": "Explore the About page"
     }
   },
   "reportProblem": {

@@ -48,7 +48,10 @@
     "hoursOther": "Öppettider",
     "cards": {
       "attractions": "Attraktioner",
-      "shows": "Shower"
+      "shows": "Shower",
+      "restaurants": "Restauranger",
+      "shops": "Butiker",
+      "hotels": "Hotell"
     }
   },
   "parkStatus": {
@@ -136,8 +139,13 @@
     "toggleQueues": "Visa de andra köerna för {ride}",
     "second": "sekund",
     "seconds": "sekunder",
+    "minute": "minut",
+    "minutes": "minuter",
     "nowRefreshing": "Uppdaterar...",
-    "lastUpdate": "Senast uppdaterad"
+    "lastUpdate": "Senast uppdaterad",
+    "updatedAgo": "Uppdaterad för {age} sedan",
+    "liveConnected": "Live",
+    "liveFallback": "Automatisk uppdatering"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Med ensamrätt.",
@@ -286,25 +294,73 @@
     "timeFormat": "Tidsformat",
     "temperatureUnit": "Temperaturenhet"
   },
-  "welcome": {
-    "welcomeTo": "Välkommen till",
-    "title": "Välkommen till v2! 🕝",
-    "description": "Vi har gjort om appen helt för att ge dig en bättre upplevelse. Upptäck ett nytt gränssnitt, nya funktioner och mycket mer!",
-    "button": "Ok, toppen!",
-    "features": {
-      "showsTimeline": "Tidslinje för shower",
-      "newParks": "Nya parker",
-      "darkMode": "Mörkt läge",
-      "brandNewUI": "Helt nytt gränssnitt",
-      "fastlaneWaitTimes": "Fastlane-kötider",
-      "autoRefresh": "Automatisk uppdatering",
-      "rotatingParkCovers": "Roterande parkbilder",
-      "parkStatusIndicator": "Statusindikator för parken",
-      "singleRiderWaitTimes": "Single Rider-kötider",
-      "multiLanguage": "Flera språk",
-      "improvedPerformance": "Bättre prestanda",
-      "countryParkFiltering": "Filtrering efter land",
-      "groupParkFiltering": "Filtrering efter grupp"
+  "whatsNew": {
+    "srTitle": "Nyheterna i Queue Park v3",
+    "srDescription": "En presentation av nyheterna i version 3 av Queue Park.",
+    "hero": {
+      "eyebrow": "{count} nyheter",
+      "title": "Queue Park blir v3",
+      "body": "Ett konto som följer med dig från en enhet till nästa, aviseringar i rätt ögonblick, kötidsprognoser: det här är vad som ändras."
+    },
+    "nav": {
+      "scrollHint": "Skrolla",
+      "finish": "Nu kör vi",
+      "close": "Stäng meddelandet"
+    },
+    "badges": {
+      "beta": "Beta"
+    },
+    "slides": {
+      "account": {
+        "title": "Ditt Queue Park-konto",
+        "body": "Logga in på ett ögonblick, med Google eller en enkel länk via e-post — helt utan lösenord. Dina favoriter, dina aviseringar och dina inställningar följer sedan med dig från mobilen i parken till datorn hemma."
+      },
+      "favorites": {
+        "title": "Dina favoriter, på alla dina enheter",
+        "body": "Stjärnan fungerar nu på parker, attraktioner och shower. Dina favoritparker ligger överst på startsidan, dina favoritattraktioner och -shower hamnar högst upp i parkens tabeller, och du hittar dem alla igen i din profil — synkroniserade på alla dina enheter."
+      },
+      "notifications": {
+        "title": "Aviserad i rätt ögonblick",
+        "body": "Installera Queue Park som app och låt den hålla koll på parken åt dig.",
+        "install": "Installera appen",
+        "points": {
+          "threshold": "Kötiden till en attraktion sjunker under gränsen du har valt.",
+          "reopened": "En attraktion öppnar igen efter ett stopp eller en stängning.",
+          "show": "En show är på väg att börja, med så lång framförhållning du vill."
+        }
+      },
+      "forecast": {
+        "title": "Kötidsprognoser",
+        "body": "Den heldragna linjen visar kötiden sedan öppning, den streckade uppskattar den fram till stängning. Precis vad som behövs för att hitta rätt tillfälle att gå dit."
+      },
+      "detail": {
+        "title": "Sidan för varje attraktion",
+        "body": "Tryck på en attraktion eller en show: bilden, området i parken, dagens kurva med sin prognos och inställningen av dina aviseringar — allt är samlat på ett ställe."
+      },
+      "events": {
+        "title": "Parkens evenemang",
+        "body": "Under Halloween eller julen får evenemangets egna attraktioner och shower ett eget kort, i säsongens färger — med noteringen »Separat biljett« när tillträdet inte ingår i entrén."
+      },
+      "weather": {
+        "title": "Vädret i parken, live",
+        "body": "Parkens temperatur och himmel visas i sidhuvudet och uppdateras varje timme. Praktiskt för att förutse trängseln — och för att veta om regnjackan ska med."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "Kötiden har sjunkit till 15 min",
+        "reopened": "Attraktionen har just öppnat igen",
+        "show": "Börjar om 15 minuter"
+      },
+      "events": {
+        "halloween": "Halloween",
+        "christmas": "Jul"
+      }
+    },
+    "finale": {
+      "title": "Ha ett trevligt besök!",
+      "body": "Allt är på plats. En ny sida, »Om oss«, berättar var kötiderna kommer ifrån och går igenom varje funktion, om du vill fördjupa dig.",
+      "aboutLink": "Upptäck sidan Om oss"
     }
   },
   "reportProblem": {
@@ -513,6 +569,13 @@
     "reopenSaved": "Återöppningsavisering sparad",
     "reopenTooLate": "Parken är stängd, aviseringar är inte tillgängliga. Kom tillbaka vid parkens nästa öppning.",
     "statusChanged": "Attraktionens status har just ändrats. Öppna sidan igen för att skapa rätt avisering."
+  },
+  "poiDetail": {
+    "openFor": "Visa information om {poi}",
+    "thrillsLink": "Visa på Thrills",
+    "statusTitle": "Status",
+    "menuTitle": "Meny",
+    "menuAction": "Visa menyn"
   },
   "legal": {
     "backHome": "Tillbaka till startsidan",

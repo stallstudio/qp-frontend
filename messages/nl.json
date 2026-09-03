@@ -48,7 +48,10 @@
     "hoursOther": "Openingstijden",
     "cards": {
       "attractions": "Attracties",
-      "shows": "Shows"
+      "shows": "Shows",
+      "restaurants": "Restaurants",
+      "shops": "Winkels",
+      "hotels": "Hotels"
     }
   },
   "parkStatus": {
@@ -136,8 +139,13 @@
     "toggleQueues": "De andere wachtrijen van {ride} tonen",
     "second": "seconde",
     "seconds": "seconden",
+    "minute": "minuut",
+    "minutes": "minuten",
     "nowRefreshing": "Bezig met vernieuwen...",
-    "lastUpdate": "Laatste update"
+    "lastUpdate": "Laatste update",
+    "updatedAgo": "{age} geleden bijgewerkt",
+    "liveConnected": "Live",
+    "liveFallback": "Automatisch vernieuwen"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Alle rechten voorbehouden.",
@@ -286,25 +294,73 @@
     "timeFormat": "Tijdnotatie",
     "temperatureUnit": "Temperatuureenheid"
   },
-  "welcome": {
-    "welcomeTo": "Welkom bij",
-    "title": "Welkom bij v2! 🕝",
-    "description": "We hebben de app volledig opnieuw ontworpen om je een betere ervaring te bieden. Ontdek een nieuwe interface, nieuwe functies en nog veel meer!",
-    "button": "Oké, top!",
-    "features": {
-      "showsTimeline": "Tijdlijn van shows",
-      "newParks": "Nieuwe parken",
-      "darkMode": "Donkere modus",
-      "brandNewUI": "Gloednieuwe interface",
-      "fastlaneWaitTimes": "Fastlane-wachttijden",
-      "autoRefresh": "Automatisch vernieuwen",
-      "rotatingParkCovers": "Wisselende parkafbeeldingen",
-      "parkStatusIndicator": "Statusindicator van het park",
-      "singleRiderWaitTimes": "Single Rider-wachttijden",
-      "multiLanguage": "Meertalig",
-      "improvedPerformance": "Betere prestaties",
-      "countryParkFiltering": "Filteren op land",
-      "groupParkFiltering": "Filteren op groep"
+  "whatsNew": {
+    "srTitle": "Wat er nieuw is in Queue Park v3",
+    "srDescription": "Een overzicht van wat er nieuw is in versie 3 van Queue Park.",
+    "hero": {
+      "eyebrow": "{count} nieuwe functies",
+      "title": "Queue Park gaat naar v3",
+      "body": "Een account dat met je meegaat van het ene apparaat naar het andere, meldingen op het juiste moment, wachttijdvoorspellingen: dit verandert er."
+    },
+    "nav": {
+      "scrollHint": "Scroll",
+      "finish": "Aan de slag",
+      "close": "Aankondiging sluiten"
+    },
+    "badges": {
+      "beta": "Bèta"
+    },
+    "slides": {
+      "account": {
+        "title": "Je Queue Park-account",
+        "body": "Meld je in een oogwenk aan, met Google of met een simpele link per e-mail — zonder wachtwoord. Je favorieten, je meldingen en je voorkeuren gaan dan met je mee, van je telefoon in het park tot je computer thuis."
+      },
+      "favorites": {
+        "title": "Je favorieten, op al je apparaten",
+        "body": "De ster werkt nu op parken, attracties en shows. Je favoriete parken staan bovenaan de startpagina, je favoriete attracties en shows komen boven aan de tabellen van het park, en je vindt ze allemaal terug in je profiel — gesynchroniseerd op al je apparaten."
+      },
+      "notifications": {
+        "title": "Op het juiste moment gewaarschuwd",
+        "body": "Installeer Queue Park als app en laat die het park voor je in de gaten houden.",
+        "install": "De app installeren",
+        "points": {
+          "threshold": "De wachttijd van een attractie zakt onder de drempel die je hebt gekozen.",
+          "reopened": "Een attractie gaat weer open na een storing of een sluiting.",
+          "show": "Een show begint zo, met zoveel voorsprong als jou uitkomt."
+        }
+      },
+      "forecast": {
+        "title": "Wachttijdvoorspellingen",
+        "body": "De doorlopende lijn toont de wachttijd sinds de opening, de stippellijn schat die tot de sluiting. Precies genoeg om het juiste moment te vinden."
+      },
+      "detail": {
+        "title": "De pagina van elke attractie",
+        "body": "Tik op een attractie of een show: de foto, het themagebied in het park, de curve van de dag met de voorspelling en de instelling van je meldingen — alles op één plek."
+      },
+      "events": {
+        "title": "De evenementen van het park",
+        "body": "Tijdens Halloween of Kerst krijgen de attracties en shows van het evenement een eigen kaart, in de kleuren van het seizoen — met de vermelding «Apart ticket» wanneer de toegang niet bij het entreebewijs zit."
+      },
+      "weather": {
+        "title": "Het weer in het park, live",
+        "body": "De temperatuur en de lucht boven het park staan in de koptekst, elk uur bijgewerkt. Handig om de drukte in te schatten — en om te weten of je een regenjas meeneemt."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "De wachttijd is gezakt naar 15 min",
+        "reopened": "De attractie is net weer open",
+        "show": "Begint over 15 minuten"
+      },
+      "events": {
+        "halloween": "Halloween",
+        "christmas": "Kerst"
+      }
+    },
+    "finale": {
+      "title": "Veel plezier!",
+      "body": "Alles staat klaar. Een nieuwe pagina «Over ons» vertelt waar de wachttijden vandaan komen en licht elke functie toe, als je verder wilt kijken.",
+      "aboutLink": "Ontdek de pagina Over ons"
     }
   },
   "reportProblem": {
@@ -513,6 +569,13 @@
     "reopenSaved": "Heropeningsmelding opgeslagen",
     "reopenTooLate": "Het park is gesloten, meldingen zijn niet beschikbaar. Kom terug bij de volgende opening van het park.",
     "statusChanged": "De status van de attractie is zojuist gewijzigd. Open de pagina opnieuw om de juiste melding te maken."
+  },
+  "poiDetail": {
+    "openFor": "Details van {poi} bekijken",
+    "thrillsLink": "Bekijken op Thrills",
+    "statusTitle": "Status",
+    "menuTitle": "Menukaart",
+    "menuAction": "Menukaart bekijken"
   },
   "legal": {
     "backHome": "Terug naar de startpagina",

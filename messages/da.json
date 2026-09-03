@@ -48,7 +48,10 @@
     "hoursOther": "Åbningstider",
     "cards": {
       "attractions": "Forlystelser",
-      "shows": "Shows"
+      "shows": "Shows",
+      "restaurants": "Restauranter",
+      "shops": "Butikker",
+      "hotels": "Hoteller"
     }
   },
   "parkStatus": {
@@ -136,8 +139,13 @@
     "toggleQueues": "Vis de andre køer for {ride}",
     "second": "sekund",
     "seconds": "sekunder",
+    "minute": "minut",
+    "minutes": "minutter",
     "nowRefreshing": "Opdaterer...",
-    "lastUpdate": "Senest opdateret"
+    "lastUpdate": "Senest opdateret",
+    "updatedAgo": "Opdateret for {age} siden",
+    "liveConnected": "Live",
+    "liveFallback": "Automatisk opdatering"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Alle rettigheder forbeholdes.",
@@ -286,25 +294,73 @@
     "timeFormat": "Tidsformat",
     "temperatureUnit": "Temperaturenhed"
   },
-  "welcome": {
-    "welcomeTo": "Velkommen til",
-    "title": "Velkommen til v2! 🕝",
-    "description": "Vi har designet appen helt om for at give dig en bedre oplevelse. Oplev en ny grænseflade, nye funktioner og meget mere!",
-    "button": "Ok, super!",
-    "features": {
-      "showsTimeline": "Tidslinje over shows",
-      "newParks": "Nye parker",
-      "darkMode": "Mørk tilstand",
-      "brandNewUI": "Helt ny grænseflade",
-      "fastlaneWaitTimes": "Fastlane-ventetider",
-      "autoRefresh": "Automatisk opdatering",
-      "rotatingParkCovers": "Skiftende parkbilleder",
-      "parkStatusIndicator": "Statusindikator for parken",
-      "singleRiderWaitTimes": "Single Rider-ventetider",
-      "multiLanguage": "Flere sprog",
-      "improvedPerformance": "Bedre ydeevne",
-      "countryParkFiltering": "Filtrering efter land",
-      "groupParkFiltering": "Filtrering efter gruppe"
+  "whatsNew": {
+    "srTitle": "Nyhederne i Queue Park v3",
+    "srDescription": "En præsentation af nyhederne i version 3 af Queue Park.",
+    "hero": {
+      "eyebrow": "{count} nyheder",
+      "title": "Queue Park bliver til v3",
+      "body": "En konto, der følger dig fra den ene enhed til den næste, notifikationer på det rigtige tidspunkt, ventetidsprognoser: Det er det, der ændrer sig."
+    },
+    "nav": {
+      "scrollHint": "Rul ned",
+      "finish": "Så er vi i gang",
+      "close": "Luk meddelelsen"
+    },
+    "badges": {
+      "beta": "Beta"
+    },
+    "slides": {
+      "account": {
+        "title": "Din Queue Park-konto",
+        "body": "Log ind på et øjeblik med Google eller et enkelt link i din indbakke — helt uden adgangskode. Dine favoritter, dine notifikationer og dine indstillinger følger dig så fra telefonen i parken til computeren derhjemme."
+      },
+      "favorites": {
+        "title": "Dine favoritter på alle dine enheder",
+        "body": "Stjernen virker nu på parker, forlystelser og shows. Dine yndlingsparker sidder øverst på forsiden, dine yndlingsforlystelser og -shows rykker op i toppen af parkens tabeller, og du finder dem alle igen i din profil — synkroniseret på alle dine enheder."
+      },
+      "notifications": {
+        "title": "Besked på det rigtige tidspunkt",
+        "body": "Installer Queue Park som en app, og lad den holde øje med parken for dig.",
+        "install": "Installer appen",
+        "points": {
+          "threshold": "Ventetiden på en forlystelse falder under den grænse, du har valgt.",
+          "reopened": "En forlystelse åbner igen efter et nedbrud eller en lukning.",
+          "show": "Et show er ved at begynde, med så meget varsel, som du ønsker."
+        }
+      },
+      "forecast": {
+        "title": "Ventetidsprognoser",
+        "body": "Den fuldt optrukne linje viser ventetiden siden åbning, den stiplede anslår den frem til lukketid. Nok til at finde det rigtige tidspunkt at gå."
+      },
+      "detail": {
+        "title": "Siden for hver forlystelse",
+        "body": "Tryk på en forlystelse eller et show: billedet, området i parken, dagens kurve med sin prognose og indstillingen af dine notifikationer — det hele er samlet ét sted."
+      },
+      "events": {
+        "title": "Parkens events",
+        "body": "Under Halloween eller jul får eventets egne forlystelser og shows deres eget kort i sæsonens farver — med bemærkningen »Separat billet«, når adgangen ikke er inkluderet i entréen."
+      },
+      "weather": {
+        "title": "Vejret i parken, live",
+        "body": "Parkens temperatur og himmel står i toppen af siden og opdateres hver time. Praktisk til at forudse travlheden — og til at vide, om regnjakken skal med."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "Ventetiden er faldet til 15 min",
+        "reopened": "Forlystelsen er lige åbnet igen",
+        "show": "Begynder om 15 minutter"
+      },
+      "events": {
+        "halloween": "Halloween",
+        "christmas": "Jul"
+      }
+    },
+    "finale": {
+      "title": "God fornøjelse!",
+      "body": "Alt er på plads. En ny side, »Om os«, fortæller, hvor ventetiderne kommer fra, og gennemgår hver funktion, hvis du vil grave dybere.",
+      "aboutLink": "Se siden Om os"
     }
   },
   "reportProblem": {
@@ -513,6 +569,13 @@
     "reopenSaved": "Genåbningsalarm gemt",
     "reopenTooLate": "Parken er lukket, alarmer er ikke tilgængelige. Kom tilbage ved parkens næste åbning.",
     "statusChanged": "Forlystelsens status er lige ændret. Åbn siden igen for at oprette den rigtige alarm."
+  },
+  "poiDetail": {
+    "openFor": "Se detaljer om {poi}",
+    "thrillsLink": "Se på Thrills",
+    "statusTitle": "Status",
+    "menuTitle": "Menukort",
+    "menuAction": "Se menukortet"
   },
   "legal": {
     "backHome": "Tilbage til forsiden",

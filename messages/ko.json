@@ -48,7 +48,10 @@
     "hoursOther": "운영 시간",
     "cards": {
       "attractions": "어트랙션",
-      "shows": "공연"
+      "shows": "공연",
+      "restaurants": "레스토랑",
+      "shops": "상점",
+      "hotels": "호텔"
     }
   },
   "parkStatus": {
@@ -136,11 +139,16 @@
     "toggleQueues": "{ride}의 다른 대기열 보기",
     "second": "초",
     "seconds": "초",
+    "minute": "분",
+    "minutes": "분",
     "nowRefreshing": "갱신 중...",
-    "lastUpdate": "마지막 갱신"
+    "lastUpdate": "마지막 갱신",
+    "updatedAgo": "{age} 전 업데이트",
+    "liveConnected": "실시간",
+    "liveFallback": "자동 새로 고침"
   },
   "footer": {
-    "copyright": "© {year} Queue Park. All rights reserved.",
+    "copyright": "© {year} Queue Park. 모든 권리 보유.",
     "contactText": "문의는 이곳으로"
   },
   "noData": {
@@ -286,25 +294,73 @@
     "timeFormat": "시간 표시",
     "temperatureUnit": "온도 단위"
   },
-  "welcome": {
-    "welcomeTo": "환영합니다",
-    "title": "v2에 오신 것을 환영합니다! 🕝",
-    "description": "더 나은 경험을 위해 앱을 완전히 새로 설계했습니다. 새로운 인터페이스와 새로운 기능, 그리고 그 이상을 만나보세요!",
-    "button": "좋아요!",
-    "features": {
-      "showsTimeline": "공연 타임라인",
-      "newParks": "새로운 파크",
-      "darkMode": "다크 모드",
-      "brandNewUI": "완전히 새로운 UI",
-      "fastlaneWaitTimes": "Fastlane 대기 시간",
-      "autoRefresh": "자동 갱신",
-      "rotatingParkCovers": "바뀌는 파크 이미지",
-      "parkStatusIndicator": "파크 운영 상태 표시",
-      "singleRiderWaitTimes": "Single Rider 대기 시간",
-      "multiLanguage": "다국어 지원",
-      "improvedPerformance": "향상된 성능",
-      "countryParkFiltering": "국가별 필터",
-      "groupParkFiltering": "그룹별 필터"
+  "whatsNew": {
+    "srTitle": "Queue Park v3의 새로운 기능",
+    "srDescription": "Queue Park 버전 3의 새로운 기능을 소개합니다.",
+    "hero": {
+      "eyebrow": "새로운 기능 {count}가지",
+      "title": "Queue Park가 v3로",
+      "body": "기기를 옮겨 다녀도 이어지는 계정, 딱 맞는 순간에 오는 알림, 대기 시간 예측. 무엇이 달라졌는지 살펴보세요."
+    },
+    "nav": {
+      "scrollHint": "스크롤하세요",
+      "finish": "시작하기",
+      "close": "안내 닫기"
+    },
+    "badges": {
+      "beta": "베타"
+    },
+    "slides": {
+      "account": {
+        "title": "나의 Queue Park 계정",
+        "body": "Google 또는 이메일로 받은 링크만으로, 비밀번호 없이 바로 로그인할 수 있습니다. 즐겨찾기와 알림, 설정은 파크에서 쓰는 휴대폰부터 집의 컴퓨터까지 그대로 이어집니다."
+      },
+      "favorites": {
+        "title": "즐겨찾기를 모든 기기에서",
+        "body": "이제 별표를 파크와 어트랙션, 공연에 모두 사용할 수 있습니다. 즐겨찾기한 파크는 홈 화면 맨 위에 고정되고, 즐겨찾기한 어트랙션과 공연은 파크 목록의 위쪽에 표시됩니다. 프로필에서 한눈에 모아 볼 수 있으며, 모든 기기에서 동기화됩니다."
+      },
+      "notifications": {
+        "title": "딱 맞는 순간에 알림",
+        "body": "Queue Park를 앱으로 설치하면 파크 상황을 대신 지켜봅니다.",
+        "install": "앱 설치",
+        "points": {
+          "threshold": "어트랙션의 대기 시간이 설정한 기준 아래로 내려갔을 때.",
+          "reopened": "어트랙션이 고장이나 중단 후 다시 운영을 시작했을 때.",
+          "show": "공연이 곧 시작할 때. 원하는 만큼 미리 알려 드립니다."
+        }
+      },
+      "forecast": {
+        "title": "대기 시간 예측",
+        "body": "실선은 개장 이후의 대기 시간을, 점선은 폐장까지의 예측을 보여 줍니다. 언제 가면 좋을지 한눈에 알 수 있습니다."
+      },
+      "detail": {
+        "title": "어트랙션마다 마련된 상세 페이지",
+        "body": "어트랙션이나 공연을 누르면 사진, 파크 내 구역, 예측이 담긴 하루 그래프, 알림 설정까지 한곳에 모여 있습니다."
+      },
+      "events": {
+        "title": "파크의 이벤트",
+        "body": "핼러윈이나 크리스마스 기간에는 이벤트 전용 어트랙션과 공연이 계절 색을 입은 별도의 카드에 모입니다. 입장권에 포함되지 않는 경우에는 «별도 티켓»으로 표시됩니다."
+      },
+      "weather": {
+        "title": "파크 날씨를 실시간으로",
+        "body": "파크의 기온과 하늘 상태가 헤더에 표시되며 매시간 갱신됩니다. 혼잡을 예상할 때도, 우비를 챙길지 정할 때도 유용합니다."
+      }
+    },
+    "scenes": {
+      "notifications": {
+        "threshold": "대기 시간이 15분으로 줄었습니다",
+        "reopened": "어트랙션이 방금 다시 열렸습니다",
+        "show": "15분 뒤에 시작합니다"
+      },
+      "events": {
+        "halloween": "핼러윈",
+        "christmas": "크리스마스"
+      }
+    },
+    "finale": {
+      "title": "즐거운 방문 되세요!",
+      "body": "준비가 끝났습니다. 새로 만든 «소개» 페이지에서 대기 시간의 출처와 각 기능을 자세히 확인할 수 있습니다.",
+      "aboutLink": "소개 페이지 보기"
     }
   },
   "reportProblem": {
@@ -513,6 +569,13 @@
     "reopenSaved": "재개장 알림이 저장되었습니다",
     "reopenTooLate": "공원이 문을 닫아 알림을 사용할 수 없습니다. 다음 개장 때 다시 방문해 주세요.",
     "statusChanged": "어트랙션 상태가 방금 변경되었습니다. 페이지를 다시 열어 알맞은 알림을 만들어 주세요."
+  },
+  "poiDetail": {
+    "openFor": "{poi} 상세 보기",
+    "thrillsLink": "Thrills에서 보기",
+    "statusTitle": "상태",
+    "menuTitle": "메뉴",
+    "menuAction": "메뉴 보기"
   },
   "legal": {
     "backHome": "홈으로 돌아가기",
