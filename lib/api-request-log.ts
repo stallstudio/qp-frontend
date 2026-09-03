@@ -6,9 +6,9 @@ import { getPrisma } from "@/lib/prisma";
 // les 2 dernières heures). Deux règles :
 //
 // 1. **Jamais dans le chemin critique.** L'écriture était `await`ée avant de
-//    répondre : chaque réponse — donc chaque rafraîchissement, toutes les 60 s
-//    et par onglet ouvert — attendait un INSERT dont personne n'a besoin en
-//    temps réel.
+//    répondre : chaque réponse — donc chaque rafraîchissement, pour chaque
+//    onglet ouvert — attendait un INSERT dont personne n'a besoin en temps
+//    réel.
 // 2. **Jamais bloquant en cas d'erreur.** Un journal qui échoue ne doit pas
 //    empêcher un utilisateur de voir les temps d'attente.
 

@@ -14,7 +14,8 @@ import { logParkRequest } from "@/lib/api-request-log";
 import { getClientIp } from "@/lib/ip-rules";
 
 // Les temps d'attente sont par nature vivants : la page est rendue à chaque
-// requête (le client prend ensuite le relais avec son rafraîchissement 60 s).
+// requête (le client prend ensuite le relais, à la cadence que la réponse
+// annonce — voir `lib/collection-cycle.ts`).
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({

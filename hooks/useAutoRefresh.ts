@@ -3,35 +3,85 @@ import { useCallback, useEffect, useRef, useState } from "react";
 /**
  * Décompte + rafraîchissement automatique des données d'un parc.
  *
- * Points importants :
- * - **Le décompte part du DERNIER FETCH CLIENT**, pas de l'horodatage des
- *   données. ⚠️ C'était le bug : le hook décomptait depuis `park.lastUpdate`,
- *   c'est-à-dire `parks.lastUpdatedAt`, que le worker n'écrit **que si son fetch
- *   réussit**. Dès qu'une source tombait (ou la nuit, ou si la Schedule Dokploy
- *   patinait), cet horodatage se figeait : le décompte plongeait dans le négatif,
- *   sortait de la fenêtre de déclenchement et plus RIEN ne se rafraîchissait —
- *   y compris au retour d'onglet, puisque rafraîchir ne changeait pas la valeur
- *   qui servait de référence. L'écran restait bloqué sur « Dernière mise à
- *   jour ». Ici `fetchedAt` avance à chaque tentative, donc le cycle repart
- *   toujours, quoi que raconte la base.
- * - **Un seul intervalle** (1 s) qui sert à la fois de décompte affiché et de
- *   déclencheur : inutile d'en faire tourner un second juste pour tester
- *   l'échéance.
+ * ————————————————————————————————————————————————————————————————————————
+ * **C'EST LE SERVEUR QUI DIT QUAND REVENIR.** Ce hook ne calcule plus de
+ * cadence, il obéit à celle qu'on lui annonce (`ParkLiveData.nextUpdateIn`,
+ * mesurée sur les passages réels du worker — voir `lib/collection-cycle.ts`).
+ * ————————————————————————————————————————————————————————————————————————
+ *
+ * Deux versions ont échoué avant, l'une comme l'autre parce qu'elles
+ * DEVINAIENT ici une cadence que le client ne peut pas connaître :
+ *
+ * - **`lastUpdate + 60 s`** — l'horodatage de la donnée. Le worker ne l'écrit
+ *   que si son fetch réussit : dès qu'une source tombait, il se figeait, le
+ *   décompte plongeait dans le négatif, sortait de la fenêtre de déclenchement
+ *   et plus RIEN ne se rafraîchissait, y compris au retour d'onglet. L'écran
+ *   restait bloqué sur « Dernière mise à jour ».
+ * - **`Date.now() + 60 s`** — l'horloge du client, qui a corrigé ce blocage
+ *   mais en a créé un autre, plus discret : le décompte n'avait plus aucun
+ *   rapport avec la base. Un rechargement de page repartait de soixante, et le
+ *   fetch tombait à un instant arbitraire du cycle — souvent juste avant
+ *   l'écriture qu'il attendait.
+ *
+ * Aucune des deux ne pouvait tomber juste : **la base n'est pas écrite toutes
+ * les minutes.** Un passage dure couramment plus d'une minute et le verrou fait
+ * sauter les ticks qui se chevauchent ; la période réelle varie dans la
+ * journée. Seul le serveur la connaît, alors il la dit.
+ *
+ * Ce qui est conservé de la version précédente, et pourquoi :
+ *
+ * - **Le cycle ne peut jamais s'arrêter.** Une échéance est reposée dans le
+ *   `finally` de CHAQUE tentative, succès comme échec, et toute valeur venue du
+ *   serveur est bornée avant usage. Sans réponse exploitable, on retombe sur
+ *   une minute — c'est-à-dire sur l'ancien comportement, jamais sur l'arrêt.
+ * - **Un seul intervalle** (1 s), à la fois décompte affiché et déclencheur.
  * - **Rien ne tourne quand l'onglet est caché.** C'est le cas d'usage principal
  *   du produit (téléphone en poche dans un parc) : laisser un `setInterval`
  *   battre à la seconde y consomme de la batterie pour un écran que personne ne
  *   regarde. Au retour, si l'échéance est passée pendant l'absence, on
  *   rafraîchit immédiatement puis on repart.
  */
+
+/** Cadence de repli : le serveur n'a rien annoncé d'exploitable. C'est
+ *  exactement ce que faisait le code d'avant, en dur. */
+const FALLBACK_SECONDS = 60;
+
+/** Garde-fous sur ce que le serveur annonce. Ils ne servent qu'au cas où une
+ *  version d'API renverrait `0`, du texte ou un négatif : le client ne doit
+ *  jamais pouvoir être transformé en marteau par une réponse malformée. */
+const MIN_SECONDS = 5;
+const MAX_SECONDS = 300;
+
+/** Plafond du recul après échecs répétés. Assez haut pour ne pas entretenir une
+ *  panne de serveur à coups de sondages, assez bas pour qu'un réseau revenu ne
+ *  laisse pas l'écran figé plus de deux minutes. */
+const MAX_BACKOFF_SECONDS = 120;
+
+function clampSeconds(value: number): number {
+  if (!Number.isFinite(value)) return FALLBACK_SECONDS;
+  return Math.min(Math.max(value, MIN_SECONDS), MAX_SECONDS);
+}
+
 export function useAutoRefresh(
-  onRefresh?: () => Promise<void>,
-  refreshInterval: number = 60000,
+  /**
+   * Recharge les données et rend le `nextUpdateIn` que le serveur vient
+   * d'annoncer.
+   *
+   * ⚠️ **La valeur est RENDUE, pas lue dans les props au rendu suivant.** Le
+   * `finally` s'exécute avant que React ait re-rendu avec les données fraîches :
+   * aller chercher l'échéance dans une prop y donnerait celle du cycle
+   * PRÉCÉDENT, et le décalage s'accumulerait à chaque tour.
+   */
+  onRefresh?: () => Promise<number | null | undefined>,
+  /** Échéance du premier cycle, telle que servie avec les données initiales
+   *  (rendu serveur). C'est elle qui fait qu'un rechargement de page ne remet
+   *  pas le décompte à soixante mais le reprend là où le cycle en est. */
+  initialDelaySeconds?: number,
 ) {
-  const [timeSinceLastUpdate, setTimeSinceLastUpdate] = useState(
-    Math.ceil(refreshInterval / 1000),
-  );
+  const firstDelay = clampSeconds(initialDelaySeconds ?? FALLBACK_SECONDS);
+
+  const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(firstDelay);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [justUpdated, setJustUpdated] = useState(false);
 
   // Refs plutôt que dépendances : l'effet de planification ne doit pas se
   // relancer à chaque rendu, sinon l'intervalle serait recréé en boucle.
@@ -39,11 +89,13 @@ export function useAutoRefresh(
   const onRefreshRef = useRef(onRefresh);
   onRefreshRef.current = onRefresh;
 
+  // Échecs consécutifs, pour le recul progressif. Remis à zéro dès qu'une
+  // tentative aboutit.
+  const failuresRef = useRef(0);
+
   // Échéance du prochain rafraîchissement. En ref (et non en state) : le tick
   // la lit chaque seconde, elle ne doit pas re-planifier l'effet en changeant.
-  // Au montage, les données viennent d'arriver (rendu serveur ou premier fetch),
-  // donc l'échéance est à un intervalle complet.
-  const nextRefreshAt = useRef(Date.now() + refreshInterval);
+  const nextRefreshAt = useRef(Date.now() + firstDelay * 1000);
 
   const handleRefresh = useCallback(async () => {
     const refresh = onRefreshRef.current;
@@ -51,21 +103,29 @@ export function useAutoRefresh(
 
     refreshingRef.current = true;
     setIsRefreshing(true);
+
+    let nextDelay = FALLBACK_SECONDS;
     try {
-      await refresh();
-      setJustUpdated(true);
-      setTimeout(() => setJustUpdated(false), 1000);
+      const announced = await refresh();
+      failuresRef.current = 0;
+      nextDelay = clampSeconds(announced ?? FALLBACK_SECONDS);
     } catch (error) {
       console.error("Refresh failed:", error);
+      failuresRef.current += 1;
+      // Recul progressif : réessayer à la même cadence pendant une panne
+      // ajoute du trafic exactement quand le serveur en a le moins besoin.
+      nextDelay = Math.min(
+        FALLBACK_SECONDS * 2 ** (failuresRef.current - 1),
+        MAX_BACKOFF_SECONDS,
+      );
     } finally {
-      // Replanifiée dans TOUS les cas, succès comme échec : en cas d'échec on
-      // réessaie au cycle suivant plutôt que de marteler l'API — et surtout le
-      // cycle ne peut jamais s'arrêter définitivement.
-      nextRefreshAt.current = Date.now() + refreshInterval;
+      // Reposée dans TOUS les cas : c'est ce qui rend l'arrêt définitif du
+      // cycle impossible, quoi que raconte le serveur ou le réseau.
+      nextRefreshAt.current = Date.now() + nextDelay * 1000;
       refreshingRef.current = false;
       setIsRefreshing(false);
     }
-  }, [refreshInterval]);
+  }, []);
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
@@ -79,7 +139,7 @@ export function useAutoRefresh(
 
     const tick = () => {
       const remaining = Math.ceil((nextRefreshAt.current - Date.now()) / 1000);
-      setTimeSinceLastUpdate(Math.max(0, remaining));
+      setSecondsUntilRefresh(Math.max(0, remaining));
       if (remaining <= 0) handleRefresh();
     };
 
@@ -108,7 +168,7 @@ export function useAutoRefresh(
       stop();
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [refreshInterval, handleRefresh]);
+  }, [handleRefresh]);
 
-  return { timeSinceLastUpdate, isRefreshing, justUpdated, handleRefresh };
+  return { secondsUntilRefresh, isRefreshing, handleRefresh };
 }

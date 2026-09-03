@@ -39,7 +39,9 @@ import {
 
 type MainCardProps = {
   park: ParkLiveData;
-  onRefresh?: () => Promise<void>;
+  /** Recharge les données et rend le `nextUpdateIn` annoncé par le serveur —
+   *  c'est lui qui fixe l'échéance du cycle suivant (voir `useAutoRefresh`). */
+  onRefresh?: () => Promise<number | null | undefined>;
   // Lien profond vers une attraction : force l'onglet « temps d'attente » et
   // demande à la table d'ouvrir le popup correspondant.
   initialRideId?: number | null;
@@ -160,12 +162,13 @@ export default function MainCard({
   const tNoData = useTranslations("noData");
 
   // La mise en pause quand l'onglet est caché (et le rattrapage au retour) est
-  // gérée par le hook lui-même. ⚠️ Le décompte est celui du prochain FETCH
-  // CLIENT ; il ne dépend plus de `park.lastUpdate`, qui pouvait se figer et
-  // arrêter le cycle pour de bon (voir `useAutoRefresh`).
-  const { timeSinceLastUpdate, isRefreshing } = useAutoRefresh(
+  // gérée par le hook lui-même. ⚠️ L'échéance vient du SERVEUR (`nextUpdateIn`,
+  // mesurée sur la cadence réelle du worker) : ni `park.lastUpdate`, qui peut se
+  // figer, ni une minute en dur, qui n'a jamais correspondu à la réalité de la
+  // collecte. Voir `useAutoRefresh` et `lib/collection-cycle.ts`.
+  const { secondsUntilRefresh, isRefreshing } = useAutoRefresh(
     onRefresh,
-    60000,
+    park.nextUpdateIn,
   );
 
   // Fraîcheur de la DONNÉE (horodatage du worker), à distinguer du décompte
@@ -212,7 +215,7 @@ export default function MainCard({
               boundary: null,
             })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [park.events, mounted, timeSinceLastUpdate],
+    [park.events, mounted, secondsUntilRefresh],
   );
 
   // ⚠️ **Une attraction taguée n'apparaît QUE dans la carte de son événement.**
@@ -521,8 +524,8 @@ export default function MainCard({
         </p>
       ) : (
         <p>
-          {t("refreshingIn")} {timeSinceLastUpdate}{" "}
-          {timeSinceLastUpdate < 2 ? t("second") : t("seconds")}
+          {t("refreshingIn")} {secondsUntilRefresh}{" "}
+          {secondsUntilRefresh < 2 ? t("second") : t("seconds")}
         </p>
       )}
       {park.shows.length > 0 && activeTab === "show-times" && (

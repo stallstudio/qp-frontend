@@ -10,6 +10,9 @@ import { limitShowsToSessions } from "@/lib/show-window";
 import { getWeatherByParkAndDate } from "@/lib/weather";
 import { getParkEventsByDate } from "@/lib/park-events-db";
 import { isAdminViewer } from "@/lib/auth-helpers";
+import { cachedForTtl } from "@/lib/process-cache";
+import { readCollectionCycle } from "@/lib/collection-cycle-db";
+import { delayFromEstimate, snapshotTtlMs } from "@/lib/collection-cycle";
 import type { CoverImage, ParkLiveData, ParkWeather } from "@/types/api";
 
 // Construction des données « live » d'un parc (temps d'attente, spectacles,
@@ -24,6 +27,30 @@ export type ParkLiveResult =
   | { status: "ok"; data: ParkLiveData }
   | { status: "not-found" }
   | { status: "error"; reason: string };
+
+/**
+ * Ce qui est réellement mis en cache : tout SAUF `nextUpdateIn`.
+ *
+ * ⚠️ Cette exclusion est la raison d'être du type. `nextUpdateIn` est un délai
+ * qui court : le garder en cache dix secondes le servirait périmé d'autant, et
+ * — plus grave — donnerait la même valeur à tous les visiteurs servis dans la
+ * fenêtre, qui reviendraient donc ensemble. Il est recalculé à chaque réponse.
+ */
+type ParkLiveSnapshot =
+  | { status: "ok"; data: Omit<ParkLiveData, "nextUpdateIn"> }
+  | { status: "not-found" }
+  | { status: "error"; reason: string };
+
+/**
+ * Durée de mutualisation d'un parc entre visiteurs.
+ *
+ * Le worker écrit au mieux une fois par minute : deux cents visiteurs du même
+ * parc n'ont aucune raison d'émettre deux cents fois les huit mêmes requêtes
+ * dans la même seconde pour obtenir le même octet. Dix secondes suffisent à
+ * absorber une rafale sans qu'aucune donnée servie ne soit sensiblement plus
+ * vieille que ce que la page affiche déjà.
+ */
+const LIVE_DATA_TTL_MS = 10_000;
 
 // Métadonnées du parc utiles hors « live » : SEO, JSON-LD, vignette de partage.
 export type ParkIdentity = {
@@ -127,78 +154,124 @@ export const getParkIdentity = cache(
 );
 
 /**
- * Données live complètes d'un parc déjà résolu. Mémoïsé lui aussi : la page et
- * l'image de partage peuvent le demander dans la même requête (même réserve sur
- * `includeHidden` dans la clé de cache que `getParkIdentity`).
+ * Construction proprement dite, hors cache. Ne pas appeler directement :
+ * `buildParkLiveData` l'enveloppe des deux caches qui la rendent supportable
+ * en charge.
+ */
+async function buildParkLiveSnapshot(
+  identifier: string,
+  includeHidden: boolean,
+): Promise<ParkLiveSnapshot> {
+  const park = await getParkIdentity(identifier, includeHidden);
+  if (park === undefined) return { status: "error", reason: "database" };
+  if (park === null) return { status: "not-found" };
+
+  const today = await calculateParkDate(park.id, park.timezone);
+  if (!today) {
+    return { status: "error", reason: `Invalid timezone: ${park.timezone}` };
+  }
+
+  // Requêtes indépendantes : lancées en parallèle plutôt qu'en série (c'était
+  // quatre allers-retours enchaînés dans la route d'origine).
+  //
+  // ⚠️ Les spectacles se chargent sur DEUX dates de rangement : une séance qui
+  // dépasse minuit range ses dernières représentations sous le lendemain (voir
+  // `getShowTimesByParkAndDates`). Elles sont retriées juste après sur les
+  // horaires, jamais sur la date.
+  const [waitTimes, showTimes, openingHours, daily] = await Promise.all([
+    getLatestWaitTimesByPark(park.id, park.lastUpdatedAt),
+    getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
+    getOpeningHoursByParkAndDate(park.id, today),
+    getWeatherByParkAndDate(park.id, today),
+  ]);
+
+  // ⚠️ EN SÉRIE, à dessein : les horaires portent l'`eventId` de chaque
+  // session, donc la fenêtre du jour de chaque événement. Les charger d'abord
+  // évite une seconde requête sur `opening_hours`.
+  const events = await getParkEventsByDate(park.id, today, openingHours ?? []);
+
+  // Chaque créneau est rendu à la SÉANCE qui le contient — un spectacle
+  // d'événement à celles de son événement, les autres à l'exploitation de
+  // jour. C'est ce qui retire les représentations de la nuit PRÉCÉDENTE, que
+  // leur date calendaire range sous aujourd'hui, et ce qui garde celles de la
+  // nuit en cours, rangées sous demain.
+  const shows = limitShowsToSessions(showTimes ?? [], openingHours ?? []);
+
+  // Fusion météo « live » (courant, ligne Park) + prévision du jour (daily).
+  // `null` seulement si on n'a NI courant NI prévision.
+  const hasWeather =
+    park.currentTemp != null || park.currentWeatherCode != null || daily != null;
+  const weather: ParkWeather | null = hasWeather
+    ? {
+        currentTemp: park.currentTemp,
+        currentWeatherCode: park.currentWeatherCode,
+        tempMin: daily?.tempMin ?? null,
+        tempMax: daily?.tempMax ?? null,
+        weatherCode: daily?.weatherCode ?? null,
+      }
+    : null;
+
+  return {
+    status: "ok",
+    data: {
+      identifier: park.identifier,
+      name: park.name,
+      timezone: park.timezone,
+      cover: park.cover,
+      queueTypeLabels: park.queueTypeLabels,
+      openingHours: openingHours ?? [],
+      waitTimes,
+      shows,
+      weather,
+      events,
+      lastUpdate:
+        park.lastUpdatedAt?.toISOString() ?? new Date().toISOString(),
+    },
+  };
+}
+
+/**
+ * Données live complètes d'un parc déjà résolu.
+ *
+ * Trois protections empilées, chacune contre une rafale différente :
+ *
+ * 1. `cache()` de React — une même requête (page, JSON-LD, image de partage) ne
+ *    construit qu'une fois. Portée : une requête.
+ * 2. `cachedForTtl` — tous les visiteurs d'un même parc partagent la même
+ *    construction pendant dix secondes. C'est ce qui décorrèle le coût en base
+ *    du nombre de visiteurs : il devient fonction des parcs consultés.
+ * 3. `nextUpdateIn`, recalculé ici et JAMAIS mis en cache, qui étale les
+ *    retours de chacun au lieu de les faire converger.
+ *
+ * ⚠️ **Une réponse d'erreur n'est pas mise en cache** : une base momentanément
+ * injoignable ne doit pas être resservie à tout le monde pendant dix secondes.
+ * Un `not-found`, lui, l'est — c'est une réponse stable, et la marteler n'a
+ * aucun intérêt.
+ *
+ * ⚠️ La clé inclut `includeHidden`, même réserve que `getParkIdentity` : l'aperçu
+ * admin d'un parc masqué ne doit jamais partager son entrée avec le public.
  */
 export const buildParkLiveData = cache(
   async (identifier: string, includeHidden = false): Promise<ParkLiveResult> => {
-    const park = await getParkIdentity(identifier, includeHidden);
-    if (park === undefined) return { status: "error", reason: "database" };
-    if (park === null) return { status: "not-found" };
+    // Lu AVANT la construction, et pas en parallèle : c'est lui qui dit combien
+    // de temps le résultat pourra être gardé sans risquer d'enjamber la
+    // prochaine écriture du worker. Sa propre lecture est mutualisée dix
+    // secondes, le surcoût est donc nul en pratique.
+    const cycle = await readCollectionCycle();
 
-    const today = await calculateParkDate(park.id, park.timezone);
-    if (!today) {
-      return { status: "error", reason: `Invalid timezone: ${park.timezone}` };
-    }
+    const snapshot = await cachedForTtl(
+      `park-live:${identifier}:${includeHidden}`,
+      snapshotTtlMs(cycle, Date.now(), LIVE_DATA_TTL_MS),
+      () => buildParkLiveSnapshot(identifier, includeHidden),
+      (result) => result.status !== "error",
+    );
 
-    // Requêtes indépendantes : lancées en parallèle plutôt qu'en série (c'était
-    // quatre allers-retours enchaînés dans la route d'origine).
-    //
-    // ⚠️ Les spectacles se chargent sur DEUX dates de rangement : une séance qui
-    // dépasse minuit range ses dernières représentations sous le lendemain (voir
-    // `getShowTimesByParkAndDates`). Elles sont retriées juste après sur les
-    // horaires, jamais sur la date.
-    const [waitTimes, showTimes, openingHours, daily] = await Promise.all([
-      getLatestWaitTimesByPark(park.id, park.lastUpdatedAt),
-      getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
-      getOpeningHoursByParkAndDate(park.id, today),
-      getWeatherByParkAndDate(park.id, today),
-    ]);
+    if (snapshot.status !== "ok") return snapshot;
 
-    // ⚠️ EN SÉRIE, à dessein : les horaires portent l'`eventId` de chaque
-    // session, donc la fenêtre du jour de chaque événement. Les charger d'abord
-    // évite une seconde requête sur `opening_hours`.
-    const events = await getParkEventsByDate(park.id, today, openingHours ?? []);
-
-    // Chaque créneau est rendu à la SÉANCE qui le contient — un spectacle
-    // d'événement à celles de son événement, les autres à l'exploitation de
-    // jour. C'est ce qui retire les représentations de la nuit PRÉCÉDENTE, que
-    // leur date calendaire range sous aujourd'hui, et ce qui garde celles de la
-    // nuit en cours, rangées sous demain.
-    const shows = limitShowsToSessions(showTimes ?? [], openingHours ?? []);
-
-    // Fusion météo « live » (courant, ligne Park) + prévision du jour (daily).
-    // `null` seulement si on n'a NI courant NI prévision.
-    const hasWeather =
-      park.currentTemp != null || park.currentWeatherCode != null || daily != null;
-    const weather: ParkWeather | null = hasWeather
-      ? {
-          currentTemp: park.currentTemp,
-          currentWeatherCode: park.currentWeatherCode,
-          tempMin: daily?.tempMin ?? null,
-          tempMax: daily?.tempMax ?? null,
-          weatherCode: daily?.weatherCode ?? null,
-        }
-      : null;
-
-    return {
-      status: "ok",
-      data: {
-        identifier: park.identifier,
-        name: park.name,
-        timezone: park.timezone,
-        cover: park.cover,
-        queueTypeLabels: park.queueTypeLabels,
-        openingHours: openingHours ?? [],
-        waitTimes,
-        shows,
-        weather,
-        events,
-        lastUpdate:
-          park.lastUpdatedAt?.toISOString() ?? new Date().toISOString(),
-      },
-    };
+    // Évalué ici, au plus tard : c'est un délai qui court, et son jitter doit
+    // être propre à cette réponse-ci.
+    const nextUpdateIn = delayFromEstimate(cycle, Date.now());
+    return { status: "ok", data: { ...snapshot.data, nextUpdateIn } };
   },
 );
 
@@ -208,8 +281,7 @@ export const buildParkLiveData = cache(
  *
  * ⚠️ **La session n'est lue QUE si le parc est introuvable autrement.** C'est
  * tout l'intérêt du repli en deux temps : un visiteur d'un parc publié, y compris
- * à chacun de ses rafraîchissements de 60 s, ne déclenche aucune requête de
- * session. Le second aller-retour SQL n'existe que sur un parc masqué, cas rare
+ * à chacun de ses rafraîchissements, ne déclenche aucune requête de session. Le second aller-retour SQL n'existe que sur un parc masqué, cas rare
  * par construction.
  *
  * `undefined` (base injoignable) est propagé tel quel, sans consulter la session :

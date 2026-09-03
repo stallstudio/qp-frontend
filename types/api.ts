@@ -35,7 +35,22 @@ export type ParkLiveData = {
    * d'avant leur introduction.
    */
   events: ParkEventDto[];
+  /**
+   * Horodatage de la DONNÉE : quand le worker a écrit ces temps d'attente.
+   * Sert à dire « ces valeurs datent de… », jamais à prévoir la suite — c'est
+   * `nextUpdateIn` qui porte cette question (voir `lib/collection-cycle.ts`).
+   */
   lastUpdate: string;
+  /**
+   * Secondes à attendre avant de redemander ces données, mesurées sur la
+   * cadence RÉELLE du worker et étalées d'un jitter propre à chaque réponse.
+   *
+   * ⚠️ **Une durée, pas un instant** : l'horloge d'un téléphone peut être
+   * décalée de plusieurs minutes, ce qui fausserait toute échéance absolue.
+   * ⚠️ **Se périme vite** : recalculée à chaque réponse servie, elle n'est
+   * jamais mise en cache avec le reste de l'objet.
+   */
+  nextUpdateIn: number;
 };
 
 export type ParkListData = {

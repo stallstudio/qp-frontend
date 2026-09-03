@@ -20,9 +20,13 @@ export const dynamic = "force-dynamic";
  *
  * Depuis le passage de la page parc en rendu serveur, cette route ne sert plus
  * au PREMIER affichage (le composant serveur appelle `buildParkLiveData`
- * directement) mais au **rafraîchissement automatique** côté client, toutes les
- * 60 s. La logique métier est partagée : une seule définition de ce qu'est
- * « l'état d'un parc ».
+ * directement) mais au **rafraîchissement automatique** côté client. La logique
+ * métier est partagée : une seule définition de ce qu'est « l'état d'un parc ».
+ *
+ * ⚠️ **C'est la réponse qui dicte la cadence**, par son `nextUpdateIn` : le
+ * client ne décide plus de son rythme, il applique celui qu'on lui annonce
+ * (voir `lib/collection-cycle.ts`). Une réponse servie sans ce champ ferait
+ * retomber la page sur son repli d'une minute.
  */
 export async function GET(
   request: Request,

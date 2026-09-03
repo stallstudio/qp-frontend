@@ -34,7 +34,7 @@ export async function requireUserId(): Promise<Guard> {
  *
  * ⚠️ À n'appeler QU'APRÈS avoir constaté qu'un parc est introuvable — voir
  * `resolveParkForViewer` (lib/park-live-data.ts). Le chemin nominal, y compris le
- * rafraîchissement de 60 s de chaque visiteur, ne doit lire aucune session.
+ * rafraîchissement de chaque visiteur, ne doit lire aucune session.
  */
 export const isAdminViewer = cache(async (): Promise<boolean> => {
   const session = await auth();

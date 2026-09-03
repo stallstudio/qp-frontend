@@ -49,10 +49,14 @@ components/
   whats-new/         # annonce de version : dialog + scènes animées [AJOUTÉ]
   ui/                # primitives (card, tabs, button, footer, favorite-star, table...)
   search/ providers/ theme-provider
-hooks/               # useFavorites, useAutoRefresh, usePageVisibility, useTimeFormat, useWaitTimeChanges
+hooks/               # useFavorites, useAutoRefresh (cadence dictée par le serveur),
+                     # usePageVisibility, useTimeFormat, useWaitTimeChanges
 i18n/                # routing.ts (locales), request.ts (chargement messages + fallback EN)
 lib/                 # badge.tsx (pastilles temps/statut), prisma.ts, wait-times.ts,
                      # show-times.ts, opening-hours.ts, ip-rules.ts, utils.ts, report-config.ts
+                     # collection-cycle.ts (+ -db) : quand le worker écrira, donc
+                     # quand le client doit revenir ; process-cache.ts : cache
+                     # mémoire court, partagé entre visiteurs d'une instance
                      # ⚠️ report-config.ts ne décrit QUE les catégories du
                      # formulaire de signalement (+ libellés Discord). Les
                      # RÉPONSES de résolution en ont été retirées le 2026-08-18 :
@@ -178,12 +182,39 @@ Thrills », ce qui est faux sur un restaurant.
    plus avant le premier contenu).
 4. Les **routes API** (`/api/parks`, `/api/park/[parkId]`) partagent EXACTEMENT
    la même couche métier et ne servent plus qu'au **rafraîchissement client**
-   (~60 s via `useAutoRefresh`). ⚠️ Toute évolution de la forme des données se
-   fait dans `lib/`, jamais dans une route seule.
+   (via `useAutoRefresh`). ⚠️ Toute évolution de la forme des données se fait
+   dans `lib/`, jamais dans une route seule.
 
 > ⚠️ **Les deux pages sont en `dynamic = "force-dynamic"`** : les temps d'attente
 > et le classement des populaires sont vivants. La mise en cache se fait au
 > niveau de la couche métier (liste des parcs mémorisée 5 min), pas de la page.
+
+### Cadence de rafraîchissement (`lib/collection-cycle.ts`)
+
+⚠️ **Le client ne décide plus quand revenir : le serveur le lui dit**, par le
+champ `nextUpdateIn` de `ParkLiveData`. Deux versions ont échoué avant, l'une
+comme l'autre parce qu'elles devinaient une cadence côté navigateur :
+
+- `lastUpdate + 60 s` se figeait dès qu'une source tombait (`parks.lastUpdatedAt`
+  n'est écrit qu'en cas de fetch réussi) et arrêtait le cycle POUR DE BON ;
+- `Date.now() + 60 s`, qui l'a remplacé, ne pouvait plus se bloquer mais n'avait
+  plus aucun rapport avec la base — et repartait de zéro à chaque rechargement.
+
+Aucune des deux ne pouvait tomber juste : **la base n'est pas écrite toutes les
+minutes.** Le verrou du worker fait sortir tout passage qui en trouve un autre en
+cours, et un passage dure couramment plus d'une minute. La période réelle est
+donc variable, et on la MESURE sur `job_executions` (écart médian entre deux
+`completedAt`) au lieu de la supposer.
+
+Trois protections empilées contre les rafales, décrites dans
+`lib/park-live-data.ts` : `cache()` de React (une requête), `cachedForTtl` (dix
+secondes, tous visiteurs confondus) et le jitter de `nextUpdateIn`, qui étale les
+retours au lieu de les faire converger. ⚠️ Le TTL du cache est BORNÉ par
+l'échéance : un cache qui enjamberait l'écriture du worker resservirait la donnée
+précédente à celui qui arrive au bon moment.
+
+`node scripts/check-collection-cycle.ts` vérifie la logique sans base ni
+framework (Node ≥ 22 sur le poste ; l'image de prod est en Node 20).
 
 ### Journal des consultations (`lib/api-request-log.ts`)
 
