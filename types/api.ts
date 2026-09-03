@@ -82,9 +82,11 @@ export interface ParkList {
   // recalculer dans un composant client : `Intl.DisplayNames` ne donne pas le
   // même résultat sous Node et dans le navigateur (voir `getCountryName`).
   //
-  // ⚠️ **Ce n'est pas un libellé d'affichage, c'est la clé du DRAPEAU** :
-  // `getCountryFlagClass` en tire `twa-flag-united-states`. Le traduire
-  // effacerait tous les drapeaux. Pour afficher, utiliser `countryLabel`.
+  // ⚠️ **Ce n'est plus la clé du drapeau** (2026-09-03) : `getCountryFlagClass`
+  // part désormais de `country`, le code ISO, parce que le nom anglais du CLDR
+  // ne correspond pas toujours à la classe twemoji (« Türkiye » contre
+  // `twa-flag-turkey`). Il ne sert plus que de repli d'AFFICHAGE quand
+  // `countryLabel` est absent.
   countryName: string;
   // Le même pays dans la LANGUE DU VISITEUR, posé par `localizeCountries` en
   // dehors du cache de la liste (qui, lui, est partagé par les 14 langues).

@@ -1173,9 +1173,9 @@ la nouvelle référence d'objet à chaque rafraîchissement ne le relance pas.
 ### Deux noms de pays, et il faut les distinguer (2026-08-05)
 
 - **`ParkList.countryName` est ANGLAIS et le reste**, quelle que soit la langue
-  du visiteur : ⚠️ ce n'est pas un libellé d'affichage, c'est la **clé du
-  drapeau** — `getCountryFlagClass` en tire `twa-flag-united-states`. Le
-  traduire effacerait tous les drapeaux d'un coup.
+  du visiteur. ⚠️ Il a longtemps été la **clé du drapeau** ; il ne l'est plus
+  depuis le 2026-09-03 (voir « Le drapeau se déduit du code ISO » plus bas), et
+  ne sert que de repli d'affichage quand `countryLabel` manque.
 - **`ParkList.countryLabel` est le libellé traduit**, et c'est lui qu'affiche le
   regroupement « par pays » de `parks-list.tsx`. Avant, la liste sortait
   « Germany » et « United States » dans les 14 langues.
@@ -1199,6 +1199,38 @@ la nouvelle référence d'objet à chaque rafraîchissement ne le relance pas.
 - **Accessibilité** : `wait-time-table.tsx` n'est pas un `<table>` (blocs animés)
   mais porte les rôles ARIA `table`/`rowgroup`/`row`/`columnheader`/`rowheader`/
   `cell` + `aria-sort`. Toute nouvelle ligne doit conserver cette structure.
+
+### Le drapeau se déduit du CODE ISO, pas du nom du pays (2026-09-03)
+
+`getCountryFlagClass` fabriquait sa classe en minusculant le nom anglais —
+« United States » → `twa-flag-united-states`. Ça marche jusqu'au premier pays
+que le CLDR n'écrit pas comme twemoji : **la Turquie sort `Türkiye`** depuis le
+CLDR 42, la feuille de style ne connaît que `twa-flag-turkey`, et la carte de
+The Land of Legends s'affichait sans drapeau — premier parc turc du catalogue,
+mis en ligne le jour même.
+
+⚠️ **Ce n'était pas un cas isolé, et c'est pourquoi le correctif n'est pas un
+alias.** Mesuré sur les 280 régions que connaît le runtime : **37** produisaient
+une classe inexistante, en cinq familles — diacritiques (Curaçao, Åland, Côte
+d'Ivoire, Réunion, São Tomé), esperluette (« Antigua & Barbuda » quand la classe
+dit `antigua-barbuda`), abréviations (« St. Lucia », « U.S. Virgin Islands »),
+parenthèses (« Myanmar (Burma) ») et renommages (Türkiye). Sur les 27 pays
+affichés, la Turquie était la seule touchée : les 36 autres attendaient leur
+premier parc. Un `replace` de plus aurait réglé une famille sur cinq.
+
+⚠️ **La table `COUNTRY_FLAG_SLUGS` n'est pas saisie, elle est LUE dans la
+feuille de style.** Chaque règle `.twa-flag-…` de `app/twemoji-amazing.css`
+pointe le SVG twemoji du drapeau, dont le nom de fichier est la paire
+d'indicateurs régionaux de l'emoji (`1f1f9-1f1f7` = 🇹🇷) — c'est-à-dire le code
+ISO, à une soustraction près. `scripts/generate-country-flags.mjs`
+(`npm run flags:generate`) en tire les 258 pays, à relancer si le CSS est
+régénéré ; les 22 codes ISO restants sans drapeau sont périmés ou fictifs (SU,
+YU, DD, EZ, XA…) et aucun n'est un pays de parc.
+
+⚠️ La fonction rend **`null`** pour un code inconnu, et `park-card.tsx` n'affiche
+alors rien : la version par nom rendait toujours une classe, donc un `<div>` de
+1 em vide et invisible — c'est ce qui a permis au défaut de survivre à tous les
+pays exotiques du catalogue sans que personne ne le voie.
 
 ## Blocage des abus — IP **et** user agent (2026-08-31)
 

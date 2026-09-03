@@ -7,6 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "flags:generate": "node scripts/generate-country-flags.mjs",
     "check:cycle": "node scripts/check-collection-cycle.ts",
     "user:generate": "prisma generate --config prisma.user.config.ts",
     "user:migrate": "prisma migrate dev --config prisma.user.config.ts",

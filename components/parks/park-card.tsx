@@ -71,6 +71,7 @@ export default function ParkCard({
   const { isFavorite, toggle } = useFavorites("parks");
   const { isAuthenticated } = useUser();
   const isFav = isFavorite(park.identifier);
+  const flagClass = getCountryFlagClass(park.country);
 
   const handleToggle = async () => {
     // toggle() renvoie false aussi bien si l'utilisateur n'est pas connecté (le
@@ -129,7 +130,10 @@ export default function ParkCard({
             </div>
           )}
 
-          <div className={getCountryFlagClass(park.countryName)} />
+          {/* Le drapeau vient du CODE ISO, pas du nom anglais du pays : voir
+              `getCountryFlagClass`. Rien ne s'affiche pour un code sans
+              drapeau, plutôt qu'un carré vide. */}
+          {flagClass && <div className={flagClass} />}
         </div>
       </div>
     </Link>
