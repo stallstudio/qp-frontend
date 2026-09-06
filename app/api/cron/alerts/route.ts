@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 import { getPrisma } from "@/lib/prisma";
 import { getUserPrisma } from "@/lib/user-prisma";
 import { purgeOldRequestLogs } from "@/lib/api-request-log";
-import { isPushConfigured, sendPush, type PushPayload } from "@/lib/web-push";
+import { missingPushConfig, sendPush, type PushPayload } from "@/lib/web-push";
 import {
   buildAlertMessage,
   buildReopenMessage,
@@ -269,9 +269,13 @@ export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!isPushConfigured()) {
+  const missingConfig = missingPushConfig();
+  if (missingConfig.length > 0) {
+    // On NOMME les variables manquantes. Le message muet d'avant envoyait
+    // chercher dans le `.env` du conteneur — où tout est en place : la clé
+    // publique se perd au BUILD (voir `lib/web-push.ts`), pas au runtime.
     return NextResponse.json(
-      { error: "VAPID keys not configured" },
+      { error: "VAPID keys not configured", missing: missingConfig },
       { status: 503 },
     );
   }

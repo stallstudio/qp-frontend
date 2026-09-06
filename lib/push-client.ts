@@ -54,11 +54,40 @@ function serialize(sub: PushSubscription): PushSubscriptionPayload | null {
   return { endpoint: json.endpoint, p256dh, auth };
 }
 
+/**
+ * La clé publique VAPID, avec repli serveur.
+ *
+ * ⚠️ `process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY` est inlinée dans ce bundle au
+ * `next build` : une image compilée sans le build-arg (voir le `Dockerfile` et
+ * `.github/workflows/build.yml`) la porte VIDE, et plus personne ne peut
+ * s'abonner — silencieusement, puisque la fonction se contentait de renvoyer
+ * `null`. C'est arrivé en production.
+ *
+ * Le serveur sait toujours lire la vraie variable du conteneur : on lui demande
+ * plutôt que d'abandonner. Le cas nominal ne paie rien — la valeur inlinée est
+ * là, on ne va pas sur le réseau.
+ */
+async function resolveVapidKey(): Promise<string | null> {
+  const inlined = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  if (inlined) return inlined;
+
+  // Best-effort, comme le reste du module : hors ligne ou clé absente côté
+  // serveur aussi, on renonce à l'abonnement plutôt que de lever.
+  try {
+    const res = await fetch("/api/push/vapid-public-key");
+    if (!res.ok) return null;
+    const { key } = (await res.json()) as { key?: string };
+    return key || null;
+  } catch {
+    return null;
+  }
+}
+
 // Demande la permission puis crée/réutilise l'abonnement Push. Renvoie la charge
 // à persister, ou null si refus/indispo.
 export async function subscribeToPush(): Promise<PushSubscriptionPayload | null> {
   if (!isPushSupported()) return null;
-  const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const vapidKey = await resolveVapidKey();
   if (!vapidKey) return null;
 
   const permission = await Notification.requestPermission();

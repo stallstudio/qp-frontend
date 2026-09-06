@@ -44,6 +44,28 @@ interface HeaderReader {
 }
 
 /**
+ * Ramène les deux formes acceptées à un lecteur d'en-têtes.
+ *
+ * ⚠️ **On discrimine sur `get`, JAMAIS sur la présence d'un champ `headers`.**
+ * Le `ReadonlyHeaders` de `next/headers` PORTE un champ `headers` : c'est le sac
+ * d'en-têtes brut (un objet nu `{ "x-forwarded-for": "…" }` derrière un Proxy),
+ * pas un `Headers`. Un test `"headers" in source` prenait donc la branche
+ * `Request` pour un `ReadonlyHeaders` et renvoyait cet objet nu, dépourvu de
+ * `.get` — d'où le `TypeError: get is not a function` qui, en production, tuait
+ * le `after()` des pages parc et attraction. Silencieusement : `after()` avale
+ * l'erreur dans les logs, la page se rend normalement, et seul le journal des
+ * consultations (donc le classement des parcs populaires) manquait à l'appel.
+ *
+ * `Request` n'expose pas de `get` ; `Headers` et `ReadonlyHeaders` si. Le test
+ * ci-dessous sépare les deux formes sans dépendre d'un champ interne de Next.
+ */
+function toHeaderReader(source: Request | HeaderReader): HeaderReader {
+  return typeof (source as HeaderReader).get === "function"
+    ? (source as HeaderReader)
+    : (source as Request).headers;
+}
+
+/**
  * L'IP réelle du client.
  *
  * ⚠️ **`x-forwarded-for` ne suffit plus depuis le 2026-08-26.** Ce jour-là la
@@ -72,7 +94,7 @@ interface HeaderReader {
  * n'auraient plus d'adresse du tout.
  */
 export function getClientIp(source: Request | HeaderReader): string {
-  const headers: HeaderReader = "headers" in source ? source.headers : source;
+  const headers = toHeaderReader(source);
 
   const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
 
