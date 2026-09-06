@@ -87,6 +87,10 @@ de l'utilisateur quand `waitTime ≤ threshold`, et écrit dans `alert_history`
    `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, et
    `ALERTS_CRON_SECRET` ; enfin créer la Dokploy Schedule qui appelle
    `GET /api/cron/alerts?key=$ALERTS_CRON_SECRET` (~1-2 min).
+   ⚠️ `NEXT_PUBLIC_VAPID_PUBLIC_KEY` doit AUSSI exister au moment du `next build`
+   (build-arg du Dockerfile, alimenté par l'Environment GitHub) : Next l'inline
+   dans le bundle, l'ajouter au seul `.env` du conteneur ne suffit pas pour le
+   navigateur. Voir la note Web Push d'`AI_CONTEXT.md`.
 3. **Base utilisateurs** : créer la base (`CREATE DATABASE twts_users;`).
 4. **Client Prisma** : `npm run user:generate` (utilise `prisma.user.config.ts`,
    config dédiée — Prisma 7 exige l'URL de connexion hors du schéma).

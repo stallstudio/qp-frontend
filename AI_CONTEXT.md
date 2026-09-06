@@ -1636,6 +1636,16 @@ livraison navigateur = **push/notification**.)
   déjà « Queue Park » au titre) ; forme **digest** listée si plusieurs attractions.
   Clés : `NEXT_PUBLIC_VAPID_PUBLIC_KEY` (client), `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
 
+  > ⚠️ **`NEXT_PUBLIC_VAPID_PUBLIC_KEY` se joue au BUILD, pas au runtime.** Next
+  > la remplace par sa valeur au `next build`, bundle serveur compris : une image
+  > compilée sans le build-arg (Dockerfile + Environment GitHub, cf.
+  > `.github/workflows/build.yml`) la porte VIDE, et ni le `.env` de Dokploy ni un
+  > redémarrage n'y changent rien. C'est ce qui a mis `/api/cron/alerts` en 503 en
+  > production avec un `.env` pourtant identique à celui de dev. Trois garde-fous
+  > depuis : le workflow refuse de publier une image sans ces valeurs, le serveur
+  > relit la variable du conteneur (`lib/web-push.ts`), et le navigateur retombe
+  > sur `/api/push/vapid-public-key` si sa valeur inlinée manque.
+
 > **Mise en service** (une fois) : `npm install` (ajoute `web-push`), générer les
 > clés `npm run vapid:generate` → remplir le `.env`, appliquer le schéma à la base
 > user (`npm run user:push` — pas de shadow DB requise, puis `user:generate`), et

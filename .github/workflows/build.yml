@@ -66,6 +66,29 @@ jobs:
             type=raw,value=${{ steps.target.outputs.tag }}
             type=sha,prefix=sha-,format=short
 
+      # ⚠️ Ces deux valeurs sont INLINÉES dans le bundle au `next build` : absentes
+      # à ce moment-là, elles ne sont plus rattrapables au runtime, quoi que porte
+      # le `.env` du conteneur. Un build-arg vide produisait donc une image où
+      # Google Analytics et le Web Push étaient morts — sans le moindre message,
+      # jusqu'à ce que la Schedule d'alertes réponde 503 en production. On refuse
+      # désormais de publier une telle image plutôt que de la découvrir en prod.
+      - name: Vérifier les valeurs publiques (inlinées au build)
+        env:
+          GA: ${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID || secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+          VAPID: ${{ vars.NEXT_PUBLIC_VAPID_PUBLIC_KEY || secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          TARGET: ${{ steps.target.outputs.tag }}
+        run: |
+          missing=""
+          [ -n "$GA" ] || missing="$missing NEXT_PUBLIC_GA_MEASUREMENT_ID"
+          [ -n "$VAPID" ] || missing="$missing NEXT_PUBLIC_VAPID_PUBLIC_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error::Manquant dans l'Environment GitHub « ${TARGET} » :${missing}"
+            echo "::error::Ces valeurs sont inlinées dans le bundle au build : une image compilée"
+            echo "::error::sans elles part en production avec Analytics et alertes push muets."
+            echo "::error::Renseigne-les en Variables (ou Secrets) de cet Environment, puis relance."
+            exit 1
+          fi
+
       - name: Build & push
         uses: docker/build-push-action@v6
         with:
@@ -79,8 +102,9 @@ jobs:
           # Lues en `vars.` ou en `secrets.` : ces valeurs n'ont rien de secret
           # (elles finissent dans le JS servi), mais elles vivent aujourd'hui en
           # secrets d'environnement. Le fallback évite qu'un déplacement vers
-          # Variables ne les vide en silence — un build-arg absent ne casse rien
-          # de visible, il désactive juste GA et le Web Push.
+          # Variables ne les vide en silence. Leur présence est vérifiée juste
+          # au-dessus : un build-arg absent ne se voit nulle part au build, mais
+          # coûte GA et les alertes push en production.
           build-args: |
             NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID || secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
             NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ vars.NEXT_PUBLIC_VAPID_PUBLIC_KEY || secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
