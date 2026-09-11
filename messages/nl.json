@@ -535,6 +535,7 @@
     "chartToday": "Vandaag",
     "chartActual": "Wachttijd",
     "chartForecast": "Voorspelling",
+    "chartForecastPast": "Voorspeld",
     "chartNow": "Nu",
     "chartEmpty": "Nog geen gegevens voor vandaag.",
     "chartUnavailable": "Attractie momenteel niet beschikbaar.",

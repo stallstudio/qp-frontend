@@ -16,6 +16,15 @@ export interface RideHistoryResponse {
   // Chaque point porte sa propre `margin` (± minutes) : l'erreur croît avec
   // l'horizon, une marge unique pour toute la courbe serait trompeuse.
   forecast: TimedPoint[];
+  /**
+   * Ce qui avait été ANNONCÉ pour les heures déjà écoulées, figé au moment où
+   * chacune est passée. Tracé en pointillés gris sous la courbe réelle, pour
+   * que la prévision reste confrontable à ce qui s'est produit au lieu de
+   * disparaître à l'instant où elle devient vérifiable.
+   *
+   * Vide tant que le worker n'a pas fait de passage sur la journée.
+   */
+  forecastTrail: TimedPoint[];
   meta: {
     scale: number;
     confidence: number;

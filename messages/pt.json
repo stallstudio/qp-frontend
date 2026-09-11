@@ -535,6 +535,7 @@
     "chartToday": "Hoje",
     "chartActual": "Espera",
     "chartForecast": "Previsão",
+    "chartForecastPast": "Previsão",
     "chartNow": "Agora",
     "chartEmpty": "Ainda não há dados para hoje.",
     "chartUnavailable": "Atração indisponível de momento.",

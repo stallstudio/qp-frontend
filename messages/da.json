@@ -535,6 +535,7 @@
     "chartToday": "I dag",
     "chartActual": "Ventetid",
     "chartForecast": "Prognose",
+    "chartForecastPast": "Prognose",
     "chartNow": "Nu",
     "chartEmpty": "Ingen data for i dag endnu.",
     "chartUnavailable": "Forlystelsen er ikke tilgængelig lige nu.",

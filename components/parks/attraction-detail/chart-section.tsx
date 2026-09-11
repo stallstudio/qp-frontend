@@ -30,6 +30,10 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
 
   const hasActual = !!data && data.today.some((p) => p.waitTime != null);
   const hasForecast = !!data && data.forecast.length > 0;
+  // La trace ne vaut d'être annoncée en légende que si elle porte assez de
+  // points pour DESSINER quelque chose : un point isolé ne trace aucun segment,
+  // et une entrée de légende sans trait correspondant se lit comme un bug.
+  const hasTrail = !!data && (data.forecastTrail?.length ?? 0) > 1;
   // Marge d'erreur MESURÉE (prévisions passées confrontées à l'observé).
   // ⚠️ La bande « ± X min » a été retirée du graphique : ce chiffre ne se lit
   // plus QUE dans la phrase sous la courbe. La condition d'affichage porte donc
@@ -59,6 +63,7 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
       <WaitTimeChart
         today={data.today}
         forecast={data.forecast}
+        forecastTrail={data.forecastTrail}
         window={data.window}
         now={data.now}
         timezone={data.timezone}
@@ -66,6 +71,7 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
         todayLabel={t("chartToday")}
         actualLabel={t("chartActual")}
         forecastLabel={t("chartForecast")}
+        trailLabel={t("chartForecastPast")}
         waitCap={data.meta.waitCap}
       />
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
@@ -79,6 +85,12 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
             haute » promettrait plus que ce qu'on sait tenir. La réserve est
             portée par « Prévision » elle-même (souligné pointillé = explication
             au survol/tact), plutôt que par une entrée de légende en plus. */}
+        {hasTrail && (
+          <span className="flex items-center gap-1.5">
+            <span className="w-4 border-t-2 border-dashed border-muted-foreground/45" />
+            {t("chartForecastPast")}
+          </span>
+        )}
         {data.forecast.length > 0 && (
           <ClickableTooltip
             content={t("estimateTooltip")}

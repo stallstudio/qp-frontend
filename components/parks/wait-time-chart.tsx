@@ -24,6 +24,11 @@ import { formatWaitMinutes, type WaitCap } from "@/lib/wait-time-cap";
 type WaitTimeChartProps = {
   today: TimedPoint[];
   forecast: TimedPoint[];
+  /**
+   * Ce qui avait été annoncé pour les heures déjà passées. Tracé en gris sous la
+   * courbe réelle — voir la série `trail` plus bas.
+   */
+  forecastTrail?: TimedPoint[];
   window: { open: string; close: string } | null;
   now: string;
   timezone: string;
@@ -34,6 +39,8 @@ type WaitTimeChartProps = {
   // graphique pour opposer la courbe pleine du jour à la prévision en pointillé.
   actualLabel: string;
   forecastLabel: string;
+  /** Libellé de la trace grise dans le tooltip (« Prévu »). */
+  trailLabel?: string;
   /** Plafond de publication de la source : 91 s'affiche « 90+ ». */
   waitCap?: WaitCap | null;
   /**
@@ -54,6 +61,9 @@ type ChartRow = {
   t: number;
   actual: number | null;
   forecast: number | null;
+  // Prévision ÉCOULÉE, figée : ce qui était annoncé pour cet instant avant qu'il
+  // ne devienne du passé.
+  trail: number | null;
   // Statut d'indispo (quand actual == null) : colore la barre basse + tooltip.
   status?: string | null;
   // Ancre invisible : vaut 0 sur les points d'indispo, null ailleurs. Sert
@@ -90,6 +100,7 @@ function niceStep(max: number): number {
 export default function WaitTimeChart({
   today,
   forecast,
+  forecastTrail,
   window: win,
   now,
   timezone,
@@ -97,6 +108,7 @@ export default function WaitTimeChart({
   todayLabel,
   actualLabel,
   forecastLabel,
+  trailLabel,
   waitCap,
   compact = false,
 }: WaitTimeChartProps) {
@@ -113,7 +125,7 @@ export default function WaitTimeChart({
     const row = (t: number) => {
       let entry = rows.get(t);
       if (!entry) {
-        entry = { t, actual: null, forecast: null };
+        entry = { t, actual: null, forecast: null, trail: null };
         rows.set(t, entry);
       }
       return entry;
@@ -131,6 +143,13 @@ export default function WaitTimeChart({
       const r = row(Date.parse(p.t));
       r.forecast = p.waitTime;
     }
+    // Trace des prévisions écoulées. Elle ne couvre que le passé, donc elle ne
+    // chevauche jamais `forecast` — les deux séries se rejoignent bout à bout
+    // sur « maintenant ».
+    for (const p of forecastTrail ?? []) {
+      const r = row(Date.parse(p.t));
+      r.trail = p.waitTime;
+    }
 
     // Raccord : le dernier point observé amorce aussi la prévision (continuité
     // solide -> pointillé).
@@ -138,6 +157,21 @@ export default function WaitTimeChart({
     if (lastActual) {
       const r = row(Date.parse(lastActual.t));
       r.forecast = lastActual.waitTime;
+    }
+
+    // Même raccord pour la trace : son dernier point amorce la prévision en
+    // cours, sinon la courbe grise s'arrêterait un pas avant le pointillé actif
+    // et les deux paraîtraient sans rapport.
+    const firstForecast = forecast.length
+      ? Math.min(...forecast.map((p) => Date.parse(p.t)))
+      : null;
+    if (firstForecast != null) {
+      const r = rows.get(firstForecast);
+      const lastTrail = [...(forecastTrail ?? [])]
+        .filter((p) => Date.parse(p.t) < firstForecast)
+        .sort((a, b) => Date.parse(a.t) - Date.parse(b.t))
+        .pop();
+      if (r && lastTrail) r.trail = r.forecast;
     }
 
     // ⚠️ **Les trous de la prévision doivent ROMPRE la courbe.** Le worker
@@ -188,7 +222,7 @@ export default function WaitTimeChart({
     // étendues plus bas), pas en inventant des valeurs.
 
     const values = data
-      .flatMap((d) => [d.actual, d.forecast])
+      .flatMap((d) => [d.actual, d.forecast, d.trail])
       .filter((v): v is number => v != null);
     const times = data.map((d) => d.t);
     const xMin = win ? Date.parse(win.open) : Math.min(...times, nowMs);
@@ -297,11 +331,15 @@ export default function WaitTimeChart({
     }
 
     return { data, xMin, xMax, yMax, yTicks, xTicks, nowMs, downBands };
-  }, [today, forecast, now, win, timezone, compact]);
+  }, [today, forecast, forecastTrail, now, win, timezone, compact]);
 
   const chartConfig = {
     actual: { label: todayLabel, color: "var(--primary)" },
     forecast: { label: forecastLabel, color: "var(--primary)" },
+    // Gris neutre et non une déclinaison du primaire : la trace est un repère
+    // de second plan, elle ne doit pas se disputer la lecture avec la courbe
+    // réelle qu'elle accompagne.
+    trail: { label: trailLabel ?? forecastLabel, color: "var(--muted-foreground)" },
   } satisfies ChartConfig;
 
   const showNow = nowMs >= xMin && nowMs <= xMax;
@@ -326,6 +364,11 @@ export default function WaitTimeChart({
     let rows = payload.filter(
       (p) => p.value != null && p.dataKey !== "downMarker",
     );
+    // Au point de raccord, la trace porte la même valeur que la prévision : on
+    // ne montre pas deux fois la même chose.
+    if (rows.some((p) => p.dataKey === "forecast")) {
+      rows = rows.filter((p) => p.dataKey !== "trail");
+    }
     // Au point de raccord (« Maintenant »), le dernier temps observé amorce aussi
     // la prévision : les deux séries portent la MÊME valeur au même instant. On
     // n'affiche alors que le temps observé (pas de doublon « Aujourd'hui +
@@ -377,7 +420,11 @@ export default function WaitTimeChart({
                 style={{ background: r.color }}
               />
               <span className="text-muted-foreground">
-                {r.dataKey === "actual" ? actualLabel : forecastLabel}
+                {r.dataKey === "actual"
+                  ? actualLabel
+                  : r.dataKey === "trail"
+                    ? (trailLabel ?? forecastLabel)
+                    : forecastLabel}
               </span>
               <span className="ml-auto font-mono font-medium tabular-nums">
                 {formatWaitMinutes(r.value as number, waitCap)} min
@@ -483,6 +530,22 @@ export default function WaitTimeChart({
           connectNulls={false}
           isAnimationActive={false}
           legendType="none"
+        />
+        {/* Trace des prévisions écoulées. Déclarée AVANT les deux autres pour
+            passer DESSOUS : c'est un repère de comparaison, la courbe réelle
+            garde la priorité de lecture là où les deux se croisent. */}
+        <Line
+          name={trailLabel ?? forecastLabel}
+          dataKey="trail"
+          type="monotone"
+          stroke="var(--color-trail)"
+          strokeOpacity={0.45}
+          strokeWidth={1.5}
+          strokeDasharray="3 3"
+          dot={false}
+          activeDot={{ r: 3 }}
+          connectNulls={false}
+          isAnimationActive={false}
         />
         {/* Animation active + courte : quand la prévision se met à jour (popup
             ouvert), la courbe se redessine en douceur au lieu de sauter. */}

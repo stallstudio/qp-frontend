@@ -535,6 +535,7 @@
     "chartToday": "I dag",
     "chartActual": "Kötid",
     "chartForecast": "Prognos",
+    "chartForecastPast": "Prognos",
     "chartNow": "Nu",
     "chartEmpty": "Inga uppgifter för i dag ännu.",
     "chartUnavailable": "Attraktionen är otillgänglig just nu.",

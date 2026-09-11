@@ -233,6 +233,24 @@ model RideForecast {
   // à +6 h n'est jamais confronté à l'observé depuis la prévision qui l'a émis.
   referenceForecast   Json?
   referenceComputedAt DateTime?
+
+  // ————— Trace des prévisions déjà écoulées —————
+  //
+  // Ce que la prévision annonçait pour une heure DONNÉE, figé au moment où cette
+  // heure est devenue du passé. Le graphique la retrace en pointillés gris sous
+  // la courbe réelle : la prévision cessait jusqu'ici d'exister dès qu'elle
+  // devenait vérifiable, si bien que l'utilisateur ne pouvait jamais comparer ce
+  // qu'on lui avait annoncé à ce qui s'est produit.
+  //
+  // ⚠️ Distincte de `referenceForecast`, et les deux sont nécessaires :
+  // celle-ci est la DERNIÈRE prévision connue avant l'échéance (ce qu'un
+  // visiteur lisait juste avant d'y aller), l'autre est la promesse du matin
+  // pour toute la journée. La première se compare au réel point par point, la
+  // seconde mesure le profil de base.
+  //
+  // ⚠️ Un point écrit ici n'est JAMAIS réécrit : le figer est tout l'intérêt.
+  // Remis à zéro au changement de jour logique.
+  forecastTrail       Json?
   // Marge d'erreur agrégée (MAE récente toutes fenêtres confondues), en minutes.
   // Redondante avec `margin` porté par chaque point de `forecast` — sert
   // l'affichage admin et le tri, pas le rendu du graphique.

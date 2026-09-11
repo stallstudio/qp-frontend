@@ -46,6 +46,7 @@ export async function GET(
     now: new Date().toISOString(),
     today: [],
     forecast: [],
+    forecastTrail: [],
     meta: {
       scale: 1,
       confidence: 0,
@@ -165,6 +166,7 @@ export async function GET(
       select: {
         date: true,
         forecast: true,
+        forecastTrail: true,
         scale: true,
         confidence: true,
         confidenceLevel: true,
@@ -179,6 +181,12 @@ export async function GET(
     const fresh = forecastRow && forecastRow.date === rideHistory.date;
     const forecast: TimedPoint[] = fresh
       ? ((forecastRow.forecast as unknown as TimedPoint[]) ?? [])
+      : [];
+    // Trace des prévisions écoulées. Comme la prévision elle-même, elle n'a de
+    // sens que si la ligne vise bien le jour logique courant : celle de la
+    // veille décrirait des heures qui ne sont plus à l'écran.
+    const forecastTrail: TimedPoint[] = fresh
+      ? ((forecastRow.forecastTrail as unknown as TimedPoint[]) ?? [])
       : [];
     const baseProfile =
       fresh &&
@@ -222,6 +230,7 @@ export async function GET(
       now: rideHistory.now.toISOString(),
       today,
       forecast,
+      forecastTrail,
       meta: {
         scale: fresh ? forecastRow.scale : 1,
         confidence: fresh ? forecastRow.confidence : 0,

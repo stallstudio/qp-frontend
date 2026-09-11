@@ -535,6 +535,7 @@
     "chartToday": "今天",
     "chartActual": "排队时间",
     "chartForecast": "预测",
+    "chartForecastPast": "预测",
     "chartNow": "现在",
     "chartEmpty": "今天还没有数据。",
     "chartUnavailable": "该项目暂时无法使用。",

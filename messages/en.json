@@ -535,6 +535,7 @@
     "chartToday": "Today",
     "chartActual": "Wait time",
     "chartForecast": "Forecast",
+    "chartForecastPast": "Forecast",
     "chartNow": "Now",
     "chartEmpty": "No data yet for today.",
     "chartUnavailable": "Attraction currently unavailable.",

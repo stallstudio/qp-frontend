@@ -535,6 +535,7 @@
     "chartToday": "今日",
     "chartActual": "待ち時間",
     "chartForecast": "予測",
+    "chartForecastPast": "予測",
     "chartNow": "現在",
     "chartEmpty": "本日のデータはまだありません。",
     "chartUnavailable": "アトラクションは現在利用できません。",
