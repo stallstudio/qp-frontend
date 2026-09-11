@@ -1,4 +1,5 @@
 import type { TimedPoint } from "@/lib/wait-times-series";
+import type { WaitCap } from "@/lib/wait-time-cap";
 
 export type { TimedPoint };
 
@@ -34,6 +35,13 @@ export interface RideHistoryResponse {
     // la marge propre à chaque point. null = pas encore mesuré.
     marginMinutes: number | null;
     marginSamples: number;
+    /**
+     * Plafond de publication de la source, quand elle en a un : `value` est la
+     * valeur brute qui fait office de sentinelle, `display` le seuil qu'elle
+     * signifie réellement (91 -> « 90+ » sur le flux Mack). `null` = la source
+     * publie des durées jusqu'au bout. Voir `lib/wait-time-cap.ts`.
+     */
+    waitCap: WaitCap | null;
   };
 }
 

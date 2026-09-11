@@ -2,6 +2,11 @@ import { TimeSlot, WaitTimeStatus } from "@/types/waitTime";
 import { DateTime } from "luxon";
 import { getLuxonFormat } from "@/lib/utils";
 import type { ReactNode } from "react";
+import {
+  MACK_WAIT_CAP,
+  formatWaitMinutes,
+  type WaitCap,
+} from "@/lib/wait-time-cap";
 
 function getWaitTimeColorClass(waitTime: number): string {
   if (waitTime < 0) {
@@ -16,9 +21,24 @@ function getWaitTimeColorClass(waitTime: number): string {
   return "bg-red-100 text-red-700";
 }
 
+/**
+ * Pastille de temps d'attente.
+ *
+ * `cap` décrit le plafond de publication de la source, quand elle en a un (91
+ * sur le flux Mack = « 90 ou plus »). Voir `lib/wait-time-cap.ts`.
+ *
+ * ⚠️ **Le plafond Mack est le défaut, faute de mieux.** Ce composant est appelé
+ * depuis des listes qui ne portent pas le provider de leur parc, et la version
+ * précédente traitait `91` en dur pour tout le monde. Passer le cap explicitement
+ * est donc préférable partout où l'appelant le connaît ; le défaut n'existe que
+ * pour ne pas régresser sur Europa-Park en attendant, et il vaut une valeur de
+ * plus qu'un parc qui afficherait un vrai 91 min verrait arrondie — cas jamais
+ * observé sur les sources actuelles.
+ */
 function getWaitTimeBadge(
   waitTime: number,
   unavailableLabel: ReactNode = "Unavailable",
+  cap: WaitCap | null = MACK_WAIT_CAP,
 ) {
   const colorClass = getWaitTimeColorClass(waitTime);
 
@@ -28,9 +48,7 @@ function getWaitTimeBadge(
     >
       {waitTime === -1
         ? unavailableLabel
-        : waitTime === 91
-          ? "+90 min"
-          : `${waitTime} min`}
+        : `${formatWaitMinutes(waitTime, cap)} min`}
     </span>
   );
 }

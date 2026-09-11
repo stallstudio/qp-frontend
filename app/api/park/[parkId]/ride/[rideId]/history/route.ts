@@ -11,6 +11,7 @@ import { buildRideHistory } from "@/lib/wait-times-history";
 import { isAdminViewer } from "@/lib/auth-helpers";
 import { sampleDaySeries, type TimedPoint } from "@/lib/wait-times-series";
 import type { ConfidenceLevel, RideHistoryResponse } from "@/types/rideHistory";
+import { waitCapFor } from "@/lib/wait-time-cap";
 
 // Cadence d'échantillonnage (min) de la courbe du jour ET de la prévision.
 const CHART_STEP_MINUTES = 15;
@@ -55,6 +56,7 @@ export async function GET(
       chronicallyUnavailable: false,
       marginMinutes: null,
       marginSamples: 0,
+      waitCap: null,
     },
   });
 
@@ -105,12 +107,12 @@ export async function GET(
     // chemin nominal, appelé à chaque ouverture de popup, n'y perd rien.
     let park = await prisma.park.findUnique({
       where: { identifier: parkId, display: true },
-      select: { id: true, timezone: true },
+      select: { id: true, timezone: true, provider: true },
     });
     if (!park && (await isAdminViewer())) {
       park = await prisma.park.findUnique({
         where: { identifier: parkId },
-        select: { id: true, timezone: true },
+        select: { id: true, timezone: true, provider: true },
       });
     }
     if (!park) {
@@ -236,6 +238,9 @@ export async function GET(
         // d'historique sans jamais confronter la prévision au réel.
         marginMinutes: fresh ? forecastRow.marginMinutes : null,
         marginSamples: fresh ? (forecastRow.marginSamples ?? 0) : 0,
+        // Le plafond tient au FLUX, pas au parc : tout parc servi par la même
+        // source en hérite, sans liste à tenir à jour.
+        waitCap: waitCapFor(park.provider),
       },
     };
 

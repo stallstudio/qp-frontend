@@ -66,6 +66,7 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
         todayLabel={t("chartToday")}
         actualLabel={t("chartActual")}
         forecastLabel={t("chartForecast")}
+        waitCap={data.meta.waitCap}
       />
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">

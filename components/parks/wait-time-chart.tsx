@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 import type { TimedPoint } from "@/types/rideHistory";
+import { formatWaitMinutes, type WaitCap } from "@/lib/wait-time-cap";
 
 type WaitTimeChartProps = {
   today: TimedPoint[];
@@ -33,6 +34,8 @@ type WaitTimeChartProps = {
   // graphique pour opposer la courbe pleine du jour à la prévision en pointillé.
   actualLabel: string;
   forecastLabel: string;
+  /** Plafond de publication de la source : 91 s'affiche « 90+ ». */
+  waitCap?: WaitCap | null;
   /**
    * Rendu resserré : moins haut, axe des temps plus étroit, moins de graduations
    * horaires. Utilisé par la démo de la page À propos, qui vit dans une vignette
@@ -94,6 +97,7 @@ export default function WaitTimeChart({
   todayLabel,
   actualLabel,
   forecastLabel,
+  waitCap,
   compact = false,
 }: WaitTimeChartProps) {
   const { is12Hour } = useTimeFormat();
@@ -376,7 +380,7 @@ export default function WaitTimeChart({
                 {r.dataKey === "actual" ? actualLabel : forecastLabel}
               </span>
               <span className="ml-auto font-mono font-medium tabular-nums">
-                {r.value} min
+                {formatWaitMinutes(r.value as number, waitCap)} min
               </span>
             </div>
           ))}
@@ -428,6 +432,7 @@ export default function WaitTimeChart({
         <YAxis
           domain={[0, yMax]}
           ticks={yTicks}
+          tickFormatter={(v: number) => formatWaitMinutes(v, waitCap)}
           width={compact ? 34 : 40}
           tickLine={false}
           axisLine={false}
