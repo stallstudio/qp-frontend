@@ -1016,7 +1016,7 @@ c'est délibéré, la corriger demanderait de séparer « horaires pour l'état 
   (tous Sunway, tous `300x250`), mais le symptôme est MUET — pas d'erreur
   serveur, la même URL s'ouvre à la main — et chaque parc ajouté peut en apporter
   d'autres. La signature porte toujours sur l'URL DÉCODÉE : c'est un transport,
-  pas un secret. `decoderUrl` accepte encore la forme en clair le temps que les
+  pas un secret. `decodeUrl` accepte encore la forme en clair le temps que les
   caches tournent (**supprimable après le 2026-09-05**).
 - **Liens profonds push** : alerte sur UNE attraction →
   `/{locale}/park/{parc}/ride/{slug}` (parc + popup ouvert) ; plusieurs → page du

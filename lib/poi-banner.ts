@@ -57,10 +57,10 @@ export function readPoiMenu(value: unknown): string | null {
  *
  * ⚠️ Sondé et non casté, comme `readBanner` : `additionalData` est un `Json`
  * libre, sa forme n'est garantie par aucun type. Le nettoyage est commun avec
- * `readPoiVenue`, voir `readLieu`.
+ * `readPoiVenue`, voir `readPlace`.
  */
 export function readPoiZone(value: unknown): string | null {
-  return readLieu(value, "zone");
+  return readPlace(value, "zone");
 }
 
 /**
@@ -78,7 +78,7 @@ export function readPoiZone(value: unknown): string | null {
  * repli sert.
  */
 export function readPoiVenue(value: unknown): string | null {
-  return readLieu(value, "venue");
+  return readPlace(value, "venue");
 }
 
 /**
@@ -91,11 +91,11 @@ export function readPoiVenue(value: unknown): string | null {
  * Un lieu illisible sous le titre est pire que pas de lieu du tout, et c'est
  * exactement ce que demande l'appelant : le lieu si on le connaît, rien sinon.
  */
-function readLieu(value: unknown, cle: "zone" | "venue"): string | null {
+function readPlace(value: unknown, field: "zone" | "venue"): string | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const brut = (value as Record<string, unknown>)[cle];
-  if (typeof brut !== "string") return null;
-  const trimmed = brut.trim();
+  const raw = (value as Record<string, unknown>)[field];
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
   if (!trimmed) return null;
   // Un code interne (« 01 », « 666 ») ne dit rien à personne.
   if (/^\d+$/.test(trimmed)) return null;

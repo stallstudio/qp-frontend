@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { decoderUrl, verifyImageSignature } from "@/lib/image-proxy";
+import { decodeUrl, verifyImageSignature } from "@/lib/image-proxy";
 
 /**
  * Sert une image distante SIGNÉE par nous, sur notre domaine.
@@ -32,36 +32,36 @@ import { decoderUrl, verifyImageSignature } from "@/lib/image-proxy";
 // Cloudinary, imgix, Sanity servent l'image à 1600 px). Mais les CDN qui ne
 // redimensionnent pas par URL — sondés, ce sont justement Walibi et
 // Bellewaerde — ne peuvent être traités qu'ici.
-const TAILLE_COMPRESSION = 2 * 1024 * 1024;
+const COMPRESSION_THRESHOLD = 2 * 1024 * 1024;
 
 // Plafond DUR, lui : au-delà, on ne télécharge même pas. Il protège la mémoire
 // du serveur, ce que le seuil ci-dessus ne fait plus.
-const TAILLE_MAX = 48 * 1024 * 1024;
+const MAX_SIZE = 48 * 1024 * 1024;
 
 // Largeur servie après redimensionnement. L'optimiseur de Next reprend derrière
 // pour la taille réellement demandée par la page ; 1600 px lui laisse de quoi
 // travailler sur un écran à haute densité.
-const LARGEUR_MAX = 1600;
+const MAX_WIDTH = 1600;
 
 // ⚠️ Relevé de 8 à 20 s AVEC le redimensionnement : télécharger 30 Mo depuis un
 // CDN lent dépasse allègrement huit secondes, et un délai dépassé ici est
 // exactement la panne qu'on vient de corriger.
-const DELAI_MS = 20000;
+const TIMEOUT_MS = 20000;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const parametre = searchParams.get("u");
+  const param = searchParams.get("u");
   const sig = searchParams.get("s");
 
-  if (!parametre || !sig) {
+  if (!param || !sig) {
     return new NextResponse("Paramètres manquants", { status: 400 });
   }
 
   // ⚠️ `u` porte l'URL en base64url, pas en clair : un nom de fichier lisible
   // dans la query fait annuler la requête par les bloqueurs de publicité du
-  // visiteur (voir `decoderUrl`). Le décodage précède la vérification, qui
+  // visiteur (voir `decodeUrl`). Le décodage précède la vérification, qui
   // porte sur l'URL décodée.
-  const url = decoderUrl(parametre);
+  const url = decodeUrl(param);
   if (!url) {
     return new NextResponse("Paramètre illisible", { status: 400 });
   }
@@ -74,18 +74,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const amont = await fetch(url, {
-      signal: AbortSignal.timeout(DELAI_MS),
+    const upstream = await fetch(url, {
+      signal: AbortSignal.timeout(TIMEOUT_MS),
       // Aucun en-tête du visiteur n'est transmis : ni cookie, ni Authorization.
       headers: { Accept: "image/*" },
       redirect: "follow",
     });
 
-    if (!amont.ok) {
+    if (!upstream.ok) {
       return new NextResponse("Image indisponible", { status: 404 });
     }
 
-    const declare = amont.headers.get("content-type") ?? "";
+    const declaredType = upstream.headers.get("content-type") ?? "";
 
     // ⚠️ Un SVG peut embarquer du script, et servi depuis NOTRE domaine il
     // s'exécuterait dans NOTRE origine. `next.config.ts` les refuse déjà côté
@@ -95,19 +95,19 @@ export async function GET(request: NextRequest) {
     // ⚠️ Refusé sur la DÉCLARATION, avant même de télécharger : c'est le seul
     // type dont le nom suffit à trancher, et le seul qu'on ne veut pas voir
     // passer par le renifleur ci-dessous.
-    if (declare.includes("svg")) {
+    if (declaredType.includes("svg")) {
       return new NextResponse("Type non autorisé", { status: 415 });
     }
 
-    const annonce = Number(amont.headers.get("content-length") ?? 0);
-    if (annonce > TAILLE_MAX) {
+    const declaredLength = Number(upstream.headers.get("content-length") ?? 0);
+    if (declaredLength > MAX_SIZE) {
       return new NextResponse("Image trop volumineuse", { status: 413 });
     }
 
     // Le corps est bufferisé plutôt que streamé : c'est le seul moyen de faire
     // respecter le plafond quand l'amont n'annonce pas de `content-length`.
-    const corps = Buffer.from(await amont.arrayBuffer());
-    if (corps.byteLength > TAILLE_MAX) {
+    const body = Buffer.from(await upstream.arrayBuffer());
+    if (body.byteLength > MAX_SIZE) {
       return new NextResponse("Image trop volumineuse", { status: 413 });
     }
 
@@ -132,17 +132,17 @@ export async function GET(request: NextRequest) {
     // (48 JPEG, 8 PNG, 7 WebP) et les 7 autres ne servent AUCUNE image — des
     // pages d'erreur HTML ou des hôtes injoignables, déjà cassés aujourd'hui.
     // Aucune bannière qui s'affiche ne cesse donc de s'afficher.
-    const type = typeReniffle(corps);
+    const type = sniffType(body);
     if (!type) {
       return new NextResponse("Type non autorisé", { status: 415 });
     }
 
-    const { corps: servi, type: typeServi } = await compresserSiBesoin(corps, type);
+    const { body: served, type: servedType } = await compressIfNeeded(body, type);
 
-    return new NextResponse(servi, {
+    return new NextResponse(served, {
       headers: {
-        "Content-Type": typeServi,
-        "Content-Length": String(servi.byteLength),
+        "Content-Type": servedType,
+        "Content-Length": String(served.byteLength),
         // Une URL signée désigne une image immuable : son contenu change, son
         // URL change. Un an de cache, sans revalidation.
         "Cache-Control": "public, max-age=31536000, immutable",
@@ -173,30 +173,30 @@ export async function GET(request: NextRequest) {
  * le préambule PNG de huit octets, `GIF8`, `RIFF` + `WEBP` au huitième octet, et
  * la boîte `ftyp` d'ISO-BMFF pour AVIF et HEIC.
  */
-function typeReniffle(corps: Buffer): string | null {
-  if (corps.length < 12) return null;
+function sniffType(body: Buffer): string | null {
+  if (body.length < 12) return null;
 
-  if (corps[0] === 0xff && corps[1] === 0xd8 && corps[2] === 0xff) {
+  if (body[0] === 0xff && body[1] === 0xd8 && body[2] === 0xff) {
     return "image/jpeg";
   }
-  if (corps.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+  if (body.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
     return "image/png";
   }
-  if (corps.subarray(0, 4).toString("ascii") === "GIF8") {
+  if (body.subarray(0, 4).toString("ascii") === "GIF8") {
     return "image/gif";
   }
   if (
-    corps.subarray(0, 4).toString("ascii") === "RIFF" &&
-    corps.subarray(8, 12).toString("ascii") === "WEBP"
+    body.subarray(0, 4).toString("ascii") === "RIFF" &&
+    body.subarray(8, 12).toString("ascii") === "WEBP"
   ) {
     return "image/webp";
   }
   // ISO-BMFF : la marque de format suit la boîte `ftyp`. `avif` et `heic`
   // partagent le conteneur, `sharp` décode les deux.
-  if (corps.subarray(4, 8).toString("ascii") === "ftyp") {
-    const marque = corps.subarray(8, 12).toString("ascii");
-    if (marque.startsWith("avif") || marque.startsWith("avis")) return "image/avif";
-    if (marque.startsWith("heic") || marque.startsWith("heix") || marque.startsWith("mif1")) {
+  if (body.subarray(4, 8).toString("ascii") === "ftyp") {
+    const brand = body.subarray(8, 12).toString("ascii");
+    if (brand.startsWith("avif") || brand.startsWith("avis")) return "image/avif";
+    if (brand.startsWith("heic") || brand.startsWith("heix") || brand.startsWith("mif1")) {
       return "image/heic";
     }
   }
@@ -221,32 +221,32 @@ function typeReniffle(corps: Buffer): string | null {
  * du tout. Sharp refuse certains fichiers exotiques, et ce n'est pas une raison
  * pour faire disparaître une bannière.
  */
-async function compresserSiBesoin(
-  corps: Buffer<ArrayBuffer>,
+async function compressIfNeeded(
+  body: Buffer<ArrayBuffer>,
   type: string,
-): Promise<{ corps: Uint8Array<ArrayBuffer>; type: string }> {
-  if (corps.byteLength <= TAILLE_COMPRESSION) return { corps, type };
+): Promise<{ body: Uint8Array<ArrayBuffer>; type: string }> {
+  if (body.byteLength <= COMPRESSION_THRESHOLD) return { body: body, type };
 
   try {
     const { default: sharp } = await import("sharp");
 
-    const reduit = await sharp(corps, { failOn: "none" })
+    const reduced = await sharp(body, { failOn: "none" })
       .rotate()
-      .resize({ width: LARGEUR_MAX, withoutEnlargement: true })
+      .resize({ width: MAX_WIDTH, withoutEnlargement: true })
       .jpeg({ quality: 82, mozjpeg: true })
       .toBuffer();
 
     // Un format déjà mieux compressé que notre JPEG (un WebP compact, par
     // exemple) ne doit pas être remplacé par plus lourd.
-    if (reduit.byteLength >= corps.byteLength) return { corps, type };
+    if (reduced.byteLength >= body.byteLength) return { body: body, type };
 
     // Recopié dans un `ArrayBuffer` à lui : le `Buffer` de sharp partage le
     // pool interne de Node, que la signature de `Response` n'accepte pas.
-    const octets = new Uint8Array(reduit.byteLength);
-    octets.set(reduit);
+    const bytes = new Uint8Array(reduced.byteLength);
+    bytes.set(reduced);
 
-    return { corps: octets, type: "image/jpeg" };
+    return { body: bytes, type: "image/jpeg" };
   } catch {
-    return { corps, type };
+    return { body: body, type };
   }
 }
