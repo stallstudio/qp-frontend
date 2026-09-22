@@ -47,8 +47,12 @@ export function parkEventStateAt(
   event: ParkEventDto,
   at: Date,
 ): ParkEventView {
-  const startsAt = toDate(event.startsAt);
-  const endsAt = toDate(event.endsAt);
+  const sessions = event.sessions
+    .map((s) => ({ startsAt: toDate(s.startsAt), endsAt: toDate(s.endsAt) }))
+    .filter(
+      (s): s is { startsAt: Date; endsAt: Date } =>
+        s.startsAt !== null && s.endsAt !== null,
+    );
 
   // `hidden` : jamais, quoi qu'il arrive. Le serveur ne transporte normalement
   // pas ces événements — la garde est ici par sécurité, pas par nécessité.
@@ -73,22 +77,26 @@ export function parkEventStateAt(
   // retirées de la liste principale, mais aucune carte n'apparaît — c'est ce qui
   // empêche une maison de Halloween Horror Nights publiée en août de s'afficher
   // trois semaines trop tôt.
-  if (!forced && !event.inPeriod && !startsAt) {
+  if (!forced && !event.inPeriod && sessions.length === 0) {
     return { event, state: "hidden", boundary: null };
   }
 
-  // Session connue : elle tranche.
-  if (startsAt && endsAt) {
-    if (at >= startsAt && at < endsAt) {
-      return { event, state: "running", boundary: endsAt };
+  // Sessions connues : elles tranchent.
+  if (sessions.length > 0) {
+    const current = sessions.find((s) => at >= s.startsAt && at < s.endsAt);
+    if (current) {
+      return { event, state: "running", boundary: current.endsAt };
     }
-    // Avant l'ouverture du soir : replié, avec l'heure d'ouverture.
-    if (at < startsAt) {
-      return { event, state: "collapsed", boundary: startsAt };
+    // Avant une ouverture — celle du matin, ou celle du soir entre la journée
+    // et la nocturne : replié, avec l'heure de la prochaine.
+    const next = sessions.find((s) => at < s.startsAt);
+    if (next) {
+      return { event, state: "collapsed", boundary: next.startsAt };
     }
-    // Session terminée. On reste REPLIÉ plutôt que de disparaître : la carte ne
-    // pèse qu'une ligne d'en-tête, et la faire disparaître à 23:30 retirerait de
-    // la page, sans prévenir, les attractions qu'on y regardait à 23:29.
+    // Dernière session terminée. On reste REPLIÉ plutôt que de disparaître : la
+    // carte ne pèse qu'une ligne d'en-tête, et la faire disparaître à 23:30
+    // retirerait de la page, sans prévenir, les attractions qu'on y regardait à
+    // 23:29.
     return { event, state: "collapsed", boundary: null };
   }
 

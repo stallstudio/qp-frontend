@@ -59,19 +59,20 @@ export async function getParkEventsByDate(
     });
 
     return events.map((event) => {
-      // Session du jour : la ligne d'horaires rattachée à cet événement. Il ne
-      // peut y en avoir qu'une par type, et en pratique une seule tout court.
-      const session = openingHours.find(
-        (h) => h.eventId === event.id && h.openTime && h.closeTime,
-      );
+      // Sessions du jour : les lignes d'horaires rattachées à cet événement, une
+      // par type au plus. Le Parc Astérix en rattache deux les jours de
+      // nocturne — la journée (`standard`) et la soirée (`event`).
+      const sessions = openingHours
+        .filter((h) => h.eventId === event.id && h.openTime && h.closeTime)
+        .map((h) => ({ startsAt: h.openTime!, endsAt: h.closeTime! }))
+        .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 
       return {
         id: event.id,
         name: event.name,
         accent: event.accent,
         separateTicket: event.separateTicket,
-        startsAt: session?.openTime ?? null,
-        endsAt: session?.closeTime ?? null,
+        sessions,
         startDate: event.startDate,
         endDate: event.endDate,
         visibility: event.visibility as ParkEventDto["visibility"],
