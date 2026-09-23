@@ -116,6 +116,7 @@ model Park {
   rideForecasts    RideForecast[]
   forecastAccuracy ForecastAccuracy[]
   events           ParkEvent[]
+  silenceEpisode   ParkSilenceEpisode?
 
   @@index([groupId])
   @@index([appId])
@@ -970,6 +971,19 @@ model JobExecution {
   @@index([status])
   @@index([jobName, startedAt])
   @@map("job_executions")
+}
+
+// Écrit par le worker (checkParkFreshness) : parc muet signalé sur Discord et
+// pas encore rétabli.
+model ParkSilenceEpisode {
+  parkId     Int       @id
+  lastSeenAt DateTime?
+  notifiedAt DateTime
+  createdAt  DateTime  @default(now())
+
+  park Park @relation(fields: [parkId], references: [id], onDelete: Cascade)
+
+  @@map("park_silence_episodes")
 }
 
 model PoiChange {
