@@ -559,6 +559,16 @@ période, la carte n'est pas rendue et l'attraction disparaît donc de la page �
 c'est voulu : un maze affichant « fermé » en juin entre deux coasters n'apprend
 rien.
 
+⚠️ **Sans session propre, c'est la journée du PARC qui borne l'événement**
+(2026-09-29). Dans la période, aucune ligne d'horaires rattachée à l'événement,
+mais le parc a des horaires aujourd'hui (`parkOpensToday`) : sous-titre
+« Aujourd'hui » (`events.today`), carte DÉPLIÉE tant que le parc est ouvert,
+repliée avant et après. Un jour de fermeture du parc garde « Prochainement »,
+replié ; un parc sans aucune ligne d'horaires aussi. Mesuré sur Parque Warner
+Madrid : « Halloween » et « Halloween Scary Nights » n'ont aucune session, leurs
+cartes restaient repliées toute la journée, maisons ouvertes, sous un
+« Prochainement » qui se lisait comme « pas encore commencé ».
+
 ⚠️ **`visibility = "forced"` (« Toujours » dans l'admin) garde sa carte MÊME
 VIDE** (2026-08-24), et c'est la seule exception à « pas de contenu, pas de
 carte ». Cette règle vaut pour un événement `auto` — elle évite un encadré vide

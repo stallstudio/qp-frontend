@@ -625,6 +625,7 @@
     "closesAt": "Cierra a las {time}",
     "running": "En curso",
     "scheduled": "Próximamente",
+    "today": "Hoy",
     "separateTicket": "Entrada aparte",
     "noAttractions": "Ninguna atracción indica tiempo de espera en este momento"
   }

@@ -625,6 +625,7 @@
     "closesAt": "{time} 结束",
     "running": "进行中",
     "scheduled": "即将开始",
+    "today": "今天",
     "separateTicket": "需另购门票",
     "noAttractions": "目前没有项目提供等待时间"
   }

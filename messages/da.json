@@ -625,6 +625,7 @@
     "closesAt": "Lukker kl. {time}",
     "running": "I gang nu",
     "scheduled": "Kommer snart",
+    "today": "I dag",
     "separateTicket": "Separat billet",
     "noAttractions": "Ingen forlystelser melder ventetid lige nu"
   }

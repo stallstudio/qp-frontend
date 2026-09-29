@@ -27,6 +27,7 @@ import {
 import {
   alertOpeningHours,
   dayOpeningHours,
+  parkOpensToday,
   visibleParkEvents,
 } from "@/lib/park-events";
 import ParkShowTimeTable from "./show-time-table";
@@ -196,7 +197,11 @@ export default function MainCard({
   const eventViews = useMemo(
     () =>
       mounted
-        ? visibleParkEvents(park.events ?? [], new Date())
+        ? visibleParkEvents(
+            park.events ?? [],
+            new Date(),
+            park.openingHours ?? [],
+          )
         : // AVANT MONTAGE : on rend quand même les cartes des événements dont la
           // PÉRIODE couvre aujourd'hui, repliées. `inPeriod` est calculé côté
           // serveur à partir de la date locale du parc, pas de l'heure : les deux
@@ -211,9 +216,15 @@ export default function MainCard({
               event,
               state: "collapsed" as const,
               boundary: null,
+              // Même raisonnement : « le parc ouvre-t-il aujourd'hui ? » ne
+              // dépend que des lignes du jour, pas de l'heure.
+              today:
+                event.inPeriod &&
+                !event.startsAt &&
+                parkOpensToday(park.openingHours ?? []),
             })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [park.events, mounted, tick],
+    [park.events, park.openingHours, mounted, tick],
   );
 
   // ⚠️ **Une attraction taguée n'apparaît QUE dans la carte de son événement.**

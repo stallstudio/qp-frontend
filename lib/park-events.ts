@@ -11,6 +11,7 @@
 
 import type { ParkEventDto } from "@/types/parkEvent";
 import type { OpeningHour } from "@/types/openingHour";
+import { parkOpenWindowFrom } from "@/lib/park-closing";
 
 /**
  * Les trois états de la carte d'un événement.
@@ -27,6 +28,12 @@ export type ParkEventView = {
   state: ParkEventState;
   /** Prochaine ouverture (état `collapsed`) ou fermeture (état `running`). */
   boundary: Date | null;
+  /**
+   * L'événement a lieu AUJOURD'HUI, mais sans horaire propre : c'est la journée
+   * du parc qui le borne. Le sous-titre dit alors « Aujourd'hui » au lieu de
+   * « Prochainement » / « En cours ».
+   */
+  today?: boolean;
 };
 
 function toDate(value: string | null | undefined): Date | null {
@@ -46,6 +53,7 @@ function toDate(value: string | null | undefined): Date | null {
 export function parkEventStateAt(
   event: ParkEventDto,
   at: Date,
+  parkHours: OpeningHour[] = [],
 ): ParkEventView {
   const startsAt = toDate(event.startsAt);
   const endsAt = toDate(event.endsAt);
@@ -92,6 +100,29 @@ export function parkEventStateAt(
     return { event, state: "collapsed", boundary: null };
   }
 
+  // Dans la période, aucun horaire propre, mais le parc OUVRE aujourd'hui :
+  // l'événement a lieu, et c'est la journée du parc qui le borne. « Aujourd'hui »
+  // en sous-titre, et la carte se déplie tant que le parc est ouvert.
+  //
+  // ⚠️ Seulement DANS LA PÉRIODE : un événement `forced` hors période ne tourne
+  // pas aujourd'hui, parc ouvert ou non. Un jour de fermeture du parc retombe
+  // sur le cas suivant — replié, « Prochainement ».
+  //
+  // Mesuré sur Parque Warner Madrid (29/09) : ni « Halloween » ni « Halloween
+  // Scary Nights » n'ont de session publiée ; leurs cartes seraient restées
+  // repliées toute la journée, maisons ouvertes, sous un « Prochainement » qui
+  // se lit comme « pas encore commencé ».
+  if (event.inPeriod && parkOpensToday(parkHours)) {
+    const open =
+      parkOpenWindowFrom(dayOpeningHours(parkHours), at).state === "open";
+    return {
+      event,
+      state: open ? "running" : "collapsed",
+      boundary: null,
+      today: true,
+    };
+  }
+
   // Dans la période, mais aucun horaire publié : replié, sans heure. C'est la
   // meilleure réponse possible — on sait que l'événement a lieu, on ne sait pas
   // quand il ouvre, et inventer une heure serait pire que ne rien dire.
@@ -108,9 +139,10 @@ export function parkEventStateAt(
 export function visibleParkEvents(
   events: ParkEventDto[],
   at: Date,
+  parkHours: OpeningHour[] = [],
 ): ParkEventView[] {
   return events
-    .map((event) => parkEventStateAt(event, at))
+    .map((event) => parkEventStateAt(event, at, parkHours))
     .filter((view) => view.state !== "hidden")
     .sort((a, b) => {
       if (a.state === b.state) return 0;
@@ -143,6 +175,17 @@ export const NON_DAY_HOUR_TYPES = new Set(["private_event", "sold_out", "event"]
 /** Les horaires qui décrivent la journée d'exploitation du parc. */
 export function dayOpeningHours(hours: OpeningHour[]): OpeningHour[] {
   return hours.filter((h) => !NON_DAY_HOUR_TYPES.has(h.type));
+}
+
+/**
+ * Le parc a-t-il une journée d'exploitation publiée pour sa date logique ?
+ *
+ * Ne dépend PAS de l'heure, seulement des lignes du jour : l'appelant peut donc
+ * s'en servir AVANT montage sans risque d'hydratation. Une ligne sans heures
+ * (`openTime`/`closeTime` nuls) est un jour de fermeture.
+ */
+export function parkOpensToday(hours: OpeningHour[]): boolean {
+  return dayOpeningHours(hours).some((h) => h.openTime && h.closeTime);
 }
 
 /**

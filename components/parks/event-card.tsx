@@ -74,7 +74,7 @@ export default function EventCard({
   const heightOut = reduceMotion ? still : HEIGHT_OUT;
   const contentIn = reduceMotion ? still : CONTENT_IN;
   const contentOut = reduceMotion ? still : CONTENT_OUT;
-  const { event, state, boundary } = view;
+  const { event, state, boundary, today } = view;
 
   // Déplié pendant l'événement, replié en dehors — mais l'état reste PILOTABLE :
   // une fois qu'on a cliqué, l'horloge ne referme plus la carte sous les doigts.
@@ -105,9 +105,11 @@ export default function EventCard({
     ? state === "running"
       ? t("closesAt", { time: boundaryLabel })
       : t("opensAt", { time: boundaryLabel })
-    : state === "running"
-      ? t("running")
-      : t("scheduled");
+    : today
+      ? t("today")
+      : state === "running"
+        ? t("running")
+        : t("scheduled");
 
   return (
     <Card

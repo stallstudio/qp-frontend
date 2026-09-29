@@ -625,6 +625,7 @@
     "closesAt": "{time} 終了",
     "running": "開催中",
     "scheduled": "まもなく開催",
+    "today": "本日",
     "separateTicket": "別途チケット",
     "noAttractions": "現在、待ち時間を公開しているアトラクションはありません"
   }
