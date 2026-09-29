@@ -636,6 +636,7 @@
     "closesAt": "Closes at {time}",
     "running": "Running now",
     "scheduled": "Coming up",
+    "today": "Today",
     "separateTicket": "Separate ticket",
     "noAttractions": "No attraction is reporting a wait time right now"
   }

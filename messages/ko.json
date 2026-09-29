@@ -636,6 +636,7 @@
     "closesAt": "{time} 종료",
     "running": "진행 중",
     "scheduled": "곧 시작",
+    "today": "오늘",
     "separateTicket": "별도 티켓",
     "noAttractions": "현재 대기 시간을 제공하는 어트랙션이 없습니다"
   }

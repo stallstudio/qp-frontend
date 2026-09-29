@@ -636,6 +636,7 @@
     "closesAt": "Stänger {time}",
     "running": "Pågår nu",
     "scheduled": "Kommer snart",
+    "today": "I dag",
     "separateTicket": "Separat biljett",
     "noAttractions": "Ingen attraktion rapporterar någon kötid just nu"
   }
