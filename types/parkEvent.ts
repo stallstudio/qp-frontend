@@ -68,4 +68,22 @@ export type ParkEventDto = {
    * `false` si la période est inconnue.
    */
   inPeriod: boolean;
+
+  /**
+   * La source a publié des sessions APRÈS la date locale du parc, mais aucune
+   * pour aujourd'hui : son calendrier SAUTE ce jour-là. Calculé serveur, comme
+   * `inPeriod`.
+   *
+   * ⚠️ **C'est ce qui distingue « soir de relâche » de « horaires non publiés ».**
+   * La période n'est qu'un filet pour les parcs muets sur leurs nocturnes ; elle
+   * ne dit pas quels soirs l'événement tourne. Constaté le 2026-10-02 à Movie
+   * World : Fright Nights publiait ses 9 soirées (du 3 au 31 octobre, vendredis
+   * et samedis), mais la période 29/09 → 31/10 couvrait le jeudi 2, et la carte
+   * affichait « Aujourd'hui » un soir sans événement.
+   *
+   * Seules des sessions POSTÉRIEURES comptent : une source qui ne publie que le
+   * jour même (Traumatica chez Mack) n'a pas encore écrit la ligne du jour au
+   * premier passage, et son absence ne prouve rien.
+   */
+  skipsToday: boolean;
 };

@@ -89,6 +89,16 @@ export function parkEventStateAt(
     return { event, state: "hidden", boundary: null };
   }
 
+  // Soir de relâche : la source a publié son calendrier au-delà d'aujourd'hui
+  // et il saute ce jour-là. La période n'a plus rien à dire — elle n'est qu'un
+  // filet pour les parcs qui ne publient pas leurs sessions. Masquée comme hors
+  // période ; un événement `forced` reste replié, sans « Aujourd'hui ».
+  if (event.skipsToday) {
+    return forced
+      ? { event, state: "collapsed", boundary: null }
+      : { event, state: "hidden", boundary: null };
+  }
+
   // Sessions connues : elles tranchent.
   if (sessions.length > 0) {
     const current = sessions.find((s) => at >= s.startsAt && at < s.endsAt);

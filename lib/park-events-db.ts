@@ -58,6 +58,24 @@ export async function getParkEventsByDate(
       orderBy: { startDate: "asc" },
     });
 
+    // Les événements dont la source a publié au moins une session APRÈS
+    // aujourd'hui : leur calendrier est connu au-delà de ce jour, donc l'absence
+    // de session aujourd'hui veut dire « relâche » (voir `skipsToday`).
+    const publishedLater = new Set(
+      events.length === 0
+        ? []
+        : (
+            await prisma.openingHours.findMany({
+              where: {
+                eventId: { in: events.map((event) => event.id) },
+                date: { gt: date },
+              },
+              select: { eventId: true },
+              distinct: ["eventId"],
+            })
+          ).map((h) => h.eventId),
+    );
+
     return events.map((event) => {
       // Sessions du jour : les lignes d'horaires rattachées à cet événement, une
       // par type au plus. Le Parc Astérix en rattache deux les jours de
@@ -83,6 +101,7 @@ export async function getParkEventsByDate(
           event.endDate !== null &&
           event.startDate <= date &&
           date <= event.endDate,
+        skipsToday: sessions.length === 0 && publishedLater.has(event.id),
       };
     });
   } catch (error) {
