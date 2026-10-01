@@ -58,6 +58,24 @@ export async function getParkEventsByDate(
       orderBy: { startDate: "asc" },
     });
 
+    // Les événements dont la source a publié au moins une session APRÈS
+    // aujourd'hui : leur calendrier est connu au-delà de ce jour, donc l'absence
+    // de session aujourd'hui veut dire « relâche » (voir `skipsToday`).
+    const publishedLater = new Set(
+      events.length === 0
+        ? []
+        : (
+            await prisma.openingHours.findMany({
+              where: {
+                eventId: { in: events.map((event) => event.id) },
+                date: { gt: date },
+              },
+              select: { eventId: true },
+              distinct: ["eventId"],
+            })
+          ).map((h) => h.eventId),
+    );
+
     return events.map((event) => {
       // Session du jour : la ligne d'horaires rattachée à cet événement. Il ne
       // peut y en avoir qu'une par type, et en pratique une seule tout court.
@@ -82,6 +100,7 @@ export async function getParkEventsByDate(
           event.endDate !== null &&
           event.startDate <= date &&
           date <= event.endDate,
+        skipsToday: !session && publishedLater.has(event.id),
       };
     });
   } catch (error) {

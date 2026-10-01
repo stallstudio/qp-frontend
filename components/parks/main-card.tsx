@@ -211,7 +211,11 @@ export default function MainCard({
           // d'événement, qui apparaissait ensuite d'un coup — et avec elle des
           // attractions absentes de la première image.
           (park.events ?? [])
-            .filter((event) => event.inPeriod || event.visibility === "forced")
+            .filter(
+              (event) =>
+                (event.inPeriod && !event.skipsToday) ||
+                event.visibility === "forced",
+            )
             .map((event) => ({
               event,
               state: "collapsed" as const,
@@ -220,6 +224,7 @@ export default function MainCard({
               // dépend que des lignes du jour, pas de l'heure.
               today:
                 event.inPeriod &&
+                !event.skipsToday &&
                 !event.startsAt &&
                 parkOpensToday(park.openingHours ?? []),
             })),
