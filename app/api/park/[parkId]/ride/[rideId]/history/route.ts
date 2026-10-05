@@ -185,8 +185,16 @@ export async function GET(
     // Trace des prévisions écoulées. Comme la prévision elle-même, elle n'a de
     // sens que si la ligne vise bien le jour logique courant : celle de la
     // veille décrirait des heures qui ne sont plus à l'écran.
+    //
+    // ⚠️ La trace stockée va jusqu'à une heure DEVANT « maintenant » : le worker
+    // fige chaque point une heure avant son échéance (`buildForecastTrail`).
+    // On ne sert que les points échus — au-delà, la prévision en cours fait
+    // foi, et deux courbes concurrentes sur l'avenir ne se liraient pas.
+    const nowMs = rideHistory.now.getTime();
     const forecastTrail: TimedPoint[] = fresh
-      ? ((forecastRow.forecastTrail as unknown as TimedPoint[]) ?? [])
+      ? (
+          (forecastRow.forecastTrail as unknown as TimedPoint[]) ?? []
+        ).filter((p) => Date.parse(p.t) <= nowMs)
       : [];
     const baseProfile =
       fresh &&

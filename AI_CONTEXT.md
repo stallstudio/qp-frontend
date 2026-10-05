@@ -913,6 +913,17 @@ n'indiqueraient jamais où aller.
     `margin` dans la réponse de l'API — le graphique l'ignore, simplement.
   - ⚠️ Les marges ne regardent que les journées **passées** : le jour de la mise
     en service, aucune attraction n'affiche de chiffre (ce n'est pas une panne).
+  - **Depuis le 2026-10-05, ce chiffre est l'erreur à 1 h d'horizon**, la même
+    chose que la courbe grise (`forecastTrail`, légende « Prédiction ») :
+    le worker fige chaque point une heure avant son échéance. La trace stockée
+    va donc jusqu'à une heure DEVANT maintenant — la route `history` ne sert que
+    les points échus, et le graphique ne la raccorde PAS à la prévision en cours.
+    Avant, la trace figeait la dernière prévision avant l'échéance (< 15 min) :
+    elle reproduisait la courbe réelle décalée d'un quart d'heure.
+  - Tooltip : sur un instant passé, « Prévu » s'affiche sous le temps observé
+    (`expected`, interpolé dans la trace) ET sous le statut d'une plage
+    fermée/en panne/maintenance — le statut ne doit jamais disparaître parce
+    qu'une autre valeur est présente.
     Elles sont un **multiple du pas de l'attraction** (worker, `valueStepOf` /
     `snapMargin`) : pas de « ± 7 min » sur une attraction qui n'affiche que des
     multiples de 5.
