@@ -105,16 +105,29 @@ décalés (+1 000 000), et rien ici ne référence un spectacle par identifiant 
 `ShowReminder` passe par `(parkIdentifier, showName, startTime)` et les favoris
 de spectacle par `{parkIdentifier}:{showName}`.
 
-## Les cartes de POI non-attraction (2026-08-28)
+## Les familles de POI et leur sélecteur (V4, 2026-10-06)
 
 L'onglet « En direct » d'un parc n'affiche plus seulement les attractions : les
-sources qui publient l'état de leurs **restaurants, boutiques, hôtels ou
-services** dans le flux des temps d'attente reçoivent une carte par famille, sous
-celle des attractions. À Bellewaerde, quatorze restaurants sur quinze.
+sources qui publient l'état de leurs **restaurants, boutiques ou hôtels** dans le
+flux des temps d'attente ont chacune leur liste. Une famille à la fois, choisie
+au **sélecteur de pastilles** façon Mail sur iOS (`family-switcher.tsx`) qui
+prend la tête de la carte de la liste : la pastille active se teinte de la
+couleur de sa famille (`--primary`, `--show`, `--restaurant`, `--shop`,
+`--hotel` dans `globals.css`) et dévoile son libellé.
+
+- Chaque onglet propose SES familles (`LIVE_FAMILIES`, `SCHEDULE_FAMILIES`) :
+  « Horaires du jour » n'a que les spectacles tant que les horaires
+  d'attractions, de restaurants et de boutiques ne sont pas collectés. Une
+  famille proposée par les deux onglets reste sélectionnée de l'un à l'autre
+  (`pickFamily`, `main-card.tsx`).
+- Sous deux familles, pas de sélecteur : la page est celle de la v3, carte
+  titrée comprise.
+- Toutes les cartes de la colonne ont le même arrondi de 2 rem, écartées de
+  12 px ; la carte des onglets est une pill. L'ancienne colonne « en ticket »
+  (jointures de 10 px) a disparu avec le sélecteur.
 
 - `lib/poi-kinds.ts` — la liste des kinds (jumelle de celles du worker et de
-  l'admin), l'ordre des cartes (`POI_CARD_KINDS`), et la **liste blanche des
-  temps**.
+  l'admin), les familles de chaque onglet, et la **liste blanche des temps**.
 - `WaitTime.kind` / `WaitTime.menu` (`types/waitTime.ts`), remplis par
   `getLatestWaitTimesByPark` sans requête supplémentaire — `menu` seulement hors
   attraction, pour ne pas alourdir la charge utile des 200 POI d'un gros parc.
@@ -131,9 +144,10 @@ sans qu'une ligne de frontend ait changé.
 des Alpes, un restaurant ouvert annonce une constante — 5 min à Bellewaerde,
 1 min à Walibi Rhône-Alpes — et « indisponible » fermé : deux valeurs distinctes
 sur tout l'historique. La colonne « temps » ne s'ouvre donc que pour les parcs
-déclarés dans `REAL_WAIT_TIMES` (`lib/poi-kinds.ts`), **aujourd'hui aucun**.
-Critère pour en ajouter un : plus de deux valeurs distinctes de `waitTime` dans
-son historique pour ce kind.
+déclarés dans `REAL_WAIT_TIMES` (`lib/poi-kinds.ts`) — au 2026-10-06, Nagashima
+Spa Land seul ; les parcs CDA n'écrivent plus que `-1`, l'état passe mais plus
+la constante. Critère pour en ajouter un : plus de deux valeurs distinctes de
+`waitTime` dans son historique pour ce kind.
 
 ⚠️ **`poi-status-table.tsx` est un composant à part, pas un mode de
 `wait-time-table.tsx`.** Ce dernier porte les favoris, les alertes, le dépliage
@@ -158,7 +172,7 @@ RETIRÉ le 2026-08-28 : ces valeurs arrivent dans la langue du flux du parc
 donc plus transportées du tout.
 
 ⚠️ **`service` n'est PAS affiché**, bien que le worker le rattache comme les
-autres (`POI_CARD_KINDS`). Ce que les sources y rangent, ce sont des toilettes,
+autres (absent de `LIVE_FAMILIES`). Ce que les sources y rangent, ce sont des toilettes,
 des casiers, des zones fumeurs et des guichets, par dizaines — 41 chez Thorpe
 Park contre 36 restaurants. Le rattachement sert à fermer les alertes non
 matchées de l'admin, pas à peupler la page.
@@ -1329,28 +1343,20 @@ ce trafic en bloc.
 - `cn()` (`lib/utils`) = clsx + tailwind-merge ; passer des classes qui écrasent
   les défauts (ex. `Card` a `py-6 gap-6 rounded-xl`, surchargeable).
 - `components/parks/main-card.tsx` **n'est pas une carte malgré son nom** :
-  c'est la COLONNE de cartes de la page parc (onglets, événement, attractions,
-  demain restaurants et files virtuelles). Elle se lit comme UN BLOC TRANCHÉ :
-  `stackRadius(isFirst, isLast)` pose `rounded-lg` sur les jointures et
-  `rounded-t-4xl`/`rounded-b-4xl` aux deux bouts — la carte des onglets en est
-  le premier maillon, et `EventCard`/`SectionCard` reçoivent leurs angles par
-  `className` (elles ignorent leur place dans la pile).
-  ⚠️ **L'INTÉRIEUR du sélecteur SUIT sa carte, angle par angle** (2026-08-25),
-  au lieu du `rounded-3xl` uniforme d'avant qui gardait le même coin partout —
-  y compris en bas, où la carte n'a que sa jointure de pile. La géométrie vit
-  dans `TAB_GEOMETRY` / `TAB_LIST_RADIUS` / `TAB_PILL_RADIUS` (variables CSS +
-  `calc()`), pour que les rayons se DÉDUISENT du padding au lieu d'être figés à
-  côté de lui — deux couches (carte → liste → pastille) et deux tailles d'écran.
-  - **En haut, concentrique** : `rayon extérieur − épaisseur traversée`, soit
-    32 px moins le padding de la carte, puis moins les 3 px de la `TabsList`.
-  - **En bas, la même règle mais avec un PLANCHER** (`--tab-r-floor`, 4 px).
-    La carte n'y a que 10 px de jointure, plus fin que les 8 + 3 px de padding
-    cumulés : la soustraction tombe à −1 px, un rayon négatif invalide la
-    déclaration CSS, et le coin finit droit dans un angle arrondi. Reprendre
-    tel quel le rayon extérieur ne marche pas davantage — à rayon égal, l'arc
-    intérieur, plus petit, se lit plus GRAS que celui du bord. Aucune valeur
-    n'est idéale : le plancher est l'arbitrage, et il s'efface dès que le
-    calcul repasse au-dessus.
+  c'est la COLONNE de cartes de la page parc (onglets, événement, liste de la
+  famille choisie, demain files virtuelles). Depuis le 2026-10-06, **toutes ses
+  cartes ont le même arrondi** (`CARD_RADIUS`, `rounded-4xl`, celui de
+  l'en-tête), écartées de 12 px (`CARD_STACK`, `gap-3`) : l'ancienne lecture
+  « bloc tranché » (`stackRadius`, jointures `rounded-lg`, gros angles aux deux
+  bouts seulement) a disparu avec le sélecteur de familles. `EventCard` /
+  `SectionCard` reçoivent toujours leur arrondi par `className`.
+  - **La carte des onglets est une pill** qui contient une pill : carte, piste,
+    curseur et onglets en `rounded-full`, concentriques gratuitement à
+    `--tab-pad` de distance (`TAB_GEOMETRY`).
+  - **Le sélecteur de familles vit en tête de la carte de la liste**, à la
+    place de son titre, et c'est le CONTENU de cette carte qui glisse d'une
+    famille à l'autre — la carte et ses pastilles restent montées, sans quoi
+    la pastille active ne pourrait pas s'animer. Voir `renderColumn`.
 
   ⚠️ Les classes sont écrites EN TOUTES LETTRES, jamais assemblées par template
   literal : Tailwind scanne les sources comme du texte, et une classe construite

@@ -68,7 +68,8 @@
   },
   "tabs": {
     "live": "En direct",
-    "schedule": "Horaires du jour"
+    "schedule": "Horaires du jour",
+    "families": "Catégories"
   },
   "shows": {
     "show": "Spectacle",

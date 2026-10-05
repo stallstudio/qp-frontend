@@ -68,7 +68,8 @@
   },
   "tabs": {
     "live": "Live",
-    "schedule": "Today's hours"
+    "schedule": "Today's hours",
+    "families": "Categories"
   },
   "shows": {
     "show": "Show",

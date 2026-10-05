@@ -2,23 +2,23 @@
 
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import {
-  AlertCircle,
-  CalendarClock,
-  Drama,
-  Loader2,
-  Radio,
-  RollerCoaster,
-} from "lucide-react";
+import { AlertCircle, CalendarClock, Loader2, Radio } from "lucide-react";
 import { useTranslations } from "next-intl";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  type Variants,
+} from "motion/react";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { useParkStream } from "@/hooks/useParkStream";
 import { useDataAge } from "@/hooks/useDataAge";
 import ParkWaitTimeTable from "./wait-time-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ParkLiveData } from "@/types/api";
+import type { WaitTime } from "@/types/waitTime";
 import {
   parkOpenWindowFrom,
   reopenAllowedForWindow,
@@ -34,10 +34,14 @@ import ParkShowTimeTable from "./show-time-table";
 import PoiStatusTable from "./poi-status-table";
 import EventCard from "./event-card";
 import SectionCard from "./section-card";
+import FamilySwitcher from "./family-switcher";
 import {
-  POI_CARD_KINDS,
+  LIVE_FAMILIES,
   POI_KIND_ICONS,
-  type PoiCardKind,
+  SCHEDULE_FAMILIES,
+  isLiveFamily,
+  type LiveFamily,
+  type ParkFamily,
 } from "@/lib/poi-kinds";
 
 type MainCardProps = {
@@ -55,81 +59,89 @@ type MainCardProps = {
 // ⚠️ Une TABLE et non `tCards(kind + "s")` : `next-intl` exige des clés
 // littérales pour que l'outillage sache dire quelle traduction manque, et un
 // pluriel fabriqué par concaténation ne tient pas d'une langue à l'autre.
-const CARD_TITLE_KEYS: Record<PoiCardKind, string> = {
+const CARD_TITLE_KEYS: Record<ParkFamily, string> = {
+  ride: "attractions",
+  show: "shows",
   restaurant: "restaurants",
   shop: "shops",
   hotel: "hotels",
+};
+
+// Les deux onglets de la colonne, sous la `value` que Radix leur donne.
+type ColumnTab = "wait-times" | "show-times";
+const COLUMN_TABS: ColumnTab[] = ["wait-times", "show-times"];
+
+// ————— Changer de famille : la colonne glisse vers la pastille choisie —————
+//
+// `direction` vaut 1 quand on choisit une pastille plus à droite, -1 plus à
+// gauche : la nouvelle liste arrive du côté où l'on a tapé, l'ancienne part de
+// l'autre, comme une page qu'on tourne.
+//
+// ⚠️ **Opacité et translation seulement**, pas de flou ni d'échelle : la carte
+// des attractions d'un grand parc aligne cinquante lignes, et un `filter`
+// recalculé sur toute sa hauteur pendant l'animation saccade sur un téléphone
+// d'entrée de gamme.
+const FAMILY_SLIDE: Variants = {
+  enter: (direction: number) => ({ opacity: 0, x: direction * 28 }),
+  center: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      x: { type: "spring", bounce: 0, duration: 0.45 },
+      opacity: { duration: 0.2 },
+    },
+  },
+  exit: (direction: number) => ({
+    opacity: 0,
+    x: direction * -28,
+    transition: { duration: 0.14, ease: "easeIn" },
+  }),
+};
+
+// « Réduire les animations » : le changement reste perceptible, sans mouvement.
+const FAMILY_FADE: Variants = {
+  enter: { opacity: 0 },
+  center: { opacity: 1, transition: { duration: 0.15 } },
+  exit: { opacity: 0, transition: { duration: 0.1 } },
 };
 
 // Au-delà de ce délai sans écriture du worker, on affiche l'horodatage des
 // données plutôt que le décompte (voir `dataIsStale`).
 const STALE_DATA_MS = 10 * 60_000;
 
-// Espacement entre les cartes de la colonne. Aligné sur le `gap-1` de la page
-// (`park-page-client.tsx`), qui sépare déjà l'en-tête du parc du contenu.
-const CARD_STACK = "flex w-full flex-col gap-1";
+// ————— Géométrie de la colonne —————
+//
+// ⚠️ **Toutes les cartes de la page ont le MÊME grand arrondi** — 2 rem, celui
+// de l'en-tête du parc (arbitré le 2026-10-06). La colonne se lisait jusque-là
+// comme un ticket découpé : gros arrondi en haut de la première carte et en bas
+// de la dernière, jointures de 10 px entre les deux. Avec le sélecteur de
+// famille, la carte de la liste devient un objet qu'on change à la demande, et
+// la colonne une suite de cartes posées : elles se dessinent comme telles.
+//
+// L'écart grandit avec : deux angles de 2 rem face à face, à 4 px l'un de
+// l'autre, creusent un losange de fond que l'œil lit comme un trou. À 12 px,
+// c'est un espace.
+const CARD_RADIUS = "rounded-4xl";
+const CARD_STACK = "flex w-full flex-col gap-3";
 
-// ————— Arrondis de la pile —————
+// ————— Les onglets : une pill dans une pill —————
 //
-// La colonne se lit comme UN bloc découpé en tranches, pas comme une poignée de
-// cartes posées côte à côte : gros arrondi sur le DESSUS de la première et le
-// DESSOUS de la dernière, arrondi discret partout où deux cartes se touchent.
-//
-// Deux angles de 2 rem face à face, séparés par le `gap-1`, creusaient un
-// losange de fond entre chaque carte — l'œil y voyait un trou, pas une
-// jointure. À l'inverse, tout aplatir aurait rendu la colonne monolithique et
-// annulé la séparation qu'on vient d'introduire.
-const STACK_JOINT = "rounded-lg";
-const STACK_TOP = "rounded-t-4xl";
-const STACK_BOTTOM = "rounded-b-4xl";
-
-// ————— Le sélecteur : une pill dans une carte du ticket —————
-//
-// Deux objets, deux vocabulaires, et on a cessé d'essayer de les accorder.
-//
-// La CARTE appartient à la pile : elle en est la première tranche, donc gros
-// arrondi sur le dessus, jointure discrète en dessous — c'est ce qui fait lire
-// la colonne comme un ticket découpé plutôt que comme des cartes posées.
-//
-// Le SÉLECTEUR qu'elle contient est un segmented control, et un segmented
-// control est une pill : piste et curseur en `rounded-full`, comme partout
-// ailleurs. Les faire descendre jusqu'aux angles de la carte, c'est ce que
-// faisaient les versions précédentes — deux paddings à soustraire d'une
-// jointure de 10 px, un calcul qui passait sous zéro, un plancher pour le
-// rattraper, et au bout un curseur au bas presque droit qui se lisait comme une
-// tranche coincée. Le padding de la carte suffit à séparer les deux formes :
-// à 8 px d'écart, l'œil ne compare plus les courbes.
-//
-// ⚠️ La concentricité de la pill est GRATUITE, et c'est le seul accord qui
-// compte encore : sur 36 px de haut, la piste a un rayon de 18 px et le
-// curseur, inscrit 3 px plus petit de chaque côté, exactement 15 px.
+// La carte des onglets est elle-même une pill, et le segmented control qu'elle
+// porte en est une autre : piste et curseur en `rounded-full`, comme partout
+// ailleurs. La concentricité est GRATUITE : sur 36 px de haut la piste a un
+// rayon de 18 px, la carte qui l'entoure à `--tab-pad` de distance un rayon de
+// 18 px + `--tab-pad`, et le curseur, inscrit 3 px plus petit de chaque côté,
+// exactement 15 px.
 const TAB_GEOMETRY = "[--tab-pad:0.375rem] sm:[--tab-pad:0.5rem]";
 
-// Piste, curseur, onglets : la même pill, à trois échelles.
+// Carte, piste, curseur, onglets : la même pill, à quatre échelles.
 const TAB_PILL_RADIUS = "rounded-full";
 
-/**
- * Classes d'arrondi d'une carte selon sa place dans la colonne.
- *
- * ⚠️ `isFirst` est FAUX dès qu'une carte la précède, y compris celle des
- * onglets : le sélecteur fait partie de la pile, c'est lui qui en porte alors le
- * bord haut.
- */
-function stackRadius(isFirst: boolean, isLast: boolean) {
-  return cn(STACK_JOINT, isFirst && STACK_TOP, isLast && STACK_BOTTOM);
-}
-
-/** Une carte de la colonne, en attente de savoir où elle atterrit. */
+/** Une carte de la colonne, qui reçoit son arrondi de la colonne. */
 type StackCard = (radius: string) => React.ReactNode;
 
-/**
- * Rend une pile de cartes en donnant à chacune ses arrondis.
- * `headed` : une carte (celle des onglets) occupe déjà le haut de la colonne.
- */
-function renderStack(cards: StackCard[], headed = false) {
-  return cards.map((card, i) =>
-    card(stackRadius(!headed && i === 0, i === cards.length - 1)),
-  );
+function renderStack(cards: StackCard[]) {
+  return cards.map((card) => card(CARD_RADIUS));
 }
 
 /**
@@ -151,18 +163,25 @@ function renderStack(cards: StackCard[], headed = false) {
  *     attractions, restaurants, boutiques, plus tard files virtuelles) ;
  *   - « Horaires du jour » : tout ce qui donne un HORAIRE (représentations, plus
  *     tard ouvertures/fermetures d'attractions, de boutiques, de restaurants).
+ *
+ * Et dans chaque onglet, une FAMILLE à la fois — attractions, restaurants,
+ * boutiques… —, choisie au sélecteur de pastilles (`family-switcher.tsx`) qui
+ * partage la carte des onglets : c'est de la navigation aussi. Il n'apparaît
+ * qu'à partir de deux familles ; en dessous, la page est celle de la v3.
  */
 export default function MainCard({
   park,
   onRefresh,
   initialRideId = null,
 }: MainCardProps) {
-  const [activeTab, setActiveTab] = useState<string>("");
   const t = useTranslations("waitTimeTable");
   const tTabs = useTranslations("tabs");
   const tCards = useTranslations("parkPage.cards");
   const tShows = useTranslations("shows");
   const tNoData = useTranslations("noData");
+  const reduceMotion = useReducedMotion();
+  // Relie les pastilles du sélecteur de famille au panneau qu'elles commandent.
+  const familyIdBase = useId();
 
   // La mise en pause quand l'onglet est caché (et le rattrapage au retour) est
   // gérée par le hook lui-même. ⚠️ L'échéance vient du SERVEUR (`nextUpdateIn`,
@@ -264,23 +283,21 @@ export default function MainCard({
   // le même espace d'identifiants — chez Bellewaerde, quatorze restaurants sur
   // quinze. Sans cette partition, ils tomberaient au milieu des coasters de la
   // carte « Attractions », triés par temps d'attente avec un « 5 min » qui n'est
-  // qu'une sentinelle d'ouverture.
-  const rideWaitTimes = useMemo(
-    () => mainWaitTimes.filter((wt) => wt.kind === "ride"),
-    [mainWaitTimes],
-  );
-
-  // Une entrée par famille qui a QUELQUE CHOSE à montrer, dans l'ordre fixe de
-  // `POI_CARD_KINDS`. L'écrasante majorité des parcs rend un tableau vide, et
-  // leur page est alors strictement celle d'avant.
-  const poiFamilies = useMemo(
-    () =>
-      POI_CARD_KINDS.map((kind) => ({
-        kind,
-        items: mainWaitTimes.filter((wt) => wt.kind === kind),
-      })).filter(({ items }) => items.length > 0),
-    [mainWaitTimes],
-  );
+  // qu'une sentinelle d'ouverture. Chaque famille a donc SA liste, et les
+  // services, qu'aucune ne retient (voir `LIVE_FAMILIES`), ne s'affichent nulle
+  // part.
+  const liveItems = useMemo(() => {
+    const byFamily: Record<LiveFamily, WaitTime[]> = {
+      ride: [],
+      restaurant: [],
+      shop: [],
+      hotel: [],
+    };
+    for (const wt of mainWaitTimes) {
+      if (isLiveFamily(wt.kind)) byFamily[wt.kind].push(wt);
+    }
+    return byFamily;
+  }, [mainWaitTimes]);
 
   // Même partition pour les spectacles — mais ici la raison n'est pas seulement
   // le rangement : mélanger des représentations NOCTURNES dans la timeline du
@@ -291,14 +308,6 @@ export default function MainCard({
     [park.shows],
   );
 
-  const hasWaitTimes = rideWaitTimes.length > 0;
-  const hasShows = mainShows.length > 0;
-  // ⚠️ **Ce qui décide du sélecteur d'onglets, c'est « l'onglet En direct
-  // a-t-il quelque chose à montrer ? »**, pas « y a-t-il des attractions ? ».
-  // Une source qui ne publierait QUE des états de restaurants perdrait sinon son
-  // sélecteur, et avec lui l'accès aux spectacles.
-  const hasLiveContent = hasWaitTimes || poiFamilies.length > 0;
-  const showTabs = hasLiveContent && hasShows;
   const parkDate = park.openingHours?.[0]?.date ?? null;
 
   // Le parc est-il fermé, ou sur le point de l'être ? Sert au formulaire
@@ -347,23 +356,6 @@ export default function MainCard({
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
 
-  useEffect(() => {
-    if (showTabs) {
-      // Un lien profond vers une attraction l'emporte sur tout le reste : le
-      // popup est dans l'onglet des temps d'attente.
-      if (initialRideId != null) {
-        setActiveTab("wait-times");
-      } else if (requestedTab === "shows" || (hasShows && !hasLiveContent)) {
-        setActiveTab("show-times");
-      } else {
-        setActiveTab("wait-times");
-      }
-    }
-    // Onglet initial uniquement : changer d'onglet à la main ne doit pas être
-    // écrasé par un rendu ultérieur.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // ————— Les cartes —————
   //
   // ⚠️ ORDRE FIXE : événement, puis temps d'attente. La carte d'événement est
@@ -395,24 +387,37 @@ export default function MainCard({
   // (`STALE_WAIT_TIME_MS`). La carte n'avait donc plus rien à contenir, et
   // disparaissait alors même qu'on venait de demander l'inverse.
   //
-  // ⚠️ La carte vide n'apparaît QUE dans l'onglet des temps d'attente, jamais
-  // dans les deux : c'est l'onglet par défaut, et le même encadré vide dupliqué
-  // de part et d'autre du sélecteur se lirait comme deux événements distincts.
+  // ⚠️ La carte vide n'apparaît QUE dans l'onglet des temps d'attente, et dans
+  // la famille des attractions, jamais ailleurs : ce sont l'onglet et la
+  // famille par défaut, et le même encadré vide dupliqué de part et d'autre
+  // d'un sélecteur se lirait comme deux événements distincts.
   const hasEventItems = (eventId: number) =>
     park.waitTimes.some((wt) => wt.eventId === eventId) ||
     (park.shows ?? []).some((s) => s.eventId === eventId);
 
-  const eventWaitTimeCards = eventViews
-    .map((view) => ({
-      view,
-      items: park.waitTimes.filter((wt) => wt.eventId === view.event.id),
-    }))
-    .filter(
-      ({ view, items }) =>
-        items.length > 0 ||
-        (view.event.visibility === "forced" && !hasEventItems(view.event.id)),
-    )
-    .map(({ view, items }): StackCard => (radius) => (
+  // ⚠️ **Les cartes d'événement suivent la famille choisie**, comme le reste de
+  // la colonne : leurs mazes avec les attractions, un stand éphémère avec les
+  // restaurants. Laisser la carte de Halloween et ses mazes au-dessus de la
+  // liste des restaurants, ce serait afficher sous la pastille « Restaurants »
+  // autre chose que des restaurants.
+  const eventItemsFor = (family: LiveFamily) =>
+    eventViews
+      .map((view) => ({
+        view,
+        items: park.waitTimes.filter(
+          (wt) => wt.eventId === view.event.id && wt.kind === family,
+        ),
+      }))
+      .filter(
+        ({ view, items }) =>
+          items.length > 0 ||
+          (family === "ride" &&
+            view.event.visibility === "forced" &&
+            !hasEventItems(view.event.id)),
+      );
+
+  const eventWaitTimeCardsFor = (family: LiveFamily): StackCard[] =>
+    eventItemsFor(family).map(({ view, items }): StackCard => (radius) => (
       <EventCard
         key={view.event.id}
         view={view}
@@ -420,14 +425,23 @@ export default function MainCard({
         className={radius}
         isEmpty={items.length === 0}
       >
-        <ParkWaitTimeTable
-          waitTimes={items}
-          queueTypeLabels={park.queueTypeLabels}
-          parkIdentifier={park.identifier}
-          parkName={park.name}
-          reopenAllowed={reopenAllowed}
-          initialRideId={initialRideId}
-        />
+        {family === "ride" ? (
+          <ParkWaitTimeTable
+            waitTimes={items}
+            queueTypeLabels={park.queueTypeLabels}
+            parkIdentifier={park.identifier}
+            parkName={park.name}
+            reopenAllowed={reopenAllowed}
+            initialRideId={initialRideId}
+          />
+        ) : (
+          <PoiStatusTable
+            pois={items}
+            kind={family}
+            parkIdentifier={park.identifier}
+            parkName={park.name}
+          />
+        )}
       </EventCard>
     ));
 
@@ -454,82 +468,260 @@ export default function MainCard({
       </EventCard>
     ));
 
-  const waitTimesCard: StackCard = (radius) => (
-    <SectionCard
-      key="wait-times"
-      icon={RollerCoaster}
-      title={tCards("attractions")}
-      className={radius}
-    >
-      <ParkWaitTimeTable
-        waitTimes={rideWaitTimes}
-        queueTypeLabels={park.queueTypeLabels}
+  // La liste d'une famille hors événement, ou `null` si elle n'en a pas.
+  const familyList = (family: ParkFamily): React.ReactNode => {
+    if (family === "ride") {
+      return liveItems.ride.length > 0 ? (
+        <ParkWaitTimeTable
+          waitTimes={liveItems.ride}
+          queueTypeLabels={park.queueTypeLabels}
+          parkIdentifier={park.identifier}
+          parkName={park.name}
+          reopenAllowed={reopenAllowed}
+          initialRideId={initialRideId}
+        />
+      ) : null;
+    }
+    if (family === "show") {
+      return mainShows.length > 0 ? (
+        <ParkShowTimeTable
+          shows={mainShows}
+          timezone={park.timezone}
+          parkDate={parkDate}
+          parkIdentifier={park.identifier}
+          parkName={park.name}
+        />
+      ) : null;
+    }
+    return liveItems[family].length > 0 ? (
+      <PoiStatusTable
+        pois={liveItems[family]}
+        kind={family}
         parkIdentifier={park.identifier}
         parkName={park.name}
-        reopenAllowed={reopenAllowed}
-        initialRideId={initialRideId}
       />
-    </SectionCard>
-  );
+    ) : null;
+  };
 
-  const showsCard: StackCard = (radius) => (
-    <SectionCard
-      key="show-times"
-      icon={Drama}
-      title={tCards("shows")}
-      className={radius}
-    >
-      <ParkShowTimeTable
-        shows={mainShows}
-        timezone={park.timezone}
-        parkDate={parkDate}
-        parkIdentifier={park.identifier}
-        parkName={park.name}
-      />
-    </SectionCard>
-  );
+  const familyEventCards = (family: ParkFamily): StackCard[] =>
+    family === "show" ? eventShowCards : eventWaitTimeCardsFor(family);
 
-  // Une carte par famille de POI qui publie un état : restaurants, boutiques,
-  // hôtels, services. Elles se rendent SOUS les attractions, dans l'ordre de
-  // `POI_CARD_KINDS`.
+  // La pile d'une famille quand il n'y a PAS de sélecteur, dans son ordre
+  // d'affichage : ses cartes d'événement, puis sa carte titrée. C'est cette
+  // fonction — et `renderColumn` pour le cas avec sélecteur — qui dit quelle
+  // carte est en haut et laquelle est en bas ; ajouter demain les files
+  // virtuelles, c'est l'insérer ici.
   //
   // ⚠️ **Le titre nomme la famille, pas la donnée** — « Restaurants », comme
-  // « Attractions » au-dessus (voir `SectionCard`). C'est l'onglet qui dit qu'on
-  // regarde le direct.
-  const familyCards: StackCard[] = poiFamilies.map(
-    ({ kind, items }): StackCard =>
-      (radius) => {
-        const Icon = POI_KIND_ICONS[kind];
-        return (
-          <SectionCard
-            key={kind}
-            icon={Icon}
-            title={tCards(CARD_TITLE_KEYS[kind])}
-            className={radius}
-          >
-            <PoiStatusTable
-              pois={items}
-              kind={kind}
-              parkIdentifier={park.identifier}
-              parkName={park.name}
-            />
-          </SectionCard>
-        );
-      },
-  );
+  // « Attractions » (voir `SectionCard`). C'est l'onglet qui dit qu'on regarde
+  // le direct.
+  const familyStack = (family: ParkFamily): StackCard[] => {
+    const list = familyList(family);
+    return [
+      ...familyEventCards(family),
+      ...(list != null
+        ? [
+            (radius: string) => (
+              <SectionCard
+                key={family}
+                icon={POI_KIND_ICONS[family]}
+                title={tCards(CARD_TITLE_KEYS[family])}
+                className={radius}
+              >
+                {list}
+              </SectionCard>
+            ),
+          ]
+        : []),
+    ];
+  };
 
-  // Les deux piles, dans leur ordre d'affichage. C'est cette liste — et elle
-  // seule — qui dit quelle carte est en haut et laquelle est en bas ; ajouter
-  // demain les files virtuelles, c'est l'insérer ici, les arrondis suivent.
-  const waitTimesStack: StackCard[] = [
-    ...eventWaitTimeCards,
-    ...(hasWaitTimes ? [waitTimesCard] : []),
-    ...familyCards,
-  ];
-  const showsStack: StackCard[] = [
-    ...eventShowCards,
-    ...(hasShows ? [showsCard] : []),
-  ];
+  // Les familles que chaque onglet a de quoi montrer, dans l'ordre des
+  // pastilles. Une famille sans rien à montrer n'a pas de pastille.
+  const tabFamilies: Record<ColumnTab, ParkFamily[]> = {
+    "wait-times": LIVE_FAMILIES.filter(
+      (family) =>
+        liveItems[family].length > 0 || eventItemsFor(family).length > 0,
+    ),
+    "show-times": SCHEDULE_FAMILIES.filter(
+      (family) => familyStack(family).length > 0,
+    ),
+  };
+
+  // ⚠️ **Ce qui décide du sélecteur d'onglets, c'est « l'onglet a-t-il quelque
+  // chose à montrer ? »**, pas « y a-t-il des attractions ? ». Une source qui ne
+  // publierait QUE des états de restaurants perdrait sinon son sélecteur, et
+  // avec lui l'accès aux spectacles. Même règle côté horaires : un parc dont
+  // seuls les spectacles d'un événement sont connus a, lui aussi, son onglet.
+  const hasLiveContent = tabFamilies["wait-times"].length > 0;
+  const hasShows = tabFamilies["show-times"].length > 0;
+  const showTabs = hasLiveContent && hasShows;
+
+  // L'onglet ouvert, décidé AU PREMIER RENDU — donc dès le rendu serveur. Il
+  // l'était après hydratation, et la page se peignait jusque-là avec une
+  // colonne vide sous les onglets.
+  //
+  // Onglet initial uniquement : changer d'onglet à la main ne doit pas être
+  // écrasé par un rendu ultérieur.
+  const [activeTab, setActiveTab] = useState<ColumnTab>(() => {
+    // Un lien profond vers une attraction l'emporte sur tout le reste : le
+    // popup est dans l'onglet des temps d'attente.
+    if (initialRideId != null) return "wait-times";
+    if (requestedTab === "shows" || !hasLiveContent) return "show-times";
+    return "wait-times";
+  });
+
+  // L'onglet dont la colonne est affichée : celui des onglets s'ils existent,
+  // sinon le seul qui ait du contenu.
+  const columnTab: ColumnTab = showTabs
+    ? activeTab
+    : hasLiveContent
+      ? "wait-times"
+      : "show-times";
+
+  // ————— La famille choisie, d'un onglet à l'autre —————
+  //
+  // Une famille retenue PAR ONGLET, et non une seule pour la page : les deux
+  // onglets ne proposent pas les mêmes familles. Choisir une famille la retient
+  // dans l'onglet courant ET dans tout autre onglet qui la propose — restaurants
+  // choisis en direct, restaurants préselectionnés dans les horaires —, sans
+  // toucher au choix d'un onglet qui ne la propose pas.
+  //
+  // `null` : rien de choisi, l'onglet montre sa première famille.
+  const [pickedFamily, setPickedFamily] = useState<
+    Record<ColumnTab, ParkFamily | null>
+  >(() => ({
+    // Le popup d'un lien profond est dans la liste des attractions.
+    "wait-times": initialRideId != null ? "ride" : null,
+    "show-times": null,
+  }));
+  const [slideDirection, setSlideDirection] = useState(1);
+
+  // ⚠️ Résolue à chaque rendu, jamais figée : si la famille retenue disparaît
+  // (source coupée, fin de journée), l'onglet retombe sur sa première famille
+  // SANS l'oublier — elle redevient la sélection si elle réapparaît.
+  const familyFor = (tab: ColumnTab): ParkFamily | null => {
+    const available = tabFamilies[tab];
+    const picked = pickedFamily[tab];
+    return picked && available.includes(picked) ? picked : (available[0] ?? null);
+  };
+
+  const pickFamily = (tab: ColumnTab, family: ParkFamily) => {
+    const available = tabFamilies[tab];
+    const current = familyFor(tab);
+    if (family === current) return;
+    setSlideDirection(
+      current == null || available.indexOf(family) > available.indexOf(current)
+        ? 1
+        : -1,
+    );
+    setPickedFamily((prev) => {
+      const next = { ...prev, [tab]: family };
+      for (const other of COLUMN_TABS) {
+        if (other !== tab && tabFamilies[other].includes(family)) {
+          next[other] = family;
+        }
+      }
+      return next;
+    });
+  };
+
+  const panelIdFor = (tab: ColumnTab) => `${familyIdBase}-panel-${tab}`;
+
+  // Props communes aux deux blocs qui glissent quand on change de famille.
+  const slideProps = {
+    custom: slideDirection,
+    variants: reduceMotion ? FAMILY_FADE : FAMILY_SLIDE,
+    initial: "enter",
+    animate: "center",
+    exit: "exit",
+  } as const;
+
+  /**
+   * La colonne d'un onglet : les cartes de la famille choisie.
+   *
+   * Sous deux familles, c'est la pile habituelle (`familyStack`). À partir de
+   * deux, le sélecteur prend la tête de la carte de la liste, à la place de son
+   * titre — la pastille active DIT déjà « Restaurants » —, et c'est le CONTENU
+   * de cette carte qui glisse d'une famille à l'autre. La carte et ses
+   * pastilles, elles, ne bougent pas : c'est ce qui laisse la pastille active
+   * s'ouvrir et les autres glisser, au lieu de tout voir disparaître et revenir.
+   *
+   * ⚠️ Les cartes d'événement de la famille restent AU-DESSUS, sélecteur
+   * compris — la règle « l'événement d'abord » vaut toujours. Elles glissent
+   * avec la liste, et disparaissent avec elle quand la famille n'en a pas.
+   *
+   * ⚠️ `mode="wait"` : l'ancienne liste part AVANT que la nouvelle n'arrive.
+   * Les deux ensemble, la carte additionnerait leurs hauteurs le temps de
+   * l'animation — cinquante attractions plus douze restaurants — et la page
+   * sauterait deux fois.
+   */
+  const renderColumn = (tab: ColumnTab) => {
+    const family = familyFor(tab);
+    if (family == null) return null;
+    const families = tabFamilies[tab];
+    if (families.length < 2) return renderStack(familyStack(family));
+
+    const events = familyEventCards(family);
+    const tabIdPrefix = `${familyIdBase}-family-${tab}`;
+    return (
+      <>
+        <AnimatePresence mode="wait" initial={false} custom={slideDirection}>
+          {events.length > 0 && (
+            <motion.div key={family} {...slideProps} className={CARD_STACK}>
+              {renderStack(events)}
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {/* Même boîte que `SectionCard` ; le haut de la carte prend le même
+            retrait que ses côtés, pour que la pastille de gauche se loge dans
+            l'angle à égale distance des deux bords. */}
+        <Card
+          className={cn(
+            "w-full gap-0 p-2.5 py-0 sm:p-4 sm:py-0",
+            CARD_RADIUS,
+          )}
+        >
+          <div className="pt-2.5 pb-1 sm:pt-4">
+            <FamilySwitcher
+              options={families.map((option) => ({
+                family: option,
+                label: tCards(CARD_TITLE_KEYS[option]),
+                icon: POI_KIND_ICONS[option],
+              }))}
+              value={family}
+              onChange={(picked) => pickFamily(tab, picked)}
+              ariaLabel={tTabs("families")}
+              idPrefix={tabIdPrefix}
+              panelId={panelIdFor(tab)}
+            />
+          </div>
+          {/* `overflow-x-clip` : la liste qui glisse de 28 px ne doit pas
+              déborder de la carte le temps de l'animation. `clip` et non
+              `hidden` : rien ne devient conteneur de défilement, et les
+              éléments collants de la grille des spectacles collent toujours. */}
+          <div className="overflow-x-clip pb-2">
+            <AnimatePresence
+              mode="wait"
+              initial={false}
+              custom={slideDirection}
+            >
+              <motion.div
+                key={family}
+                id={panelIdFor(tab)}
+                role="tabpanel"
+                aria-labelledby={`${tabIdPrefix}-${family}`}
+                {...slideProps}
+              >
+                <h3 className="sr-only">{tCards(CARD_TITLE_KEYS[family])}</h3>
+                {familyList(family)}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </Card>
+      </>
+    );
+  };
 
   // Pied de colonne : fraîcheur de la donnée. Posé SOUS les cartes, en texte
   // libre — il décrit l'ensemble, pas un bloc en particulier, et l'enfermer dans
@@ -588,13 +780,16 @@ export default function MainCard({
           {t("updatedAgo", { age: ageLabel })}
         </p>
       )}
-      {park.shows.length > 0 && activeTab === "show-times" && (
+      {park.shows.length > 0 && columnTab === "show-times" && (
         <p>{tShows("updateInfo")}</p>
       )}
     </div>
   );
 
-  if (park.shows.length === 0 && park.waitTimes.length === 0) {
+  // Rien à montrer dans aucun onglet. `waitTimes` peut être NON vide ici : un
+  // parc dont la source ne publie que ses services n'a aucune famille à
+  // afficher, et lui rendre une colonne vide ne dirait rien.
+  if (!hasLiveContent && !hasShows) {
     return (
       <div className={CARD_STACK}>
         {/* Seule dans la colonne : elle garde ses quatre gros angles. */}
@@ -614,32 +809,40 @@ export default function MainCard({
     );
   }
 
-  // Un seul type de données : pas de sélecteur d'onglets, juste les cartes.
+  // Un seul type de données : pas de sélecteur d'onglets. Celui des familles
+  // peut rester — un parc sans spectacles qui publie ses restaurants —, il vit
+  // dans la carte de la liste (voir `renderColumn`).
   if (!showTabs) {
     return (
       <div className={CARD_STACK}>
-        {renderStack([...waitTimesStack, ...showsStack])}
+        {/* `overflow-x-clip` : les cartes d'événement qui glissent de 28 px
+            ne doivent pas ouvrir de défilement horizontal sur la page le temps
+            de l'animation. */}
+        <div className={cn(CARD_STACK, "overflow-x-clip")}>
+          {renderColumn(columnTab)}
+        </div>
         {footer}
       </div>
     );
   }
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className={CARD_STACK}>
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => setActiveTab(value as ColumnTab)}
+      className={CARD_STACK}
+    >
       {/* Le sélecteur d'onglets a sa PROPRE carte : c'est de la navigation, pas
           de la donnée. Le mélanger au contenu, c'était faire de l'un des deux
-          blocs le « propriétaire » visuel des onglets. */}
+          blocs le « propriétaire » visuel des onglets. Une pill, comme ce
+          qu'elle contient — cf. le bloc de géométrie en tête de fichier. */}
       <Card
         className={cn(
-          "w-full p-(--tab-pad)",
+          "w-full gap-0 p-(--tab-pad)",
           TAB_GEOMETRY,
-          stackRadius(true, false),
+          TAB_PILL_RADIUS,
         )}
       >
-        {/* ⚠️ L'intérieur NE SUIT PAS les angles de la carte : c'est une pill,
-            comme tout segmented control. Les lui faire suivre revenait à
-            imposer un bas presque droit à un objet qui ne borde rien de ce
-            côté-là — cf. le bloc de géométrie en tête de fichier. */}
         <TabsList
           className={cn("relative w-full overflow-hidden", TAB_PILL_RADIUS)}
         >
@@ -692,15 +895,21 @@ export default function MainCard({
             {tTabs("schedule")}
           </TabsTrigger>
         </TabsList>
+
       </Card>
 
-      {/* `headed` : la carte des onglets tient déjà le haut de la colonne, la
-          première carte de contenu n'a donc qu'une jointure au-dessus d'elle. */}
-      <TabsContent value="wait-times" className={CARD_STACK}>
-        {renderStack(waitTimesStack, true)}
+      {/* `overflow-x-clip` : voir la colonne sans onglets, plus haut. */}
+      <TabsContent
+        value="wait-times"
+        className={cn(CARD_STACK, "overflow-x-clip")}
+      >
+        {renderColumn("wait-times")}
       </TabsContent>
-      <TabsContent value="show-times" className={CARD_STACK}>
-        {renderStack(showsStack, true)}
+      <TabsContent
+        value="show-times"
+        className={cn(CARD_STACK, "overflow-x-clip")}
+      >
+        {renderColumn("show-times")}
       </TabsContent>
 
       {footer}

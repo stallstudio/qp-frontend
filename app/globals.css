@@ -35,6 +35,12 @@
   --color-primary: var(--primary);
   --color-show-foreground: var(--show-foreground);
   --color-show: var(--show);
+  --color-restaurant-foreground: var(--restaurant-foreground);
+  --color-restaurant: var(--restaurant);
+  --color-shop-foreground: var(--shop-foreground);
+  --color-shop: var(--shop);
+  --color-hotel-foreground: var(--hotel-foreground);
+  --color-hotel: var(--hotel);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -98,6 +104,19 @@
      alertes de temps d'attente (orange) dans le fil unifié du profil. */
   --show: oklch(0.56 0.19 285);
   --show-foreground: oklch(0.985 0 0);
+  /* Les autres familles de POI, sur le même principe : une teinte par famille
+     pour la pastille active du sélecteur de la page d'un parc (vert pour les
+     restaurants, bleu pour les boutiques, rose pour les hôtels — l'orange des
+     attractions est `--primary`).
+
+     ⚠️ Plus sombres que `--primary` à dessein : leur libellé est en blanc, et
+     à cette luminosité il garde un contraste lisible en 14 px. */
+  --restaurant: oklch(0.55 0.13 160);
+  --restaurant-foreground: oklch(0.985 0 0);
+  --shop: oklch(0.55 0.17 255);
+  --shop-foreground: oklch(0.985 0 0);
+  --hotel: oklch(0.56 0.18 355);
+  --hotel-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -154,6 +173,12 @@
   --primary-foreground: oklch(0.205 0 0);
   --show: oklch(0.72 0.15 285);
   --show-foreground: oklch(0.205 0 0);
+  --restaurant: oklch(0.76 0.13 162);
+  --restaurant-foreground: oklch(0.205 0 0);
+  --shop: oklch(0.74 0.12 250);
+  --shop-foreground: oklch(0.205 0 0);
+  --hotel: oklch(0.76 0.12 355);
+  --hotel-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);

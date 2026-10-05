@@ -35,11 +35,41 @@ export function parsePoiKind(value: string | null | undefined): PoiKind | null {
 }
 
 /**
- * Les familles qui reçoivent leur PROPRE carte dans l'onglet « En direct »,
- * dans leur ordre d'affichage sous la carte des attractions.
+ * Les familles que propose le sélecteur de chaque onglet de la page d'un parc,
+ * dans l'ordre de ses pastilles.
  *
- * `ride` n'y est pas : c'est la carte principale, elle a son propre tableau.
- * `show` non plus : ses horaires vivent dans l'autre onglet.
+ * ⚠️ **Deux listes, et elles ne se recouvrent pas forcément** : un onglet ne
+ * propose que les familles pour lesquelles il a une donnée. « En direct » vit
+ * des états et des temps d'attente ; « Horaires du jour » des horaires — les
+ * représentations aujourd'hui, demain les ouvertures d'attractions, de
+ * restaurants et de boutiques. Une famille présente dans les deux onglets y
+ * reste sélectionnée d'un onglet à l'autre (voir `main-card.tsx`).
+ *
+ * ⚠️ **Une famille ne s'affiche que si elle a du contenu**, et le sélecteur
+ * disparaît sous deux familles : l'écrasante majorité des parcs ne publie que
+ * ses attractions, et leur page est alors strictement celle de la v3.
+ */
+export const LIVE_FAMILIES = [
+  "ride",
+  "restaurant",
+  "shop",
+  "hotel",
+] as const satisfies readonly PoiKind[];
+
+export const SCHEDULE_FAMILIES = ["show"] as const satisfies readonly PoiKind[];
+
+export type LiveFamily = (typeof LIVE_FAMILIES)[number];
+export type ScheduleFamily = (typeof SCHEDULE_FAMILIES)[number];
+export type ParkFamily = LiveFamily | ScheduleFamily;
+
+export function isLiveFamily(kind: PoiKind): kind is LiveFamily {
+  return (LIVE_FAMILIES as readonly PoiKind[]).includes(kind);
+}
+
+/**
+ * Les familles de l'onglet « En direct » dont la liste est un ÉTAT, servi par
+ * `poi-status-table.tsx` — par opposition aux attractions, qui ont leur propre
+ * tableau.
  *
  * ⚠️ **`service` est ABSENT à dessein** (arbitré le 2026-08-28). Le worker les
  * rattache comme les autres — ça ferme des centaines d'alertes non matchées dans
@@ -48,11 +78,7 @@ export function parsePoiKind(value: string | null | undefined): PoiKind | null {
  * zones fumeurs, des distributeurs d'eau, des guichets et des postes de secours,
  * par dizaines : chez Thorpe Park, 41 « services » contre 36 restaurants. Savoir
  * qu'une toilette est ouverte n'aide personne à organiser sa journée, et la
- * carte noierait celles qui le font.
- *
- * ⚠️ **Une carte ne se rend que si elle a du contenu.** L'écrasante majorité des
- * parcs ne publie l'état d'aucun de ces POI ; leur page est alors strictement
- * celle d'avant.
+ * pastille noierait celles qui le font.
  *
  * ⚠️ **Une famille présente en base n'est pas une famille VIVANTE, et le tri se
  * fait ailleurs.** Mesuré le 2026-08-28 : chez Merlin, Knoebels, Gardaland et
@@ -71,7 +97,7 @@ export type PoiCardKind = (typeof POI_CARD_KINDS)[number];
 /** Mêmes pictogrammes que `POI_KIND_ICONS` de l'admin, pour un seul vocabulaire. */
 export const POI_KIND_ICONS: Record<PoiKind, LucideIcon> = {
   ride: RollerCoaster,
-  show: Drama, // les spectacles ont leur propre carte, dans l'autre onglet
+  show: Drama,
   restaurant: UtensilsCrossed,
   shop: ShoppingBag,
   service: Wrench,
@@ -82,20 +108,27 @@ export const POI_KIND_ICONS: Record<PoiKind, LucideIcon> = {
  * Parcs dont une famille non-attraction publie une VRAIE file d'attente, et
  * pour lesquels la colonne « temps » a donc un sens.
  *
- * ⚠️ **Vide, et ce n'est pas un oubli.** Ce que ces sources publient est un
- * TÉMOIN OUVERT/FERMÉ, pas une file : chez Compagnie des Alpes, un restaurant
- * ouvert annonce une CONSTANTE — 300 s (5 min) à Bellewaerde, 60 s à Walibi
- * Rhône-Alpes — et `-1` fermé. Deux valeurs distinctes sur tout l'historique,
- * mesuré sur 10 237 relevés. La valeur est stockée telle quelle (c'est ce que la
- * source dit), mais l'afficher comme un temps d'attente afficherait « 5 min »
- * en permanence sur les quatorze restaurants du parc : une information fausse,
- * indiscernable d'une vraie pour qui la lit.
+ * ⚠️ **Une liste, et non « la colonne s'ouvre dès qu'une valeur arrive ».** Ce
+ * que la plupart de ces sources publient est un TÉMOIN OUVERT/FERMÉ, pas une
+ * file : chez Compagnie des Alpes, un restaurant ouvert annonçait une
+ * CONSTANTE — 300 s (5 min) à Bellewaerde, 60 s à Walibi Rhône-Alpes — et `-1`
+ * fermé. Deux valeurs distinctes sur tout l'historique, mesuré sur 10 237
+ * relevés. L'afficher comme un temps d'attente mettait « 5 min » en permanence
+ * sur les quatorze restaurants du parc : une information fausse, indiscernable
+ * d'une vraie pour qui la lit. Rien côté client ne distingue une constante
+ * d'une vraie file — il faut l'historique.
  *
- * Le jour où une source publie une vraie file de restaurant, l'ouvrir tient en
- * une ligne ici. Le critère pour l'ajouter : plus de deux valeurs distinctes de
+ * Remesuré le 2026-10-06 sur 21 jours : Bellewaerde, Walibi Holland,
+ * Europa-Park, Rulantica et Cotaland n'écrivent plus que `-1`, ouvert comme
+ * fermé (l'état passe, la constante non). Seul Nagashima Spa Land publie de
+ * vraies valeurs, de 0 à 20 min.
+ *
+ * Le critère pour ajouter un parc : plus de deux valeurs distinctes de
  * `waitTime` dans l'historique de ce parc pour ce kind.
  */
-const REAL_WAIT_TIMES: Record<string, readonly PoiKind[]> = {};
+const REAL_WAIT_TIMES: Record<string, readonly PoiKind[]> = {
+  "nagashima-spa-land": ["restaurant"],
+};
 
 /** Voir `REAL_WAIT_TIMES`. */
 export function showsWaitTime(parkIdentifier: string, kind: PoiKind): boolean {
