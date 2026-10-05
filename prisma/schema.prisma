@@ -1169,6 +1169,7 @@ model Proxy {
   updatedAt     DateTime  @updatedAt
 
   targets ProxyTarget[]
+  usage   ProxyUsage[]
 
   @@unique([host, port])
   @@index([country, status])
@@ -1201,6 +1202,39 @@ model ProxyTarget {
   @@unique([proxyId, target])
   @@index([target, ok])
   @@map("proxy_targets")
+}
+
+// Santé d'un proxy MESURÉE PAR LA PRODUCTION, pour UNE cible : chaque tentative
+// de la cascade (tw-waittimes-worker, src/services/proxy/usage.ts) y est comptée.
+//
+// ⚠️ Distincte de `ProxyTarget`, qui porte le verdict de la SONDE horaire. Un
+// proxy public n'aboutit qu'environ une fois sur deux (mesuré le 2026-10-05) :
+// une sonde isolée est un tirage à pile ou face, la production en fait des
+// centaines par jour. Le worker sert en tête ce qui vient de réussir, et écarte
+// un moment ce qui vient d'échouer deux fois de suite.
+//
+// ⚠️ Écrite en SQL BRUT par lots (INSERT … ON DUPLICATE KEY UPDATE) : renommer
+// une colonne ici sans toucher usage.ts ne serait signalé par rien.
+// Migration : tw-waittimes-worker/migrations/2026-10-05-proxy-usage/.
+model ProxyUsage {
+  id      Int    @id @default(autoincrement())
+  proxyId Int
+  proxy   Proxy  @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+  // Même identifiant de cible que `ProxyTarget.target`.
+  target  String @db.VarChar(60)
+
+  okCount          Int       @default(0)
+  failCount        Int       @default(0)
+  // Échecs depuis le dernier succès : c'est lui qui met un proxy à l'écart.
+  consecutiveFails Int       @default(0)
+  lastOkAt         DateTime?
+  lastFailAt       DateTime?
+  lastError        String?   @db.VarChar(255)
+  updatedAt        DateTime  @default(now())
+
+  @@unique([proxyId, target])
+  @@index([target])
+  @@map("proxy_usage")
 }
 
 model Report {
