@@ -7,6 +7,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  ReferenceDot,
   ReferenceLine,
   XAxis,
   YAxis,
@@ -25,8 +26,9 @@ type WaitTimeChartProps = {
   today: TimedPoint[];
   forecast: TimedPoint[];
   /**
-   * Ce qui avait été annoncé pour les heures déjà passées. Tracé en gris sous la
-   * courbe réelle — voir la série `trail` plus bas.
+   * Ce qui avait été annoncé UNE HEURE AVANT pour les heures déjà passées (la
+   * route ne sert que les points échus). Tracé en gris sous la courbe réelle —
+   * voir la série `trail` plus bas.
    */
   forecastTrail?: TimedPoint[];
   window: { open: string; close: string } | null;
@@ -39,7 +41,7 @@ type WaitTimeChartProps = {
   // graphique pour opposer la courbe pleine du jour à la prévision en pointillé.
   actualLabel: string;
   forecastLabel: string;
-  /** Libellé de la trace grise dans le tooltip (« Prévu »). */
+  /** Libellé de la trace grise dans le tooltip (« Prédiction »). */
   trailLabel?: string;
   /** Plafond de publication de la source : 91 s'affiche « 90+ ». */
   waitCap?: WaitCap | null;
@@ -64,17 +66,36 @@ type ChartRow = {
   // Prévision ÉCOULÉE, figée : ce qui était annoncé pour cet instant avant qu'il
   // ne devienne du passé.
   trail: number | null;
+  // Valeur « Prévu » lue par le TOOLTIP sur un point observé — jamais tracée.
+  // Distincte de `trail` : la trace n'a pas forcément un point au même instant
+  // que la courbe réelle (cadences différentes). Voir son calcul plus bas.
+  expected?: number | null;
   // Statut d'indispo (quand actual == null) : colore la barre basse + tooltip.
   status?: string | null;
   // Ancre invisible : vaut 0 sur les points d'indispo, null ailleurs. Sert
   // uniquement à garantir une entrée dans le payload du tooltip au survol d'une
   // plage d'indispo (recharts n'inclut pas les séries à valeur nulle).
   downMarker?: number | null;
+  // Point observé sans voisin observé, de part et d'autre : la courbe ne peut
+  // y tracer aucun segment. Seuls ces points reçoivent un `dot` visible.
+  isolated?: boolean;
 };
 
 // Plage temporelle (indispo pendant les heures d'ouverture) tracée en barre
 // basse plutôt qu'en trou dans la courbe. `color` déduit du statut.
-type DownBand = { x1: number; x2: number; color: string };
+type DownBand = {
+  x1: number;
+  x2: number;
+  color: string;
+  roundStart?: boolean;
+  roundEnd?: boolean;
+};
+
+// Épaisseur (px) commune à la courbe du jour, à la prévision et aux barres
+// d'indispo — elles se lisent comme un seul tracé — et diamètre de la pastille
+// d'un point observé isolé. Seule la trace « Prédiction », repère de second
+// plan, est plus fine.
+const LINE_WIDTH = 2.5;
 
 // Couleur de la barre d'indispo selon le statut : fermé/maintenance = rouge
 // (rouge du badge « fermé »), en panne = orange (badge « en panne »), reste
@@ -120,7 +141,16 @@ export default function WaitTimeChart({
       .setZone(timezone)
       .toFormat(is12Hour ? "h:mm a" : "HH:mm");
 
-  const { data, xMin, xMax, yMax, yTicks, xTicks, nowMs, downBands } = useMemo(() => {
+  const {
+    data,
+    xMin,
+    xMax,
+    yMax,
+    yTicks,
+    xTicks,
+    nowMs,
+    downBands,
+  } = useMemo(() => {
     const rows = new Map<number, ChartRow>();
     const row = (t: number) => {
       let entry = rows.get(t);
@@ -144,8 +174,7 @@ export default function WaitTimeChart({
       r.forecast = p.waitTime;
     }
     // Trace des prévisions écoulées. Elle ne couvre que le passé, donc elle ne
-    // chevauche jamais `forecast` — les deux séries se rejoignent bout à bout
-    // sur « maintenant ».
+    // chevauche jamais `forecast` — et ne s'y raccorde pas (voir plus bas).
     for (const p of forecastTrail ?? []) {
       const r = row(Date.parse(p.t));
       r.trail = p.waitTime;
@@ -159,20 +188,13 @@ export default function WaitTimeChart({
       r.forecast = lastActual.waitTime;
     }
 
-    // Même raccord pour la trace : son dernier point amorce la prévision en
-    // cours, sinon la courbe grise s'arrêterait un pas avant le pointillé actif
-    // et les deux paraîtraient sans rapport.
-    const firstForecast = forecast.length
-      ? Math.min(...forecast.map((p) => Date.parse(p.t)))
-      : null;
-    if (firstForecast != null) {
-      const r = rows.get(firstForecast);
-      const lastTrail = [...(forecastTrail ?? [])]
-        .filter((p) => Date.parse(p.t) < firstForecast)
-        .sort((a, b) => Date.parse(a.t) - Date.parse(b.t))
-        .pop();
-      if (r && lastTrail) r.trail = r.forecast;
-    }
+    // ⚠️ PAS de raccord entre la trace et la prévision en cours. La trace est ce
+    // qu'on annonçait UNE HEURE avant chaque instant : la prolonger jusqu'au
+    // premier point de la prévision actuelle lui ferait afficher, sur son
+    // dernier segment, une valeur annoncée maintenant — exactement la confusion
+    // qui rendait la courbe grise identique à la réelle décalée d'un quart
+    // d'heure (cf. `buildForecastTrail` côté worker). Elle s'arrête donc à son
+    // dernier point échu.
 
     // ⚠️ **Les trous de la prévision doivent ROMPRE la courbe.** Le worker
     // n'émet AUCUN point sur les créneaux où l'attraction est habituellement
@@ -212,6 +234,56 @@ export default function WaitTimeChart({
     }
 
     const data = [...rows.values()].sort((a, b) => a.t - b.t);
+
+    // ⚠️ **Un point observé isolé est INVISIBLE sans dot.** `connectNulls={false}`
+    // + `dot={false}` : un segment a besoin de deux points, une valeur encadrée
+    // de `null` ne dessine donc rien. Une attraction qui n'ouvre qu'un quart
+    // d'heure dans une matinée de panne ne laissait aucune trace sur le
+    // graphique — seul le survol la révélait (Pirates of the Caribbean,
+    // 2026-10-05, 5 min à 10:15 entre deux plages de panne). Calculé sur les
+    // lignes RENDUES et non sur `today` : c'est leur voisinage qui décide si
+    // recharts trace un segment.
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].actual == null) continue;
+      const prevNull = i === 0 || data[i - 1].actual == null;
+      const nextNull = i === data.length - 1 || data[i + 1].actual == null;
+      data[i].isolated = prevNull && nextNull;
+    }
+
+    // Ce qui était prévu à chaque instant OBSERVÉ, pour que le survol de la
+    // courbe réelle confronte les deux valeurs. Lu dans la trace et interpolé
+    // entre ses deux points voisins quand elle n'a pas de point au même instant.
+    // Pas d'interpolation par-dessus un trou de la trace (créneau habituellement
+    // fermé, passages manqués côté worker) : on n'invente pas une prévision qui
+    // n'a jamais été faite.
+    const trailPts = (forecastTrail ?? [])
+      .map((p) => ({ t: Date.parse(p.t), v: p.waitTime }))
+      .filter(
+        (p): p is { t: number; v: number } =>
+          !Number.isNaN(p.t) && p.v != null,
+      )
+      .sort((a, b) => a.t - b.t);
+    if (trailPts.length) {
+      const trailStep =
+        trailPts.length > 1
+          ? Math.min(...trailPts.slice(1).map((p, i) => p.t - trailPts[i].t))
+          : 0;
+      for (const d of data) {
+        // Pas de filtre sur `actual` : une plage d'indispo (fermé, panne…) a
+        // elle aussi sa valeur prévue au survol. La trace ne couvrant que le
+        // passé, une ligne de prévision pure ne trouve jamais de voisin.
+        const i = trailPts.findIndex((p) => p.t >= d.t);
+        if (i === -1) continue;
+        const b = trailPts[i];
+        if (b.t === d.t) {
+          d.expected = b.v;
+          continue;
+        }
+        const a = trailPts[i - 1];
+        if (!a || b.t - a.t > trailStep * 1.5) continue;
+        d.expected = Math.round(a.v + ((b.v - a.v) * (d.t - a.t)) / (b.t - a.t));
+      }
+    }
 
     const nowMs = Date.parse(now);
 
@@ -287,9 +359,9 @@ export default function WaitTimeChart({
     // les points consécutifs de MÊME couleur. Les bornes de la barre s'ÉTENDENT
     // jusqu'au point CONNU voisin (là où passe la courbe) pour que barre et trait
     // SE TOUCHENT (plus de petit trou entre les deux, cf. retour utilisateur).
-    // Si le voisin est lui-même une indispo (autre plage de couleur), on retombe
-    // au point milieu pour ne pas chevaucher la plage adjacente. Un i final
-    // « hors tableau » ferme la dernière plage.
+    // Partout ailleurs, un état vaut JUSQU'À LA MESURE SUIVANTE qui en montre un
+    // autre (voir les bords plus bas). Un i final « hors tableau » ferme la
+    // dernière plage.
     const todayPts = data.filter((d) => d.t <= nowMs);
     const downBands: DownBand[] = [];
     let runStart = -1;
@@ -304,23 +376,57 @@ export default function WaitTimeChart({
         const end = i - 1;
         const prev = runStart > 0 ? todayPts[runStart - 1] : null;
         const next = end < todayPts.length - 1 ? todayPts[end + 1] : null;
-        // Bord gauche : jusqu'au point connu précédent (la courbe y aboutit),
-        // sinon milieu (voisin lui aussi indispo), sinon le point lui-même.
-        const x1 = prev
-          ? prev.actual != null
-            ? prev.t
-            : (prev.t + todayPts[runStart].t) / 2
-          : todayPts[runStart].t;
-        // Bord droit : symétrique, jusqu'au point connu suivant.
+        // ⚠️ **Les frontières tombent SUR une mesure, jamais entre deux.** Un
+        // point échantillonné donne l'état à un instant ; l'instant exact du
+        // changement, entre deux mesures, est inconnu. On retenait le milieu
+        // (09:37:30 entre « fermé » à 09:30 et « en panne » à 09:45) : la
+        // frontière tombait là où le survol, qui se cale sur les mesures, ne
+        // s'arrête jamais. Règle désormais : un état vaut jusqu'à la mesure
+        // qui en montre un autre — la frontière est sur 09:45, et le survol de
+        // chaque côté dit la couleur qu'on voit.
+        //
+        // Bord droit : la mesure suivante, quelle qu'elle soit (courbe, autre
+        // plage). Dernière plage : elle court jusqu'à « maintenant », sinon une
+        // plage d'une seule mesure en fin de série n'aurait aucune largeur.
+        //
+        // ⚠️ Exception : un point observé ISOLÉ (`isolated`) — une ouverture
+        // éclair entre deux plages d'indispo. La barre s'y arrête à MI-CHEMIN
+        // des deux mesures, de chaque côté : la trouée est centrée sur sa
+        // pastille. Ces milieux sont exactement là où le survol bascule d'une
+        // mesure à la voisine (il se cale sur la plus proche), donc chaque
+        // position du curseur tombe sur ce qu'elle annonce. Essais écartés
+        // (Pirates of the Caribbean, 2026-10-05, 10:15) : barre continue sous
+        // la pastille (ouvert ET fermé au même instant), trouée calée sur les
+        // mesures (vide d'un côté de la pastille), palier en marche d'escalier
+        // pour la combler (lourd à l'œil).
         const x2 = next
-          ? next.actual != null
-            ? next.t
-            : (todayPts[end].t + next.t) / 2
-          : todayPts[end].t;
+          ? next.isolated
+            ? (todayPts[end].t + next.t) / 2
+            : next.t
+          : Math.max(todayPts[end].t, Math.min(nowMs, xMax));
+        // Bord gauche : la plage commence sur sa propre première mesure, SAUF
+        // après une courbe, qu'elle rejoint sur son dernier point — barre et
+        // trait doivent se toucher (aucune courbe ne prolonge ce point) — et
+        // après un point isolé (mi-chemin, cf. ci-dessus).
+        const x1 = !prev
+          ? todayPts[runStart].t
+          : prev.isolated
+            ? (prev.t + todayPts[runStart].t) / 2
+            : prev.actual != null
+              ? prev.t
+              : todayPts[runStart].t;
         if (x2 > x1) downBands.push({ x1, x2, color: runColor });
         runStart = -1;
       }
       if (isDown && runStart === -1) runStart = i;
+    }
+
+    // Bouts arrondis : seulement là où la barre s'arrête vraiment. Une
+    // frontière entre deux plages contiguës (rouge -> orange) reste franche —
+    // deux arrondis s'y chevauchaient en un bourrelet.
+    for (const b of downBands) {
+      b.roundStart = !downBands.some((o) => o !== b && o.x2 === b.x1);
+      b.roundEnd = !downBands.some((o) => o !== b && o.x1 === b.x2);
     }
 
     // Ancre invisible du tooltip : 0 sur chaque point d'indispo observé (tout
@@ -330,7 +436,16 @@ export default function WaitTimeChart({
       d.downMarker = d.t <= nowMs && d.actual == null ? 0 : null;
     }
 
-    return { data, xMin, xMax, yMax, yTicks, xTicks, nowMs, downBands };
+    return {
+      data,
+      xMin,
+      xMax,
+      yMax,
+      yTicks,
+      xTicks,
+      nowMs,
+      downBands,
+    };
   }, [today, forecast, forecastTrail, now, win, timezone, compact]);
 
   const chartConfig = {
@@ -364,55 +479,67 @@ export default function WaitTimeChart({
     let rows = payload.filter(
       (p) => p.value != null && p.dataKey !== "downMarker",
     );
-    // Au point de raccord, la trace porte la même valeur que la prévision : on
-    // ne montre pas deux fois la même chose.
-    if (rows.some((p) => p.dataKey === "forecast")) {
-      rows = rows.filter((p) => p.dataKey !== "trail");
-    }
     // Au point de raccord (« Maintenant »), le dernier temps observé amorce aussi
     // la prévision : les deux séries portent la MÊME valeur au même instant. On
     // n'affiche alors que le temps observé (pas de doublon « Aujourd'hui +
     // Prévision »), pour ne montrer que le temps actuel. Ailleurs, un point n'a
     // de toute façon qu'une seule des deux séries.
-    if (rows.some((p) => p.dataKey === "actual")) {
-      rows = rows.filter((p) => p.dataKey === "actual");
+    //
+    // Sur un instant passé — observé OU indisponible — on ajoute ce qui ÉTAIT
+    // PRÉVU pour cet instant (`expected`, voir son calcul), pour lire l'écart
+    // d'un coup d'œil. Il vient de la ligne de données et non du payload de la
+    // série `trail`, qui n'a pas forcément de point à cet instant.
+    const rowData = payload[0]?.payload;
+    // Plage d'indispo observée (fermé / panne / maintenance…) : l'ancre
+    // `downMarker` vaut 0 exactement sur ces lignes.
+    const isDown = rowData?.downMarker === 0;
+    const actualRow = rows.find((p) => p.dataKey === "actual");
+    if (actualRow || isDown) {
+      rows = actualRow ? [actualRow] : [];
+      const expected = rowData?.expected;
+      if (expected != null) {
+        rows.push({
+          dataKey: "trail",
+          value: expected,
+          color: "var(--color-trail)",
+          payload: rowData,
+        });
+      }
     }
 
-    // Aucune valeur numérique => on survole une plage d'indispo : on affiche le
-    // statut (fermé / en panne / maintenance) avec sa pastille de couleur. Tout
-    // autre cas (statut « open »/-1/inconnu, barre grise) = « Indisponible ».
-    if (!rows.length) {
-      const rowData = payload[0]?.payload;
-      const status = rowData?.status;
-      const label =
-        status === "closed"
-          ? tStatus("closed")
-          : status === "down"
-            ? tStatus("down")
-            : status === "maintenance"
-              ? tStatus("maintenance")
-              : tStatus("unavailable");
-      return (
-        <div className="rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
-          {rowData?.t != null && (
-            <div className="mb-1 font-medium">{fmtTime(rowData.t)}</div>
-          )}
-          <div className="flex items-center gap-2">
-            <span
-              className="size-2 shrink-0 rounded-[2px]"
-              style={{ background: downColor(status) }}
-            />
-            <span className="text-muted-foreground">{label}</span>
-          </div>
-        </div>
-      );
-    }
+    // ⚠️ Le statut d'indispo s'affiche MÊME quand une autre valeur accompagne
+    // la ligne. Il ne s'affichait auparavant que si AUCUNE valeur numérique
+    // n'était présente : dès que la trace « Prévu » couvrait la plage, le survol
+    // d'une barre rouge ne montrait plus que « Prévu 30 min », sans dire que
+    // l'attraction était fermée (constaté sur Indiana Jones, 2026-10-05).
+    // Statut « open »/-1/inconnu (barre grise) = « Indisponible ».
+    const status = rowData?.status;
+    const downLabel = !isDown
+      ? null
+      : status === "closed"
+        ? tStatus("closed")
+        : status === "down"
+          ? tStatus("down")
+          : status === "maintenance"
+            ? tStatus("maintenance")
+            : tStatus("unavailable");
 
-    const ms = rows[0].payload?.t;
+    if (!rows.length && !downLabel) return null;
+
+    const ms = rowData?.t;
     return (
       <div className="rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
         {ms != null && <div className="mb-1 font-medium">{fmtTime(ms)}</div>}
         <div className="grid gap-1">
+          {downLabel && (
+            <div className="flex items-center gap-2">
+              <span
+                className="size-2 shrink-0 rounded-[2px]"
+                style={{ background: downColor(status) }}
+              />
+              <span className="text-muted-foreground">{downLabel}</span>
+            </div>
+          )}
           {rows.map((r) => (
             <div key={String(r.dataKey)} className="flex items-center gap-2">
               <span
@@ -490,7 +617,10 @@ export default function WaitTimeChart({
             par statut (rouge fermé/maintenance, orange en panne), même épaisseur
             que les courbes, au lieu d'un trou. Un segment de ReferenceLine =>
             épaisseur FIXE en pixels (indépendante de l'échelle). */}
-        {downBands.map((b) => (
+        {/* Bouts francs (`butt`) + demi-disques posés sur les seuls bouts
+            libres (`roundStart` / `roundEnd`) : `strokeLinecap` s'applique aux
+            DEUX bouts d'un segment, il ne permet pas de n'en arrondir qu'un. */}
+        {downBands.flatMap((b) => [
           <ReferenceLine
             key={`down-${b.x1}`}
             segment={[
@@ -498,10 +628,23 @@ export default function WaitTimeChart({
               { x: b.x2, y: 0 },
             ]}
             stroke={b.color}
-            strokeWidth={3}
+            strokeWidth={LINE_WIDTH}
             ifOverflow="visible"
-          />
-        ))}
+          />,
+          ...[b.roundStart && b.x1, b.roundEnd && b.x2]
+            .filter((x): x is number => typeof x === "number")
+            .map((x) => (
+              <ReferenceDot
+                key={`down-cap-${b.x1}-${x}`}
+                x={x}
+                y={0}
+                r={LINE_WIDTH / 2}
+                fill={b.color}
+                stroke="none"
+                ifOverflow="visible"
+              />
+            )),
+        ])}
         {showNow && (
           <ReferenceLine
             x={nowMs}
@@ -554,8 +697,30 @@ export default function WaitTimeChart({
           dataKey="actual"
           type="monotone"
           stroke="var(--color-actual)"
-          strokeWidth={2}
-          dot={false}
+          strokeWidth={LINE_WIDTH}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          // Pastille uniquement sur les points isolés (voir `isolated`) : sur
+          // une courbe continue, des dots partout l'alourdiraient. Diamètre =
+          // épaisseur du trait.
+          dot={(props: {
+            key?: string;
+            cx?: number;
+            cy?: number;
+            payload?: ChartRow;
+          }) =>
+            props.payload?.isolated && props.cx != null && props.cy != null ? (
+              <circle
+                key={props.key}
+                cx={props.cx}
+                cy={props.cy}
+                r={LINE_WIDTH / 2}
+                fill="var(--color-actual)"
+              />
+            ) : (
+              <g key={props.key} />
+            )
+          }
           activeDot={{ r: 4 }}
           connectNulls={false}
           isAnimationActive
@@ -568,7 +733,7 @@ export default function WaitTimeChart({
           type="monotone"
           stroke="var(--color-forecast)"
           strokeOpacity={0.6}
-          strokeWidth={2}
+          strokeWidth={LINE_WIDTH}
           strokeDasharray="4 4"
           dot={false}
           activeDot={{ r: 4 }}
