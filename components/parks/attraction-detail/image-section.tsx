@@ -41,8 +41,8 @@ export default function ImageSection({
   favKey?: string;
   // ⚠️ **`place` et `link` s'excluent**, et ce n'est pas une contrainte
   // technique : ils occupent la même ligne sous le nom, celle qui répond à
-  // « et sinon ? ». Les popups attraction et spectacle y mettent le lieu ;
-  // celui des autres POI (restaurants, boutiques) y garde son lien sortant.
+  // « et sinon ? ». Les popups attraction, spectacle et POI (restaurants,
+  // boutiques…) y mettent tous le lieu depuis le 2026-10-06.
   // `place` l'emporte si les deux sont fournis.
   link?: { url: string; label: string };
   // Où se trouve la chose, dans la langue de la source : le quartier du parc

@@ -177,24 +177,23 @@ différemment.
 le compte (`FavNamespace`, plafonds compris) ; en inventer un troisième aurait
 ouvert une liste que ni l'espace compte ni les rappels ne lisent.
 
-⚠️ **Le popup se limite à sa bannière et à l'état**, plus un bouton « Voir la
-carte » quand la source publie un menu — ce qu'aucun parc CDA ne fait
+⚠️ **Le popup se limite à sa bannière, sa zone, l'état et ses horaires du
+jour**, plus une ligne « Voir la carte » (format : PDF, image ou page web) quand
+la source publie un menu — ce qu'aucun parc CDA ne fait
 aujourd'hui, alors que le champ existe dans leur CMS (Disney Japon, Miral, Parc
 Astérix, Paultons, Tibidabo et Dreamworld en publient). Un bloc
 « Informations » reprenant zone, catégorie et étiquettes a été écrit puis
 RETIRÉ le 2026-08-28 : ces valeurs arrivent dans la langue du flux du parc
 (« Zoetigheden » chez Bellewaerde, qui publie en néerlandais), et elles ne sont
-donc plus transportées du tout.
+donc plus transportées du tout. Seule la ZONE est revenue (2026-10-06), sous le
+nom comme pour une attraction, à la place de l'ancien lien « Voir sur Thrills ».
 
-⚠️ **`service` n'est PAS affiché**, bien que le worker le rattache comme les
-autres (absent de `LIVE_FAMILIES`). Ce que les sources y rangent, ce sont des toilettes,
+⚠️ **`service` n'est PAS affiché en direct**, bien que le worker le rattache
+comme les autres (absent de `LIVE_FAMILIES`) — seulement dans « Horaires du
+jour », s'il a des horaires. Ce que les sources y rangent, ce sont des toilettes,
 des casiers, des zones fumeurs et des guichets, par dizaines — 41 chez Thorpe
 Park contre 36 restaurants. Le rattachement sert à fermer les alertes non
 matchées de l'admin, pas à peupler la page.
-
-⚠️ **Le libellé du lien Thrills est PROPRE à ce popup** (`poiDetail.thrillsLink`,
-« Voir sur Thrills ») : celui du popup d'attraction dit « Voir l'attraction sur
-Thrills », ce qui est faux sur un restaurant.
 
 ## Flux de données
 

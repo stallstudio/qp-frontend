@@ -143,13 +143,12 @@ export default function PoiDetailDialog({
                   `ImageSection`. */}
               <ImageSection
                 title={target.rideName}
-                // ⚠️ Libellé PROPRE à ce popup : celui du popup d'attraction
-                // dit « Voir l'attraction sur Thrills », ce qui est faux sur un
-                // restaurant. Même lien, formulation neutre.
-                link={{
-                  url: "https://thrills.world",
-                  label: t("thrillsLink"),
-                }}
+                // Le quartier du parc sous le nom, comme pour une attraction
+                // (« Frontierland »). Il remplace le lien Thrills qu'avait ce
+                // popup jusqu'au 2026-10-06 : la même ligne répond à « c'est
+                // où ? », et un lien générique n'y répondait pas. Sans zone
+                // publiée, la ligne disparaît — voir `readPoiZone`.
+                place={target.zone}
                 banner={target.banner}
                 credit={parkName}
               />

@@ -575,7 +575,6 @@
   },
   "poiDetail": {
     "openFor": "Ver la ficha de {poi}",
-    "thrillsLink": "Ver en Thrills",
     "statusTitle": "Estado",
     "menuTitle": "Carta",
     "menuAction": "Ver la carta",
