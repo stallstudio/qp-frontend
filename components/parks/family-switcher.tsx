@@ -37,6 +37,7 @@ const FAMILY_TINT: Record<ParkFamily, string> = {
     "[--fam:var(--restaurant)] [--fam-fg:var(--restaurant-foreground)]",
   shop: "[--fam:var(--shop)] [--fam-fg:var(--shop-foreground)]",
   hotel: "[--fam:var(--hotel)] [--fam-fg:var(--hotel-foreground)]",
+  service: "[--fam:var(--service)] [--fam-fg:var(--service-foreground)]",
 };
 
 // Ressort de la pastille qui s'ouvre et de celle qui se referme : assez vif

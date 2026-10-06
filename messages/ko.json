@@ -51,7 +51,8 @@
       "shows": "공연",
       "restaurants": "레스토랑",
       "shops": "상점",
-      "hotels": "호텔"
+      "hotels": "호텔",
+      "services": "편의시설"
     }
   },
   "parkStatus": {
@@ -68,7 +69,8 @@
   },
   "tabs": {
     "live": "실시간",
-    "schedule": "오늘의 운영 시간"
+    "schedule": "오늘의 운영 시간",
+    "families": "카테고리"
   },
   "shows": {
     "show": "공연",

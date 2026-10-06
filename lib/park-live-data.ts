@@ -6,6 +6,7 @@ import {
 } from "@/lib/opening-hours";
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDates } from "@/lib/show-times";
+import { getPoiHoursByParkAndDate } from "@/lib/poi-hours";
 import { limitShowsToSessions } from "@/lib/show-window";
 import { getWeatherByParkAndDate } from "@/lib/weather";
 import { getParkEventsByDate } from "@/lib/park-events-db";
@@ -180,12 +181,14 @@ async function buildParkLiveSnapshot(
   // dépasse minuit range ses dernières représentations sous le lendemain (voir
   // `getShowTimesByParkAndDates`). Elles sont retriées juste après sur les
   // horaires, jamais sur la date.
-  const [waitTimes, showTimes, openingHours, daily] = await Promise.all([
-    getLatestWaitTimesByPark(park.id, park.lastUpdatedAt),
-    getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
-    getOpeningHoursByParkAndDate(park.id, today),
-    getWeatherByParkAndDate(park.id, today),
-  ]);
+  const [waitTimes, showTimes, openingHours, daily, poiHours] =
+    await Promise.all([
+      getLatestWaitTimesByPark(park.id, park.lastUpdatedAt),
+      getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
+      getOpeningHoursByParkAndDate(park.id, today),
+      getWeatherByParkAndDate(park.id, today),
+      getPoiHoursByParkAndDate(park.id, today),
+    ]);
 
   // ⚠️ EN SÉRIE, à dessein : les horaires portent l'`eventId` de chaque
   // session, donc la fenêtre du jour de chaque événement. Les charger d'abord
@@ -224,6 +227,7 @@ async function buildParkLiveSnapshot(
       openingHours: openingHours ?? [],
       waitTimes,
       shows,
+      poiHours,
       weather,
       events,
       lastUpdate:

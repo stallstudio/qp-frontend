@@ -9,6 +9,8 @@ import {
   LANE_HEIGHT,
   MIN_WIDTH_FOR_TEXT_24H,
   MIN_WIDTH_FOR_TEXT_12H,
+  MIN_WIDTH_FOR_RANGE_24H,
+  MIN_WIDTH_FOR_RANGE_12H,
 } from "../types";
 
 type TimelineRowProps = {
@@ -19,6 +21,9 @@ type TimelineRowProps = {
   timezone: string;
   currentHourPosition: number;
   is12Hour: boolean;
+  // Créneau = plage d'ouverture : on écrit « début – fin » quand la place le
+  // permet, et la bulle des créneaux étroits donne la plage entière.
+  showRange?: boolean;
   // Trait plus franc en haut : marque la 1re ligne classique après les favoris.
   dividerTop?: boolean;
   rowRef: (el: HTMLDivElement | null) => void;
@@ -38,6 +43,7 @@ export function TimelineRow({
   timezone,
   currentHourPosition,
   is12Hour,
+  showRange = false,
   dividerTop = false,
   rowRef,
   highlighted = false,
@@ -97,11 +103,21 @@ export function TimelineRow({
           ? MIN_WIDTH_FOR_TEXT_12H
           : MIN_WIDTH_FOR_TEXT_24H;
         const showTimeText = widthPx >= minWidth;
+        const fitsRange =
+          showRange &&
+          widthPx >=
+            (is12Hour ? MIN_WIDTH_FOR_RANGE_12H : MIN_WIDTH_FOR_RANGE_24H);
 
         const top = verticalPadding + scheduleItem.lane * LANE_HEIGHT + 2;
         const height = LANE_HEIGHT - 4;
 
-        const timeText = startTime.toFormat(getLuxonFormat(is12Hour));
+        const timeFormat = getLuxonFormat(is12Hour);
+        const startText = startTime.toFormat(timeFormat);
+        const rangeText = `${startText} – ${startTime
+          .plus({ minutes: scheduleItem.duration })
+          .toFormat(timeFormat)}`;
+        const timeText = fitsRange ? rangeText : startText;
+        const tooltipText = showRange ? rangeText : startText;
 
         const getBadgeClasses = () => {
           if (isPast) {
@@ -142,7 +158,7 @@ export function TimelineRow({
             // clic (tactile) : ce clic-là ne doit pas AUSSI ouvrir le popup,
             // d'où l'arrêt de la propagation vers la ligne.
             <span key={schedIndex} onClick={(e) => e.stopPropagation()}>
-              <ClickableTooltip content={timeText}>
+              <ClickableTooltip content={tooltipText}>
                 {badgeContent}
               </ClickableTooltip>
             </span>

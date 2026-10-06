@@ -38,25 +38,41 @@ export function parsePoiKind(value: string | null | undefined): PoiKind | null {
  * Les familles que propose le sélecteur de chaque onglet de la page d'un parc,
  * dans l'ordre de ses pastilles.
  *
- * ⚠️ **Deux listes, et elles ne se recouvrent pas forcément** : un onglet ne
- * propose que les familles pour lesquelles il a une donnée. « En direct » vit
- * des états et des temps d'attente ; « Horaires du jour » des horaires — les
- * représentations aujourd'hui, demain les ouvertures d'attractions, de
- * restaurants et de boutiques. Une famille présente dans les deux onglets y
- * reste sélectionnée d'un onglet à l'autre (voir `main-card.tsx`).
+ * ⚠️ **Deux listes, et elles ne se recouvrent pas** : un onglet ne propose que
+ * les familles pour lesquelles il a une donnée. « En direct » vit des états et
+ * des temps d'attente (`wait_times`) ; « Horaires du jour » des horaires — les
+ * représentations (`show_times`) et les heures d'ouverture des autres POI
+ * (`poi_hours`). Une famille présente dans les deux onglets y reste
+ * sélectionnée d'un onglet à l'autre (voir `main-card.tsx`).
  *
- * ⚠️ **Une famille ne s'affiche que si elle a du contenu**, et le sélecteur
- * disparaît sous deux familles : l'écrasante majorité des parcs ne publie que
- * ses attractions, et leur page est alors strictement celle de la v3.
+ * ⚠️ **Hôtels et services : horaires seulement** (arbitré le 2026-10-06). Leur
+ * état en direct n'aide personne — voir `POI_CARD_KINDS` pour les services —,
+ * mais l'heure d'ouverture d'une réception ou d'un poste de secours, si une
+ * source la publie un jour, a sa place dans la journée.
+ *
+ * ⚠️ **`show` est proposé en direct sans qu'aucune source n'y écrive** au
+ * 2026-10-06 : le jour où l'une publiera l'état d'un spectacle (annulé, en
+ * cours) dans `wait_times`, il aura sa pastille sans une ligne de plus.
+ *
+ * ⚠️ **Une famille ne s'affiche que si elle a du contenu**, mais le sélecteur,
+ * lui, s'affiche TOUJOURS — même pour une seule famille, où sa pastille unique
+ * sert de titre à la carte (arbitré le 2026-10-06).
  */
 export const LIVE_FAMILIES = [
   "ride",
+  "show",
+  "restaurant",
+  "shop",
+] as const satisfies readonly PoiKind[];
+
+export const SCHEDULE_FAMILIES = [
+  "ride",
+  "show",
   "restaurant",
   "shop",
   "hotel",
+  "service",
 ] as const satisfies readonly PoiKind[];
-
-export const SCHEDULE_FAMILIES = ["show"] as const satisfies readonly PoiKind[];
 
 export type LiveFamily = (typeof LIVE_FAMILIES)[number];
 export type ScheduleFamily = (typeof SCHEDULE_FAMILIES)[number];
@@ -64,6 +80,10 @@ export type ParkFamily = LiveFamily | ScheduleFamily;
 
 export function isLiveFamily(kind: PoiKind): kind is LiveFamily {
   return (LIVE_FAMILIES as readonly PoiKind[]).includes(kind);
+}
+
+export function isScheduleFamily(kind: PoiKind): kind is ScheduleFamily {
+  return (SCHEDULE_FAMILIES as readonly PoiKind[]).includes(kind);
 }
 
 /**
@@ -90,7 +110,7 @@ export function isLiveFamily(kind: PoiKind): kind is LiveFamily {
  * (douze restaurants à Bellewaerde, trois à Walibi Holland). Ne pas chercher à
  * dupliquer ce filtre ici.
  */
-export const POI_CARD_KINDS = ["restaurant", "shop", "hotel"] as const;
+export const POI_CARD_KINDS = ["show", "restaurant", "shop", "hotel"] as const;
 
 export type PoiCardKind = (typeof POI_CARD_KINDS)[number];
 

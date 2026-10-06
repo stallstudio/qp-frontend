@@ -51,7 +51,8 @@
       "shows": "演出",
       "restaurants": "餐厅",
       "shops": "商店",
-      "hotels": "酒店"
+      "hotels": "酒店",
+      "services": "服务设施"
     }
   },
   "parkStatus": {
@@ -68,7 +69,8 @@
   },
   "tabs": {
     "live": "实时",
-    "schedule": "今日营业时间"
+    "schedule": "今日营业时间",
+    "families": "类别"
   },
   "shows": {
     "show": "演出",

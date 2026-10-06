@@ -51,7 +51,8 @@
       "shows": "Chương trình",
       "restaurants": "Nhà hàng",
       "shops": "Cửa hàng",
-      "hotels": "Khách sạn"
+      "hotels": "Khách sạn",
+      "services": "Dịch vụ"
     }
   },
   "parkStatus": {
@@ -68,7 +69,8 @@
   },
   "tabs": {
     "live": "Trực tiếp",
-    "schedule": "Giờ hôm nay"
+    "schedule": "Giờ hôm nay",
+    "families": "Danh mục"
   },
   "shows": {
     "show": "Chương trình",

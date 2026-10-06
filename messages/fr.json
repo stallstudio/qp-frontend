@@ -51,7 +51,8 @@
       "shows": "Spectacles",
       "restaurants": "Restaurants",
       "shops": "Boutiques",
-      "hotels": "Hôtels"
+      "hotels": "Hôtels",
+      "services": "Services"
     }
   },
   "parkStatus": {

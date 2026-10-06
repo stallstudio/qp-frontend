@@ -51,7 +51,8 @@
       "shows": "Shower",
       "restaurants": "Restauranger",
       "shops": "Butiker",
-      "hotels": "Hotell"
+      "hotels": "Hotell",
+      "services": "Service"
     }
   },
   "parkStatus": {
@@ -68,7 +69,8 @@
   },
   "tabs": {
     "live": "Live",
-    "schedule": "Öppettider"
+    "schedule": "Öppettider",
+    "families": "Kategorier"
   },
   "shows": {
     "show": "Show",

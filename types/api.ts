@@ -2,6 +2,7 @@ import { Group } from "./group";
 import { OpeningHour } from "./openingHour";
 import { ParkEventDto } from "./parkEvent";
 import { ShowTime } from "./show";
+import type { PoiHours } from "./poiHours";
 import { WaitTime } from "./waitTime";
 
 export type CoverImage = {
@@ -28,6 +29,11 @@ export type ParkLiveData = {
   openingHours: OpeningHour[];
   waitTimes: WaitTime[];
   shows: ShowTime[];
+  /**
+   * Heures d'ouverture du jour des POI (restaurants, boutiques, attractions…),
+   * pour l'onglet « Horaires du jour ». Vide pour la quasi-totalité des parcs.
+   */
+  poiHours: PoiHours[];
   weather: ParkWeather | null;
   /**
    * Événements saisonniers du parc (Halloween, Noël). Tableau VIDE onze mois par

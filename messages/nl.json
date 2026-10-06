@@ -51,7 +51,8 @@
       "shows": "Shows",
       "restaurants": "Restaurants",
       "shops": "Winkels",
-      "hotels": "Hotels"
+      "hotels": "Hotels",
+      "services": "Voorzieningen"
     }
   },
   "parkStatus": {
@@ -68,7 +69,8 @@
   },
   "tabs": {
     "live": "Live",
-    "schedule": "Openingstijden"
+    "schedule": "Openingstijden",
+    "families": "Categorieën"
   },
   "shows": {
     "show": "Show",

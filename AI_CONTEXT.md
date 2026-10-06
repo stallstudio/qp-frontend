@@ -115,13 +115,28 @@ prend la tête de la carte de la liste : la pastille active se teinte de la
 couleur de sa famille (`--primary`, `--show`, `--restaurant`, `--shop`,
 `--hotel` dans `globals.css`) et dévoile son libellé.
 
-- Chaque onglet propose SES familles (`LIVE_FAMILIES`, `SCHEDULE_FAMILIES`) :
-  « Horaires du jour » n'a que les spectacles tant que les horaires
-  d'attractions, de restaurants et de boutiques ne sont pas collectés. Une
-  famille proposée par les deux onglets reste sélectionnée de l'un à l'autre
+- Chaque onglet propose SES familles (`LIVE_FAMILIES`, `SCHEDULE_FAMILIES`).
+  « En direct » : attractions, spectacles (aucune source n'y écrit encore),
+  restaurants, boutiques — PAS les hôtels ni les services. « Horaires du
+  jour » : les six, chacune seulement si elle a des horaires. Une famille
+  proposée par les deux onglets reste sélectionnée de l'un à l'autre
   (`pickFamily`, `main-card.tsx`).
-- Sous deux familles, pas de sélecteur : la page est celle de la v3, carte
-  titrée comprise.
+- **Le sélecteur s'affiche TOUJOURS** (2026-10-06), même pour une seule
+  famille : sa pastille unique sert de titre à la carte. La carte titrée de la
+  v3 (`SectionCard`) n'est plus rendue par `main-card`.
+- **Horaires d'ouverture des POI = table `poi_hours`** (2026-10-06, migration
+  `2026-10-06-poi-hours` du worker), lue par `lib/poi-hours.ts` (liste vide
+  sur toute erreur, table absente comprise) et transportée dans
+  `ParkLiveData.poiHours`. Les spectacles gardent `show_times`.
+- **Une seule grille pour les deux** : `show-time-table/schedule-grid.tsx`
+  (axe, glisser, repère « maintenant », légende). L'ordre vient de l'appelant :
+  `show-time-table/index.tsx` trie les spectacles sur la PROCHAINE
+  représentation (`showSortKey`, horloge `useMinuteClock` — `null` à
+  l'hydratation), `poi-hours-table.tsx` trie les POI sur la fermeture la plus
+  tardive. Favoris épinglés en tête dans les deux.
+- Les popups d'attraction et de POI affichent « Horaires du jour » via
+  `PoiHoursProvider` (`poi-hours-context.tsx`), posé par `main-card` ; hors
+  page de parc, pas de section.
 - Toutes les cartes de la colonne ont le même arrondi de 2 rem, écartées de
   12 px ; la carte des onglets est une pill. L'ancienne colonne « en ticket »
   (jointures de 10 px) a disparu avec le sélecteur.

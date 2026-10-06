@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Bell, LineChart } from "lucide-react";
+import { Bell, Clock, LineChart } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,10 @@ import { useRideHistory } from "@/hooks/useRideHistory";
 import ImageSection from "./image-section";
 import AlertSection from "./alert-section";
 import ChartSection from "./chart-section";
+import {
+  PoiHoursList,
+  usePoiHoursOf,
+} from "@/components/parks/poi-hours-context";
 
 type AttractionDetailDialogProps = {
   target: WaitTime | null;
@@ -55,6 +59,9 @@ export default function AttractionDetailDialog({
   onOpenChange,
 }: AttractionDetailDialogProps) {
   const t = useTranslations("attractionDetail");
+  const tTabs = useTranslations("tabs");
+  // Les heures du jour, quand la page de parc les a (voir `PoiHoursProvider`).
+  const hours = usePoiHoursOf(target?.rideId);
 
   // Historique + prévision (rafraîchis toutes les 60 s tant que le popup est
   // ouvert) : le graphique les affiche, et la section Alertes s'en sert pour
@@ -122,6 +129,16 @@ export default function AttractionDetailDialog({
                 la barre de défilement (le petit dépassement résiduel reste
                 scrollable, mais sans barre visible). */}
             <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
+              {/* Avant les alertes : c'est une réponse, elles sont une action. */}
+              {hours && (
+                <Section
+                  title={tTabs("schedule")}
+                  icon={<Clock className="size-4" />}
+                >
+                  <PoiHoursList slots={hours.slots} timezone={hours.timezone} />
+                </Section>
+              )}
+
               <Section
                 title={t("alertsTitle")}
                 icon={<Bell className="size-4" />}

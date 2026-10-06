@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ExternalLink, Radio, UtensilsCrossed } from "lucide-react";
+import { Clock, ExternalLink, Radio, UtensilsCrossed } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,10 @@ import ImageSection from "@/components/parks/attraction-detail/image-section";
 import { getStatusBadge } from "@/lib/badge";
 import { getPrimaryQueue } from "@/lib/poi-list";
 import type { WaitTime } from "@/types/waitTime";
+import {
+  PoiHoursList,
+  usePoiHoursOf,
+} from "@/components/parks/poi-hours-context";
 
 type PoiDetailDialogProps = {
   target: WaitTime | null;
@@ -73,6 +77,9 @@ export default function PoiDetailDialog({
 }: PoiDetailDialogProps) {
   const t = useTranslations("poiDetail");
   const tStatus = useTranslations("attractionStatus");
+  const tTabs = useTranslations("tabs");
+  // Les heures du jour, quand la page de parc les a (voir `PoiHoursProvider`).
+  const hours = usePoiHoursOf(target?.rideId);
 
   const queue = target ? getPrimaryQueue(target) : undefined;
   const statusLabels: Record<string, string> = {
@@ -128,6 +135,15 @@ export default function PoiDetailDialog({
                 </Section>
               )}
 
+              {hours && (
+                <Section
+                  title={tTabs("schedule")}
+                  icon={<Clock className="size-4" />}
+                >
+                  <PoiHoursList slots={hours.slots} timezone={hours.timezone} />
+                </Section>
+              )}
+
               {target.menu && (
                 <Section
                   title={t("menuTitle")}
@@ -146,7 +162,6 @@ export default function PoiDetailDialog({
                   </a>
                 </Section>
               )}
-
             </div>
           </>
         )}

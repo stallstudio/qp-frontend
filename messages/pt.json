@@ -51,7 +51,8 @@
       "shows": "Espetáculos",
       "restaurants": "Restaurantes",
       "shops": "Lojas",
-      "hotels": "Hotéis"
+      "hotels": "Hotéis",
+      "services": "Serviços"
     }
   },
   "parkStatus": {
@@ -68,7 +69,8 @@
   },
   "tabs": {
     "live": "Em direto",
-    "schedule": "Horário de hoje"
+    "schedule": "Horário de hoje",
+    "families": "Categorias"
   },
   "shows": {
     "show": "Espetáculo",

@@ -233,7 +233,7 @@ const defaultHours = (): number[] => {
  * jusqu'à minuit).
  */
 export function calculateParkHours(
-  shows: ShowTime[],
+  shows: Pick<ShowTime, "duration" | "schedules">[],
   timezone: string,
   parkDate?: string | null,
 ): number[] {
@@ -287,6 +287,51 @@ export function calculateParkHours(
     hours.push(h);
   }
   return hours;
+}
+
+/**
+ * Clé de tri « la prochaine représentation en haut » d'un spectacle.
+ *
+ * Un spectacle dont une représentation n'est pas terminée se classe sur le
+ * DÉBUT de celle-ci — une représentation en cours a commencé avant toutes les
+ * prochaines, elle passe donc devant. Un spectacle qui a tout joué se classe
+ * après, la dernière représentation terminée en tête.
+ *
+ * La fin d'une représentation est celle que la grille dessine
+ * (`calculateSlotDuration`) : la ligne quitte le haut de la liste au moment où
+ * son créneau devient « terminé » sous les yeux du visiteur.
+ */
+export function showSortKey(
+  show: Pick<ShowTime, "duration" | "schedules">,
+  timezone: string,
+  nowMs: number,
+): { upcoming: boolean; at: number } {
+  const sorted = [...show.schedules].sort(
+    (a, b) => Date.parse(a.startTime) - Date.parse(b.startTime),
+  );
+  let lastEnd = -Infinity;
+  for (let i = 0; i < sorted.length; i++) {
+    const start = Date.parse(sorted[i].startTime);
+    const minutes = calculateSlotDuration(
+      sorted[i],
+      show.duration,
+      sorted[i + 1] ?? null,
+      timezone,
+    );
+    const end = start + minutes * 60_000;
+    if (end > nowMs) return { upcoming: true, at: start };
+    lastEnd = Math.max(lastEnd, end);
+  }
+  return { upcoming: false, at: lastEnd };
+}
+
+/** Comparateur des clés de `showSortKey` : à venir d'abord, au plus tôt. */
+export function compareShowSortKeys(
+  a: { upcoming: boolean; at: number },
+  b: { upcoming: boolean; at: number },
+): number {
+  if (a.upcoming !== b.upcoming) return a.upcoming ? -1 : 1;
+  return a.upcoming ? a.at - b.at : b.at - a.at;
 }
 
 export function getSchedulePosition(

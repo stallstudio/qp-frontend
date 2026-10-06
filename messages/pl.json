@@ -51,7 +51,8 @@
       "shows": "Pokazy",
       "restaurants": "Restauracje",
       "shops": "Sklepy",
-      "hotels": "Hotele"
+      "hotels": "Hotele",
+      "services": "Usługi"
     }
   },
   "parkStatus": {
@@ -68,7 +69,8 @@
   },
   "tabs": {
     "live": "Na żywo",
-    "schedule": "Godziny otwarcia"
+    "schedule": "Godziny otwarcia",
+    "families": "Kategorie"
   },
   "shows": {
     "show": "Pokaz",

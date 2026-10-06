@@ -51,7 +51,8 @@
       "shows": "ショー",
       "restaurants": "レストラン",
       "shops": "ショップ",
-      "hotels": "ホテル"
+      "hotels": "ホテル",
+      "services": "サービス"
     }
   },
   "parkStatus": {
@@ -68,7 +69,8 @@
   },
   "tabs": {
     "live": "ライブ",
-    "schedule": "本日の営業時間"
+    "schedule": "本日の営業時間",
+    "families": "カテゴリー"
   },
   "shows": {
     "show": "ショー",

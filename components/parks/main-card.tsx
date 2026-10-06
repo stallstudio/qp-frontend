@@ -19,6 +19,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ParkLiveData } from "@/types/api";
 import type { WaitTime } from "@/types/waitTime";
+import type { PoiHours, PoiHoursSlot } from "@/types/poiHours";
 import {
   parkOpenWindowFrom,
   reopenAllowedForWindow,
@@ -32,16 +33,19 @@ import {
 } from "@/lib/park-events";
 import ParkShowTimeTable from "./show-time-table";
 import PoiStatusTable from "./poi-status-table";
+import PoiHoursTable from "./poi-hours-table";
+import { PoiHoursProvider } from "./poi-hours-context";
 import EventCard from "./event-card";
-import SectionCard from "./section-card";
 import FamilySwitcher from "./family-switcher";
 import {
   LIVE_FAMILIES,
   POI_KIND_ICONS,
   SCHEDULE_FAMILIES,
   isLiveFamily,
+  isScheduleFamily,
   type LiveFamily,
   type ParkFamily,
+  type ScheduleFamily,
 } from "@/lib/poi-kinds";
 
 type MainCardProps = {
@@ -65,7 +69,13 @@ const CARD_TITLE_KEYS: Record<ParkFamily, string> = {
   restaurant: "restaurants",
   shop: "shops",
   hotel: "hotels",
+  service: "services",
 };
+
+// Les familles de l'onglet « Horaires du jour » dont les horaires sont des
+// heures d'ouverture (`poi_hours`), par opposition aux spectacles et à leurs
+// représentations (`show_times`).
+type HoursFamily = Exclude<ScheduleFamily, "show">;
 
 // Les deux onglets de la colonne, sous la `value` que Radix leur donne.
 type ColumnTab = "wait-times" | "show-times";
@@ -165,9 +175,10 @@ function renderStack(cards: StackCard[]) {
  *     tard ouvertures/fermetures d'attractions, de boutiques, de restaurants).
  *
  * Et dans chaque onglet, une FAMILLE à la fois — attractions, restaurants,
- * boutiques… —, choisie au sélecteur de pastilles (`family-switcher.tsx`) qui
- * partage la carte des onglets : c'est de la navigation aussi. Il n'apparaît
- * qu'à partir de deux familles ; en dessous, la page est celle de la v3.
+ * boutiques… —, choisie au sélecteur de pastilles (`family-switcher.tsx`) en
+ * tête de la carte de la liste : c'est de la navigation aussi. Il s'affiche
+ * TOUJOURS, même pour une seule famille, dont la pastille sert alors de titre à
+ * la carte (arbitré le 2026-10-06).
  */
 export default function MainCard({
   park,
@@ -289,9 +300,9 @@ export default function MainCard({
   const liveItems = useMemo(() => {
     const byFamily: Record<LiveFamily, WaitTime[]> = {
       ride: [],
+      show: [],
       restaurant: [],
       shop: [],
-      hotel: [],
     };
     for (const wt of mainWaitTimes) {
       if (isLiveFamily(wt.kind)) byFamily[wt.kind].push(wt);
@@ -306,6 +317,40 @@ export default function MainCard({
   const mainShows = useMemo(
     () => (park.shows ?? []).filter((s) => s.eventId == null),
     [park.shows],
+  );
+
+  // ————— Heures d'ouverture des POI (`poi_hours`) —————
+  //
+  // Même partition par famille que le direct, même règle pour les événements :
+  // un POI tagué ne vit que dans la carte de son événement.
+  const poiHours = park.poiHours ?? [];
+  const hoursItems = useMemo(() => {
+    const byFamily: Record<HoursFamily, PoiHours[]> = {
+      ride: [],
+      restaurant: [],
+      shop: [],
+      hotel: [],
+      service: [],
+    };
+    for (const item of park.poiHours ?? []) {
+      if (item.eventId != null) continue;
+      if (isScheduleFamily(item.kind) && item.kind !== "show") {
+        byFamily[item.kind].push(item);
+      }
+    }
+    return byFamily;
+  }, [park.poiHours]);
+
+  // Pour les popups, quelle que soit la liste qui les ouvre : voir
+  // `PoiHoursProvider`.
+  const hoursContext = useMemo(
+    () => ({
+      byPoi: new Map<number, PoiHoursSlot[]>(
+        (park.poiHours ?? []).map((item) => [item.poiId, item.slots]),
+      ),
+      timezone: park.timezone,
+    }),
+    [park.poiHours, park.timezone],
   );
 
   const parkDate = park.openingHours?.[0]?.date ?? null;
@@ -393,7 +438,8 @@ export default function MainCard({
   // d'un sélecteur se lirait comme deux événements distincts.
   const hasEventItems = (eventId: number) =>
     park.waitTimes.some((wt) => wt.eventId === eventId) ||
-    (park.shows ?? []).some((s) => s.eventId === eventId);
+    (park.shows ?? []).some((s) => s.eventId === eventId) ||
+    poiHours.some((h) => h.eventId === eventId);
 
   // ⚠️ **Les cartes d'événement suivent la famille choisie**, comme le reste de
   // la colonne : leurs mazes avec les attractions, un stand éphémère avec les
@@ -417,33 +463,38 @@ export default function MainCard({
       );
 
   const eventWaitTimeCardsFor = (family: LiveFamily): StackCard[] =>
-    eventItemsFor(family).map(({ view, items }): StackCard => (radius) => (
-      <EventCard
-        key={view.event.id}
-        view={view}
-        timezone={park.timezone}
-        className={radius}
-        isEmpty={items.length === 0}
-      >
-        {family === "ride" ? (
-          <ParkWaitTimeTable
-            waitTimes={items}
-            queueTypeLabels={park.queueTypeLabels}
-            parkIdentifier={park.identifier}
-            parkName={park.name}
-            reopenAllowed={reopenAllowed}
-            initialRideId={initialRideId}
-          />
-        ) : (
-          <PoiStatusTable
-            pois={items}
-            kind={family}
-            parkIdentifier={park.identifier}
-            parkName={park.name}
-          />
-        )}
-      </EventCard>
-    ));
+    eventItemsFor(family).map(
+      ({ view, items }): StackCard =>
+        function eventCard(radius: string) {
+          return (
+            <EventCard
+              key={view.event.id}
+              view={view}
+              timezone={park.timezone}
+              className={radius}
+              isEmpty={items.length === 0}
+            >
+              {family === "ride" ? (
+                <ParkWaitTimeTable
+                  waitTimes={items}
+                  queueTypeLabels={park.queueTypeLabels}
+                  parkIdentifier={park.identifier}
+                  parkName={park.name}
+                  reopenAllowed={reopenAllowed}
+                  initialRideId={initialRideId}
+                />
+              ) : (
+                <PoiStatusTable
+                  pois={items}
+                  kind={family}
+                  parkIdentifier={park.identifier}
+                  parkName={park.name}
+                />
+              )}
+            </EventCard>
+          );
+        },
+    );
 
   const eventShowCards = eventViews
     .map((view) => ({
@@ -451,25 +502,98 @@ export default function MainCard({
       items: (park.shows ?? []).filter((s) => s.eventId === view.event.id),
     }))
     .filter(({ items }) => items.length > 0)
-    .map(({ view, items }): StackCard => (radius) => (
-      <EventCard
-        key={view.event.id}
-        view={view}
-        timezone={park.timezone}
-        className={radius}
-      >
-        <ParkShowTimeTable
-          shows={items}
+    .map(
+      ({ view, items }): StackCard =>
+        function eventCard(radius: string) {
+          return (
+            <EventCard
+              key={view.event.id}
+              view={view}
+              timezone={park.timezone}
+              className={radius}
+            >
+              <ParkShowTimeTable
+                shows={items}
+                timezone={park.timezone}
+                parkDate={parkDate}
+                parkIdentifier={park.identifier}
+                parkName={park.name}
+              />
+            </EventCard>
+          );
+        },
+    );
+
+  // Les heures d'ouverture des POI d'un événement, dans sa carte — un stand
+  // éphémère de Noël sous la pastille « Restaurants » des horaires.
+  const eventHoursCardsFor = (family: HoursFamily): StackCard[] =>
+    eventViews
+      .map((view) => ({
+        view,
+        items: poiHours.filter(
+          (h) => h.eventId === view.event.id && h.kind === family,
+        ),
+      }))
+      .filter(({ items }) => items.length > 0)
+      .map(
+        ({ view, items }): StackCard =>
+          function eventCard(radius: string) {
+            return (
+              <EventCard
+                key={view.event.id}
+                view={view}
+                timezone={park.timezone}
+                className={radius}
+              >
+                <PoiHoursTable
+                  items={items}
+                  timezone={park.timezone}
+                  parkDate={parkDate}
+                  parkIdentifier={park.identifier}
+                  parkName={park.name}
+                  waitTimes={park.waitTimes}
+                  reopenAllowed={reopenAllowed}
+                />
+              </EventCard>
+            );
+          },
+      );
+
+  // La liste d'une famille hors événement dans un onglet, ou `null` si elle
+  // n'en a pas.
+  //
+  // ⚠️ **La même famille n'a pas la même liste d'un onglet à l'autre** : les
+  // attractions sont un tableau de temps d'attente en direct, une grille
+  // d'heures d'ouverture dans les horaires.
+  const familyList = (tab: ColumnTab, family: ParkFamily): React.ReactNode => {
+    if (tab === "show-times") {
+      if (family === "show") {
+        return mainShows.length > 0 ? (
+          <ParkShowTimeTable
+            shows={mainShows}
+            timezone={park.timezone}
+            parkDate={parkDate}
+            parkIdentifier={park.identifier}
+            parkName={park.name}
+          />
+        ) : null;
+      }
+      if (!isScheduleFamily(family)) return null;
+      const items = hoursItems[family];
+      return items.length > 0 ? (
+        <PoiHoursTable
+          items={items}
           timezone={park.timezone}
           parkDate={parkDate}
           parkIdentifier={park.identifier}
           parkName={park.name}
+          waitTimes={park.waitTimes}
+          reopenAllowed={reopenAllowed}
         />
-      </EventCard>
-    ));
+      ) : null;
+    }
 
-  // La liste d'une famille hors événement, ou `null` si elle n'en a pas.
-  const familyList = (family: ParkFamily): React.ReactNode => {
+    if (!isLiveFamily(family)) return null;
     if (family === "ride") {
       return liveItems.ride.length > 0 ? (
         <ParkWaitTimeTable
@@ -479,17 +603,6 @@ export default function MainCard({
           parkName={park.name}
           reopenAllowed={reopenAllowed}
           initialRideId={initialRideId}
-        />
-      ) : null;
-    }
-    if (family === "show") {
-      return mainShows.length > 0 ? (
-        <ParkShowTimeTable
-          shows={mainShows}
-          timezone={park.timezone}
-          parkDate={parkDate}
-          parkIdentifier={park.identifier}
-          parkName={park.name}
         />
       ) : null;
     }
@@ -503,37 +616,15 @@ export default function MainCard({
     ) : null;
   };
 
-  const familyEventCards = (family: ParkFamily): StackCard[] =>
-    family === "show" ? eventShowCards : eventWaitTimeCardsFor(family);
-
-  // La pile d'une famille quand il n'y a PAS de sélecteur, dans son ordre
-  // d'affichage : ses cartes d'événement, puis sa carte titrée. C'est cette
-  // fonction — et `renderColumn` pour le cas avec sélecteur — qui dit quelle
-  // carte est en haut et laquelle est en bas ; ajouter demain les files
-  // virtuelles, c'est l'insérer ici.
-  //
-  // ⚠️ **Le titre nomme la famille, pas la donnée** — « Restaurants », comme
-  // « Attractions » (voir `SectionCard`). C'est l'onglet qui dit qu'on regarde
-  // le direct.
-  const familyStack = (family: ParkFamily): StackCard[] => {
-    const list = familyList(family);
-    return [
-      ...familyEventCards(family),
-      ...(list != null
-        ? [
-            (radius: string) => (
-              <SectionCard
-                key={family}
-                icon={POI_KIND_ICONS[family]}
-                title={tCards(CARD_TITLE_KEYS[family])}
-                className={radius}
-              >
-                {list}
-              </SectionCard>
-            ),
-          ]
-        : []),
-    ];
+  const familyEventCards = (
+    tab: ColumnTab,
+    family: ParkFamily,
+  ): StackCard[] => {
+    if (tab === "show-times") {
+      if (family === "show") return eventShowCards;
+      return isScheduleFamily(family) ? eventHoursCardsFor(family) : [];
+    }
+    return isLiveFamily(family) ? eventWaitTimeCardsFor(family) : [];
   };
 
   // Les familles que chaque onglet a de quoi montrer, dans l'ordre des
@@ -544,7 +635,9 @@ export default function MainCard({
         liveItems[family].length > 0 || eventItemsFor(family).length > 0,
     ),
     "show-times": SCHEDULE_FAMILIES.filter(
-      (family) => familyStack(family).length > 0,
+      (family) =>
+        familyList("show-times", family) != null ||
+        familyEventCards("show-times", family).length > 0,
     ),
   };
 
@@ -554,8 +647,8 @@ export default function MainCard({
   // avec lui l'accès aux spectacles. Même règle côté horaires : un parc dont
   // seuls les spectacles d'un événement sont connus a, lui aussi, son onglet.
   const hasLiveContent = tabFamilies["wait-times"].length > 0;
-  const hasShows = tabFamilies["show-times"].length > 0;
-  const showTabs = hasLiveContent && hasShows;
+  const hasSchedule = tabFamilies["show-times"].length > 0;
+  const showTabs = hasLiveContent && hasSchedule;
 
   // L'onglet ouvert, décidé AU PREMIER RENDU — donc dès le rendu serveur. Il
   // l'était après hydratation, et la page se peignait jusque-là avec une
@@ -593,7 +686,9 @@ export default function MainCard({
   >(() => ({
     // Le popup d'un lien profond est dans la liste des attractions.
     "wait-times": initialRideId != null ? "ride" : null,
-    "show-times": null,
+    // `?tab=shows` vient d'un rappel de spectacle : c'est la grille des
+    // représentations qu'il faut ouvrir, pas la première famille venue.
+    "show-times": requestedTab === "shows" ? "show" : null,
   }));
   const [slideDirection, setSlideDirection] = useState(1);
 
@@ -603,7 +698,9 @@ export default function MainCard({
   const familyFor = (tab: ColumnTab): ParkFamily | null => {
     const available = tabFamilies[tab];
     const picked = pickedFamily[tab];
-    return picked && available.includes(picked) ? picked : (available[0] ?? null);
+    return picked && available.includes(picked)
+      ? picked
+      : (available[0] ?? null);
   };
 
   const pickFamily = (tab: ColumnTab, family: ParkFamily) => {
@@ -640,12 +737,17 @@ export default function MainCard({
   /**
    * La colonne d'un onglet : les cartes de la famille choisie.
    *
-   * Sous deux familles, c'est la pile habituelle (`familyStack`). À partir de
-   * deux, le sélecteur prend la tête de la carte de la liste, à la place de son
+   * Le sélecteur prend la tête de la carte de la liste, à la place de son
    * titre — la pastille active DIT déjà « Restaurants » —, et c'est le CONTENU
    * de cette carte qui glisse d'une famille à l'autre. La carte et ses
    * pastilles, elles, ne bougent pas : c'est ce qui laisse la pastille active
    * s'ouvrir et les autres glisser, au lieu de tout voir disparaître et revenir.
+   *
+   * ⚠️ **Le sélecteur est là même pour UNE famille** (arbitré le 2026-10-06) :
+   * sa pastille unique, à la couleur de la famille, sert de titre à la carte.
+   * La carte titrée de la v3 (`SectionCard`) n'est plus rendue ici ; une page
+   * ne change donc plus de forme selon que le parc publie ses restaurants ou
+   * non.
    *
    * ⚠️ Les cartes d'événement de la famille restent AU-DESSUS, sélecteur
    * compris — la règle « l'événement d'abord » vaut toujours. Elles glissent
@@ -660,9 +762,7 @@ export default function MainCard({
     const family = familyFor(tab);
     if (family == null) return null;
     const families = tabFamilies[tab];
-    if (families.length < 2) return renderStack(familyStack(family));
-
-    const events = familyEventCards(family);
+    const events = familyEventCards(tab, family);
     const tabIdPrefix = `${familyIdBase}-family-${tab}`;
     return (
       <>
@@ -677,10 +777,7 @@ export default function MainCard({
             retrait que ses côtés, pour que la pastille de gauche se loge dans
             l'angle à égale distance des deux bords. */}
         <Card
-          className={cn(
-            "w-full gap-0 p-2.5 py-0 sm:p-4 sm:py-0",
-            CARD_RADIUS,
-          )}
+          className={cn("w-full gap-0 p-2.5 py-0 sm:p-4 sm:py-0", CARD_RADIUS)}
         >
           <div className="pt-2.5 pb-1 sm:pt-4">
             <FamilySwitcher
@@ -714,7 +811,7 @@ export default function MainCard({
                 {...slideProps}
               >
                 <h3 className="sr-only">{tCards(CARD_TITLE_KEYS[family])}</h3>
-                {familyList(family)}
+                {familyList(tab, family)}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -780,16 +877,16 @@ export default function MainCard({
           {t("updatedAgo", { age: ageLabel })}
         </p>
       )}
-      {park.shows.length > 0 && columnTab === "show-times" && (
-        <p>{tShows("updateInfo")}</p>
-      )}
+      {park.shows.length > 0 &&
+        columnTab === "show-times" &&
+        familyFor("show-times") === "show" && <p>{tShows("updateInfo")}</p>}
     </div>
   );
 
   // Rien à montrer dans aucun onglet. `waitTimes` peut être NON vide ici : un
   // parc dont la source ne publie que ses services n'a aucune famille à
   // afficher, et lui rendre une colonne vide ne dirait rien.
-  if (!hasLiveContent && !hasShows) {
+  if (!hasLiveContent && !hasSchedule) {
     return (
       <div className={CARD_STACK}>
         {/* Seule dans la colonne : elle garde ses quatre gros angles. */}
@@ -814,105 +911,108 @@ export default function MainCard({
   // dans la carte de la liste (voir `renderColumn`).
   if (!showTabs) {
     return (
-      <div className={CARD_STACK}>
-        {/* `overflow-x-clip` : les cartes d'événement qui glissent de 28 px
-            ne doivent pas ouvrir de défilement horizontal sur la page le temps
-            de l'animation. */}
-        <div className={cn(CARD_STACK, "overflow-x-clip")}>
-          {renderColumn(columnTab)}
+      <PoiHoursProvider value={hoursContext}>
+        <div className={CARD_STACK}>
+          {/* `overflow-x-clip` : les cartes d'événement qui glissent de 28 px
+              ne doivent pas ouvrir de défilement horizontal sur la page le
+              temps de l'animation. */}
+          <div className={cn(CARD_STACK, "overflow-x-clip")}>
+            {renderColumn(columnTab)}
+          </div>
+          {footer}
         </div>
-        {footer}
-      </div>
+      </PoiHoursProvider>
     );
   }
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(value) => setActiveTab(value as ColumnTab)}
-      className={CARD_STACK}
-    >
-      {/* Le sélecteur d'onglets a sa PROPRE carte : c'est de la navigation, pas
+    <PoiHoursProvider value={hoursContext}>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as ColumnTab)}
+        className={CARD_STACK}
+      >
+        {/* Le sélecteur d'onglets a sa PROPRE carte : c'est de la navigation, pas
           de la donnée. Le mélanger au contenu, c'était faire de l'un des deux
           blocs le « propriétaire » visuel des onglets. Une pill, comme ce
           qu'elle contient — cf. le bloc de géométrie en tête de fichier. */}
-      <Card
-        className={cn(
-          "w-full gap-0 p-(--tab-pad)",
-          TAB_GEOMETRY,
-          TAB_PILL_RADIUS,
-        )}
-      >
-        <TabsList
-          className={cn("relative w-full overflow-hidden", TAB_PILL_RADIUS)}
+        <Card
+          className={cn(
+            "w-full gap-0 p-(--tab-pad)",
+            TAB_GEOMETRY,
+            TAB_PILL_RADIUS,
+          )}
         >
-          {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
+          <TabsList
+            className={cn("relative w-full overflow-hidden", TAB_PILL_RADIUS)}
+          >
+            {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
               Deux onglets de largeur égale -> largeur 50% (moins le padding),
               translation 0% / 100%. Courbe d'accélération type iOS. */}
-          <span
-            aria-hidden
-            className={cn(
-              "pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] bg-background shadow-sm dark:border dark:border-input dark:bg-input/30",
-              TAB_PILL_RADIUS,
-            )}
-            style={{
-              transform:
-                activeTab === "show-times"
-                  ? "translateX(100%)"
-                  : "translateX(0%)",
-              transitionProperty: "transform",
-              transitionDuration: "1000ms",
-              transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
-            }}
-          />
-          {/* ⚠️ L'onglet actif est TRANSPARENT — c'est le curseur qui est
+            <span
+              aria-hidden
+              className={cn(
+                "pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] bg-background shadow-sm dark:border dark:border-input dark:bg-input/30",
+                TAB_PILL_RADIUS,
+              )}
+              style={{
+                transform:
+                  activeTab === "show-times"
+                    ? "translateX(100%)"
+                    : "translateX(0%)",
+                transitionProperty: "transform",
+                transitionDuration: "1000ms",
+                transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
+              }}
+            />
+            {/* ⚠️ L'onglet actif est TRANSPARENT — c'est le curseur qui est
               dessiné dessous — donc son arrondi ne se voit qu'à l'anneau de
               focus clavier. Il prend quand même la pill : un anneau
               rectangulaire posé sur un curseur arrondi se remarquerait. */}
-          <TabsTrigger
-            value="wait-times"
-            className={cn(
-              "relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent",
-              TAB_PILL_RADIUS,
-            )}
-          >
-            {/* Ondes de diffusion, pas une horloge : l'onglet ne parle plus de
+            <TabsTrigger
+              value="wait-times"
+              className={cn(
+                "relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent",
+                TAB_PILL_RADIUS,
+              )}
+            >
+              {/* Ondes de diffusion, pas une horloge : l'onglet ne parle plus de
                 temps d'attente mais de tout ce qui est vrai MAINTENANT. */}
-            <Radio />
-            {tTabs("live")}
-          </TabsTrigger>
-          <TabsTrigger
-            value="show-times"
-            className={cn(
-              "relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent",
-              TAB_PILL_RADIUS,
-            )}
-          >
-            {/* Calendrier + horloge : des heures dans une journée. Les masques
+              <Radio />
+              {tTabs("live")}
+            </TabsTrigger>
+            <TabsTrigger
+              value="show-times"
+              className={cn(
+                "relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent",
+                TAB_PILL_RADIUS,
+              )}
+            >
+              {/* Calendrier + horloge : des heures dans une journée. Les masques
                 de théâtre ne valaient que tant que l'onglet ne portait que des
                 spectacles. */}
-            <CalendarClock />
-            {tTabs("schedule")}
-          </TabsTrigger>
-        </TabsList>
+              <CalendarClock />
+              {tTabs("schedule")}
+            </TabsTrigger>
+          </TabsList>
+        </Card>
 
-      </Card>
+        {/* `overflow-x-clip` : voir la colonne sans onglets, plus haut. */}
+        <TabsContent
+          value="wait-times"
+          className={cn(CARD_STACK, "overflow-x-clip")}
+        >
+          {renderColumn("wait-times")}
+        </TabsContent>
+        <TabsContent
+          value="show-times"
+          className={cn(CARD_STACK, "overflow-x-clip")}
+        >
+          {renderColumn("show-times")}
+        </TabsContent>
 
-      {/* `overflow-x-clip` : voir la colonne sans onglets, plus haut. */}
-      <TabsContent
-        value="wait-times"
-        className={cn(CARD_STACK, "overflow-x-clip")}
-      >
-        {renderColumn("wait-times")}
-      </TabsContent>
-      <TabsContent
-        value="show-times"
-        className={cn(CARD_STACK, "overflow-x-clip")}
-      >
-        {renderColumn("show-times")}
-      </TabsContent>
-
-      {footer}
-    </Tabs>
+        {footer}
+      </Tabs>
+    </PoiHoursProvider>
   );
 }
