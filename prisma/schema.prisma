@@ -111,6 +111,7 @@ model Park {
   waitTimes        WaitTime[]
   unmatchedAlerts  UnmatchedAlert[]
   showTimes        ShowTime[]
+  poiHours         PoiHours[]
   poiChanges       PoiChange[]
   dailyWeather     DailyWeather[]
   rideForecasts    RideForecast[]
@@ -391,6 +392,7 @@ model Poi {
 
   waitTimes        WaitTime[]
   showTimes        ShowTime[]
+  hours            PoiHours[]
   forecast         RideForecast?
   forecastAccuracy ForecastAccuracy[]
 
@@ -841,6 +843,52 @@ model ShowTime {
   @@index([externalId, date])
   @@index([date])
   @@map("show_times")
+}
+
+// Créneaux d'ouverture d'un POI pour une journée : les heures d'un restaurant,
+// d'une boutique, d'une attraction, d'un hôtel ou d'un service.
+//
+// ⚠️ **Une table, et non `Poi.additionalData`** (arbitré le 2026-10-06). Une
+// ligne de `pois` décrit un POI, pas une journée : y ranger des horaires, c'est
+// n'en garder qu'une date et perdre l'historique. Et le fetcher POI réécrit
+// `additionalData` EN ENTIER à chaque passage : un second écrivain s'y ferait
+// effacer ses heures, ou effacerait la bannière.
+//
+// ⚠️ **Distincte de `show_times`, à dessein** : une représentation est un
+// INSTANT (début, fin facultative), une ouverture est une PLAGE dont les deux
+// bornes sont connues. Fusionner les deux obligeait à reprendre tous les
+// fetchers de spectacles pour un gain nul côté affichage, qui sait déjà tracer
+// l'un et l'autre sur la même grille.
+//
+// Plusieurs créneaux par jour sont possibles — un restaurant ouvert le midi
+// puis le soir —, d'où `openTime` dans la clé.
+//
+// ⚠️ **Le fetcher publie TOUS les créneaux des dates qu'il couvre**, passés
+// compris : c'est ce qui autorise `savePoiHours` (worker) à supprimer, pour ces
+// dates-là, les lignes qu'il ne mentionne plus. Un POI qui disparaît de la grille
+// du jour est un POI fermé aujourd'hui.
+model PoiHours {
+  id     Int  @id @default(autoincrement())
+  poiId  Int
+  poi    Poi  @relation(fields: [poiId], references: [id], onDelete: Cascade)
+  parkId Int
+  park   Park @relation(fields: [parkId], references: [id], onDelete: Cascade)
+
+  // Journée d'exploitation du parc, au format YYYY-MM-DD de son fuseau.
+  date      String   @db.VarChar(10)
+  openTime  DateTime
+  closeTime DateTime
+
+  // Nom du créneau tel que la source le publie (« dinner » chez Efteling),
+  // donc NON TRADUIT. Absent de la quasi-totalité des lignes.
+  label String? @db.VarChar(60)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([poiId, date, openTime])
+  @@index([parkId, date])
+  @@map("poi_hours")
 }
 
 //
