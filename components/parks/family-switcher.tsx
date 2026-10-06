@@ -111,8 +111,8 @@ export default function FamilySwitcher({
 
   return (
     // `-my-2 py-2` : la rangée défile horizontalement, donc elle rogne aussi à
-    // la verticale — sans cette marge, l'anneau de focus et le halo coloré de la
-    // pastille active seraient coupés net.
+    // la verticale — sans cette marge, l'anneau de focus de la pastille serait
+    // coupé net.
     <div
       ref={scrollerRef}
       role="tablist"
@@ -157,7 +157,9 @@ export default function FamilySwitcher({
                 "focus-visible:ring-[3px] focus-visible:ring-ring/50",
                 FAMILY_TINT[family],
                 active
-                  ? "bg-(--fam) px-4 text-(--fam-fg) shadow-[0_6px_16px_-8px_var(--fam)]"
+                  ? // Aplat seul, sans halo coloré dessous (retiré le
+                    // 2026-10-06) : la couleur suffit à désigner la pastille.
+                    "bg-(--fam) px-4 text-(--fam-fg)"
                   : "bg-muted px-3 text-muted-foreground hover:bg-foreground/10 hover:text-foreground",
               )}
             >
