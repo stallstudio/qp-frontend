@@ -545,7 +545,7 @@
     "chartForecastNote": "Estimation indicative de la fin de journée.",
     "chartForecastPreOpeningNote": "Estimation basée sur les jours précédents — mise à jour à l'ouverture du parc.",
     "estimateTooltip": "Estimation d'après les journées passées comparables. La réalité peut varier.",
-    "marginNote": "Sur les derniers jours, nos prévisions à 1 h se sont trompées de <v>{minutes} min</v> en moyenne.",
+    "marginNote": "Sur les derniers jours, nos prévisions se sont trompées de <v>{minutes} min</v> en moyenne.",
     "marginNoteTooltip": "Écart moyen entre ce que nous annoncions une heure à l'avance et l'attente réellement constatée, sur les 14 derniers jours.",
     "installTitle": "Installez Queue Park",
     "installIntro": "Les alertes nécessitent que l'application soit installée sur votre appareil.",

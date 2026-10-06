@@ -544,7 +544,7 @@
     "chartForecastNote": "Grobe Schätzung für den Rest des Tages.",
     "chartForecastPreOpeningNote": "Schätzung auf Basis vergangener Tage – wird nach der Parköffnung aktualisiert.",
     "estimateTooltip": "Geschätzt anhand vergleichbarer vergangener Tage. Die Realität kann abweichen.",
-    "marginNote": "In den letzten Tagen lagen unsere Prognosen für die nächste Stunde im Schnitt um <v>{minutes} Min.</v> daneben.",
+    "marginNote": "In den letzten Tagen lagen unsere Prognosen im Schnitt um <v>{minutes} Min.</v> daneben.",
     "marginNoteTooltip": "Durchschnittliche Abweichung zwischen unserer Prognose eine Stunde im Voraus und der tatsächlich gemessenen Wartezeit der letzten 14 Tage.",
     "installTitle": "Queue Park installieren",
     "installIntro": "Benachrichtigungen setzen die auf deinem Gerät installierte App voraus.",

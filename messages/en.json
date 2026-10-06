@@ -545,7 +545,7 @@
     "chartForecastNote": "Rough estimate for the rest of the day.",
     "chartForecastPreOpeningNote": "Estimate based on past days — will update once the park opens.",
     "estimateTooltip": "Estimated from comparable past days. Reality may differ.",
-    "marginNote": "Over the past few days, our 1-hour forecasts were off by <v>{minutes} min</v> on average.",
+    "marginNote": "Over the past few days, our forecasts were off by <v>{minutes} min</v> on average.",
     "marginNoteTooltip": "Average gap between what we predicted an hour ahead and the wait actually observed, over the last 14 days.",
     "installTitle": "Install Queue Park",
     "installIntro": "Alerts require the app installed on your device.",

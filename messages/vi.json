@@ -544,7 +544,7 @@
     "chartForecastNote": "Ước tính sơ bộ cho phần còn lại của ngày.",
     "chartForecastPreOpeningNote": "Ước tính dựa trên những ngày trước — sẽ được cập nhật khi công viên mở cửa.",
     "estimateTooltip": "Ước tính từ những ngày quá khứ tương đồng. Thực tế có thể khác.",
-    "marginNote": "Vài ngày qua, dự báo trước 1 giờ của chúng tôi lệch trung bình <v>{minutes} phút</v>.",
+    "marginNote": "Vài ngày qua, dự báo của chúng tôi lệch trung bình <v>{minutes} phút</v>.",
     "marginNoteTooltip": "Chênh lệch trung bình giữa dự báo đưa ra trước 1 giờ và thời gian chờ thực tế trong 14 ngày gần nhất.",
     "installTitle": "Cài đặt Queue Park",
     "installIntro": "Nhắc nhở yêu cầu ứng dụng được cài trên thiết bị của bạn.",

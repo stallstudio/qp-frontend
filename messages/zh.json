@@ -544,7 +544,7 @@
     "chartForecastNote": "对今天剩余时段的粗略估计。",
     "chartForecastPreOpeningNote": "基于往日数据的估计，开园后会更新。",
     "estimateTooltip": "根据条件相近的过往日期估算，实际情况可能有出入。",
-    "marginNote": "最近几天，我们提前 1 小时的预测平均偏差 <v>{minutes} 分钟</v>。",
+    "marginNote": "最近几天，我们的预测平均偏差 <v>{minutes} 分钟</v>。",
     "marginNoteTooltip": "过去 14 天内，提前 1 小时的预测值与实测排队时间之间的平均差距。",
     "installTitle": "安装 Queue Park",
     "installIntro": "使用提醒功能需要先在设备上安装应用。",

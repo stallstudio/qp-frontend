@@ -544,7 +544,7 @@
     "chartForecastNote": "Estimativa aproximada para o resto do dia.",
     "chartForecastPreOpeningNote": "Estimativa com base em dias anteriores — será atualizada quando o parque abrir.",
     "estimateTooltip": "Estimado a partir de dias passados comparáveis. A realidade pode ser diferente.",
-    "marginNote": "Nos últimos dias, as nossas previsões a 1 h enganaram-se em média em <v>{minutes} min</v>.",
+    "marginNote": "Nos últimos dias, as nossas previsões enganaram-se em média em <v>{minutes} min</v>.",
     "marginNoteTooltip": "Diferença média entre o que prevíamos com uma hora de antecedência e a espera realmente observada ao longo dos últimos 14 dias.",
     "installTitle": "Instalar o Queue Park",
     "installIntro": "Os alertas exigem a aplicação instalada no teu dispositivo.",

@@ -544,7 +544,7 @@
     "chartForecastNote": "Grov uppskattning för resten av dagen.",
     "chartForecastPreOpeningNote": "Uppskattning utifrån tidigare dagar – uppdateras när parken öppnar.",
     "estimateTooltip": "Uppskattat utifrån jämförbara tidigare dagar. Verkligheten kan avvika.",
-    "marginNote": "De senaste dagarna har våra prognoser för den kommande timmen slagit fel med i genomsnitt <v>{minutes} min</v>.",
+    "marginNote": "De senaste dagarna har våra prognoser slagit fel med i genomsnitt <v>{minutes} min</v>.",
     "marginNoteTooltip": "Genomsnittlig skillnad mellan det vi förutsade en timme i förväg och den kötid som faktiskt uppmätts under de senaste 14 dagarna.",
     "installTitle": "Installera Queue Park",
     "installIntro": "Aviseringar kräver att appen är installerad på din enhet.",
