@@ -148,7 +148,16 @@ export function TimelineRow({
               justifyContent: showTimeText ? "flex-start" : "center",
             }}
           >
-            {showTimeText && <span>{timeText}</span>}
+            {/* `sticky` : quand le début de la barre sort à gauche de la
+                zone visible, l'heure la suit et reste collée au bord, au lieu
+                de partir avec lui. Une ouverture 11:30 – 21:30 regardée à
+                16 h se lit sans revenir en arrière. Le texte ne quitte jamais
+                sa barre : un élément collant reste borné par son parent. */}
+            {showTimeText && (
+              <span className="sticky left-1 whitespace-nowrap">
+                {timeText}
+              </span>
+            )}
           </div>
         );
 
