@@ -578,7 +578,9 @@
     "thrillsLink": "Thrills で見る",
     "statusTitle": "状況",
     "menuTitle": "メニュー",
-    "menuAction": "メニューを見る"
+    "menuAction": "メニューを見る",
+    "menuImage": "画像",
+    "menuPage": "ウェブページ"
   },
   "legal": {
     "backHome": "ホームに戻る",

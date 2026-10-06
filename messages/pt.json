@@ -578,7 +578,9 @@
     "thrillsLink": "Ver no Thrills",
     "statusTitle": "Estado",
     "menuTitle": "Ementa",
-    "menuAction": "Ver a ementa"
+    "menuAction": "Ver a ementa",
+    "menuImage": "Imagem",
+    "menuPage": "Página web"
   },
   "legal": {
     "backHome": "Voltar ao início",

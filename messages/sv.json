@@ -578,7 +578,9 @@
     "thrillsLink": "Visa på Thrills",
     "statusTitle": "Status",
     "menuTitle": "Meny",
-    "menuAction": "Visa menyn"
+    "menuAction": "Visa menyn",
+    "menuImage": "Bild",
+    "menuPage": "Webbsida"
   },
   "legal": {
     "backHome": "Tillbaka till startsidan",

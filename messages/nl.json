@@ -578,7 +578,9 @@
     "thrillsLink": "Bekijken op Thrills",
     "statusTitle": "Status",
     "menuTitle": "Menukaart",
-    "menuAction": "Menukaart bekijken"
+    "menuAction": "Menukaart bekijken",
+    "menuImage": "Afbeelding",
+    "menuPage": "Webpagina"
   },
   "legal": {
     "backHome": "Terug naar de startpagina",

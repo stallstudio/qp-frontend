@@ -578,7 +578,9 @@
     "thrillsLink": "Zobacz na Thrills",
     "statusTitle": "Status",
     "menuTitle": "Menu",
-    "menuAction": "Zobacz menu"
+    "menuAction": "Zobacz menu",
+    "menuImage": "Obraz",
+    "menuPage": "Strona internetowa"
   },
   "legal": {
     "backHome": "Powrót na stronę główną",

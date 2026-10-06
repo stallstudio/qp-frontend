@@ -578,7 +578,9 @@
     "thrillsLink": "Auf Thrills ansehen",
     "statusTitle": "Status",
     "menuTitle": "Speisekarte",
-    "menuAction": "Speisekarte ansehen"
+    "menuAction": "Speisekarte ansehen",
+    "menuImage": "Bild",
+    "menuPage": "Webseite"
   },
   "legal": {
     "backHome": "Zurück zur Startseite",

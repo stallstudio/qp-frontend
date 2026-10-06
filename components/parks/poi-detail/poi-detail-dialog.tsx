@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Clock, ExternalLink, Radio, UtensilsCrossed } from "lucide-react";
+import { BookOpenText, Clock, ExternalLink, Radio } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,26 @@ function Section({
   );
 }
 
+type MenuFormat = "pdf" | "image" | "page";
+
+/**
+ * Ce qu'ouvre le lien de la carte, d'après l'extension de son adresse : un
+ * PDF, une image, ou à défaut une page web. Seul le FORMAT est dit, pas le
+ * site — c'est toujours celui du parc, le nommer n'apprend rien. `null` sur
+ * une URL illisible : le lien reste, sans sous-titre.
+ */
+function menuFormat(url: string | null | undefined): MenuFormat | null {
+  if (!url) return null;
+  try {
+    const path = new URL(url).pathname;
+    if (/\.pdf$/i.test(path)) return "pdf";
+    if (/\.(jpe?g|png|webp|gif|avif)$/i.test(path)) return "image";
+    return "page";
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Popup d'un POI qui n'est ni une attraction ni un spectacle : restaurant,
  * boutique, hôtel, service.
@@ -80,6 +100,16 @@ export default function PoiDetailDialog({
   const tTabs = useTranslations("tabs");
   // Les heures du jour, quand la page de parc les a (voir `PoiHoursProvider`).
   const hours = usePoiHoursOf(target?.rideId);
+  const format = menuFormat(target?.menu);
+  // « PDF » se lit tel quel dans toutes les langues.
+  const menuSource =
+    format === "pdf"
+      ? "PDF"
+      : format === "image"
+        ? t("menuImage")
+        : format === "page"
+          ? t("menuPage")
+          : null;
 
   const queue = target ? getPrimaryQueue(target) : undefined;
   const statusLabels: Record<string, string> = {
@@ -144,23 +174,37 @@ export default function PoiDetailDialog({
                 </Section>
               )}
 
+              {/* ⚠️ Une LIGNE de lien, pas une section : un titre « Carte »
+                  au-dessus d'un bouton « Voir la carte » disait deux fois la
+                  même chose, et le gros bouton orange prenait le pas sur l'état
+                  et les horaires, qui sont l'information. Le sous-titre dit ce
+                  qu'ouvre le lien : un PDF, une image ou une page web. */}
               {target.menu && (
-                <Section
-                  title={t("menuTitle")}
-                  icon={<UtensilsCrossed className="size-4" />}
-                >
-                  {/* Le menu est servi par le parc, souvent en PDF : nouvel
-                      onglet, et `noopener` comme tout lien sortant. */}
+                <div className="border-t px-5 py-4">
+                  {/* Nouvel onglet, et `noopener` comme tout lien sortant. */}
                   <a
                     href={target.menu}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                    aria-label={`${t("menuTitle")} — ${t("menuAction")}`}
+                    className="group flex items-center gap-3 rounded-2xl border bg-muted/40 p-3 transition-colors hover:bg-muted"
                   >
-                    {t("menuAction")}
-                    <ExternalLink className="size-3.5" />
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-restaurant/15 text-restaurant">
+                      <BookOpenText className="size-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-semibold">
+                        {t("menuAction")}
+                      </span>
+                      {menuSource && (
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {menuSource}
+                        </span>
+                      )}
+                    </span>
+                    <ExternalLink className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
                   </a>
-                </Section>
+                </div>
               )}
             </div>
           </>

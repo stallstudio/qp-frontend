@@ -578,7 +578,9 @@
     "thrillsLink": "View on Thrills",
     "statusTitle": "Status",
     "menuTitle": "Menu",
-    "menuAction": "View menu"
+    "menuAction": "View menu",
+    "menuImage": "Image",
+    "menuPage": "Web page"
   },
   "legal": {
     "backHome": "Back to home",

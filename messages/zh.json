@@ -578,7 +578,9 @@
     "thrillsLink": "在 Thrills 上查看",
     "statusTitle": "状态",
     "menuTitle": "菜单",
-    "menuAction": "查看菜单"
+    "menuAction": "查看菜单",
+    "menuImage": "图片",
+    "menuPage": "网页"
   },
   "legal": {
     "backHome": "返回首页",

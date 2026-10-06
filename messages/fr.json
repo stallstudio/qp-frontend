@@ -578,7 +578,9 @@
     "thrillsLink": "Voir sur Thrills",
     "statusTitle": "État",
     "menuTitle": "Carte",
-    "menuAction": "Voir la carte"
+    "menuAction": "Voir la carte",
+    "menuImage": "Image",
+    "menuPage": "Page web"
   },
   "legal": {
     "backHome": "Retour à l’accueil",

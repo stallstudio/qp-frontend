@@ -578,7 +578,9 @@
     "thrillsLink": "Xem trên Thrills",
     "statusTitle": "Trạng thái",
     "menuTitle": "Thực đơn",
-    "menuAction": "Xem thực đơn"
+    "menuAction": "Xem thực đơn",
+    "menuImage": "Hình ảnh",
+    "menuPage": "Trang web"
   },
   "legal": {
     "backHome": "Về trang chủ",
