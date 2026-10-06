@@ -533,18 +533,25 @@ export default function WaitTimeChart({
         <div className="grid gap-1">
           {downLabel && (
             <div className="flex items-center gap-2">
+              {/* Trait plein : l'indispo est tracée en barre sur la ligne 0. */}
               <span
-                className="size-2 shrink-0 rounded-[2px]"
-                style={{ background: downColor(status) }}
+                className="w-4 shrink-0 border-t-2"
+                style={{ borderColor: downColor(status) }}
               />
               <span className="text-muted-foreground">{downLabel}</span>
             </div>
           )}
           {rows.map((r) => (
             <div key={String(r.dataKey)} className="flex items-center gap-2">
+              {/* Le repère reprend le trait de sa courbe, comme la légende :
+                  plein pour l'observé, pointillé pour les deux séries tracées
+                  en pointillé. Sans quoi « Temps d'attente » et « Prévision »
+                  portaient le même carré orange. */}
               <span
-                className="size-2 shrink-0 rounded-[2px]"
-                style={{ background: r.color }}
+                className={`w-4 shrink-0 border-t-2 ${
+                  r.dataKey === "actual" ? "" : "border-dashed"
+                }`}
+                style={{ borderColor: r.color }}
               />
               <span className="text-muted-foreground">
                 {r.dataKey === "actual"
