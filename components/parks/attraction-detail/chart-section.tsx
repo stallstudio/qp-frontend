@@ -102,7 +102,7 @@ export default function ChartSection({ data, loading }: ChartSectionProps) {
             >
               <span className="w-4 border-t-2 border-dashed border-primary/50" />
               <span className="underline decoration-dotted underline-offset-2">
-                {t("chartForecast")}
+                {t("chartForecastLegend")}
               </span>
             </button>
           </ClickableTooltip>
