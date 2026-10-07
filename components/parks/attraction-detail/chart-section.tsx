@@ -90,7 +90,7 @@ export default function ChartSection({
   // les états afin que la taille du popup ne « saute » pas.
   if (loading && !data) {
     return (
-      <div className="flex h-[226px] items-center justify-center">
+      <div className="flex h-[196px] sm:h-[226px] items-center justify-center">
         <Loader2 className="size-5 animate-spin text-muted-foreground" />
       </div>
     );
@@ -117,7 +117,7 @@ export default function ChartSection({
         ? t("chartUnavailable")
         : t("chartEmpty");
     return (
-      <div className="flex h-[226px] items-center justify-center text-center text-sm text-muted-foreground">
+      <div className="flex h-[196px] sm:h-[226px] items-center justify-center text-center text-sm text-muted-foreground">
         {message}
       </div>
     );
@@ -131,7 +131,7 @@ export default function ChartSection({
     : null;
 
   return (
-    <div className="flex min-h-[226px] flex-col gap-2">
+    <div className="flex min-h-[196px] flex-col gap-2 sm:min-h-[226px] *:shrink-0">
       {/* Le titre et la légende sur une ligne : la légende sous la courbe
           prenait une ligne de plus pour trois mots. */}
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">

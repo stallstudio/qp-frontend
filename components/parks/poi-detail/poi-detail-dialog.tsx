@@ -107,7 +107,7 @@ export default function PoiDetailDialog({
       {/* Même coquille que le popup d'attraction : en-tête épinglée (bannière
           + bandeau), corps défilant. */}
       <DialogContent
-        className="flex max-h-[88vh] flex-col gap-0 overflow-hidden rounded-4xl border-0 p-0 sm:max-w-md"
+        className="flex max-h-[88dvh] flex-col gap-0 overflow-hidden rounded-4xl border-0 p-0 sm:max-w-md"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {target && (
@@ -149,7 +149,7 @@ export default function PoiDetailDialog({
             {/* Rien à mettre dessous (ni journée coupée, ni carte) : pas de
                 corps du tout, plutôt qu'une marge vide sous le bandeau. */}
             {(splitDay || target.menu) && (
-            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide">
+            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0">
               {splitDay && (
                 <div className="flex flex-col gap-2">
                   <h3 className="text-[15px] font-semibold">

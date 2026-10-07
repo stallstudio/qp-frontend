@@ -628,7 +628,7 @@ export default function WaitTimeChart({
   return (
     <ChartContainer
       config={chartConfig}
-      className={cn("aspect-auto w-full", compact ? "h-[132px]" : "h-[180px]")}
+      className={cn("aspect-auto w-full", compact ? "h-[132px]" : "h-[150px] sm:h-[180px]")}
     >
       {/* Marge droite = demi-libellé d'heure. La graduation de FERMETURE est
           posée pile sur le bord droit de la zone de tracé : sans cette marge,

@@ -82,7 +82,7 @@ export default function AttractionDetailDialog({
           quoi qu'il arrive au montage des sections asynchrones (alerte,
           graphique). */}
       <DialogContent
-        className="flex max-h-[88vh] flex-col gap-0 overflow-hidden rounded-4xl border-0 p-0 sm:max-w-md"
+        className="flex max-h-[88dvh] flex-col gap-0 overflow-hidden rounded-4xl border-0 p-0 sm:max-w-md"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {target && (
@@ -125,7 +125,7 @@ export default function AttractionDetailDialog({
                 repart d'une alerte repliée. */}
             <div
               key={target.rideId}
-              className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide"
+              className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0"
             >
               <ChartSection
                 data={history}
