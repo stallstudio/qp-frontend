@@ -51,6 +51,12 @@ type WaitTimeChartProps = {
    * de grille et non dans la largeur d'un popup.
    */
   compact?: boolean;
+  /**
+   * Seuil d'alerte à matérialiser (ligne horizontale verte) : celui qu'on règle
+   * dans le popup, ou celui de l'alerte active. Hors de l'axe, il n'est pas
+   * tracé — l'axe ne s'étire pas pour lui.
+   */
+  threshold?: { value: number; label: string } | null;
 };
 
 // ⚠️ Plus de bande d'incertitude « ± X min » autour de la prévision : elle a été
@@ -132,6 +138,7 @@ export default function WaitTimeChart({
   trailLabel,
   waitCap,
   compact = false,
+  threshold,
 }: WaitTimeChartProps) {
   const { is12Hour } = useTimeFormat();
   const tStatus = useTranslations("attractionStatus");
@@ -665,6 +672,21 @@ export default function WaitTimeChart({
               position: "top",
               fontSize: 10,
               fill: "var(--primary)",
+            }}
+          />
+        )}
+        {threshold && (
+          <ReferenceLine
+            y={threshold.value}
+            stroke="#22c55e"
+            strokeWidth={1.5}
+            strokeDasharray="2 3"
+            label={{
+              value: threshold.label,
+              position: "insideTopRight",
+              fontSize: 10,
+              fontWeight: 600,
+              fill: "#22c55e",
             }}
           />
         )}

@@ -744,10 +744,23 @@ groupe des favoris est encadré de deux séparateurs ondulés ambrés
 ### Popup « détail attraction » (`components/parks/attraction-detail/`)
 
 **Un clic n'importe où sur la ligne** ouvre `attraction-detail-dialog.tsx` — plus
-d'icône œil (2026-07-28), plus d'étoile/cloche cliquable dans la liste. Le popup
-empile des sections : image (`image-section.tsx` — bannière de la source, nom,
-quartier et étoile favori en surimpression), alertes (`alert-section.tsx`),
-graphique du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`).
+d'icône œil (2026-07-28), plus d'étoile/cloche cliquable dans la liste. Depuis
+la refonte du 2026-10-07, plus de titres de section ni de séparateurs : image
+(`image-section.tsx` — bannière, nom, quartier, étoile), puis À CHEVAL sur son
+bas le bandeau de chiffres (`live-stats.tsx` : attente, état, « Ferme à »),
+graphique du jour + prévision avec une phrase de conseil quand le pic ou le
+creux prévu s'écarte d'au moins 10 min de l'attente actuelle
+(`chart-section.tsx` → `wait-time-chart.tsx`), et l'alerte réduite à UNE LIGNE
+qui se déplie en carte de réglage (`alert-section.tsx`).
+
+⚠️ **Le bandeau est dans l'en-tête ÉPINGLÉE, pas dans le corps défilant** : il
+chevauche la photo par une marge négative, que `overflow-y-auto` rognerait.
+
+⚠️ **Le seuil d'alerte est tracé sur le graphique** (ligne verte) pendant le
+réglage et tant que l'alerte est active : `AlertSection` le remonte au popup
+(`onThresholdPreview`), qui le passe à `WaitTimeChart` (`threshold`). L'alerte
+existante est donc chargée dès l'ouverture du popup, plus au dépliage — c'est
+elle qui décide si la ligne repliée affiche « Alerte active ».
 
 ⚠️ **Le QUARTIER a remplacé le lien Thrills le 2026-09-02**, dans les popups
 attraction ET spectacle : `Poi.additionalData.zone`, lu par `readPoiZone`

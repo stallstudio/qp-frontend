@@ -4,7 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { BellRing, Loader2, Trash2, Wrench } from "lucide-react";
+import {
+  Bell,
+  BellOff,
+  BellRing,
+  ChevronRight,
+  Loader2,
+  Trash2,
+  Wrench,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NumberStepper from "@/components/ui/number-stepper";
 import {
@@ -15,6 +24,7 @@ import { useUser } from "@/components/providers/user-provider";
 import { useNotifications } from "@/components/providers/notifications-provider";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import NotificationGate from "@/components/parks/notification-gate";
+import { cn } from "@/lib/utils";
 import type { AlertDTO, AlertType } from "@/types/user";
 import type { WaitTimeStatus } from "@/types/waitTime";
 
@@ -37,6 +47,9 @@ type AlertSectionProps = {
   // Attraction indisponible sur une longue période : on n'autorise pas d'alerte
   // (aucun temps d'attente à surveiller).
   unavailable?: boolean;
+  // Le seuil à matérialiser sur le graphique du popup : celui qu'on règle
+  // (carte dépliée) ou celui de l'alerte active ; `null` sinon.
+  onThresholdPreview?: (threshold: number | null) => void;
 };
 
 // Nature d'alerte pertinente pour l'état courant de l'attraction. Les deux
@@ -50,8 +63,16 @@ function alertModeFor(status: WaitTimeStatus | null | undefined): AlertType {
   return status && status !== "open" ? "reopen" : "threshold";
 }
 
-// Alertes de temps d'attente de l'attraction. Disponibles uniquement connecté ;
-// sinon on guide l'utilisateur vers l'action à effectuer (installer / se connecter).
+// Mêmes dimensions pour la ligne repliée, la ligne « alerte active » et la
+// carte dépliée : elles se remplacent au même endroit.
+const ROW = "flex w-full items-center gap-3 rounded-2xl border p-3 text-left";
+const ICON_TILE = "grid size-9 shrink-0 place-items-center rounded-xl";
+
+// Alertes de temps d'attente de l'attraction, en UNE LIGNE repliée sous le
+// graphique (refonte du 2026-10-07) : l'ancien encart « Connectez-vous » était
+// le plus gros bloc du popup, pour l'information la moins consultée. Un clic
+// déplie la ligne en carte de réglage ; une fois l'alerte posée, la ligne dit
+// qu'elle est active, avec « Modifier » et la corbeille.
 //
 // Le Web Push marche DANS L'ONGLET sur desktop (Chrome/Edge/Firefox/Safari) et
 // sur Android Chrome — aucune installation requise. Le SEUL cas qui l'impose est
@@ -66,16 +87,8 @@ export default function AlertSection({
   const t = useTranslations("attractionDetail");
 
   // Indisponible en continu : aucune file à surveiller -> on ne propose pas
-  // d'alerte, on l'explique simplement (centré dans l'espace réservé).
-  if (unavailable) {
-    return (
-      <div className="flex min-h-[136px] items-center justify-center">
-        <p className="text-center text-sm text-muted-foreground">
-          {t("alertsUnavailable")}
-        </p>
-      </div>
-    );
-  }
+  // d'alerte, on l'explique simplement.
+  if (unavailable) return <AlertNotice>{t("alertsUnavailable")}</AlertNotice>;
 
   // Attraction à l'arrêt, mais le parc est fermé ou sur le point de l'être : la
   // seule alerte qui aurait un sens est celle de réouverture, et elle n'en a
@@ -87,37 +100,37 @@ export default function AlertSection({
     props.reopenAllowed === false &&
     alertModeFor(props.currentStatus) === "reopen"
   ) {
-    return (
-      <div className="flex min-h-[136px] items-center justify-center">
-        <p className="text-center text-sm text-muted-foreground">
-          {t("reopenTooLate")}
-        </p>
-      </div>
-    );
+    return <AlertNotice>{t("reopenTooLate")}</AlertNotice>;
   }
 
-  // Séquence installer/se connecter mutualisée avec les rappels de spectacles.
+  return <AlertPanel {...props} />;
+}
+
+// Ligne inerte, en pointillés : l'alerte n'est pas possible, et on dit pourquoi.
+function AlertNotice({ children }: { children: React.ReactNode }) {
   return (
-    <NotificationGate>
-      <AlertForm {...props} />
-    </NotificationGate>
+    <div className={cn(ROW, "border-dashed text-muted-foreground")}>
+      <span className={cn(ICON_TILE, "bg-muted")}>
+        <BellOff className="size-4" />
+      </span>
+      <p className="min-w-0 flex-1 text-sm">{children}</p>
+    </div>
   );
 }
 
-// —————————————————————— PWA + connecté : formulaire complet ——————————————————————
-
-function AlertForm({
+function AlertPanel({
   rideId,
   rideName,
   parkIdentifier,
   parkName,
   currentWaitTime,
   currentStatus,
-}: AlertSectionProps) {
+  onThresholdPreview,
+}: Omit<AlertSectionProps, "unavailable" | "reopenAllowed">) {
   const t = useTranslations("attractionDetail");
   const tAlert = useTranslations("alerts");
   const tStatus = useTranslations("attractionStatus");
-  const { refresh } = useUser();
+  const { isAuthenticated, refresh } = useUser();
   // Rafraîchit la cloche « alerte active » affichée sur la ligne de la liste.
   const { refresh: refreshNotifications } = useNotifications();
   const push = usePushNotifications();
@@ -125,17 +138,26 @@ function AlertForm({
   // de l'utilisateur : les deux natures ne sont pas des options concurrentes,
   // c'est l'attraction qui détermine celle qui peut fonctionner.
   const mode = alertModeFor(currentStatus);
+  const isReopen = mode === "reopen";
   // Défaut d'une nouvelle alerte : un cran sous le temps actuel de l'attraction.
   const defaultThreshold = defaultThresholdForWait(currentWaitTime);
+  const [expanded, setExpanded] = useState(false);
   const [threshold, setThreshold] = useState(defaultThreshold);
   const [stored, setStored] = useState<AlertDTO | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Charge l'alerte existante de cette attraction (pré-remplit le seuil).
+  // Charge l'alerte existante de cette attraction dès l'ouverture du popup, et
+  // non au dépliage : c'est elle qui décide si la ligne repliée affiche
+  // « Alerte active ». Rien à charger sans compte.
   useEffect(() => {
+    if (!isAuthenticated) {
+      setStored(null);
+      return;
+    }
     let cancelled = false;
+    setLoading(true);
     axios
       .get<AlertDTO[]>("/api/user/alerts")
       .then((res) => {
@@ -151,7 +173,7 @@ function AlertForm({
     return () => {
       cancelled = true;
     };
-  }, [rideId]);
+  }, [rideId, isAuthenticated]);
 
   // L'alerte en base ne compte comme « existante » que si elle est de la MÊME
   // nature que celle qu'on propose. Une alerte de réouverture déjà consommée
@@ -160,6 +182,7 @@ function AlertForm({
   // disparaître autre chose que ce qu'il annonce. L'enregistrement, lui, écrase
   // la ligne quoi qu'il arrive (upsert sur userId+rideId).
   const existing = stored && stored.type === mode ? stored : null;
+  const active = existing?.active ? existing : null;
 
   // Le popup suit le direct : l'attraction peut rouvrir (ou tomber en panne)
   // pendant qu'il est ouvert, et le formulaire change alors de nature sous les
@@ -180,11 +203,25 @@ function AlertForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
+  // Le seuil tracé sur le graphique : en réglage (connecté), la valeur du
+  // sélecteur ; replié, celle de l'alerte active. Jamais en mode réouverture,
+  // qui n'a pas de seuil.
+  const preview = isReopen
+    ? null
+    : expanded && isAuthenticated
+      ? threshold
+      : (active?.threshold ?? null);
+  useEffect(() => {
+    onThresholdPreview?.(preview);
+  }, [preview, onThresholdPreview]);
+  // Démonté (attraction devenue indisponible, popup fermé) : plus de ligne.
+  useEffect(() => () => onThresholdPreview?.(null), [onThresholdPreview]);
+
   const save = async () => {
     setSaving(true);
     try {
       // Avant d'enregistrer, on s'assure que CET appareil est abonné au push
-      // (permission + PushManager). Le clic « Enregistrer » est le geste
+      // (permission + PushManager). Le clic « Activer » est le geste
       // utilisateur qui autorise la demande de permission du navigateur.
       let pushOk = push.subscribed;
       if (push.supported && !push.subscribed) {
@@ -202,6 +239,7 @@ function AlertForm({
         ...(mode === "threshold" ? { threshold } : {}),
       });
       setStored(data);
+      setExpanded(false);
       refresh();
       refreshNotifications();
 
@@ -211,7 +249,7 @@ function AlertForm({
       if (push.supported && !pushOk) {
         toast.warning(t("pushBlocked"));
       } else {
-        toast.success(mode === "reopen" ? t("reopenSaved") : t("saved"));
+        toast.success(isReopen ? t("reopenSaved") : t("saved"));
       }
     } catch (err) {
       // 409 : l'attraction a changé d'état entre l'ouverture du popup et
@@ -245,110 +283,161 @@ function AlertForm({
     }
   };
 
-  if (loading) {
+  const title = isReopen ? t("reopenSave") : t("alertRowTitle");
+
+  // ————— Alerte posée : la ligne le dit, et offre de la modifier ou retirer —————
+  if (active && !expanded) {
     return (
-      <div className="flex justify-center py-4">
-        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+      <div
+        className={cn(ROW, "border-primary/35 bg-primary/10 py-2 pr-1.5")}
+      >
+        <span className={cn(ICON_TILE, "bg-primary text-primary-foreground")}>
+          <BellRing className="size-4" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold">
+            {isReopen
+              ? t("reopenActive")
+              : t("alertActiveRow", { minutes: active.threshold ?? 0 })}
+          </span>
+          {/* Permission navigateur refusée : l'alerte est enregistrée mais ce
+              navigateur ne recevra rien tant que l'utilisateur ne réautorise
+              pas les notifications dans les réglages du site. */}
+          {push.supported && push.permission === "denied" && (
+            <span className="block text-xs text-destructive">
+              {t("pushDeniedShort")}
+            </span>
+          )}
+        </span>
+        {/* Une alerte de réouverture n'a rien à régler. */}
+        {!isReopen && (
+          <Button variant="ghost" size="sm" onClick={() => setExpanded(true)}>
+            {t("alertEdit")}
+          </Button>
+        )}
+        {/* Même corbeille que le fil du profil : bouton fantôme teinté en
+            destructif. */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={remove}
+          disabled={deleting}
+          aria-label={t("delete")}
+          className="text-destructive hover:text-destructive"
+        >
+          {deleting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Trash2 className="size-4" />
+          )}
+        </Button>
       </div>
     );
   }
 
-  const isReopen = mode === "reopen";
+  // ————— Repliée : une ligne qui invite au clic —————
+  if (!expanded) {
+    return (
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        // Le temps de savoir si une alerte existe : la ligne pourrait se
+        // changer en « Alerte active » sous le doigt.
+        disabled={loading}
+        className={cn(
+          ROW,
+          "bg-muted/40 transition-colors hover:bg-muted disabled:opacity-60",
+        )}
+      >
+        <span className={cn(ICON_TILE, "bg-primary/15 text-primary")}>
+          {isReopen ? <Wrench className="size-4" /> : <Bell className="size-4" />}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold">{title}</span>
+          <span className="block text-xs text-muted-foreground">
+            {!isAuthenticated
+              ? t("alertRowSignIn")
+              : isReopen
+                ? tStatus(currentStatus ?? "closed")
+                : t("alertRowPick")}
+          </span>
+        </span>
+        {loading ? (
+          <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
+        ) : (
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+        )}
+      </button>
+    );
+  }
 
-  // « dirty » autorise l'enregistrement : nouvelle alerte, seuil modifié, ou
-  // alerte existante désactivée (le POST la réactive). Une alerte de réouverture
-  // n'a pas de réglage : elle est soit posée, soit à poser — rien à modifier.
+  // ————— Dépliée : réglage (ou installation / connexion d'abord) —————
   const dirty = isReopen
     ? !existing || !existing.active
     : !existing || !existing.active || existing.threshold !== threshold;
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      {isReopen ? (
-        // Mode RÉOUVERTURE : pas de sélecteur de seuil (il n'y a rien à
-        // paramétrer), mais l'état constaté est rappelé — c'est lui qui justifie
-        // qu'on propose cette alerte-là et pas l'autre.
-        <>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-            <Wrench className="size-3.5" />
-            {tStatus(currentStatus ?? "closed")}
-          </span>
-          <span className="text-center text-sm font-medium">
-            {t("reopenLabel")}
-          </span>
-        </>
-      ) : (
-        <>
-          <span className="text-center text-sm font-medium">
-            {tAlert("thresholdLabel")}
-          </span>
-          <NumberStepper
-            value={threshold}
-            onChange={setThreshold}
-            values={ALERT_THRESHOLDS}
-            format={(v) => tAlert("thresholdOption", { minutes: v })}
-            aria-label={tAlert("thresholdLabel")}
-          />
-        </>
-      )}
-
-      {existing?.active && (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-          <BellRing className="size-3.5" />
-          {isReopen ? t("reopenActive") : t("notifActive")}
+    <div className="flex flex-col gap-3 rounded-2xl border bg-muted/40 p-3">
+      <div className="flex items-center gap-3">
+        <span className={cn(ICON_TILE, "bg-primary/15 text-primary")}>
+          {isReopen ? <Wrench className="size-4" /> : <Bell className="size-4" />}
         </span>
-      )}
+        <span className="min-w-0 flex-1 text-sm font-semibold">{title}</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setExpanded(false)}
+          aria-label={t("close")}
+          className="text-muted-foreground"
+        >
+          <X className="size-4" />
+        </Button>
+      </div>
 
-      {/* Permission navigateur refusée : l'alerte est enregistrée mais ce
-          navigateur ne recevra rien tant que l'utilisateur ne réautorise pas les
-          notifications dans les réglages du site. */}
-      {push.supported && push.permission === "denied" && (
-        <p className="text-center text-xs text-destructive">
-          {t("pushDenied")}
-        </p>
-      )}
+      {/* Séquence installer/se connecter mutualisée avec les rappels de
+          spectacles, ici sans cadre : la carte en tient lieu. */}
+      <NotificationGate plain>
+        {isReopen ? (
+          // Mode RÉOUVERTURE : pas de sélecteur de seuil (il n'y a rien à
+          // paramétrer) — l'état constaté, rappelé sur la ligne repliée, suffit.
+          <p className="text-sm text-muted-foreground">{t("reopenLabel")}</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <NumberStepper
+              value={threshold}
+              onChange={setThreshold}
+              values={ALERT_THRESHOLDS}
+              format={(v) => tAlert("thresholdOption", { minutes: v })}
+              aria-label={tAlert("thresholdLabel")}
+              className="w-full justify-between"
+            />
+            <p className="text-center text-xs text-muted-foreground">
+              {t("alertThresholdHint")}
+            </p>
+          </div>
+        )}
 
-      {/* Navigateur sans Web Push (rare, ex. très ancien) : on le dit clairement
-          plutôt que de laisser croire que l'alerte sera reçue ici. */}
-      {push.ready && !push.supported && (
-        <p className="text-center text-xs text-muted-foreground">
-          {t("pushUnsupported")}
-        </p>
-      )}
+        {push.supported && push.permission === "denied" && (
+          <p className="text-xs text-destructive">{t("pushDenied")}</p>
+        )}
 
-      <div className="flex w-full gap-2 pt-1">
+        {/* Navigateur sans Web Push (rare, ex. très ancien) : on le dit
+            clairement plutôt que de laisser croire que l'alerte sera reçue ici. */}
+        {push.ready && !push.supported && (
+          <p className="text-xs text-muted-foreground">
+            {t("pushUnsupported")}
+          </p>
+        )}
+
         <Button
           onClick={save}
           disabled={saving || (!!existing && !dirty)}
-          className="flex-1"
+          className="w-full"
         >
           {saving && <Loader2 className="size-4 animate-spin" />}
-          {isReopen
-            ? t("reopenSave")
-            : existing
-              ? t("update")
-              : t("save")}
+          {existing?.active && !isReopen ? t("update") : t("alertActivate")}
         </Button>
-        {existing && (
-          // Même corbeille que le fil du profil : bouton fantôme teinté en
-          // destructif, plutôt qu'un bouton contour neutre. La suppression se
-          // fait désormais UNIQUEMENT ici, elle doit se lire du premier coup.
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={remove}
-            disabled={deleting}
-            aria-label={t("delete")}
-            className="text-destructive hover:text-destructive"
-          >
-            {deleting ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Trash2 className="size-4" />
-            )}
-          </Button>
-        )}
-      </div>
+      </NotificationGate>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Bell, Clock, LineChart } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,13 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import type { WaitTime } from "@/types/waitTime";
 import { useRideHistory } from "@/hooks/useRideHistory";
+import { getPrimaryQueue } from "@/lib/poi-list";
+import { MACK_WAIT_CAP } from "@/lib/wait-time-cap";
 import ImageSection from "./image-section";
+import LiveStats from "./live-stats";
 import AlertSection from "./alert-section";
 import ChartSection from "./chart-section";
-import {
-  PoiHoursList,
-  usePoiHoursOf,
-} from "@/components/parks/poi-hours-context";
+import { usePoiHoursOf } from "@/components/parks/poi-hours-context";
 
 type AttractionDetailDialogProps = {
   target: WaitTime | null;
@@ -29,28 +29,11 @@ type AttractionDetailDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-function Section({
-  title,
-  icon,
-  children,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="border-t px-5 py-3">
-      <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-        {icon}
-        {title}
-      </h3>
-      {children}
-    </section>
-  );
-}
-
-// Popup « détail attraction » : centralise image (nom + zone du parc en
-// overlay), favoris, alertes et graphique. Ouvert quand `target` est non nul.
+// Popup « détail attraction » (refonte du 2026-10-07) : bannière, bandeau de
+// chiffres à cheval dessus (attente, état, horaires), puis le graphique du jour
+// et l'alerte, réduite à une ligne qui se déplie. Plus de titres de section ni
+// de séparateurs : chaque bloc se reconnaît à sa forme. Ouvert quand `target`
+// est non nul.
 export default function AttractionDetailDialog({
   target,
   parkIdentifier,
@@ -59,9 +42,11 @@ export default function AttractionDetailDialog({
   onOpenChange,
 }: AttractionDetailDialogProps) {
   const t = useTranslations("attractionDetail");
-  const tTabs = useTranslations("tabs");
+  const queue = target ? getPrimaryQueue(target) : undefined;
   // Les heures du jour, quand la page de parc les a (voir `PoiHoursProvider`).
   const hours = usePoiHoursOf(target?.rideId);
+  // Le seuil d'alerte que le graphique matérialise, remonté par `AlertSection`.
+  const [alertThreshold, setAlertThreshold] = useState<number | null>(null);
 
   // Historique + prévision (rafraîchis toutes les 60 s tant que le popup est
   // ouvert) : le graphique les affiche, et la section Alertes s'en sert pour
@@ -74,8 +59,8 @@ export default function AttractionDetailDialog({
   } = useRideHistory(parkIdentifier, target?.rideId ?? null);
 
   // Temps standby actuel (seulement si ouvert et exploitable) : sert au seuil par
-  // défaut « un cran en dessous » ET de garde-fou contre un verdict d'historique
-  // erroné (voir plus bas).
+  // défaut « un cran en dessous », à la phrase de conseil sous le graphique, ET
+  // de garde-fou contre un verdict d'historique erroné (voir plus bas).
   const standby = target?.queues.find((q) => q.type === "standby");
   const currentWaitTime =
     standby && standby.status === "open" && standby.waitTime >= 0
@@ -91,11 +76,11 @@ export default function AttractionDetailDialog({
       {/* rounded-4xl : même radius que l'en-tête de parc et le container temps
           d'attente (main-card). overflow-hidden clippe l'image du haut sur les
           coins arrondis ; le défilement est confié au seul corps (voir plus bas).
-          Layout en colonne flex : en-tête ÉPINGLÉE (image + favori, `shrink-0`)
-          + corps DÉFILANT (`flex-1 min-h-0 overflow-y-auto`). Ainsi le bouton
-          favori reste TOUJOURS visible, quoi qu'il arrive au montage des sections
-          asynchrones (alertes, graphique) : il ne peut plus être poussé
-          hors champ par leur croissance ni par un focus qui ferait défiler. */}
+          Layout en colonne flex : en-tête ÉPINGLÉE (image + bandeau,
+          `shrink-0`) + corps DÉFILANT (`flex-1 min-h-0 overflow-y-auto`). Ainsi
+          le bouton favori et les chiffres du direct restent TOUJOURS visibles,
+          quoi qu'il arrive au montage des sections asynchrones (alerte,
+          graphique). */}
       <DialogContent
         className="flex max-h-[88vh] flex-col gap-0 overflow-hidden rounded-4xl border-0 p-0 sm:max-w-md"
         onOpenAutoFocus={(e) => e.preventDefault()}
@@ -110,10 +95,9 @@ export default function AttractionDetailDialog({
               </DialogDescription>
             </DialogHeader>
 
-            {/* En-tête épinglée (ne défile pas) : bannière avec le nom, la zone
-                du parc et l'étoile favori intégrés (plus de gros bouton séparé).
-                La zone ne s'affiche que si la source la publie — voir
-                `readPoiZone` ; sinon la ligne disparaît, sans repli. */}
+            {/* En-tête épinglée : bannière (nom, zone, étoile) et, à cheval sur
+                son bas, le bandeau de chiffres — voir `LiveStats` pour la
+                raison de sa place ici. */}
             <div className="shrink-0">
               <ImageSection
                 title={target.rideName}
@@ -122,55 +106,50 @@ export default function AttractionDetailDialog({
                 place={target.zone}
                 banner={target.banner}
                 credit={parkName}
+                overlapped
               />
+              <div className="relative z-10 -mt-10 px-4">
+                <LiveStats
+                  queue={queue}
+                  hours={hours}
+                  // Le plafond de la source vient avec l'historique ; avant, on
+                  // garde le défaut des listes (`getWaitTimeBadge`).
+                  waitCap={history ? history.meta.waitCap : MACK_WAIT_CAP}
+                />
+              </div>
             </div>
 
-            {/* Corps défilant : alertes + graphique. `scrollbar-hide` masque
-                la barre de défilement (le petit dépassement résiduel reste
-                scrollable, mais sans barre visible). */}
-            <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
-              {/* Avant les alertes : c'est une réponse, elles sont une action. */}
-              {hours && (
-                <Section
-                  title={tTabs("schedule")}
-                  icon={<Clock className="size-4" />}
-                >
-                  <PoiHoursList slots={hours.slots} timezone={hours.timezone} />
-                </Section>
-              )}
+            {/* Corps défilant. `scrollbar-hide` masque la barre de défilement
+                (le petit dépassement résiduel reste scrollable, mais sans barre
+                visible). `key` : changer d'attraction sans fermer le popup
+                repart d'une alerte repliée. */}
+            <div
+              key={target.rideId}
+              className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide"
+            >
+              <ChartSection
+                data={history}
+                loading={historyLoading}
+                currentWaitTime={currentWaitTime}
+                threshold={alertThreshold}
+              />
 
-              <Section
-                title={t("alertsTitle")}
-                icon={<Bell className="size-4" />}
-              >
-                {/* Hauteur minimale réservée, ajustée au plus près de la hauteur
-                    réelle du formulaire : le popup ne « saute » pas entre le
-                    spinner et l'affichage, SANS créer de grand vide sous le bouton. */}
-                <div className="min-h-[136px]">
-                <AlertSection
-                  rideId={target.rideId}
-                  rideName={target.rideName}
-                  parkIdentifier={parkIdentifier}
-                  parkName={parkName}
-                  // L'historique peut se tromper (parc récemment ajouté, collecte
-                  // interrompue) : s'il affiche un temps d'attente EN CE MOMENT,
-                  // le direct tranche et on laisse poser une alerte.
-                  unavailable={
-                    chronicallyUnavailable && currentWaitTime === undefined
-                  }
-                  currentWaitTime={currentWaitTime}
-                  currentStatus={currentStatus}
-                  reopenAllowed={reopenAllowed}
-                />
-                </div>
-              </Section>
-
-              <Section
-                title={t("chartTitle")}
-                icon={<LineChart className="size-4" />}
-              >
-                <ChartSection data={history} loading={historyLoading} />
-              </Section>
+              <AlertSection
+                rideId={target.rideId}
+                rideName={target.rideName}
+                parkIdentifier={parkIdentifier}
+                parkName={parkName}
+                // L'historique peut se tromper (parc récemment ajouté, collecte
+                // interrompue) : s'il affiche un temps d'attente EN CE MOMENT,
+                // le direct tranche et on laisse poser une alerte.
+                unavailable={
+                  chronicallyUnavailable && currentWaitTime === undefined
+                }
+                currentWaitTime={currentWaitTime}
+                currentStatus={currentStatus}
+                reopenAllowed={reopenAllowed}
+                onThresholdPreview={setAlertThreshold}
+              />
             </div>
           </>
         )}

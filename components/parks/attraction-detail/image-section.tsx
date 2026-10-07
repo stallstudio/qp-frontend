@@ -35,8 +35,12 @@ export default function ImageSection({
   subtitle,
   banner,
   credit,
+  overlapped = false,
 }: {
   title: string;
+  // Un bloc vient chevaucher le bas de l'image (bandeau de chiffres du popup
+  // attraction) : le titre et l'étoile remontent d'autant pour rester visibles.
+  overlapped?: boolean;
   favNamespace?: "rides" | "shows";
   favKey?: string;
   // ⚠️ **`place` et `link` s'excluent**, et ce n'est pas une contrainte
@@ -161,7 +165,9 @@ export default function ImageSection({
 
       {/* Étoile favori, en bas à droite de l'image (comme l'en-tête de parc). */}
       {showFavorite && (
-        <div className="absolute right-0 bottom-0 z-10 p-3">
+        <div
+          className={`absolute right-0 z-10 p-3 ${overlapped ? "bottom-10" : "bottom-0"}`}
+        >
           <FavoriteStar
             active={isFav}
             onToggle={() => toggle(favKey)}
@@ -178,9 +184,9 @@ export default function ImageSection({
           réserve la place de l'étoile — et seulement quand il y en a une, sinon
           le titre s'arrêterait à 64 px d'un bord vide. */}
       <div
-        className={`absolute inset-x-0 bottom-0 flex flex-col items-start gap-1 px-5 pb-4 text-left ${
+        className={`absolute inset-x-0 bottom-0 flex flex-col items-start gap-1 px-5 text-left ${
           showFavorite ? "pr-16" : "pr-5"
-        }`}
+        } ${overlapped ? "pb-14" : "pb-4"}`}
       >
         <p className="text-xl font-bold text-white line-clamp-2 drop-shadow-sm">
           {title}
