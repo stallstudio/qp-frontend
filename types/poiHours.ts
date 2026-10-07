@@ -1,4 +1,5 @@
 import type { PoiKind } from "@/lib/poi-kinds";
+import type { PoiPrice } from "@/lib/poi-facts";
 
 /** Un créneau d'ouverture, bornes en ISO 8601 (UTC). */
 export type PoiHoursSlot = {
@@ -28,6 +29,13 @@ export type PoiHours = {
   banner: string | null;
   zone: string | null;
   menu: string | null;
+  /**
+   * Niveau de peur d'une maison hantée, de 1 à 5, et son prix d'accès en plus
+   * de l'entrée — `null` quand la source n'en publie pas, c'est-à-dire presque
+   * partout. Voir `lib/poi-facts.ts`.
+   */
+  fearLevel: number | null;
+  price: PoiPrice | null;
   /** Triés par ouverture. */
   slots: PoiHoursSlot[];
 };

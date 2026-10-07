@@ -7,6 +7,7 @@ import {
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDates } from "@/lib/show-times";
 import { getPoiHoursByParkAndDate } from "@/lib/poi-hours";
+import { getUnscheduledEventShows } from "@/lib/event-shows";
 import { limitShowsToSessions } from "@/lib/show-window";
 import { getWeatherByParkAndDate } from "@/lib/weather";
 import { getParkEventsByDate } from "@/lib/park-events-db";
@@ -206,6 +207,14 @@ async function buildParkLiveSnapshot(
   // évite une seconde requête sur `opening_hours`.
   const events = await getParkEventsByDate(park.id, today, openingHours ?? []);
 
+  // Après les événements, et pour la même raison : seuls ceux qui s'affichent
+  // ont une carte où ranger leurs spectacles sans séance.
+  const unscheduledShows = await getUnscheduledEventShows(
+    park.id,
+    events.map((event) => event.id),
+    new Set((showTimes ?? []).map((show) => show.poiId)),
+  );
+
   // Chaque créneau est rendu à la SÉANCE qui le contient — un spectacle
   // d'événement à celles de son événement, les autres à l'exploitation de
   // jour. C'est ce qui retire les représentations de la nuit PRÉCÉDENTE, que
@@ -238,6 +247,7 @@ async function buildParkLiveSnapshot(
       openingHours: openingHours ?? [],
       waitTimes,
       shows,
+      unscheduledShows,
       poiHours,
       weather,
       events,

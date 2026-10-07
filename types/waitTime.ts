@@ -1,4 +1,5 @@
 import type { PoiKind } from "@/lib/poi-kinds";
+import type { PoiPrice } from "@/lib/poi-facts";
 
 export type WaitTimeStatus = "open" | "closed" | "down" | "maintenance";
 
@@ -84,4 +85,11 @@ export type WaitTime = {
    * déclarer l'hôte de chaque parc ; un PDF n'y a rien à faire.
    */
   menu: string | null;
+  /**
+   * Niveau de peur d'une maison hantée, de 1 à 5, et son prix d'accès en plus
+   * de l'entrée — `null` quand la source n'en publie pas, c'est-à-dire presque
+   * partout. Voir `lib/poi-facts.ts`.
+   */
+  fearLevel: number | null;
+  price: PoiPrice | null;
 };

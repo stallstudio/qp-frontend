@@ -110,7 +110,18 @@
     "reminderRowEdit": "Edit or add",
     "reminderRowCount": "{count, plural, one {# reminder set} other {# reminders set}}",
     "reminderSlot": "{time} show",
-    "reminderPickHint": "Tap another upcoming showtime to pick it."
+    "reminderPickHint": "Tap another upcoming showtime to pick it.",
+    "noSchedule": "The park doesn't publish times for this attraction.",
+    "unscheduledTitle": "Times not published"
+  },
+  "poiFacts": {
+    "fearLevel": "Scare level",
+    "fearLevelValue": "{level} out of 5",
+    "price": "Price",
+    "free": "Free",
+    "extendedPrice": "{price} on extended days",
+    "extendedOnly": "On extended days",
+    "extendedToday": "Extended-day price"
   },
   "favorites": {
     "myFavorites": "My favorites",

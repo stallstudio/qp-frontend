@@ -110,7 +110,18 @@
     "reminderRowEdit": "Modifica o aggiungi",
     "reminderRowCount": "{count, plural, one {# promemoria impostato} other {# promemoria impostati}}",
     "reminderSlot": "Spettacolo delle {time}",
-    "reminderPickHint": "Tocca un altro orario in arrivo per sceglierlo."
+    "reminderPickHint": "Tocca un altro orario in arrivo per sceglierlo.",
+    "noSchedule": "Il parco non pubblica orari per questa attrazione.",
+    "unscheduledTitle": "Orari non pubblicati"
+  },
+  "poiFacts": {
+    "fearLevel": "Livello di paura",
+    "fearLevelValue": "{level} su 5",
+    "price": "Prezzo",
+    "free": "Gratis",
+    "extendedPrice": "{price} nei giorni ad orario prolungato",
+    "extendedOnly": "Nei giorni ad orario prolungato",
+    "extendedToday": "Tariffa orario prolungato"
   },
   "favorites": {
     "myFavorites": "I miei preferiti",

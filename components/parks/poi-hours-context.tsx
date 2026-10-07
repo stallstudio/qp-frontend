@@ -9,6 +9,12 @@ import type { PoiHoursSlot } from "@/types/poiHours";
 type PoiHoursContextValue = {
   byPoi: ReadonlyMap<number, PoiHoursSlot[]>;
   timezone: string;
+  /**
+   * Fermeture du PARC aujourd'hui, en minutes depuis le minuit de sa journée
+   * (voir `parkCloseMinutes`). Sert à choisir le prix du jour d'une maison
+   * hantée (`PoiFacts`) ; `null` sans horaires publiés.
+   */
+  parkCloseMinutes: number | null;
 };
 
 /**
@@ -33,6 +39,15 @@ export function usePoiHoursOf(poiId: number | null | undefined) {
   return slots && slots.length > 0
     ? { slots, timezone: context.timezone }
     : null;
+}
+
+/**
+ * Fermeture du parc aujourd'hui, en minutes, ou `null` — hors page de parc,
+ * ou sans horaires publiés. Le prix d'une maison hantée s'affiche alors en
+ * entier, classique et prolongé.
+ */
+export function useParkCloseMinutes(): number | null {
+  return useContext(PoiHoursContext)?.parkCloseMinutes ?? null;
 }
 
 /** « 10:00 – 18:00 », un créneau par ligne, suivi de son nom s'il en a un. */

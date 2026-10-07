@@ -110,7 +110,18 @@
     "reminderRowEdit": "修改或添加",
     "reminderRowCount": "{count, plural, other {已设置 # 个提醒}}",
     "reminderSlot": "{time} 场",
-    "reminderPickHint": "点击其他即将开始的场次即可选择。"
+    "reminderPickHint": "点击其他即将开始的场次即可选择。",
+    "noSchedule": "乐园未公布此项目的时间。",
+    "unscheduledTitle": "时间未公布"
+  },
+  "poiFacts": {
+    "fearLevel": "恐怖等级",
+    "fearLevelValue": "{level}/5",
+    "price": "价格",
+    "free": "免费",
+    "extendedPrice": "延长开放日 {price}",
+    "extendedOnly": "延长开放日",
+    "extendedToday": "延长开放日价格"
   },
   "favorites": {
     "myFavorites": "我的收藏",

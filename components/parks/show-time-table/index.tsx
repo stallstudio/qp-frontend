@@ -14,9 +14,11 @@ import type { ShowTime } from "@/types/show";
 import { ShowTimeTableProps } from "./types";
 import { compareShowSortKeys, showSortKey } from "./utils";
 import ScheduleGrid, { type GridRow } from "./schedule-grid";
+import UnscheduledShowList from "./unscheduled-show-list";
 
 export default function ParkShowTimeTable({
   shows,
+  unscheduled = [],
   timezone,
   parkDate,
   parkIdentifier,
@@ -93,12 +95,24 @@ export default function ParkShowTimeTable({
 
   return (
     <>
-      <ScheduleGrid
-        rows={rows}
-        timezone={timezone}
-        parkDate={parkDate}
-        onActivate={(uid) => setDetailTarget(byUid.get(uid) ?? null)}
-      />
+      {/* Sans séance du tout, pas de grille : elle dirait « aucun temps
+          d'attente » au-dessus de la liste qui suit. */}
+      {(rows.length > 0 || unscheduled.length === 0) && (
+        <ScheduleGrid
+          rows={rows}
+          timezone={timezone}
+          parkDate={parkDate}
+          onActivate={(uid) => setDetailTarget(byUid.get(uid) ?? null)}
+        />
+      )}
+
+      {unscheduled.length > 0 && (
+        <UnscheduledShowList
+          shows={unscheduled}
+          withHeading={rows.length > 0}
+          onActivate={setDetailTarget}
+        />
+      )}
 
       {/* Popup « détail spectacle », ouvert par un clic sur une ligne. */}
       <ShowDetailDialog

@@ -110,7 +110,18 @@
     "reminderRowEdit": "Sửa hoặc thêm",
     "reminderRowCount": "{count, plural, other {Đã đặt # lời nhắc}}",
     "reminderSlot": "Suất {time}",
-    "reminderPickHint": "Chạm vào một suất sắp tới khác để chọn."
+    "reminderPickHint": "Chạm vào một suất sắp tới khác để chọn.",
+    "noSchedule": "Công viên không công bố giờ cho điểm tham quan này.",
+    "unscheduledTitle": "Chưa công bố giờ"
+  },
+  "poiFacts": {
+    "fearLevel": "Mức độ đáng sợ",
+    "fearLevelValue": "{level} trên 5",
+    "price": "Giá",
+    "free": "Miễn phí",
+    "extendedPrice": "{price} vào ngày mở cửa kéo dài",
+    "extendedOnly": "Vào ngày mở cửa kéo dài",
+    "extendedToday": "Giá ngày mở cửa kéo dài"
   },
   "favorites": {
     "myFavorites": "Yêu thích của tôi",

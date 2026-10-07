@@ -110,7 +110,18 @@
     "reminderRowEdit": "Wijzigen of toevoegen",
     "reminderRowCount": "{count, plural, one {# herinnering ingesteld} other {# herinneringen ingesteld}}",
     "reminderSlot": "Show van {time}",
-    "reminderPickHint": "Tik op een ander komend tijdstip om het te kiezen."
+    "reminderPickHint": "Tik op een ander komend tijdstip om het te kiezen.",
+    "noSchedule": "Het park publiceert geen tijden voor deze attractie.",
+    "unscheduledTitle": "Tijden niet gepubliceerd"
+  },
+  "poiFacts": {
+    "fearLevel": "Schrikniveau",
+    "fearLevelValue": "{level} van 5",
+    "price": "Prijs",
+    "free": "Gratis",
+    "extendedPrice": "{price} op dagen met avondopening",
+    "extendedOnly": "Op dagen met avondopening",
+    "extendedToday": "Tarief avondopening"
   },
   "favorites": {
     "myFavorites": "Mijn favorieten",

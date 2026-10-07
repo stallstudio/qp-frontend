@@ -110,7 +110,18 @@
     "reminderRowEdit": "Modificar o añadir",
     "reminderRowCount": "{count, plural, one {# recordatorio programado} other {# recordatorios programados}}",
     "reminderSlot": "Sesión de las {time}",
-    "reminderPickHint": "Toca otra sesión próxima para elegirla."
+    "reminderPickHint": "Toca otra sesión próxima para elegirla.",
+    "noSchedule": "El parque no publica horarios para esta atracción.",
+    "unscheduledTitle": "Horarios no publicados"
+  },
+  "poiFacts": {
+    "fearLevel": "Nivel de miedo",
+    "fearLevelValue": "{level} de 5",
+    "price": "Precio",
+    "free": "Gratis",
+    "extendedPrice": "{price} en días de horario ampliado",
+    "extendedOnly": "En días de horario ampliado",
+    "extendedToday": "Tarifa de horario ampliado"
   },
   "favorites": {
     "myFavorites": "Mis favoritos",

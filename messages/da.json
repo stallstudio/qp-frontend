@@ -110,7 +110,18 @@
     "reminderRowEdit": "Redigér eller tilføj",
     "reminderRowCount": "{count, plural, one {# påmindelse sat} other {# påmindelser sat}}",
     "reminderSlot": "Forestilling kl. {time}",
-    "reminderPickHint": "Tryk på en anden kommende forestilling for at vælge den."
+    "reminderPickHint": "Tryk på en anden kommende forestilling for at vælge den.",
+    "noSchedule": "Parken offentliggør ikke tider for denne attraktion.",
+    "unscheduledTitle": "Tider ikke offentliggjort"
+  },
+  "poiFacts": {
+    "fearLevel": "Uhyggeniveau",
+    "fearLevelValue": "{level} ud af 5",
+    "price": "Pris",
+    "free": "Gratis",
+    "extendedPrice": "{price} på dage med forlænget åbningstid",
+    "extendedOnly": "På dage med forlænget åbningstid",
+    "extendedToday": "Pris ved forlænget åbningstid"
   },
   "favorites": {
     "myFavorites": "Mine favoritter",

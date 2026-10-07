@@ -110,7 +110,18 @@
     "reminderRowEdit": "수정 또는 추가",
     "reminderRowCount": "{count, plural, other {알림 #개 설정됨}}",
     "reminderSlot": "{time} 공연",
-    "reminderPickHint": "다른 예정 공연을 눌러 선택하세요."
+    "reminderPickHint": "다른 예정 공연을 눌러 선택하세요.",
+    "noSchedule": "공원에서 이 어트랙션의 시간을 공개하지 않습니다.",
+    "unscheduledTitle": "시간 미공개"
+  },
+  "poiFacts": {
+    "fearLevel": "공포 단계",
+    "fearLevelValue": "5단계 중 {level}",
+    "price": "요금",
+    "free": "무료",
+    "extendedPrice": "연장 운영일 {price}",
+    "extendedOnly": "연장 운영일",
+    "extendedToday": "연장 운영일 요금"
   },
   "favorites": {
     "myFavorites": "내 즐겨찾기",

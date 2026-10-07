@@ -110,7 +110,18 @@
     "reminderRowEdit": "Ändra eller lägg till",
     "reminderRowCount": "{count, plural, one {# påminnelse satt} other {# påminnelser satta}}",
     "reminderSlot": "Föreställning kl. {time}",
-    "reminderPickHint": "Tryck på en annan kommande föreställning för att välja den."
+    "reminderPickHint": "Tryck på en annan kommande föreställning för att välja den.",
+    "noSchedule": "Parken publicerar inga tider för den här attraktionen.",
+    "unscheduledTitle": "Tider inte publicerade"
+  },
+  "poiFacts": {
+    "fearLevel": "Skräcknivå",
+    "fearLevelValue": "{level} av 5",
+    "price": "Pris",
+    "free": "Gratis",
+    "extendedPrice": "{price} på dagar med förlängda öppettider",
+    "extendedOnly": "På dagar med förlängda öppettider",
+    "extendedToday": "Pris vid förlängda öppettider"
   },
   "favorites": {
     "myFavorites": "Mina favoriter",

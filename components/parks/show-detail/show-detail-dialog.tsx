@@ -21,6 +21,7 @@ import {
 } from "@/components/parks/attraction-detail/live-stats";
 import { getShowAccessInfo } from "@/components/parks/show-time-table/utils";
 import ShowSchedulePanel, { useShowSlots } from "./show-schedule-panel";
+import PoiFacts from "@/components/parks/attraction-detail/poi-facts";
 
 type ShowDetailDialogProps = {
   target: ShowTime | null;
@@ -189,12 +190,24 @@ export default function ShowDetailDialog({
               key={target.showName}
               className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0"
             >
-              <ShowSchedulePanel
-                parkIdentifier={parkIdentifier}
-                parkName={parkName}
-                showName={target.showName}
-                slots={slots}
-              />
+              {/* Peur et prix d'une maison hantée, quand la source les
+                  publie (les parcs CDA) — rien sinon. */}
+              <PoiFacts fearLevel={target.fearLevel} price={target.price} />
+              {/* Un spectacle d'événement SANS séance publiée (les maisons de
+                  Bellewaerde) : ni grille ni rappel, qui diraient « plus de
+                  représentation aujourd'hui » — faux, on n'en sait rien. */}
+              {target.schedules.length > 0 ? (
+                <ShowSchedulePanel
+                  parkIdentifier={parkIdentifier}
+                  parkName={parkName}
+                  showName={target.showName}
+                  slots={slots}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {t("noSchedule")}
+                </p>
+              )}
             </div>
           </>
         )}

@@ -95,6 +95,8 @@ export default function PoiHoursTable({
       kind: item.kind,
       zone: item.zone,
       menu: item.menu,
+      fearLevel: item.fearLevel,
+      price: item.price,
     };
   }, [detailPoiId, waitTimes, items]);
 

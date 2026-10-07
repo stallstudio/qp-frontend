@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import ImageSection from "@/components/parks/attraction-detail/image-section";
 import LiveStats from "@/components/parks/attraction-detail/live-stats";
+import PoiFacts from "@/components/parks/attraction-detail/poi-facts";
 import { getPrimaryQueue } from "@/lib/poi-list";
 import { showsWaitTime } from "@/lib/poi-kinds";
 import type { WaitTime } from "@/types/waitTime";
@@ -101,6 +102,9 @@ export default function PoiDetailDialog({
   // Un service coupé (déjeuner, dîner) : le bandeau ne dit que l'heure qui
   // compte à l'instant, la liste dit la journée.
   const splitDay = hours && hours.slots.length > 1;
+  // Peur et prix : une maison hantée que la source range ailleurs qu'en
+  // attraction ou en spectacle.
+  const hasFacts = Boolean(target && (target.fearLevel !== null || target.price !== null));
 
   return (
     <Dialog open={target !== null} onOpenChange={onOpenChange}>
@@ -148,8 +152,10 @@ export default function PoiDetailDialog({
 
             {/* Rien à mettre dessous (ni journée coupée, ni carte) : pas de
                 corps du tout, plutôt qu'une marge vide sous le bandeau. */}
-            {(splitDay || target.menu) && (
+            {(splitDay || target.menu || hasFacts) && (
             <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0">
+              <PoiFacts fearLevel={target.fearLevel} price={target.price} />
+
               {splitDay && (
                 <div className="flex flex-col gap-2">
                   <h3 className="text-[15px] font-semibold">
@@ -183,7 +189,7 @@ export default function PoiDetailDialog({
               )}
             </div>
             )}
-            {!(splitDay || target.menu) && hasStrip && <div className="h-4" />}
+            {!(splitDay || target.menu || hasFacts) && hasStrip && <div className="h-4" />}
           </>
         )}
       </DialogContent>

@@ -674,6 +674,33 @@ ligne GRISE au milieu d'une carte Halloween rouge, comme la colonne de noms des
 spectacles avant `--table-surface`. Les redéfinitions se mélangent à
 `transparent` (et non au fond) : c'est un voile de PLUS sur celui de la carte.
 
+⚠️ **Les spectacles d'un événement SANS séance ont leur liste** (2026-10-07,
+`lib/event-shows.ts`, `unscheduledShows`). Le front ne connaissait un spectacle
+que par ses séances : les cinq maisons de Bellewaerde, publiées avec prix et
+niveau de peur mais sans aucun horaire, n'apparaissaient nulle part. Elles sont
+listées sous la grille, dans la carte de leur événement, et ouvrent le même
+popup — sans panneau de séances ni de rappel, qui diraient « plus de
+représentation aujourd'hui » quand on n'en sait rien. ⚠️ L'exclusion porte sur
+les séances AVANT `limitShowsToSessions` : un spectacle dont toutes les séances
+sont tombées hors des sessions du jour a bien un horaire.
+
+### Peur et prix des maisons hantées (`lib/poi-facts.ts`, `attraction-detail/poi-facts.tsx`)
+
+`additionalData.fearLevel` (1 à 5) et `additionalData.price`, écrits par le
+worker pour les parcs CDA, portés par `WaitTime`, `ShowTime` et `PoiHours` et
+affichés par `PoiFacts` dans les TROIS popups — une maison est un spectacle chez
+CDA, une attraction ailleurs. Une ligne dans le corps, pas dans le bandeau
+(plafonné à trois cases). Rien quand la source ne publie rien.
+
+⚠️ **Le prix du jour est DÉDUIT de la fermeture du parc** (`priceForToday`) :
+le worker joint au prix la fermeture la plus tardive d'une journée classique et
+la plus précoce d'une prolongée (18:00 et 22:00 à Walibi Belgium) ; le contexte
+des popups porte la fermeture du jour (`parkCloseMinutes`, lignes de la
+JOURNÉE seulement). Entre les deux, sans bornes ou sans horaires : les deux
+prix, ce qui n'est jamais faux. ⚠️ L'heure de fermeture se lit sur l'HORLOGE :
+mesurée en durée depuis minuit, une journée prolongée du 25/10 (25 h, passage à
+l'heure d'hiver) se lisait 23:00.
+
 ### Historique & tendances — SUPPRIMÉS (2026-07-27)
 
 Les flèches de tendance et l'historique global du jour, suspendus depuis

@@ -17,6 +17,7 @@ import { CHARTED_QUEUE_TYPES, STANDBY_QUEUE } from "@/lib/queue-types";
 import { MACK_WAIT_CAP } from "@/lib/wait-time-cap";
 import ImageSection from "./image-section";
 import LiveStats from "./live-stats";
+import PoiFacts from "./poi-facts";
 import AlertSection from "./alert-section";
 import ChartSection from "./chart-section";
 import { usePoiHoursOf } from "@/components/parks/poi-hours-context";
@@ -185,6 +186,11 @@ export default function AttractionDetailDialog({
               key={`${target.rideId}:${queueType}`}
               className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0"
             >
+              {/* Peur et prix d'une maison hantée publiée en attraction —
+                  rien pour un manège ordinaire. Une ligne : l'alerte reste
+                  au-dessus de la flottaison. */}
+              <PoiFacts fearLevel={target.fearLevel} price={target.price} />
+
               {/* ⚠️ L'alerte AVANT le graphique (2026-10-07) : placée dessous,
                   elle tombait sous la ligne de flottaison sur un iPhone, et
                   rien ne disait qu'elle existait. C'est la seule action du

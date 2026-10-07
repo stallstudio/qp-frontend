@@ -2,6 +2,12 @@ import { ShowTime } from "@/types/show";
 
 export type ShowTimeTableProps = {
   shows: ShowTime[];
+  /**
+   * Spectacles de l'événement SANS séance aujourd'hui (voir
+   * `lib/event-shows.ts`), listés sous la grille. Seulement dans une carte
+   * d'événement.
+   */
+  unscheduled?: ShowTime[];
   timezone: string;
   parkDate?: string | null;
   parkIdentifier: string;

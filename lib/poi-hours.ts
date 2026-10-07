@@ -1,5 +1,6 @@
 import { getPrisma } from "./prisma";
 import { readBanner, readPoiMenu, readPoiZone } from "@/lib/poi-banner";
+import { readPoiFearLevel, readPoiPrice } from "@/lib/poi-facts";
 import { parsePoiKind } from "@/lib/poi-kinds";
 import type { PoiHours } from "@/types/poiHours";
 
@@ -58,6 +59,8 @@ export async function getPoiHoursByParkAndDate(
           banner: readBanner(row.poi.additionalData),
           zone: readPoiZone(row.poi.additionalData),
           menu: readPoiMenu(row.poi.additionalData),
+          fearLevel: readPoiFearLevel(row.poi.additionalData),
+          price: readPoiPrice(row.poi.additionalData),
           slots: [],
         };
         byPoi.set(row.poiId, entry);

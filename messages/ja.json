@@ -110,7 +110,18 @@
     "reminderRowEdit": "変更・追加",
     "reminderRowCount": "{count, plural, other {#件の通知を設定済み}}",
     "reminderSlot": "{time}の公演",
-    "reminderPickHint": "別の公演をタップして選択できます。"
+    "reminderPickHint": "別の公演をタップして選択できます。",
+    "noSchedule": "パークはこのアトラクションの時間を公開していません。",
+    "unscheduledTitle": "時間未公開"
+  },
+  "poiFacts": {
+    "fearLevel": "怖さレベル",
+    "fearLevelValue": "5段階中{level}",
+    "price": "料金",
+    "free": "無料",
+    "extendedPrice": "延長営業日は{price}",
+    "extendedOnly": "延長営業日",
+    "extendedToday": "延長営業日の料金"
   },
   "favorites": {
     "myFavorites": "お気に入り",

@@ -30,6 +30,12 @@ export type ParkLiveData = {
   waitTimes: WaitTime[];
   shows: ShowTime[];
   /**
+   * Spectacles d'un événement affiché qui n'ont AUCUNE séance aujourd'hui —
+   * `schedules` vide. Rangés dans la carte de leur événement, sous la grille.
+   * Vide hors événement. Voir `lib/event-shows.ts`.
+   */
+  unscheduledShows: ShowTime[];
+  /**
    * Heures d'ouverture du jour des POI (restaurants, boutiques, attractions…),
    * pour l'onglet « Horaires du jour ». Vide pour la quasi-totalité des parcs.
    */

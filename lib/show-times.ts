@@ -1,6 +1,7 @@
 import { ShowTime } from "@/types/show";
 import { getPrisma } from "./prisma";
 import { readBanner, readPoiVenue, readPoiZone } from "@/lib/poi-banner";
+import { readPoiFearLevel, readPoiPrice } from "@/lib/poi-facts";
 
 /**
  * Créneaux d'un parc pour une ou plusieurs dates de RANGEMENT.
@@ -47,6 +48,8 @@ export async function getShowTimesByParkAndDates(
 
       if (!showsMap.has(externalId)) {
         showsMap.set(externalId, {
+          // `poiId: { not: null }` dans la requête.
+          poiId: st.poiId!,
           showName: st.poi?.name ?? "Unknown",
           duration: st.poi?.duration ?? 0,
           // Sans requête supplémentaire : `include: { poi: true }` ci-dessus
@@ -55,6 +58,8 @@ export async function getShowTimesByParkAndDates(
           banner: readBanner(st.poi?.additionalData),
           zone: readPoiZone(st.poi?.additionalData),
           venue: readPoiVenue(st.poi?.additionalData),
+          fearLevel: readPoiFearLevel(st.poi?.additionalData),
+          price: readPoiPrice(st.poi?.additionalData),
           schedules: [],
         });
       }

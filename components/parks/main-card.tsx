@@ -35,6 +35,7 @@ import ParkShowTimeTable from "./show-time-table";
 import PoiStatusTable from "./poi-status-table";
 import PoiHoursTable from "./poi-hours-table";
 import { PoiHoursProvider } from "./poi-hours-context";
+import { parkCloseMinutes } from "@/lib/poi-facts";
 import EventCard from "./event-card";
 import FamilySwitcher from "./family-switcher";
 import {
@@ -348,8 +349,9 @@ export default function MainCard({
         (park.poiHours ?? []).map((item) => [item.poiId, item.slots]),
       ),
       timezone: park.timezone,
+      parkCloseMinutes: parkCloseMinutes(park.openingHours ?? [], park.timezone),
     }),
-    [park.poiHours, park.timezone],
+    [park.poiHours, park.timezone, park.openingHours],
   );
 
   const parkDate = park.openingHours?.[0]?.date ?? null;
@@ -438,6 +440,7 @@ export default function MainCard({
   const hasEventItems = (eventId: number) =>
     park.waitTimes.some((wt) => wt.eventId === eventId) ||
     (park.shows ?? []).some((s) => s.eventId === eventId) ||
+    (park.unscheduledShows ?? []).some((s) => s.eventId === eventId) ||
     poiHours.some((h) => h.eventId === eventId);
 
   // ⚠️ **Les cartes d'événement suivent la famille choisie**, comme le reste de
@@ -495,14 +498,20 @@ export default function MainCard({
         },
     );
 
+  // Les spectacles SANS séance de l'événement (`unscheduledShows`) comptent
+  // aussi : sans eux, les maisons de Bellewaerde, qui ne publient aucun
+  // horaire, n'auraient pas de carte du tout.
   const eventShowCards = eventViews
     .map((view) => ({
       view,
       items: (park.shows ?? []).filter((s) => s.eventId === view.event.id),
+      unscheduled: (park.unscheduledShows ?? []).filter(
+        (s) => s.eventId === view.event.id,
+      ),
     }))
-    .filter(({ items }) => items.length > 0)
+    .filter(({ items, unscheduled }) => items.length > 0 || unscheduled.length > 0)
     .map(
-      ({ view, items }): StackCard =>
+      ({ view, items, unscheduled }): StackCard =>
         function eventCard(radius: string) {
           return (
             <EventCard
@@ -513,6 +522,7 @@ export default function MainCard({
             >
               <ParkShowTimeTable
                 shows={items}
+                unscheduled={unscheduled}
                 timezone={park.timezone}
                 parkDate={parkDate}
                 parkIdentifier={park.identifier}

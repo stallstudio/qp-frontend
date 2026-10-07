@@ -110,7 +110,18 @@
     "reminderRowEdit": "Zmień lub dodaj",
     "reminderRowCount": "{count, plural, one {# przypomnienie ustawione} few {# przypomnienia ustawione} many {# przypomnień ustawionych} other {# przypomnienia ustawione}}",
     "reminderSlot": "Pokaz o {time}",
-    "reminderPickHint": "Dotknij innego nadchodzącego pokazu, aby go wybrać."
+    "reminderPickHint": "Dotknij innego nadchodzącego pokazu, aby go wybrać.",
+    "noSchedule": "Park nie publikuje godzin dla tej atrakcji.",
+    "unscheduledTitle": "Godziny nieopublikowane"
+  },
+  "poiFacts": {
+    "fearLevel": "Poziom strachu",
+    "fearLevelValue": "{level} na 5",
+    "price": "Cena",
+    "free": "Bezpłatnie",
+    "extendedPrice": "{price} w dni z wydłużonymi godzinami otwarcia",
+    "extendedOnly": "W dni z wydłużonymi godzinami otwarcia",
+    "extendedToday": "Cena w dni z wydłużonymi godzinami"
   },
   "favorites": {
     "myFavorites": "Moje ulubione",
