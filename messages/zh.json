@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "查看 {show} 的详情",
-    "notifTitle": "提醒",
-    "duration": "时长：{duration}",
-    "continuousAccess": "全时段开放 · {range}",
     "signInIntro": "登录后可在演出开始前收到提醒。",
     "reminderIntro": "先选择场次，再选择提前多久提醒你。",
     "leadLabel": "希望在演出开始前多久收到提醒？",
@@ -102,7 +99,17 @@
     "noUpcoming": "今天没有更多演出了。",
     "leadTooLate": "该场次即将开始，来不及设置提醒了。",
     "reminderActivate": "开启提醒",
-    "reminderModify": "修改提醒"
+    "reminderModify": "修改提醒",
+    "liveNext": "下一场",
+    "liveDuration": "时长",
+    "liveRemaining": "剩余",
+    "liveAccess": "入场",
+    "reminderRowTitle": "演出前提醒我",
+    "reminderRowPick": "选择场次",
+    "reminderRowEdit": "修改或添加",
+    "reminderRowCount": "{count, plural, other {已设置 # 个提醒}}",
+    "reminderSlot": "{time} 场",
+    "reminderPickHint": "点击其他即将开始的场次即可选择。"
   },
   "favorites": {
     "myFavorites": "我的收藏",

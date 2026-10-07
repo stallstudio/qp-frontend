@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "Details van {show} bekijken",
-    "notifTitle": "Meldingen",
-    "duration": "Duur: {duration}",
-    "continuousAccess": "Doorlopend · {range}",
     "signInIntro": "Meld je aan om een herinnering te krijgen voordat een show begint.",
     "reminderIntro": "Kies een voorstelling en daarna hoelang van tevoren je een herinnering wilt.",
     "leadLabel": "Hoelang voor de show wil je een herinnering?",
@@ -102,7 +99,17 @@
     "noUpcoming": "Er staan vandaag geen shows meer op het programma.",
     "leadTooLate": "Deze voorstelling begint te snel om nog een herinnering in te stellen.",
     "reminderActivate": "Herinnering inschakelen",
-    "reminderModify": "Herinnering bewerken"
+    "reminderModify": "Herinnering bewerken",
+    "liveNext": "Volgende show",
+    "liveDuration": "Duur",
+    "liveRemaining": "Resterend",
+    "liveAccess": "Toegang",
+    "reminderRowTitle": "Herinner me vóór een show",
+    "reminderRowPick": "Kies een tijdstip",
+    "reminderRowEdit": "Wijzigen of toevoegen",
+    "reminderRowCount": "{count, plural, one {# herinnering ingesteld} other {# herinneringen ingesteld}}",
+    "reminderSlot": "Show van {time}",
+    "reminderPickHint": "Tik op een ander komend tijdstip om het te kiezen."
   },
   "favorites": {
     "myFavorites": "Mijn favorieten",

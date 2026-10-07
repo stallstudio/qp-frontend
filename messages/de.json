@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "Details zu {show} ansehen",
-    "notifTitle": "Benachrichtigungen",
-    "duration": "Dauer: {duration}",
-    "continuousAccess": "Durchgehend · {range}",
     "signInIntro": "Melde dich an, um vor Showbeginn erinnert zu werden.",
     "reminderIntro": "Wähle eine Spielzeit und danach, wie lange vorher du erinnert werden möchtest.",
     "leadLabel": "Wie lange vor der Show möchtest du erinnert werden?",
@@ -102,7 +99,17 @@
     "noUpcoming": "Heute stehen keine Shows mehr an.",
     "leadTooLate": "Diese Spielzeit ist zu nah, um noch eine Erinnerung einzurichten.",
     "reminderActivate": "Erinnerung aktivieren",
-    "reminderModify": "Erinnerung bearbeiten"
+    "reminderModify": "Erinnerung bearbeiten",
+    "liveNext": "Nächste Vorstellung",
+    "liveDuration": "Dauer",
+    "liveRemaining": "Übrig",
+    "liveAccess": "Zugang",
+    "reminderRowTitle": "Vor einer Vorstellung erinnern",
+    "reminderRowPick": "Vorstellung wählen",
+    "reminderRowEdit": "Ändern oder hinzufügen",
+    "reminderRowCount": "{count, plural, one {# Erinnerung gesetzt} other {# Erinnerungen gesetzt}}",
+    "reminderSlot": "Vorstellung um {time}",
+    "reminderPickHint": "Tippe auf eine andere kommende Vorstellung, um sie zu wählen."
   },
   "favorites": {
     "myFavorites": "Meine Favoriten",

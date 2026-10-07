@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "{show} の詳細を見る",
-    "notifTitle": "通知",
-    "duration": "所要時間：{duration}",
-    "continuousAccess": "随時入場 · {range}",
     "signInIntro": "ログインすると、ショー開始前にお知らせを受け取れます。",
     "reminderIntro": "公演を選び、その何分前に知らせるかを選択してください。",
     "leadLabel": "ショーの何分前に知らせますか？",
@@ -102,7 +99,17 @@
     "noUpcoming": "本日はもう公演がありません。",
     "leadTooLate": "この公演は開始が近すぎるため、リマインダーを設定できません。",
     "reminderActivate": "リマインダーを有効にする",
-    "reminderModify": "リマインダーを編集"
+    "reminderModify": "リマインダーを編集",
+    "liveNext": "次の公演",
+    "liveDuration": "所要時間",
+    "liveRemaining": "残り",
+    "liveAccess": "入場",
+    "reminderRowTitle": "公演前に通知",
+    "reminderRowPick": "公演を選択",
+    "reminderRowEdit": "変更・追加",
+    "reminderRowCount": "{count, plural, other {#件の通知を設定済み}}",
+    "reminderSlot": "{time}の公演",
+    "reminderPickHint": "別の公演をタップして選択できます。"
   },
   "favorites": {
     "myFavorites": "お気に入り",

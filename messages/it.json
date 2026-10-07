@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "Vedi i dettagli di {show}",
-    "notifTitle": "Avvisi",
-    "duration": "Durata: {duration}",
-    "continuousAccess": "Accesso continuo · {range}",
     "signInIntro": "Accedi per ricevere un promemoria prima dell'inizio di uno spettacolo.",
     "reminderIntro": "Scegli una replica, poi con quanto anticipo vuoi essere avvisato.",
     "leadLabel": "Con quanto anticipo vuoi essere avvisato?",
@@ -102,7 +99,17 @@
     "noUpcoming": "Non ci sono altri spettacoli oggi.",
     "leadTooLate": "Questa replica è troppo vicina per impostare un promemoria.",
     "reminderActivate": "Attiva promemoria",
-    "reminderModify": "Modifica promemoria"
+    "reminderModify": "Modifica promemoria",
+    "liveNext": "Prossimo spettacolo",
+    "liveDuration": "Durata",
+    "liveRemaining": "Rimanenti",
+    "liveAccess": "Accesso",
+    "reminderRowTitle": "Avvisami prima di uno spettacolo",
+    "reminderRowPick": "Scegli un orario",
+    "reminderRowEdit": "Modifica o aggiungi",
+    "reminderRowCount": "{count, plural, one {# promemoria impostato} other {# promemoria impostati}}",
+    "reminderSlot": "Spettacolo delle {time}",
+    "reminderPickHint": "Tocca un altro orario in arrivo per sceglierlo."
   },
   "favorites": {
     "myFavorites": "I miei preferiti",

@@ -121,6 +121,7 @@ export default function PoiHoursTable({
       />
       <PoiDetailDialog
         target={detail && detail.kind !== "ride" ? detail : null}
+        parkIdentifier={parkIdentifier}
         parkName={parkName}
         onOpenChange={close}
       />

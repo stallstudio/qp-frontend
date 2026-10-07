@@ -1,13 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  BookOpenText,
-  Clock,
-  ExternalLink,
-  Radio,
-  Smartphone,
-} from "lucide-react";
+import { BookOpenText, ExternalLink, Smartphone } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,8 +10,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ImageSection from "@/components/parks/attraction-detail/image-section";
-import { getStatusBadge } from "@/lib/badge";
+import LiveStats from "@/components/parks/attraction-detail/live-stats";
 import { getPrimaryQueue } from "@/lib/poi-list";
+import { showsWaitTime } from "@/lib/poi-kinds";
 import type { WaitTime } from "@/types/waitTime";
 import {
   PoiHoursList,
@@ -26,29 +21,11 @@ import {
 
 type PoiDetailDialogProps = {
   target: WaitTime | null;
+  // Décide si le bandeau montre un temps d'attente (voir `showsWaitTime`).
+  parkIdentifier: string;
   parkName: string;
   onOpenChange: (open: boolean) => void;
 };
-
-function Section({
-  title,
-  icon,
-  children,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="border-t px-5 py-3">
-      <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-        {icon}
-        {title}
-      </h3>
-      {children}
-    </section>
-  );
-}
 
 /**
  * Le lien de la carte mène-t-il à une page de COMMANDE en ligne ? Reconnue à
@@ -86,6 +63,10 @@ function isOrderPage(url: string | null | undefined): boolean {
  * franchir. `useRideHistory` n'est donc pas appelé — c'est une requête réseau
  * par ouverture en moins.
  *
+ * ⚠️ **Même forme que le popup d'attraction depuis le 2026-10-07** : le
+ * bandeau de chiffres à cheval sur la bannière (`LiveStats`, sans la colonne
+ * « Attente » pour un simple témoin ouvert/fermé), puis la carte en une ligne.
+ *
  * ⚠️ **Le corps se limite à l'état, et le menu quand il existe** (arbitré le
  * 2026-08-28). Un bloc « Informations » reprenant la zone, la catégorie et les
  * étiquettes de la source a été écrit puis RETIRÉ : ces valeurs arrivent dans la
@@ -102,12 +83,12 @@ function isOrderPage(url: string | null | undefined): boolean {
  */
 export default function PoiDetailDialog({
   target,
+  parkIdentifier,
   parkName,
   onOpenChange,
 }: PoiDetailDialogProps) {
   const t = useTranslations("poiDetail");
-  const tStatus = useTranslations("attractionStatus");
-  const tTabs = useTranslations("tabs");
+  const tAttraction = useTranslations("attractionDetail");
   // Les heures du jour, quand la page de parc les a (voir `PoiHoursProvider`).
   const hours = usePoiHoursOf(target?.rideId);
   // Sur une page de commande, le bouton dit qu'on peut aussi commander.
@@ -116,18 +97,15 @@ export default function PoiDetailDialog({
   const MenuIcon = isOrder ? Smartphone : BookOpenText;
 
   const queue = target ? getPrimaryQueue(target) : undefined;
-  const statusLabels: Record<string, string> = {
-    open: tStatus("open"),
-    closed: tStatus("closed"),
-    down: tStatus("down"),
-    maintenance: tStatus("maintenance"),
-  };
+  const hasStrip = Boolean(queue || hours);
+  // Un service coupé (déjeuner, dîner) : le bandeau ne dit que l'heure qui
+  // compte à l'instant, la liste dit la journée.
+  const splitDay = hours && hours.slots.length > 1;
 
   return (
     <Dialog open={target !== null} onOpenChange={onOpenChange}>
-      {/* Même coquille que le popup d'attraction : en-tête épinglée, corps
-          défilant. Le corps est court ici, mais une fiche à rallonge (dix
-          étiquettes) ne doit pas pousser l'image hors champ. */}
+      {/* Même coquille que le popup d'attraction : en-tête épinglée (bannière
+          + bandeau), corps défilant. */}
       <DialogContent
         className="flex max-h-[88vh] flex-col gap-0 overflow-hidden rounded-4xl border-0 p-0 sm:max-w-md"
         onOpenAutoFocus={(e) => e.preventDefault()}
@@ -142,67 +120,70 @@ export default function PoiDetailDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="shrink-0">
+            <div className={hasStrip ? "shrink-0" : "shrink-0 pb-1"}>
               {/* Ni `favNamespace` ni `favKey` : pas d'étoile sur ces POI, voir
                   `ImageSection`. */}
               <ImageSection
                 title={target.rideName}
                 // Le quartier du parc sous le nom, comme pour une attraction
-                // (« Frontierland »). Il remplace le lien Thrills qu'avait ce
-                // popup jusqu'au 2026-10-06 : la même ligne répond à « c'est
-                // où ? », et un lien générique n'y répondait pas. Sans zone
-                // publiée, la ligne disparaît — voir `readPoiZone`.
+                // (« Frontierland »). Sans zone publiée, la ligne disparaît —
+                // voir `readPoiZone`.
                 place={target.zone}
                 banner={target.banner}
                 credit={parkName}
+                overlapped={hasStrip}
               />
+              {hasStrip && (
+                <div className="relative z-10 -mt-10 px-4">
+                  <LiveStats
+                    queue={queue}
+                    hours={hours}
+                    // Un témoin ouvert/fermé n'a pas de plafond de source.
+                    waitCap={null}
+                    showWait={showsWaitTime(parkIdentifier, target.kind)}
+                  />
+                </div>
+              )}
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
-              {queue && (
-                <Section
-                  title={tTabs("live")}
-                  icon={<Radio className="size-4" />}
-                >
-                  {getStatusBadge(queue.status, statusLabels)}
-                </Section>
-              )}
-
-              {hours && (
-                <Section
-                  title={tTabs("schedule")}
-                  icon={<Clock className="size-4" />}
-                >
+            {/* Rien à mettre dessous (ni journée coupée, ni carte) : pas de
+                corps du tout, plutôt qu'une marge vide sous le bandeau. */}
+            {(splitDay || target.menu) && (
+            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide">
+              {splitDay && (
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-[15px] font-semibold">
+                    {tAttraction("chartToday")}
+                  </h3>
                   <PoiHoursList slots={hours.slots} timezone={hours.timezone} />
-                </Section>
+                </div>
               )}
 
               {/* ⚠️ Une LIGNE de lien, pas une section : un titre « Carte »
                   au-dessus d'un bouton « Voir la carte » disait deux fois la
-                  même chose, et le gros bouton orange prenait le pas sur l'état
-                  et les horaires, qui sont l'information. Pas de sous-titre
-                  (retiré le 2026-10-07) : le libellé suffit. */}
+                  même chose. Même forme que la ligne d'alerte d'une
+                  attraction. */}
               {target.menu && (
-                <div className="border-t px-5 py-4">
-                  {/* Nouvel onglet, et `noopener` comme tout lien sortant. */}
-                  <a
-                    href={target.menu}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${t("menuTitle")} — ${menuAction}`}
-                    className="group flex items-center gap-3 rounded-2xl border bg-muted/40 p-3 transition-colors hover:bg-muted"
-                  >
-                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-restaurant/15 text-restaurant">
-                      <MenuIcon className="size-5" />
-                    </span>
-                    <span className="min-w-0 flex-1 text-sm font-semibold">
-                      {menuAction}
-                    </span>
-                    <ExternalLink className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
-                  </a>
-                </div>
+                // Nouvel onglet, et `noopener` comme tout lien sortant.
+                <a
+                  href={target.menu}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${t("menuTitle")} — ${menuAction}`}
+                  className="group flex items-center gap-3 rounded-2xl border bg-muted/40 p-3 transition-colors hover:bg-muted"
+                >
+                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-restaurant/15 text-restaurant">
+                    <MenuIcon className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1 text-sm font-semibold">
+                    {menuAction}
+                  </span>
+                  <ExternalLink className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+                </a>
               )}
             </div>
+            )}
+            {!(splitDay || target.menu) && hasStrip && <div className="h-4" />}
           </>
         )}
       </DialogContent>

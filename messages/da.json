@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "Se detaljer for {show}",
-    "notifTitle": "Notifikationer",
-    "duration": "Varighed: {duration}",
-    "continuousAccess": "Løbende adgang · {range}",
     "signInIntro": "Log ind for at få en påmindelse, før et show begynder.",
     "reminderIntro": "Vælg en forestilling, og derefter hvor lang tid før du vil mindes om den.",
     "leadLabel": "Hvor lang tid før showet vil du mindes om det?",
@@ -102,7 +99,17 @@
     "noUpcoming": "Der er ikke flere shows i dag.",
     "leadTooLate": "Denne forestilling begynder for snart til at oprette en påmindelse.",
     "reminderActivate": "Aktivér påmindelse",
-    "reminderModify": "Rediger påmindelse"
+    "reminderModify": "Rediger påmindelse",
+    "liveNext": "Næste forestilling",
+    "liveDuration": "Varighed",
+    "liveRemaining": "Tilbage",
+    "liveAccess": "Adgang",
+    "reminderRowTitle": "Påmind mig før en forestilling",
+    "reminderRowPick": "Vælg en forestilling",
+    "reminderRowEdit": "Redigér eller tilføj",
+    "reminderRowCount": "{count, plural, one {# påmindelse sat} other {# påmindelser sat}}",
+    "reminderSlot": "Forestilling kl. {time}",
+    "reminderPickHint": "Tryk på en anden kommende forestilling for at vælge den."
   },
   "favorites": {
     "myFavorites": "Mine favoritter",

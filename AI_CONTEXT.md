@@ -697,7 +697,7 @@ coexistent sur la même page.
 - **Pas de cache localStorage**, contrairement aux favoris : une alerte ne vaut
   que pour la journée et peut être supprimée par le moteur — un cache périmé
   afficherait des cloches fantômes.
-- `refresh()` est appelé par `alert-section.tsx` / `reminder-section.tsx` après
+- `refresh()` est appelé par `alert-section.tsx` / `show-schedule-panel.tsx` après
   création ou suppression, et par la remise à zéro du profil.
 - Resynchronisation au **retour d'onglet** (`visibilitychange`) : une alerte qui
   notifie est supprimée côté serveur, la cloche resterait sinon allumée jusqu'au
@@ -761,6 +761,14 @@ réglage et tant que l'alerte est active : `AlertSection` le remonte au popup
 (`onThresholdPreview`), qui le passe à `WaitTimeChart` (`threshold`). L'alerte
 existante est donc chargée dès l'ouverture du popup, plus au dépliage — c'est
 elle qui décide si la ligne repliée affiche « Alerte active ».
+
+⚠️ **Les popups SPECTACLE et POI ont suivi le 2026-10-07**, même grammaire :
+`StatStrip` / `Stat` (`live-stats.tsx`) pour le bandeau — prochaine séance,
+durée, séances restantes pour un spectacle ; état et « Ferme à » pour un accès
+continu ou un POI, sans colonne « Attente » hors `showsWaitTime`. Côté
+spectacle, `show-schedule-panel.tsx` remplace `reminder-section.tsx` : les
+séances du jour sont TOUJOURS visibles (elles l'étaient derrière la
+connexion), et le rappel est une ligne qui se déplie sur la séance touchée.
 
 ⚠️ **Le QUARTIER a remplacé le lien Thrills le 2026-09-02**, dans les popups
 attraction ET spectacle : `Poi.additionalData.zone`, lu par `readPoiZone`

@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "Voir le détail de {show}",
-    "notifTitle": "Alertes",
-    "duration": "Durée : {duration}",
-    "continuousAccess": "En continu · {range}",
     "signInIntro": "Connectez-vous pour être prévenu avant le début d'un spectacle.",
     "reminderIntro": "Choisissez un horaire, puis le délai avant lequel être prévenu.",
     "leadLabel": "Combien de temps avant le spectacle souhaites-tu être prévenu ?",
@@ -102,7 +99,17 @@
     "noUpcoming": "Plus de représentation à venir aujourd'hui.",
     "leadTooLate": "Ce créneau est trop proche pour programmer un rappel.",
     "reminderActivate": "Activer le rappel",
-    "reminderModify": "Modifier le rappel"
+    "reminderModify": "Modifier le rappel",
+    "liveNext": "Prochaine séance",
+    "liveDuration": "Durée",
+    "liveRemaining": "Restantes",
+    "liveAccess": "Accès",
+    "reminderRowTitle": "Me prévenir avant une séance",
+    "reminderRowPick": "Choisir une séance",
+    "reminderRowEdit": "Modifier ou ajouter",
+    "reminderRowCount": "{count, plural, one {# rappel programmé} other {# rappels programmés}}",
+    "reminderSlot": "Séance de {time}",
+    "reminderPickHint": "Touchez une autre séance à venir pour la choisir."
   },
   "favorites": {
     "myFavorites": "Mes favoris",

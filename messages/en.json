@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "View details for {show}",
-    "notifTitle": "Alerts",
-    "duration": "Duration: {duration}",
-    "continuousAccess": "Continuous · {range}",
     "signInIntro": "Sign in to be reminded before a show starts.",
     "reminderIntro": "Pick a time, then how long before it you want to be reminded.",
     "leadLabel": "How long before the show do you want to be reminded?",
@@ -102,7 +99,17 @@
     "noUpcoming": "No more shows left today.",
     "leadTooLate": "This slot is too soon to set a reminder.",
     "reminderActivate": "Enable reminder",
-    "reminderModify": "Edit reminder"
+    "reminderModify": "Edit reminder",
+    "liveNext": "Next show",
+    "liveDuration": "Duration",
+    "liveRemaining": "Remaining",
+    "liveAccess": "Access",
+    "reminderRowTitle": "Remind me before a show",
+    "reminderRowPick": "Choose a showtime",
+    "reminderRowEdit": "Edit or add",
+    "reminderRowCount": "{count, plural, one {# reminder set} other {# reminders set}}",
+    "reminderSlot": "{time} show",
+    "reminderPickHint": "Tap another upcoming showtime to pick it."
   },
   "favorites": {
     "myFavorites": "My favorites",

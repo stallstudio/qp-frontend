@@ -1,8 +1,7 @@
 "use client";
 
 import { DateTime } from "luxon";
-import { useLocale, useTranslations } from "next-intl";
-import { Bell, Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { getLuxonFormat } from "@/lib/utils";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import {
@@ -14,12 +13,14 @@ import {
 } from "@/components/ui/dialog";
 import type { ShowTime } from "@/types/show";
 import ImageSection from "@/components/parks/attraction-detail/image-section";
-import NotificationGate from "@/components/parks/notification-gate";
 import {
-  getShowAccessInfo,
-  formatDuration,
-} from "@/components/parks/show-time-table/utils";
-import ReminderSection from "./reminder-section";
+  Stat,
+  StatStrip,
+  StatTime,
+  StatusValue,
+} from "@/components/parks/attraction-detail/live-stats";
+import { getShowAccessInfo } from "@/components/parks/show-time-table/utils";
+import ShowSchedulePanel, { useShowSlots } from "./show-schedule-panel";
 
 type ShowDetailDialogProps = {
   target: ShowTime | null;
@@ -29,29 +30,32 @@ type ShowDetailDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-function Section({
-  title,
-  icon,
-  children,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
+/** « 25 » + « min », ou « 1 h 10 » : la durée en valeur de case. */
+function DurationValue({ minutes }: { minutes: number }) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
   return (
-    <section className="border-t px-5 py-3">
-      <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-        {icon}
-        {title}
-      </h3>
-      {children}
-    </section>
+    <span className="text-xl leading-7 font-bold tabular-nums">
+      {h > 0 ? (
+        <>
+          {h}
+          <span className="mx-0.5 text-sm font-semibold">h</span>
+          {m > 0 ? String(m).padStart(2, "0") : null}
+        </>
+      ) : (
+        <>
+          {m}
+          <span className="ml-0.5 text-sm font-semibold">min</span>
+        </>
+      )}
+    </span>
   );
 }
 
-// Popup « détail spectacle » : calqué sur celui des attractions (image + favori
-// épinglés en haut, corps défilant) mais SANS graphique — la section unique est
-// « Notifications » (rappels programmés avant chaque représentation du jour).
+// Popup « détail spectacle », refondu le 2026-10-07 sur le modèle du popup
+// attraction : bannière, bandeau de chiffres à cheval dessus, puis les séances
+// du jour et le rappel en une ligne. Pas de graphique : un spectacle n'a pas
+// de file.
 export default function ShowDetailDialog({
   target,
   parkIdentifier,
@@ -60,21 +64,88 @@ export default function ShowDetailDialog({
   onOpenChange,
 }: ShowDetailDialogProps) {
   const t = useTranslations("showDetail");
-  const locale = useLocale();
+  const tShows = useTranslations("shows");
+  const tAttraction = useTranslations("attractionDetail");
   const { is12Hour } = useTimeFormat();
+  const fmt = getLuxonFormat(is12Hour);
+  const slots = useShowSlots(
+    target?.schedules ?? [],
+    target?.duration ?? 0,
+    timezone,
+  );
 
-  // Sous-titre du popup : soit une plage d'accès (attractions à ACCÈS CONTINU,
-  // ex. Puy du Fou 12:00–20:15), soit une durée de représentation. `duration`
-  // seul induirait en erreur pour un accès continu (cf. getShowAccessInfo).
+  // Une plage d'ACCÈS CONTINU (Puy du Fou 12:00–20:15) n'est pas une séance :
+  // elle se lit comme un lieu ouvert, avec son état et son heure de fermeture.
+  // `duration` seul induirait en erreur (cf. getShowAccessInfo).
   const access = target ? getShowAccessInfo(target, timezone) : null;
-  let subtitle: string | undefined;
+  const time = (iso: string) =>
+    DateTime.fromISO(iso, { zone: timezone }).toFormat(fmt);
+
+  const next = slots.find((s) => s.state === "upcoming");
+  const ongoing = slots.find((s) => s.state === "ongoing");
+  const remaining = slots.filter((s) => s.state === "upcoming").length;
+
+  let strip: React.ReactNode;
   if (access?.kind === "continuous") {
-    const fmt = getLuxonFormat(is12Hour);
-    const start = DateTime.fromISO(access.startTime, { zone: timezone }).toFormat(fmt);
-    const end = DateTime.fromISO(access.endTime, { zone: timezone }).toFormat(fmt);
-    subtitle = t("continuousAccess", { range: `${start} – ${end}` });
-  } else if (access?.kind === "duration") {
-    subtitle = t("duration", { duration: formatDuration(access.minutes, locale) });
+    const state = ongoing ? "ongoing" : next ? "upcoming" : "past";
+    strip = (
+      <StatStrip>
+        <Stat label={t("liveAccess")}>
+          <StatusValue
+            status={state === "ongoing" ? "open" : "closed"}
+            label={
+              state === "ongoing"
+                ? tShows("legendOngoing")
+                : state === "upcoming"
+                  ? tShows("legendUpcoming")
+                  : tShows("legendPast")
+            }
+          />
+        </Stat>
+        {state !== "past" && (
+          <Stat
+            label={
+              state === "ongoing"
+                ? tAttraction("liveClosesAt")
+                : tAttraction("liveOpensAt")
+            }
+          >
+            <StatTime>
+              {time(state === "ongoing" ? access.endTime : access.startTime)}
+            </StatTime>
+          </Stat>
+        )}
+      </StatStrip>
+    );
+  } else if (slots.length > 0) {
+    strip = (
+      <StatStrip>
+        <Stat label={t("liveNext")}>
+          {next ? (
+            <StatTime>{next.label}</StatTime>
+          ) : ongoing ? (
+            <StatusValue status="open" label={tShows("legendOngoing")} />
+          ) : (
+            <span className="text-xl leading-7 font-bold text-muted-foreground">
+              –
+            </span>
+          )}
+        </Stat>
+        {access?.kind === "duration" && (
+          <Stat label={t("liveDuration")}>
+            <DurationValue minutes={access.minutes} />
+          </Stat>
+        )}
+        <Stat label={t("liveRemaining")}>
+          <span className="text-xl leading-7 font-bold tabular-nums">
+            {remaining}
+            <span className="ml-0.5 text-sm font-semibold text-muted-foreground">
+              /{slots.length}
+            </span>
+          </span>
+        </Stat>
+      </StatStrip>
+    );
   }
 
   return (
@@ -92,8 +163,8 @@ export default function ShowDetailDialog({
               </DialogDescription>
             </DialogHeader>
 
-            {/* En-tête épinglée : bannière + nom + zone du parc + étoile favori
-                (namespace shows). */}
+            {/* En-tête épinglée : bannière (nom, lieu, étoile — namespace
+                shows) et, à cheval sur son bas, le bandeau de chiffres. */}
             <div className="shrink-0">
               <ImageSection
                 title={target.showName}
@@ -107,36 +178,23 @@ export default function ShowDetailDialog({
                 place={target.zone ?? target.venue}
                 banner={target.banner}
                 credit={parkName}
+                overlapped={Boolean(strip)}
               />
+              {strip && <div className="relative z-10 -mt-10 px-4">{strip}</div>}
             </div>
 
-            {/* Corps défilant : durée + alertes (pas de graphique). Hauteur
-                minimale réservée pour que le popup ne « saute » pas entre le
-                chargement (spinner) et l'affichage des créneaux. */}
-            <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
-              {subtitle && (
-                <div className="flex items-center gap-2 px-5 py-3 text-sm text-muted-foreground">
-                  <Clock className="size-4 shrink-0" />
-                  {subtitle}
-                </div>
-              )}
-              <Section
-                title={t("notifTitle")}
-                icon={<Bell className="size-4" />}
-              >
-                <div className="min-h-[160px]">
-                  <NotificationGate signInIntro={t("signInIntro")}>
-                    <ReminderSection
-                      parkIdentifier={parkIdentifier}
-                      parkName={parkName}
-                      showName={target.showName}
-                      duration={target.duration}
-                      schedules={target.schedules}
-                      timezone={timezone}
-                    />
-                  </NotificationGate>
-                </div>
-              </Section>
+            {/* Corps défilant : séances du jour + rappel. `key` : changer de
+                spectacle sans fermer le popup repart d'un rappel replié. */}
+            <div
+              key={target.showName}
+              className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide"
+            >
+              <ShowSchedulePanel
+                parkIdentifier={parkIdentifier}
+                parkName={parkName}
+                showName={target.showName}
+                slots={slots}
+              />
             </div>
           </>
         )}

@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "Visa detaljer för {show}",
-    "notifTitle": "Aviseringar",
-    "duration": "Längd: {duration}",
-    "continuousAccess": "Löpande insläpp · {range}",
     "signInIntro": "Logga in för att få en påminnelse innan en show börjar.",
     "reminderIntro": "Välj en föreställning och sedan hur långt i förväg du vill bli påmind.",
     "leadLabel": "Hur långt före showen vill du bli påmind?",
@@ -102,7 +99,17 @@
     "noUpcoming": "Det finns inga fler shower i dag.",
     "leadTooLate": "Den här föreställningen börjar för snart för att ställa in en påminnelse.",
     "reminderActivate": "Aktivera påminnelse",
-    "reminderModify": "Redigera påminnelse"
+    "reminderModify": "Redigera påminnelse",
+    "liveNext": "Nästa föreställning",
+    "liveDuration": "Längd",
+    "liveRemaining": "Kvar",
+    "liveAccess": "Tillträde",
+    "reminderRowTitle": "Påminn mig före en föreställning",
+    "reminderRowPick": "Välj en föreställning",
+    "reminderRowEdit": "Ändra eller lägg till",
+    "reminderRowCount": "{count, plural, one {# påminnelse satt} other {# påminnelser satta}}",
+    "reminderSlot": "Föreställning kl. {time}",
+    "reminderPickHint": "Tryck på en annan kommande föreställning för att välja den."
   },
   "favorites": {
     "myFavorites": "Mina favoriter",

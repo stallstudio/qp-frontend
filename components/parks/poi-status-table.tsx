@@ -246,6 +246,7 @@ export default function PoiStatusTable({
 
       <PoiDetailDialog
         target={detailTarget}
+        parkIdentifier={parkIdentifier}
         parkName={parkName}
         onOpenChange={(open) => {
           if (!open) setDetailPoiId(null);

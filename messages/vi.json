@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "Xem chi tiết {show}",
-    "notifTitle": "Nhắc nhở",
-    "duration": "Thời lượng: {duration}",
-    "continuousAccess": "Vào cửa liên tục · {range}",
     "signInIntro": "Đăng nhập để được nhắc trước khi một chương trình bắt đầu.",
     "reminderIntro": "Chọn một suất diễn, sau đó chọn muốn được nhắc trước bao lâu.",
     "leadLabel": "Bạn muốn được nhắc trước giờ diễn bao lâu?",
@@ -102,7 +99,17 @@
     "noUpcoming": "Hôm nay không còn suất diễn nào.",
     "leadTooLate": "Suất diễn này sắp bắt đầu, không kịp đặt nhắc nhở.",
     "reminderActivate": "Bật nhắc nhở",
-    "reminderModify": "Sửa nhắc nhở"
+    "reminderModify": "Sửa nhắc nhở",
+    "liveNext": "Suất tiếp theo",
+    "liveDuration": "Thời lượng",
+    "liveRemaining": "Còn lại",
+    "liveAccess": "Vào cửa",
+    "reminderRowTitle": "Nhắc tôi trước một suất diễn",
+    "reminderRowPick": "Chọn suất diễn",
+    "reminderRowEdit": "Sửa hoặc thêm",
+    "reminderRowCount": "{count, plural, other {Đã đặt # lời nhắc}}",
+    "reminderSlot": "Suất {time}",
+    "reminderPickHint": "Chạm vào một suất sắp tới khác để chọn."
   },
   "favorites": {
     "myFavorites": "Yêu thích của tôi",

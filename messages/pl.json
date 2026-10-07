@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "Zobacz szczegóły pokazu {show}",
-    "notifTitle": "Powiadomienia",
-    "duration": "Czas trwania: {duration}",
-    "continuousAccess": "Wstęp ciągły · {range}",
     "signInIntro": "Zaloguj się, aby otrzymać przypomnienie przed rozpoczęciem pokazu.",
     "reminderIntro": "Wybierz seans, a następnie z jakim wyprzedzeniem chcesz otrzymać przypomnienie.",
     "leadLabel": "Z jakim wyprzedzeniem chcesz otrzymać przypomnienie?",
@@ -102,7 +99,17 @@
     "noUpcoming": "Dziś nie ma już żadnych pokazów.",
     "leadTooLate": "Ten seans zaczyna się zbyt szybko, aby ustawić przypomnienie.",
     "reminderActivate": "Włącz przypomnienie",
-    "reminderModify": "Edytuj przypomnienie"
+    "reminderModify": "Edytuj przypomnienie",
+    "liveNext": "Następny pokaz",
+    "liveDuration": "Czas trwania",
+    "liveRemaining": "Pozostało",
+    "liveAccess": "Dostęp",
+    "reminderRowTitle": "Przypomnij mi przed pokazem",
+    "reminderRowPick": "Wybierz pokaz",
+    "reminderRowEdit": "Zmień lub dodaj",
+    "reminderRowCount": "{count, plural, one {# przypomnienie ustawione} few {# przypomnienia ustawione} many {# przypomnień ustawionych} other {# przypomnienia ustawione}}",
+    "reminderSlot": "Pokaz o {time}",
+    "reminderPickHint": "Dotknij innego nadchodzącego pokazu, aby go wybrać."
   },
   "favorites": {
     "myFavorites": "Moje ulubione",

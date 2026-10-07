@@ -83,9 +83,6 @@
   },
   "showDetail": {
     "openFor": "Ver os detalhes de {show}",
-    "notifTitle": "Alertas",
-    "duration": "Duração: {duration}",
-    "continuousAccess": "Acesso contínuo · {range}",
     "signInIntro": "Inicia sessão para seres avisado antes de um espetáculo começar.",
     "reminderIntro": "Escolhe uma sessão e depois com quanta antecedência queres ser avisado.",
     "leadLabel": "Com quanta antecedência queres ser avisado?",
@@ -102,7 +99,17 @@
     "noUpcoming": "Não há mais espetáculos hoje.",
     "leadTooLate": "Esta sessão começa demasiado cedo para programar um aviso.",
     "reminderActivate": "Ativar aviso",
-    "reminderModify": "Editar aviso"
+    "reminderModify": "Editar aviso",
+    "liveNext": "Próxima sessão",
+    "liveDuration": "Duração",
+    "liveRemaining": "Restantes",
+    "liveAccess": "Acesso",
+    "reminderRowTitle": "Avisar-me antes de uma sessão",
+    "reminderRowPick": "Escolher uma sessão",
+    "reminderRowEdit": "Alterar ou adicionar",
+    "reminderRowCount": "{count, plural, one {# lembrete agendado} other {# lembretes agendados}}",
+    "reminderSlot": "Sessão das {time}",
+    "reminderPickHint": "Toque noutra sessão futura para a escolher."
   },
   "favorites": {
     "myFavorites": "Os meus favoritos",
