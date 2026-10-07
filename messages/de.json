@@ -63,6 +63,7 @@
     "open": "Geöffnet",
     "closed": "Geschlossen",
     "down": "Störung",
+    "downShort": "Störung",
     "maintenance": "Wartung",
     "unavailable": "Nicht verfügbar",
     "unavailableShort": "N. verf."
@@ -586,7 +587,7 @@
     "marginShort": "Durchschnittliche Abweichung: <v>{minutes} min</v>.",
     "insightRise": "Guter Zeitpunkt: Die Wartezeit dürfte gegen {time} auf <b>~{minutes} min</b> steigen",
     "insightDrop": "Lieber abwarten: Die Wartezeit dürfte gegen {time} auf <b>~{minutes} min</b> sinken",
-    "alertRowTitle": "Benachrichtigen, wenn die Wartezeit sinkt",
+    "alertRowTitle": "Alarm bei kürzerer Wartezeit",
     "alertRowSignIn": "Anmeldung erforderlich",
     "alertRowPick": "Schwellenwert wählen",
     "alertActiveRow": "Alarm aktiv · unter {minutes} min",

@@ -63,6 +63,7 @@
     "open": "運営中",
     "closed": "停止中",
     "down": "故障",
+    "downShort": "故障",
     "maintenance": "メンテナンス",
     "unavailable": "情報なし",
     "unavailableShort": "情報なし"

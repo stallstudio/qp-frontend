@@ -63,6 +63,7 @@
     "open": "Öppen",
     "closed": "Stängd",
     "down": "Driftstopp",
+    "downShort": "Stopp",
     "maintenance": "Underhåll",
     "unavailable": "Otillgänglig",
     "unavailableShort": "Otillg."

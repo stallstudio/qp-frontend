@@ -63,6 +63,7 @@
     "open": "Åben",
     "closed": "Lukket",
     "down": "Nedbrud",
+    "downShort": "Nedbrud",
     "maintenance": "Vedligeholdelse",
     "unavailable": "Ikke tilgængelig",
     "unavailableShort": "Utilgæng."
@@ -586,7 +587,7 @@
     "marginShort": "Gennemsnitlig afvigelse: <v>{minutes} min</v>.",
     "insightRise": "Godt tidspunkt: ventetiden ventes at stige til <b>~{minutes} min omkring {time}</b>",
     "insightDrop": "Vent lidt: ventetiden ventes at falde til <b>~{minutes} min omkring {time}</b>",
-    "alertRowTitle": "Giv mig besked, når ventetiden falder",
+    "alertRowTitle": "Besked når ventetiden falder",
     "alertRowSignIn": "Login påkrævet",
     "alertRowPick": "Vælg en grænse",
     "alertActiveRow": "Alarm aktiv · under {minutes} min",

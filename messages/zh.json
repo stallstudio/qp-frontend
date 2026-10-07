@@ -63,6 +63,7 @@
     "open": "开放",
     "closed": "关闭",
     "down": "故障",
+    "downShort": "故障",
     "maintenance": "维护中",
     "unavailable": "暂无数据",
     "unavailableShort": "暂无"

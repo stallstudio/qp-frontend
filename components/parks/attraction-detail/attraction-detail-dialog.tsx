@@ -127,13 +127,10 @@ export default function AttractionDetailDialog({
               key={target.rideId}
               className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0"
             >
-              <ChartSection
-                data={history}
-                loading={historyLoading}
-                currentWaitTime={currentWaitTime}
-                threshold={alertThreshold}
-              />
-
+              {/* ⚠️ L'alerte AVANT le graphique (2026-10-07) : placée dessous,
+                  elle tombait sous la ligne de flottaison sur un iPhone, et
+                  rien ne disait qu'elle existait. C'est la seule action du
+                  popup, le reste se lit. */}
               <AlertSection
                 rideId={target.rideId}
                 rideName={target.rideName}
@@ -149,6 +146,14 @@ export default function AttractionDetailDialog({
                 currentStatus={currentStatus}
                 reopenAllowed={reopenAllowed}
                 onThresholdPreview={setAlertThreshold}
+              />
+
+              <ChartSection
+                data={history}
+                loading={historyLoading}
+                currentWaitTime={currentWaitTime}
+                currentStatus={currentStatus}
+                threshold={alertThreshold}
               />
             </div>
           </>

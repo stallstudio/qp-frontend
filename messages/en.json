@@ -63,6 +63,7 @@
     "open": "Open",
     "closed": "Closed",
     "down": "Down",
+    "downShort": "Down",
     "maintenance": "Maintenance",
     "unavailable": "Unavailable",
     "unavailableShort": "Unavail"

@@ -65,8 +65,9 @@ function alertModeFor(status: WaitTimeStatus | null | undefined): AlertType {
 
 // Mêmes dimensions pour la ligne repliée, la ligne « alerte active » et la
 // carte dépliée : elles se remplacent au même endroit.
-const ROW = "flex w-full items-center gap-3 rounded-2xl border p-3 text-left";
-const ICON_TILE = "grid size-9 shrink-0 place-items-center rounded-xl";
+const ROW =
+  "flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left";
+const ICON_TILE = "grid size-8 shrink-0 place-items-center rounded-lg";
 
 // Alertes de temps d'attente de l'attraction, en UNE LIGNE repliée sous le
 // graphique (refonte du 2026-10-07) : l'ancien encart « Connectez-vous » était
@@ -295,7 +296,7 @@ function AlertPanel({
           <BellRing className="size-4" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold">
+          <span className="block truncate text-sm font-semibold">
             {isReopen
               ? t("reopenActive")
               : t("alertActiveRow", { minutes: active.threshold ?? 0 })}
@@ -353,7 +354,7 @@ function AlertPanel({
           {isReopen ? <Wrench className="size-4" /> : <Bell className="size-4" />}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold">{title}</span>
+          <span className="block truncate text-sm font-semibold">{title}</span>
           <span className="block text-xs text-muted-foreground">
             {!isAuthenticated
               ? t("alertRowSignIn")
@@ -382,7 +383,7 @@ function AlertPanel({
         <span className={cn(ICON_TILE, "bg-primary/15 text-primary")}>
           {isReopen ? <Wrench className="size-4" /> : <Bell className="size-4" />}
         </span>
-        <span className="min-w-0 flex-1 text-sm font-semibold">{title}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold">{title}</span>
         <Button
           variant="ghost"
           size="icon"

@@ -170,9 +170,9 @@ export default function PoiDetailDialog({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`${t("menuTitle")} — ${menuAction}`}
-                  className="group flex items-center gap-3 rounded-2xl border bg-muted/40 p-3 transition-colors hover:bg-muted"
+                  className="group flex items-center gap-3 rounded-2xl border bg-muted/40 px-3 py-2.5 transition-colors hover:bg-muted"
                 >
-                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-restaurant/15 text-restaurant">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-restaurant/15 text-restaurant">
                     <MenuIcon className="size-4" />
                   </span>
                   <span className="min-w-0 flex-1 text-sm font-semibold">

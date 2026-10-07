@@ -63,6 +63,7 @@
     "open": "Otwarta",
     "closed": "Zamknięta",
     "down": "Awaria",
+    "downShort": "Awaria",
     "maintenance": "Konserwacja",
     "unavailable": "Niedostępna",
     "unavailableShort": "Niedost."
@@ -586,7 +587,7 @@
     "marginShort": "Średni błąd prognozy: <v>{minutes} min</v>.",
     "insightRise": "Dobry moment: czas oczekiwania wzrośnie do <b>~{minutes} min około {time}</b>",
     "insightDrop": "Lepiej poczekać: czas oczekiwania spadnie do <b>~{minutes} min około {time}</b>",
-    "alertRowTitle": "Powiadom mnie, gdy czas oczekiwania spadnie",
+    "alertRowTitle": "Powiadom, gdy kolejka zmaleje",
     "alertRowSignIn": "Wymagane logowanie",
     "alertRowPick": "Wybierz próg",
     "alertActiveRow": "Alert aktywny · poniżej {minutes} min",

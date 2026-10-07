@@ -121,7 +121,12 @@ export default function LiveStats({
       )}
       {queue && (
         <Stat label={t("liveStatus")}>
-          <StatusValue status={queue.status} label={tStatus(queue.status)} />
+          {/* Forme COURTE de l'état quand la langue en a une (« Panne » pour
+              « En panne ») : la case est étroite sur un téléphone. */}
+          <StatusValue
+            status={queue.status}
+            label={tStatus(queue.status === "down" ? "downShort" : queue.status)}
+          />
         </Stat>
       )}
       {cell && hours && (

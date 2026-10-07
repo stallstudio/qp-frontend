@@ -753,6 +753,11 @@ creux prévu s'écarte d'au moins 10 min de l'attente actuelle
 (`chart-section.tsx` → `wait-time-chart.tsx`), et l'alerte réduite à UNE LIGNE
 qui se déplie en carte de réglage (`alert-section.tsx`).
 
+⚠️ **L'alerte est AU-DESSUS du graphique**, pas dessous : sur un iPhone, elle
+tombait sous la ligne de flottaison et rien ne disait qu'elle existait. Dans la
+case « État », « En panne » prend sa forme courte (`attractionStatus.downShort`,
+« Panne ») ; « Maintenance » reste tronquée.
+
 ⚠️ **Le bandeau est dans l'en-tête ÉPINGLÉE, pas dans le corps défilant** : il
 chevauche la photo par une marge négative, que `overflow-y-auto` rognerait.
 

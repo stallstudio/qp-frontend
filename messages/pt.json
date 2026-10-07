@@ -63,6 +63,7 @@
     "open": "Aberta",
     "closed": "Fechada",
     "down": "Avariada",
+    "downShort": "Avaria",
     "maintenance": "Manutenção",
     "unavailable": "Indisponível",
     "unavailableShort": "Indisp."
@@ -586,7 +587,7 @@
     "marginShort": "Desvio médio observado: <v>{minutes} min</v>.",
     "insightRise": "Boa altura: a espera deve subir para <b>~{minutes} min por volta das {time}</b>",
     "insightDrop": "Mais vale esperar: a espera deve descer para <b>~{minutes} min por volta das {time}</b>",
-    "alertRowTitle": "Avisar-me quando a espera baixar",
+    "alertRowTitle": "Avisar-me se a espera baixar",
     "alertRowSignIn": "É necessário iniciar sessão",
     "alertRowPick": "Escolher um limite",
     "alertActiveRow": "Alerta ativo · abaixo de {minutes} min",

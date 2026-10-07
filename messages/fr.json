@@ -63,6 +63,7 @@
     "open": "Ouvert",
     "closed": "Fermé",
     "down": "En panne",
+    "downShort": "Panne",
     "maintenance": "Maintenance",
     "unavailable": "Indisponible",
     "unavailableShort": "Indispo"
@@ -586,7 +587,7 @@
     "marginShort": "Écart moyen constaté : <v>{minutes} min</v>.",
     "insightRise": "C'est le bon moment : l'attente devrait monter à <b>~{minutes} min vers {time}</b>",
     "insightDrop": "Mieux vaut patienter : l'attente devrait descendre à <b>~{minutes} min vers {time}</b>",
-    "alertRowTitle": "Me prévenir quand l'attente baisse",
+    "alertRowTitle": "M'alerter si l'attente baisse",
     "alertRowSignIn": "Connexion requise",
     "alertRowPick": "Choisir un seuil",
     "alertActiveRow": "Alerte active · sous {minutes} min",

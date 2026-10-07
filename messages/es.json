@@ -63,6 +63,7 @@
     "open": "Abierta",
     "closed": "Cerrada",
     "down": "Averiada",
+    "downShort": "Avería",
     "maintenance": "Mantenimiento",
     "unavailable": "No disponible",
     "unavailableShort": "N/D"

@@ -63,6 +63,7 @@
     "open": "Open",
     "closed": "Gesloten",
     "down": "Storing",
+    "downShort": "Storing",
     "maintenance": "Onderhoud",
     "unavailable": "Niet beschikbaar",
     "unavailableShort": "N.b."
@@ -586,7 +587,7 @@
     "marginShort": "Gemiddelde afwijking: <v>{minutes} min</v>.",
     "insightRise": "Goed moment: de wachttijd stijgt naar verwachting tot <b>~{minutes} min rond {time}</b>",
     "insightDrop": "Even wachten loont: de wachttijd daalt naar verwachting tot <b>~{minutes} min rond {time}</b>",
-    "alertRowTitle": "Waarschuw me als de wachttijd daalt",
+    "alertRowTitle": "Melding bij kortere wachttijd",
     "alertRowSignIn": "Inloggen vereist",
     "alertRowPick": "Kies een drempel",
     "alertActiveRow": "Melding actief · onder {minutes} min",

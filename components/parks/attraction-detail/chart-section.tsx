@@ -9,6 +9,7 @@ import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { getLuxonFormat } from "@/lib/utils";
 import { formatWaitMinutes } from "@/lib/wait-time-cap";
 import type { RideHistoryResponse } from "@/types/rideHistory";
+import type { WaitTimeStatus } from "@/types/waitTime";
 
 type ChartSectionProps = {
   // Historique + prévision, récupérés et rafraîchis par le popup parent (partagé
@@ -18,6 +19,8 @@ type ChartSectionProps = {
   // Temps standby actuel, si l'attraction est ouverte : point de départ de la
   // phrase de conseil sous le graphique.
   currentWaitTime?: number;
+  // État de la file standby : en maintenance, aucun conseil (voir `insightFor`).
+  currentStatus?: WaitTimeStatus | null;
   // Seuil d'alerte à tracer (réglage en cours ou alerte active).
   threshold?: number | null;
 };
@@ -39,11 +42,18 @@ type Insight = { kind: "rise" | "drop" | "best"; value: number; at: string };
  *
  * Sans attente actuelle (panne, file sans temps), il n'y a rien à comparer :
  * on donne alors le MEILLEUR moment prévu, c'est la seule question qui reste.
+ *
+ * ⚠️ **Rien du tout en MAINTENANCE.** La prévision ne sait pas qu'une
+ * attraction est en travaux : elle affichait « Meilleur moment prévu : ~30 min
+ * vers 21:45 » sur Crush's Coaster, fermée jusqu'à l'été 2027. Une panne, elle,
+ * est passagère : le conseil y reste.
  */
 function insightFor(
   data: RideHistoryResponse,
   current: number | undefined,
+  status: WaitTimeStatus | null | undefined,
 ): Insight | null {
+  if (status === "maintenance") return null;
   const nowMs = Date.parse(data.now);
   const ahead = data.forecast.filter(
     (p): p is typeof p & { waitTime: number } =>
@@ -81,6 +91,7 @@ export default function ChartSection({
   data,
   loading,
   currentWaitTime,
+  currentStatus,
   threshold,
 }: ChartSectionProps) {
   const t = useTranslations("attractionDetail");
@@ -123,7 +134,7 @@ export default function ChartSection({
     );
   }
 
-  const insight = insightFor(data, currentWaitTime);
+  const insight = insightFor(data, currentWaitTime, currentStatus);
   const insightTime = insight
     ? DateTime.fromISO(insight.at, { zone: data.timezone }).toFormat(
         getLuxonFormat(is12Hour),

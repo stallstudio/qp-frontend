@@ -63,6 +63,7 @@
     "open": "운영 중",
     "closed": "운행 중지",
     "down": "고장",
+    "downShort": "고장",
     "maintenance": "점검 중",
     "unavailable": "정보 없음",
     "unavailableShort": "정보 없음"

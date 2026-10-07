@@ -63,6 +63,7 @@
     "open": "Đang hoạt động",
     "closed": "Ngừng hoạt động",
     "down": "Hỏng hóc",
+    "downShort": "Hỏng hóc",
     "maintenance": "Bảo trì",
     "unavailable": "Không có dữ liệu",
     "unavailableShort": "Không có"

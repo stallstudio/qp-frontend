@@ -80,8 +80,9 @@ export function useShowSlots(
 }
 
 // Même forme que la ligne d'alerte du popup attraction (`alert-section.tsx`).
-const ROW = "flex w-full items-center gap-3 rounded-2xl border p-3 text-left";
-const ICON_TILE = "grid size-9 shrink-0 place-items-center rounded-xl";
+const ROW =
+  "flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left";
+const ICON_TILE = "grid size-8 shrink-0 place-items-center rounded-lg";
 
 type ShowSchedulePanelProps = {
   parkIdentifier: string;
@@ -358,7 +359,7 @@ export default function ShowSchedulePanel({
             )}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold">
+            <span className="block truncate text-sm font-semibold">
               {remindersAhead > 0
                 ? t("reminderRowCount", { count: remindersAhead })
                 : t("reminderRowTitle")}
@@ -383,7 +384,7 @@ export default function ShowSchedulePanel({
             <span className={cn(ICON_TILE, "bg-primary/15 text-primary")}>
               <Bell className="size-4" />
             </span>
-            <span className="min-w-0 flex-1 text-sm font-semibold">
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold">
               {selectedSlot
                 ? t("reminderSlot", { time: selectedSlot.label })
                 : t("reminderRowTitle")}
