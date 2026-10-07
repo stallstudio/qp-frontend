@@ -330,7 +330,13 @@ async function runAlertsPass(): Promise<NextResponse> {
   // notifiée reste en base jusqu'au soir (voir REOPEN_REARM_WINDOW_MS) : c'est
   // précisément une ligne inactive, et il faut la relire à chaque passage pour
   // pouvoir la réarmer — et pour l'expirer en fin de journée comme les autres.
-  const alerts = await userPrisma.alert.findMany();
+  // ⚠️ La file standby SEULE : depuis le 2026-10-07 une alerte peut viser une
+  // autre file (Single Rider, créneau…), que ce moteur ne sait pas évaluer —
+  // il les jugerait sur le temps standby de l'attraction. Elles sont l'affaire
+  // du front qui a les popups par file (branche dev).
+  const alerts = await userPrisma.alert.findMany({
+    where: { queueType: "standby" },
+  });
   if (alerts.length === 0) {
     return NextResponse.json({
       checked: 0,

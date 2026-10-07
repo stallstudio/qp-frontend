@@ -28,8 +28,9 @@ export async function GET() {
   const { userId, response } = await requireUserId();
   if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // La file standby seule : voir le filtre du moteur (/api/cron/alerts).
   const rows = await getUserPrisma().alert.findMany({
-    where: { userId },
+    where: { userId, queueType: "standby" },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(rows.map(toAlertDTO));
@@ -148,7 +149,11 @@ export async function POST(request: NextRequest) {
   // aujourd'hui (l'alerte ne vaut que pour la journée en cours).
   const now = new Date();
   const alert = await getUserPrisma().alert.upsert({
-    where: { userId_rideId: { userId, rideId } },
+    // Clé élargie à la file le 2026-10-07 ; ce front ne pose que des alertes
+    // d'attraction, donc de file standby.
+    where: {
+      userId_rideId_queueType: { userId, rideId, queueType: "standby" },
+    },
     update: {
       type,
       threshold,

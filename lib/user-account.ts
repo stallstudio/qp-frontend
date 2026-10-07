@@ -7,6 +7,7 @@ import {
 import type {
   AlertDTO,
   AlertHistoryDTO,
+  AlertType,
   ShowReminderDTO,
   ShowReminderHistoryDTO,
 } from "@/types/user";
@@ -48,6 +49,14 @@ export async function getPreferences(
   };
 }
 
+// La base connaît une troisième nature, `slot` (créneau d'une file virtuelle),
+// réservée aux alertes de file que ce front filtre partout (`queueType =
+// "standby"`, voir /api/cron/alerts). Elle ne peut donc pas arriver ici ; le
+// repli ne sert qu'à garder le type de l'API inchangé.
+function readAlertType(type: string): AlertType {
+  return type === "reopen" ? "reopen" : "threshold";
+}
+
 export function toAlertDTO(a: Alert): AlertDTO {
   return {
     id: a.id,
@@ -55,7 +64,7 @@ export function toAlertDTO(a: Alert): AlertDTO {
     parkIdentifier: a.parkIdentifier,
     rideName: a.rideName,
     parkName: a.parkName,
-    type: a.type,
+    type: readAlertType(a.type),
     threshold: a.threshold,
     active: a.active,
     createdAt: a.createdAt.toISOString(),
@@ -107,7 +116,7 @@ export function toAlertHistoryDTO(
     parkIdentifier: h.parkIdentifier,
     rideName: h.rideName,
     parkName: parkName ?? h.parkIdentifier,
-    type: h.type,
+    type: readAlertType(h.type),
     threshold: h.threshold,
     actualWaitTime: h.actualWaitTime,
     sentAt: h.sentAt.toISOString(),

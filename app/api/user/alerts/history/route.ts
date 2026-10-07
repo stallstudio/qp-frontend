@@ -21,7 +21,8 @@ export async function GET() {
     Date.now() - HISTORY_MAX_AGE_DAYS * 24 * 60 * 60 * 1000,
   );
   const rows = await getUserPrisma().alertHistory.findMany({
-    where: { userId, sentAt: { gte: cutoff } },
+    // La file standby seule : voir le filtre du moteur (/api/cron/alerts).
+    where: { userId, queueType: "standby", sentAt: { gte: cutoff } },
     orderBy: { sentAt: "desc" },
     take: 100,
   });
