@@ -79,7 +79,6 @@ type HoursFamily = Exclude<ScheduleFamily, "show">;
 
 // Les deux onglets de la colonne, sous la `value` que Radix leur donne.
 type ColumnTab = "wait-times" | "show-times";
-const COLUMN_TABS: ColumnTab[] = ["wait-times", "show-times"];
 
 // ————— Changer de famille : la colonne glisse vers la pastille choisie —————
 //
@@ -675,10 +674,12 @@ export default function MainCard({
   // ————— La famille choisie, d'un onglet à l'autre —————
   //
   // Une famille retenue PAR ONGLET, et non une seule pour la page : les deux
-  // onglets ne proposent pas les mêmes familles. Choisir une famille la retient
-  // dans l'onglet courant ET dans tout autre onglet qui la propose — restaurants
-  // choisis en direct, restaurants préselectionnés dans les horaires —, sans
-  // toucher au choix d'un onglet qui ne la propose pas.
+  // onglets ne proposent pas les mêmes familles.
+  //
+  // ⚠️ **Aucune synchro entre onglets** (arbitré le 2026-10-07). Choisir une
+  // famille en direct ne la reporte plus dans les horaires : passer d'« En
+  // direct » à « Horaires du jour » ouvre TOUJOURS les spectacles — c'est ce
+  // qu'on y vient chercher —, voir `changeTab`.
   //
   // `null` : rien de choisi, l'onglet montre sa première famille.
   const [pickedFamily, setPickedFamily] = useState<
@@ -712,15 +713,17 @@ export default function MainCard({
         ? 1
         : -1,
     );
-    setPickedFamily((prev) => {
-      const next = { ...prev, [tab]: family };
-      for (const other of COLUMN_TABS) {
-        if (other !== tab && tabFamilies[other].includes(family)) {
-          next[other] = family;
-        }
-      }
-      return next;
-    });
+    setPickedFamily((prev) => ({ ...prev, [tab]: family }));
+  };
+
+  const changeTab = (tab: ColumnTab) => {
+    // Venir du direct, c'est arriver sur les spectacles, quel que soit le choix
+    // laissé la dernière fois dans les horaires. Sans spectacle ce jour-là,
+    // `familyFor` retombe sur la première famille.
+    if (tab === "show-times" && activeTab === "wait-times") {
+      setPickedFamily((prev) => ({ ...prev, "show-times": "show" }));
+    }
+    setActiveTab(tab);
   };
 
   const panelIdFor = (tab: ColumnTab) => `${familyIdBase}-panel-${tab}`;
@@ -929,7 +932,7 @@ export default function MainCard({
     <PoiHoursProvider value={hoursContext}>
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as ColumnTab)}
+        onValueChange={(value) => changeTab(value as ColumnTab)}
         className={CARD_STACK}
       >
         {/* Le sélecteur d'onglets a sa PROPRE carte : c'est de la navigation, pas
