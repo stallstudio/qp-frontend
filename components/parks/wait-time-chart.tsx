@@ -191,14 +191,47 @@ export default function WaitTimeChart({
     }
     // Trace des prévisions écoulées. Elle ne couvre que le passé, donc elle ne
     // chevauche jamais `forecast` — et ne s'y raccorde pas (voir plus bas).
-    // ⚠️ La route y ajoute le premier point À VENIR, qui ne sert qu'à calculer
-    // ce qui était prévu pour « maintenant » (`expected`) : il n'est pas tracé.
+    // ⚠️ La route y ajoute le premier point À VENIR : il n'est pas tracé, il
+    // sert à prolonger la trace jusqu'à « maintenant », comme la courbe
+    // observée, au lieu de l'arrêter au dernier pas échu.
     const nowLimitMs = Date.parse(now);
+    let trailBefore: { t: number; v: number } | null = null;
+    let trailAfter: { t: number; v: number } | null = null;
+    const trailStepMs: number[] = [];
     for (const p of forecastTrail ?? []) {
       const t = Date.parse(p.t);
+      if (p.waitTime != null) {
+        if (t <= nowLimitMs && (!trailBefore || t > trailBefore.t)) {
+          trailBefore = { t, v: p.waitTime };
+        }
+        if (t > nowLimitMs && (!trailAfter || t < trailAfter.t)) {
+          trailAfter = { t, v: p.waitTime };
+        }
+      }
       if (t > nowLimitMs) continue;
       const r = row(t);
       r.trail = p.waitTime;
+    }
+    // Pas de prolongement par-dessus un trou de la trace (créneau habituellement
+    // fermé) : même garde que pour `expected`, un écart au plus d'un pas et demi.
+    const trailTimes = (forecastTrail ?? [])
+      .map((p) => Date.parse(p.t))
+      .sort((a, b) => a - b);
+    for (let i = 1; i < trailTimes.length; i++) {
+      trailStepMs.push(trailTimes[i] - trailTimes[i - 1]);
+    }
+    const trailStep = trailStepMs.length ? Math.min(...trailStepMs) : 0;
+    if (
+      trailBefore &&
+      trailAfter &&
+      trailBefore.t < nowLimitMs &&
+      trailAfter.t - trailBefore.t <= trailStep * 1.5
+    ) {
+      row(nowLimitMs).trail = Math.round(
+        trailBefore.v +
+          ((trailAfter.v - trailBefore.v) * (nowLimitMs - trailBefore.t)) /
+            (trailAfter.t - trailBefore.t),
+      );
     }
 
     // Raccord : le dernier point observé amorce aussi la prévision (continuité
