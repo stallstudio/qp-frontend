@@ -12,6 +12,22 @@ import { isAdminViewer } from "@/lib/auth-helpers";
 import { sampleDaySeries, type TimedPoint } from "@/lib/wait-times-series";
 import type { ConfidenceLevel, RideHistoryResponse } from "@/types/rideHistory";
 import { waitCapFor } from "@/lib/wait-time-cap";
+import { CHARTED_QUEUE_TYPES, STANDBY_QUEUE } from "@/lib/queue-types";
+
+// Colonnes lues sur la ligne de prévision, identiques dans les deux tables.
+const FORECAST_SELECT = {
+  date: true,
+  forecast: true,
+  forecastTrail: true,
+  scale: true,
+  confidence: true,
+  confidenceLevel: true,
+  preOpening: true,
+  method: true,
+  baseProfile: true,
+  marginMinutes: true,
+  marginSamples: true,
+} as const;
 
 // Cadence d'échantillonnage (min) de la courbe du jour ET de la prévision.
 const CHART_STEP_MINUTES = 15;
@@ -26,7 +42,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * Historique du jour + prévision de fin de journée pour UNE attraction (file
- * standby). Fetché à la demande à l'ouverture du popup d'une attraction — donc
+ * standby, ou `?queue=singlerider` pour sa file Single Rider — voir
+ * `CHARTED_QUEUE_TYPES`). Fetché à la demande à l'ouverture du popup d'une attraction — donc
  * indépendant de l'historique global (suspendu). Reconstruit une série
  * horodatée depuis le modèle temporel `wait_times` et applique la stratégie de
  * prévision active.
@@ -125,6 +142,14 @@ export async function GET(
       return NextResponse.json({ error: "Invalid ride id" }, { status: 400 });
     }
 
+    // ⚠️ Liste FERMÉE : une file virtuelle ou un créneau n'a pas de courbe à
+    // tracer, et le paramètre finit dans une requête SQL.
+    const queueType =
+      new URL(request.url).searchParams.get("queue") ?? STANDBY_QUEUE;
+    if (!CHARTED_QUEUE_TYPES.has(queueType)) {
+      return NextResponse.json({ error: "Invalid queue" }, { status: 400 });
+    }
+
     // Vérifie l'appartenance de l'attraction au parc (anti-fuite cross-parc).
     //
     // ⚠️ `kind: "ride"` fait partie du contrôle depuis que les spectacles
@@ -147,6 +172,7 @@ export async function GET(
     const rideHistory = await buildRideHistory(park.id, park.timezone, rideIdNum, {
       historyDays: 0,
       eventId: ride.eventId,
+      queueType,
     });
 
     if (!rideHistory.today) {
@@ -161,22 +187,28 @@ export async function GET(
 
     // Prévision stockée : on ne l'utilise que si elle vise bien le jour logique
     // courant (sinon elle est périmée -> on n'affiche pas de prévision).
-    const forecastRow = await prisma.rideForecast.findUnique({
-      where: { poiId: rideIdNum },
-      select: {
-        date: true,
-        forecast: true,
-        forecastTrail: true,
-        scale: true,
-        confidence: true,
-        confidenceLevel: true,
-        preOpening: true,
-        method: true,
-        baseProfile: true,
-        marginMinutes: true,
-        marginSamples: true,
-      },
-    });
+    //
+    // File secondaire : table `queue_forecast` (voir le modèle `QueueForecast`
+    // pour la raison d'une table à part). Son échec ne coûte que la prévision :
+    // la courbe observée reste servie.
+    const forecastRow =
+      queueType === STANDBY_QUEUE
+        ? await prisma.rideForecast.findUnique({
+            where: { poiId: rideIdNum },
+            select: FORECAST_SELECT,
+          })
+        : await prisma.queueForecast
+            .findUnique({
+              where: { poiId_queueType: { poiId: rideIdNum, queueType } },
+              select: FORECAST_SELECT,
+            })
+            .catch((error: unknown) => {
+              console.error(
+                `Queue forecast unavailable for ride ${rideId} (${queueType})`,
+                error,
+              );
+              return null;
+            });
 
     const fresh = forecastRow && forecastRow.date === rideHistory.date;
     const forecast: TimedPoint[] = fresh

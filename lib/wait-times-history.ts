@@ -11,6 +11,7 @@ import { getPrisma } from "@/lib/prisma";
 import { calculateParkDate, getOpeningHoursByParkAndDate } from "@/lib/opening-hours";
 import type { DayIntervals, WaitInterval } from "@/lib/wait-times-series";
 import { sliceIntervalsForWindow } from "@/lib/wait-times-series";
+import { STANDBY_QUEUE } from "@/lib/queue-types";
 
 const DEFAULT_HISTORY_DAYS = 7;
 
@@ -112,12 +113,15 @@ export async function getRideStandbyIntervals(
   rideId: number,
   fromUtc: Date,
   toUtc: Date,
+  // File lue : la standby, ou une file secondaire à attente classique (voir
+  // `CHARTED_QUEUE_TYPES`) pour le graphique de son propre popup.
+  queueType: string = STANDBY_QUEUE,
 ): Promise<WaitInterval[]> {
   const rows = await getPrisma().waitTime.findMany({
     where: {
       parkId,
       poiId: rideId,
-      type: "standby",
+      type: queueType,
       startTime: { lt: toUtc },
       OR: [{ endTime: null }, { endTime: { gte: fromUtc } }],
     },
@@ -168,10 +172,15 @@ export async function buildRideHistory(
   parkId: number,
   timezone: string,
   rideId: number,
-  opts?: { historyDays?: number; eventId?: number | null },
+  opts?: {
+    historyDays?: number;
+    eventId?: number | null;
+    queueType?: string;
+  },
 ): Promise<RideHistory> {
   const historyDays = opts?.historyDays ?? DEFAULT_HISTORY_DAYS;
   const eventId = opts?.eventId ?? null;
+  const queueType = opts?.queueType ?? STANDBY_QUEUE;
   const now = new Date();
 
   const todayISO = await calculateParkDate(parkId, timezone);
@@ -190,6 +199,7 @@ export async function buildRideHistory(
     rideId,
     dayStart,
     now,
+    queueType,
   );
   const todayHours = await getOpeningHoursByParkAndDate(parkId, todayISO);
   // ⚠️ Repli sur la fenêtre du PARC quand l'événement n'a pas de session
@@ -238,7 +248,7 @@ export async function buildRideHistory(
   }
 
   const [historyIntervals, prevHourRows] = await Promise.all([
-    getRideStandbyIntervals(parkId, rideId, windowStart, dayStart),
+    getRideStandbyIntervals(parkId, rideId, windowStart, dayStart, queueType),
     getPrisma().openingHours.findMany({
       where: { parkId, date: { in: prevDates } },
       select: {

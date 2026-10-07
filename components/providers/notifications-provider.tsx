@@ -27,8 +27,11 @@ import type { AlertDTO, ShowReminderDTO } from "@/types/user";
  */
 
 interface NotificationsContextValue {
-  // Attractions (rideId) avec une alerte de temps d'attente active.
+  // Attractions (rideId) avec une alerte active, QUELLE QUE SOIT la file : la
+  // ligne repliée de l'attraction est la seule à pouvoir le signaler.
   alertRideIds: Set<number>;
+  // Files avec une alerte active, clés `alertQueueKey(rideId, queueType)`.
+  alertQueueKeys: Set<string>;
   // Spectacles avec au moins un rappel à venir, clés `${parc}:${nomDuSpectacle}`.
   reminderShowKeys: Set<string>;
   // À appeler après création/suppression depuis un popup pour que la cloche de
@@ -40,6 +43,9 @@ const NotificationsContext = createContext<
   NotificationsContextValue | undefined
 >(undefined);
 
+export const alertQueueKey = (rideId: number, queueType: string) =>
+  `${rideId}:${queueType}`;
+
 export const showReminderKey = (parkIdentifier: string, showName: string) =>
   `${parkIdentifier}:${showName}`;
 
@@ -50,6 +56,9 @@ export function NotificationsProvider({
 }) {
   const { status } = useSession();
   const [alertRideIds, setAlertRideIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const [alertQueueKeys, setAlertQueueKeys] = useState<Set<string>>(
     () => new Set(),
   );
   const [reminderShowKeys, setReminderShowKeys] = useState<Set<string>>(
@@ -70,8 +79,10 @@ export function NotificationsProvider({
 
     // Échec réseau : on garde l'état courant plutôt que d'effacer les cloches.
     if (alerts) {
-      setAlertRideIds(
-        new Set(alerts.filter((a) => a.active).map((a) => a.rideId)),
+      const active = alerts.filter((a) => a.active);
+      setAlertRideIds(new Set(active.map((a) => a.rideId)));
+      setAlertQueueKeys(
+        new Set(active.map((a) => alertQueueKey(a.rideId, a.queueType))),
       );
     }
     if (reminders) {
@@ -93,6 +104,7 @@ export function NotificationsProvider({
 
     if (status === "unauthenticated") {
       setAlertRideIds(new Set());
+      setAlertQueueKeys(new Set());
       setReminderShowKeys(new Set());
       return;
     }
@@ -114,8 +126,8 @@ export function NotificationsProvider({
   }, [status, load]);
 
   const value = useMemo(
-    () => ({ alertRideIds, reminderShowKeys, refresh: load }),
-    [alertRideIds, reminderShowKeys, load],
+    () => ({ alertRideIds, alertQueueKeys, reminderShowKeys, refresh: load }),
+    [alertRideIds, alertQueueKeys, reminderShowKeys, load],
   );
 
   return (

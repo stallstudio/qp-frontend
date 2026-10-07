@@ -497,7 +497,9 @@
     "editLead": "Sửa thời gian báo trước",
     "leadTooLate": "Chương trình sắp bắt đầu, không kịp đổi thời gian báo trước.",
     "reopenBadge": "Mở lại",
-    "historyReopenLine": "Đã mở lại"
+    "historyReopenLine": "Đã mở lại",
+    "slotBadge": "Trước {time}",
+    "historySlotLine": "Có khung giờ trước {time}"
   },
   "privacy": {
     "emailLabel": "Địa chỉ email",
@@ -579,6 +581,7 @@
     "reopenTooLate": "Công viên đã đóng cửa, cảnh báo không khả dụng. Hãy quay lại vào lần mở cửa tới.",
     "statusChanged": "Trạng thái của trò chơi vừa thay đổi. Hãy mở lại trang để tạo đúng loại cảnh báo.",
     "liveWait": "Thời gian chờ",
+    "liveSlot": "Khung giờ",
     "liveStatus": "Trạng thái",
     "liveOpensAt": "Mở lúc",
     "liveClosesAt": "Đóng lúc",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "Cảnh báo dưới {minutes} phút",
     "close": "Đóng",
     "pushDeniedShort": "Thông báo bị chặn trên thiết bị này",
-    "insightBest": "Thời điểm tốt nhất dự kiến: <b>~{minutes} phút vào khoảng {time}</b>"
+    "insightBest": "Thời điểm tốt nhất dự kiến: <b>~{minutes} phút vào khoảng {time}</b>",
+    "slotRowTitle": "Báo khi có khung giờ sớm hơn",
+    "slotRowPick": "Chọn giờ",
+    "slotOption": "Trước {time}",
+    "slotActiveRow": "Cảnh báo đang bật · khung giờ trước {time}",
+    "slotHint": "Chúng tôi sẽ báo cho bạn ngay khi có khung giờ bắt đầu muộn nhất vào giờ này.",
+    "slotNothingEarlier": "Hiện chưa có khung giờ sớm hơn để theo dõi.",
+    "queueReopenLabel": "Hàng chờ này đang đóng. Chúng tôi sẽ báo cho bạn ngay khi mở lại.",
+    "queueNothingToWatch": "Hàng chờ này không công bố thời gian chờ hay khung giờ: hiện chưa có gì để theo dõi.",
+    "queueSeeRide": "Xem trò chơi"
   },
   "poiDetail": {
     "openFor": "Xem chi tiết {poi}",

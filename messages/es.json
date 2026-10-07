@@ -497,7 +497,9 @@
     "editLead": "Editar antelación",
     "leadTooLate": "El espectáculo empieza demasiado pronto para cambiar la antelación.",
     "reopenBadge": "Reapertura",
-    "historyReopenLine": "Ha reabierto"
+    "historyReopenLine": "Ha reabierto",
+    "slotBadge": "Antes de las {time}",
+    "historySlotLine": "Turno antes de las {time} disponible"
   },
   "privacy": {
     "emailLabel": "Dirección de correo",
@@ -579,6 +581,7 @@
     "reopenTooLate": "El parque está cerrado, las alertas no están disponibles. Vuelve en la próxima apertura del parque.",
     "statusChanged": "El estado de la atracción acaba de cambiar. Vuelve a abrir la ficha para crear la alerta adecuada.",
     "liveWait": "Espera",
+    "liveSlot": "Turno",
     "liveStatus": "Estado",
     "liveOpensAt": "Abre a las",
     "liveClosesAt": "Cierra a las",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "Alerta por debajo de {minutes} min",
     "close": "Cerrar",
     "pushDeniedShort": "Notificaciones bloqueadas en este dispositivo",
-    "insightBest": "Mejor momento previsto: <b>~{minutes} min hacia las {time}</b>"
+    "insightBest": "Mejor momento previsto: <b>~{minutes} min hacia las {time}</b>",
+    "slotRowTitle": "Avisar de un turno antes",
+    "slotRowPick": "Elegir la hora",
+    "slotOption": "Antes de las {time}",
+    "slotActiveRow": "Alerta activa · turno antes de las {time}",
+    "slotHint": "Te avisamos en cuanto haya un turno que empiece a esta hora o antes.",
+    "slotNothingEarlier": "Ahora mismo no hay un turno más temprano que vigilar.",
+    "queueReopenLabel": "Esta fila está cerrada. Te avisamos en cuanto vuelva a abrir.",
+    "queueNothingToWatch": "Esta fila no publica ni tiempo de espera ni turno: no hay nada que vigilar por ahora.",
+    "queueSeeRide": "Ver la atracción"
   },
   "poiDetail": {
     "openFor": "Ver la ficha de {poi}",

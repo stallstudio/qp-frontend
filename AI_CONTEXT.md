@@ -758,6 +758,26 @@ tombait sous la ligne de flottaison et rien ne disait qu'elle existait. Dans la
 case « État », « En panne » prend sa forme courte (`attractionStatus.downShort`,
 « Panne ») ; « Maintenance » reste tronquée.
 
+⚠️ **Chaque FILE a son popup (2026-10-07)** : une ligne Single Rider, Disney
+Premier Access, VirtualLine… ouvre `AttractionDetailDialog` avec `queueType`
+(titre = la file, sous-titre = l'attraction, ligne « Voir l'attraction » en
+bas). Tout s'y lit sur la file : attente ou créneau (case « Créneau »), état,
+alerte. **Graphique et prévision seulement pour `CHARTED_QUEUE_TYPES`**
+(`lib/queue-types.ts` : standby + singlerider) — un créneau ou une file
+virtuelle ne se prévoient pas. La route d'historique prend `?queue=singlerider`
+(liste fermée) et lit la prévision dans `queue_forecast`, table à part (voir le
+modèle `QueueForecast`). Lien profond : `/ride/{slug}?queue=…`.
+
+⚠️ **Les alertes visent une FILE** (`alerts.queueType`, `standby` par défaut,
+unicité userId+rideId+queueType) et gagnent la nature `slot` : « un créneau
+commençant au plus tard à `slotBefore` (HH:mm, heure du parc) est proposé ».
+Le moteur (`/api/cron/alerts`) juge chaque alerte sur SA file. Migration :
+`prisma/user/manual/2026-10-07-queue-alerts.sql`. ⚠️ **`main` (prod) filtre
+partout `queueType = "standby"`** (correctif du 2026-10-07) : sans ça, son moteur
+aurait jugé une alerte Single Rider sur le temps standby de l'attraction. Tant
+que `dev` n'est pas fusionnée, une alerte de file n'est évaluée que par un
+moteur `dev`.
+
 ⚠️ **Le bandeau est dans l'en-tête ÉPINGLÉE, pas dans le corps défilant** : il
 chevauche la photo par une marge négative, que `overflow-y-auto` rognerait.
 

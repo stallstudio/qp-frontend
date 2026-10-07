@@ -115,6 +115,7 @@ model Park {
   poiChanges       PoiChange[]
   dailyWeather     DailyWeather[]
   rideForecasts    RideForecast[]
+  queueForecasts   QueueForecast[]
   forecastAccuracy ForecastAccuracy[]
   events           ParkEvent[]
   silenceEpisode   ParkSilenceEpisode?
@@ -279,6 +280,50 @@ model RideForecast {
   @@map("ride_forecast")
 }
 
+// Prévision d'une file SECONDAIRE (Single Rider), même moteur et mêmes colonnes
+// que `ride_forecast`, une ligne par (attraction, file).
+//
+// ⚠️ **Une table à part, et pas une colonne `queueType` sur `ride_forecast`.**
+// Le front de production lit `ride_forecast` par `poiId` seul (`findUnique`) :
+// une seconde ligne pour la même attraction lui aurait servi, au hasard de
+// l'index, la courbe du Single Rider sous le nom de la file standby. L'admin
+// (liste et détail des prévisions) aurait de même affiché chaque attraction en
+// double. Ici, aucun lecteur existant ne voit rien changer.
+//
+// ⚠️ Seules les files à attente « classique » y ont leur place : une file
+// virtuelle ou un créneau payant ne se prévoient pas (voir
+// `FORECAST_QUEUE_TYPES`). Pas de colonnes shadow : la variante n'est mesurée
+// que sur la file standby.
+model QueueForecast {
+  id                  Int       @id @default(autoincrement())
+  poiId               Int
+  poi                 Poi       @relation(fields: [poiId], references: [id], onDelete: Cascade)
+  parkId              Int
+  park                Park      @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  queueType           String    @db.VarChar(50)
+  date                String    @db.VarChar(10)
+  baseProfile         Json
+  forecast            Json
+  forecastTrail       Json?
+  scale               Float     @default(1)
+  confidence          Float     @default(0)
+  confidenceLevel     String    @default("low") @db.VarChar(10)
+  method              String    @db.VarChar(40)
+  preOpening          Boolean   @default(false)
+  openTime            DateTime?
+  closeTime           DateTime?
+  referenceForecast   Json?
+  referenceComputedAt DateTime?
+  marginMinutes       Float?
+  marginSamples       Int?      @default(0)
+  computedAt          DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([poiId, queueType])
+  @@index([parkId, queueType])
+  @@map("queue_forecast")
+}
+
 // Justesse mesurée de la prévision : agrégat QUOTIDIEN par attraction et par
 // fenêtre d'horizon. On n'archive PAS les prévisions point par point (à ~5 000
 // attractions × 40 points × 144 passages/jour, la table serait ingérable) : on
@@ -303,6 +348,15 @@ model ForecastAccuracy {
   sumActual      Float @default(0) // Σ observé (donne l'erreur RELATIVE)
 
   method    String   @db.VarChar(40) // version du moteur ayant produit ces points
+  // File mesurée : `standby` pour la quasi-totalité des lignes, `singlerider`
+  // pour celles de `queue_forecast`. Dans la CLÉ, pour la même raison que
+  // `method` : les deux files d'une attraction partagent `poiId`, et leurs
+  // sommes s'additionneraient sur la même ligne.
+  //
+  // ⚠️ Tout lecteur qui agrège doit filtrer dessus (marges du moteur, page
+  // Forecast Accuracy de l'admin) : sans filtre, la justesse du Single Rider se
+  // fond dans celle de l'attraction.
+  queueType String   @default("standby") @db.VarChar(50)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -312,7 +366,7 @@ model ForecastAccuracy {
   // s'additionnaient et `ON DUPLICATE KEY UPDATE ... method = VALUES(method)`
   // réétiquetait le tout au nom de la dernière arrivée. La table censée
   // départager les versions les aurait mélangées en silence.
-  @@unique([poiId, date, horizonBucket, method])
+  @@unique([poiId, date, horizonBucket, method, queueType])
   @@index([parkId, date])
   @@index([date])
   @@map("forecast_accuracy")
@@ -394,6 +448,7 @@ model Poi {
   showTimes        ShowTime[]
   hours            PoiHours[]
   forecast         RideForecast?
+  queueForecasts   QueueForecast[]
   forecastAccuracy ForecastAccuracy[]
 
   // Événement saisonnier auquel ce POI appartient (un maze de Peur sur le Parc,

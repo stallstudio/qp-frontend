@@ -181,15 +181,32 @@ model Favorite {
 //     RÉOUVERTURE. Proposer un seuil ici n'aurait aucun sens (on ne peut pas
 //     descendre sous un seuil quand rien n'est publié), d'où le refus de créer
 //     une alerte `reopen` sur une attraction déjà ouverte (et inversement).
+//   - `slot`      : (files à créneau seulement — Disney Premier Access, file
+//     virtuelle) un créneau commençant au plus tard à `slotBefore` est
+//     proposé. Un créneau n'a pas de durée d'attente à faire baisser : ce
+//     qu'on guette, c'est l'heure de passage.
+//
+// ⚠️ Depuis le 2026-10-07, une alerte vise une FILE (`queueType`), pas une
+// attraction : `standby` pour l'attraction elle-même, ou sa file Single Rider,
+// virtuelle… La règle ci-dessus vaut file par file.
 enum AlertType {
   threshold
   reopen
+  slot
 }
 
 model Alert {
   id             String   @id @default(cuid())
   userId         String
   rideId         Int
+  // File surveillée, du même vocabulaire que `wait_times.type`. `standby` =
+  // l'attraction elle-même, et la valeur de toutes les alertes d'avant le
+  // 2026-10-07.
+  //
+  // ⚠️ Tout lecteur qui ne sait traiter que l'attraction doit filtrer sur
+  // `standby` — c'est ce que fait le front de production tant qu'il n'a pas
+  // les popups par file.
+  queueType      String   @default("standby") @db.VarChar(50)
   parkIdentifier String   @db.VarChar(100)
   rideName       String   @db.VarChar(255)
   parkName       String   @db.VarChar(255)
@@ -199,6 +216,9 @@ model Alert {
   // partout où l'on oublierait de traiter le cas, alors que `null` force le
   // compilateur à trancher à chaque point d'affichage.
   threshold      Int?
+  // Alerte `slot` seulement : heure limite du créneau voulu, « HH:mm » en heure
+  // du PARC (le format que publie la source, voir `TimeSlot`). NULL sinon.
+  slotBefore     String?  @db.VarChar(5)
   active         Boolean  @default(true)
   // État anti-spam du moteur (déclenchement sur FRONT, pas sur niveau) : `armed`
   // = true tant que le temps est resté au-dessus du seuil, donc prêt à alerter
@@ -230,7 +250,9 @@ model Alert {
   user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   history AlertHistory[]
 
-  @@unique([userId, rideId])
+  // Une alerte par FILE et par utilisateur (avant le 2026-10-07 : une par
+  // attraction).
+  @@unique([userId, rideId, queueType])
   @@index([userId])
   @@index([rideId, active])
   @@map("alerts")
@@ -241,6 +263,8 @@ model AlertHistory {
   userId         String
   alertId        String?
   rideId         Int
+  // Recopiés de l'alerte, comme `type` : voir Alert.
+  queueType      String   @default("standby") @db.VarChar(50)
   rideName       String   @db.VarChar(255)
   parkIdentifier String   @db.VarChar(100)
   // Nature de la notification envoyée, recopiée de l'alerte : le fil du profil
@@ -248,6 +272,7 @@ model AlertHistory {
   type           AlertType @default(threshold)
   // NULL pour une notification de réouverture (pas de seuil), comme sur Alert.
   threshold      Int?
+  slotBefore     String?  @db.VarChar(5)
   // Temps d'attente au moment de l'envoi. Pour une réouverture, c'est celui
   // publié à la réouverture (souvent 0) : l'information utile est l'événement,
   // pas la valeur.

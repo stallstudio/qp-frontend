@@ -497,7 +497,9 @@
     "editLead": "Rediger varslingstid",
     "leadTooLate": "Showet begynder for snart til at ændre varslingstiden.",
     "reopenBadge": "Genåbning",
-    "historyReopenLine": "Genåbnede"
+    "historyReopenLine": "Genåbnede",
+    "slotBadge": "Før {time}",
+    "historySlotLine": "Tidsrum før {time} ledigt"
   },
   "privacy": {
     "emailLabel": "E-mailadresse",
@@ -579,6 +581,7 @@
     "reopenTooLate": "Parken er lukket, alarmer er ikke tilgængelige. Kom tilbage ved parkens næste åbning.",
     "statusChanged": "Forlystelsens status er lige ændret. Åbn siden igen for at oprette den rigtige alarm.",
     "liveWait": "Ventetid",
+    "liveSlot": "Tidsrum",
     "liveStatus": "Status",
     "liveOpensAt": "Åbner kl.",
     "liveClosesAt": "Lukker kl.",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "Alarm under {minutes} min",
     "close": "Luk",
     "pushDeniedShort": "Notifikationer blokeret på denne enhed",
-    "insightBest": "Bedste tidspunkt ifølge prognosen: <b>~{minutes} min omkring {time}</b>"
+    "insightBest": "Bedste tidspunkt ifølge prognosen: <b>~{minutes} min omkring {time}</b>",
+    "slotRowTitle": "Besked om et tidligere tidsrum",
+    "slotRowPick": "Vælg et tidspunkt",
+    "slotOption": "Før {time}",
+    "slotActiveRow": "Alarm aktiv · tidsrum før {time}",
+    "slotHint": "Du får besked, så snart et tidsrum starter senest på dette tidspunkt.",
+    "slotNothingEarlier": "Der er ikke noget tidligere tidsrum at holde øje med lige nu.",
+    "queueReopenLabel": "Denne kø er lukket. Få besked, så snart den åbner igen.",
+    "queueNothingToWatch": "Denne kø oplyser hverken ventetid eller tidsrum: der er intet at holde øje med lige nu.",
+    "queueSeeRide": "Se forlystelsen"
   },
   "poiDetail": {
     "openFor": "Se detaljer om {poi}",

@@ -497,7 +497,9 @@
     "editLead": "Vorlaufzeit bearbeiten",
     "leadTooLate": "Die Show beginnt zu bald, um die Vorlaufzeit noch zu ändern.",
     "reopenBadge": "Wiedereröffnung",
-    "historyReopenLine": "Wieder geöffnet"
+    "historyReopenLine": "Wieder geöffnet",
+    "slotBadge": "Vor {time}",
+    "historySlotLine": "Slot vor {time} verfügbar"
   },
   "privacy": {
     "emailLabel": "E-Mail-Adresse",
@@ -579,6 +581,7 @@
     "reopenTooLate": "Der Park ist geschlossen, Alarme sind nicht verfügbar. Komm zur nächsten Öffnung des Parks wieder.",
     "statusChanged": "Der Status der Attraktion hat sich gerade geändert. Öffne die Seite erneut, um den passenden Alarm zu erstellen.",
     "liveWait": "Wartezeit",
+    "liveSlot": "Slot",
     "liveStatus": "Status",
     "liveOpensAt": "Öffnet um",
     "liveClosesAt": "Schließt um",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "Alarm unter {minutes} min",
     "close": "Schließen",
     "pushDeniedShort": "Benachrichtigungen auf diesem Gerät blockiert",
-    "insightBest": "Bester Zeitpunkt laut Prognose: <b>~{minutes} min gegen {time}</b>"
+    "insightBest": "Bester Zeitpunkt laut Prognose: <b>~{minutes} min gegen {time}</b>",
+    "slotRowTitle": "Früheren Slot melden",
+    "slotRowPick": "Uhrzeit wählen",
+    "slotOption": "Vor {time}",
+    "slotActiveRow": "Alarm aktiv · Slot vor {time}",
+    "slotHint": "Du wirst benachrichtigt, sobald ein Slot spätestens zu dieser Uhrzeit beginnt.",
+    "slotNothingEarlier": "Gerade gibt es keinen früheren Slot zu beobachten.",
+    "queueReopenLabel": "Diese Warteschlange ist geschlossen. Lass dich benachrichtigen, sobald sie wieder öffnet.",
+    "queueNothingToWatch": "Diese Warteschlange veröffentlicht weder Wartezeit noch Slot: Es gibt gerade nichts zu beobachten.",
+    "queueSeeRide": "Zur Attraktion"
   },
   "poiDetail": {
     "openFor": "Details zu {poi} ansehen",

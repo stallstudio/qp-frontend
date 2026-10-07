@@ -8,7 +8,10 @@ import { useTranslations } from "next-intl";
 import { useWaitTimeChanges } from "@/hooks/useWaitTimeChanges";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useNotifications } from "@/components/providers/notifications-provider";
+import {
+  alertQueueKey,
+  useNotifications,
+} from "@/components/providers/notifications-provider";
 import AttractionDetailDialog from "@/components/parks/attraction-detail/attraction-detail-dialog";
 import { cn } from "@/lib/utils";
 // ⚠️ Partagés avec `poi-status-table.tsx` : deux listes du même onglet ne
@@ -19,36 +22,18 @@ import {
   splitGluedTail,
 } from "@/lib/poi-list";
 import {
+  QUEUE_TYPE_MAP,
+  STANDBY_QUEUE,
+  getQueueLabel,
+} from "@/lib/queue-types";
+import {
   BellRing,
   ChevronRight,
   ChevronUp,
   ChevronDown,
-  User,
-  Clock,
-  FastForward,
   CornerDownRight,
   Star,
 } from "lucide-react";
-
-type QueueTypeInfo = {
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
-
-const QUEUE_TYPE_MAP: Record<string, QueueTypeInfo> = {
-  fastlane: {
-    label: "Fastlane",
-    icon: FastForward,
-  },
-  singlerider: {
-    label: "Single Rider",
-    icon: User,
-  },
-  virtualqueue: {
-    label: "Virtual Queue",
-    icon: Clock,
-  },
-};
 
 type SortKey = "name" | "wait" | "status";
 type SortDir = "asc" | "desc";
@@ -115,7 +100,16 @@ export default function ParkWaitTimeTable({
   // `AlertSection` : la nature de l'alerte se déduit du statut). En repartant de
   // l'identifiant, le contenu du popup suit le direct, y compris le formulaire
   // d'alerte qui bascule tout seul de « réouverture » à « seuil ».
-  const [detailRideId, setDetailRideId] = useState<number | null>(null);
+  //
+  // Avec la FILE affichée (2026-10-07) : une ligne Single Rider ou Disney
+  // Premier Access ouvre le popup de cette file, pas celui de l'attraction.
+  const [detail, setDetail] = useState<{
+    rideId: number;
+    queueType: string;
+  } | null>(null);
+  const detailRideId = detail?.rideId ?? null;
+  const openDetail = (rideId: number, queueType: string = STANDBY_QUEUE) =>
+    setDetail({ rideId, queueType });
   const [expandedRides, setExpandedRides] = useState<Set<number>>(new Set());
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -127,7 +121,7 @@ export default function ParkWaitTimeTable({
 
   // Attractions sous alerte de temps d'attente : une cloche les signale dans la
   // liste (le réglage lui-même reste dans le popup).
-  const { alertRideIds } = useNotifications();
+  const { alertRideIds, alertQueueKeys } = useNotifications();
 
   const statusLabels: Record<string, string> = {
     open: tStatus("open"),
@@ -155,7 +149,19 @@ export default function ParkWaitTimeTable({
     const target = waitTimes.find((wt) => wt.rideId === initialRideId);
     // Attraction absente du flux du moment (fermée pour la saison, retirée par
     // le fournisseur) : on reste simplement sur la page du parc.
-    if (target) setDetailRideId(initialRideId);
+    //
+    // `?queue=singlerider` (lien d'une notification d'alerte de file) : le
+    // popup s'ouvre sur cette file, si l'attraction la publie encore. Lu dans
+    // l'URL plutôt que transmis par la page, qui reste rendue côté serveur.
+    if (target) {
+      const queue = new URLSearchParams(window.location.search).get("queue");
+      openDetail(
+        initialRideId,
+        queue && target.queues.some((q) => q.type === queue)
+          ? queue
+          : STANDBY_QUEUE,
+      );
+    }
     deepLinkHandled.current = true;
   }, [initialRideId, waitTimes]);
 
@@ -182,15 +188,8 @@ export default function ParkWaitTimeTable({
       ? (foundDetailTarget ?? lastDetailTarget.current)
       : null;
 
-  const getQueueLabel = (queueType: string): string => {
-    if (queueTypeLabels && queueTypeLabels[queueType]) {
-      return queueTypeLabels[queueType];
-    }
-    if (QUEUE_TYPE_MAP[queueType]) {
-      return QUEUE_TYPE_MAP[queueType].label;
-    }
-    return queueType.charAt(0).toUpperCase() + queueType.slice(1);
-  };
+  const queueLabel = (queueType: string): string =>
+    getQueueLabel(queueType, queueTypeLabels);
 
   const toggleExpand = (rideId: number) => {
     setExpandedRides((prev) => {
@@ -399,7 +398,7 @@ export default function ParkWaitTimeTable({
                     )}
                     // Toute la ligne ouvre le popup de détail ; seul le chevron
                     // (qui stoppe la propagation) déplie les files secondaires.
-                    onClick={() => setDetailRideId(waitTime.rideId)}
+                    onClick={() => openDetail(waitTime.rideId)}
                     // La ligne remplace l'ancienne icône « œil » : elle doit
                     // rester atteignable au clavier, d'où le tabIndex et la
                     // gestion d'Entrée / Espace.
@@ -407,7 +406,7 @@ export default function ParkWaitTimeTable({
                     onKeyDown={(e) => {
                       if (e.key !== "Enter" && e.key !== " ") return;
                       e.preventDefault();
-                      setDetailRideId(waitTime.rideId);
+                      openDetail(waitTime.rideId);
                     }}
                   >
                     {/* Nom + chevron d'expand (si files multiples) accolé À LA
@@ -479,9 +478,11 @@ export default function ParkWaitTimeTable({
                             />
                           </button>
                         )}
-                        {/* Cloche : alerte de temps d'attente active sur cette
-                            attraction. Purement informative (le réglage est dans
-                            le popup) et affichée à la place de l'ancien œil. */}
+                        {/* Cloche : alerte active sur cette attraction, quelle
+                            que soit la file — repliée, la ligne est la seule à
+                            pouvoir le dire. Purement informative (le réglage
+                            est dans le popup) et affichée à la place de
+                            l'ancien œil. */}
                         {alertRideIds.has(waitTime.rideId) && (
                           <BellRing
                             aria-label={tDetail("notifActive")}
@@ -517,9 +518,9 @@ export default function ParkWaitTimeTable({
                 {/* Files secondaires (visibles seulement si dépliées) */}
                 {isExpanded &&
                   otherQueues.map((queue) => {
-                    const queueLabel = getQueueLabel(queue.type);
+                    const label = queueLabel(queue.type);
                     const { head: queueHead, tail: queueTail } =
-                      splitGluedTail(queueLabel);
+                      splitGluedTail(label);
                     const QueueIcon = QUEUE_TYPE_MAP[queue.type]?.icon;
                     return (
                     <div
@@ -532,14 +533,14 @@ export default function ParkWaitTimeTable({
                         changedRides.has(`${waitTime.rideId}-${queue.type}`) &&
                           "bg-[var(--table-row-accent)]",
                       )}
-                      // Les files secondaires appartiennent à la même attraction :
-                      // elles ouvrent le même popup que la ligne standby.
-                      onClick={() => setDetailRideId(waitTime.rideId)}
+                      // Chaque file secondaire ouvre SON popup : son attente ou
+                      // son créneau, son état, son alerte (2026-10-07).
+                      onClick={() => openDetail(waitTime.rideId, queue.type)}
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key !== "Enter" && e.key !== " ") return;
                         e.preventDefault();
-                        setDetailRideId(waitTime.rideId);
+                        openDetail(waitTime.rideId, queue.type);
                       }}
                     >
                       {/* Rendu EN FLUX INLINE, comme la ligne standby au-dessus,
@@ -564,6 +565,14 @@ export default function ParkWaitTimeTable({
                           {queueTail}
                           {QueueIcon && (
                             <QueueIcon className="ms-1 inline-block size-3.5 align-[-2px]" />
+                          )}
+                          {alertQueueKeys.has(
+                            alertQueueKey(waitTime.rideId, queue.type),
+                          ) && (
+                            <BellRing
+                              aria-label={tDetail("notifActive")}
+                              className="ms-1 inline-block size-3.5 align-[-2px] text-primary"
+                            />
                           )}
                         </span>
                       </div>
@@ -601,8 +610,13 @@ export default function ParkWaitTimeTable({
         parkIdentifier={parkIdentifier}
         parkName={parkName}
         reopenAllowed={reopenAllowed}
+        queueType={detail?.queueType}
+        queueLabel={detail ? queueLabel(detail.queueType) : undefined}
+        onSelectQueue={(queueType) =>
+          setDetail((d) => (d ? { ...d, queueType } : d))
+        }
         onOpenChange={(open) => {
-          if (!open) setDetailRideId(null);
+          if (!open) setDetail(null);
         }}
       />
     </div>

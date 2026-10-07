@@ -8,7 +8,10 @@ import {
   buildAlertMessage,
   buildReopenMessage,
   buildReopenRearmMessage,
+  buildSlotMessage,
 } from "@/lib/alert-messages";
+import { STANDBY_QUEUE, getQueueLabel } from "@/lib/queue-types";
+import type { TimeSlot } from "@/types/waitTime";
 import { rideSlug } from "@/lib/slug";
 import {
   localDayStillRunning,
@@ -116,6 +119,15 @@ function isAuthorized(request: NextRequest): boolean {
 }
 
 const DEFAULT_LOCALE = "fr";
+
+// Créneau publié par la source (`wait_times.timeSlot`, JSON), ou null.
+function readTimeSlot(json: unknown): TimeSlot | null {
+  if (!json || typeof json !== "object") return null;
+  const { start, end } = json as Record<string, unknown>;
+  return typeof start === "string" && typeof end === "string"
+    ? { start, end }
+    : null;
+}
 
 type UserPrismaClient = ReturnType<typeof getUserPrisma>;
 type PrismaClient = ReturnType<typeof getPrisma>;
@@ -341,18 +353,30 @@ async function runAlertsPass(): Promise<NextResponse> {
     });
   }
 
-  // 2. Temps d'attente RÉELS courants pour les attractions surveillées (file
-  //    standby, enregistrement encore actif = endTime null). Base principale.
+  // 2. Temps d'attente RÉELS courants pour les FILES surveillées (enregistrement
+  //    encore actif = endTime null). Base principale.
+  //
+  // ⚠️ Une alerte vise une file depuis le 2026-10-07 (`queueType`) : son état
+  // est celui de SA file, jamais celui de la file standby de l'attraction — un
+  // Single Rider peut être fermé quand l'attraction tourne, et inversement.
   const rideIds = [...new Set(alerts.map((a) => a.rideId))];
+  const queueTypes = [...new Set(alerts.map((a) => a.queueType))];
   const [waitRows, rides] = await Promise.all([
     prisma.waitTime.findMany({
-      where: { poiId: { in: rideIds }, endTime: null, type: "standby" },
+      where: { poiId: { in: rideIds }, endTime: null, type: { in: queueTypes } },
       // `startTime` : la table est une table d'INTERVALLES et le statut fait
       // partie de la signature d'un intervalle (stateHash côté worker). Le
       // `startTime` de l'intervalle ouvert est donc l'instant EXACT où
       // l'attraction est entrée dans son état courant — c'est ce qui permet de
       // dater une panne sans conserver d'historique de notre côté.
-      select: { poiId: true, waitTime: true, status: true, startTime: true },
+      select: {
+        poiId: true,
+        type: true,
+        waitTime: true,
+        status: true,
+        startTime: true,
+        timeSlot: true,
+      },
     }),
     // Parc de chaque attraction : son FUSEAU sert à évaluer « aujourd'hui » pour
     // l'expiration quotidienne, et son IDENTIFIANT à retrouver son horaire de
@@ -376,19 +400,29 @@ async function runAlertsPass(): Promise<NextResponse> {
       },
     }),
   ]);
-  const waitByRide = new Map<
-    number,
-    { waitTime: number; status: string; startTime: Date }
+  const queueKey = (rideId: number, queueType: string) =>
+    `${rideId}:${queueType}`;
+  const waitByQueue = new Map<
+    string,
+    {
+      waitTime: number;
+      status: string;
+      startTime: Date;
+      timeSlot: TimeSlot | null;
+    }
   >();
   for (const row of waitRows) {
     if (row.poiId != null) {
-      waitByRide.set(row.poiId, {
+      waitByQueue.set(queueKey(row.poiId, row.type), {
         waitTime: row.waitTime,
         status: String(row.status),
         startTime: row.startTime,
+        timeSlot: readTimeSlot(row.timeSlot),
       });
     }
   }
+  const entryOf = (a: (typeof alerts)[number]) =>
+    waitByQueue.get(queueKey(a.rideId, a.queueType));
   const tzByRide = new Map<number, string>();
   const parkIdByRide = new Map<number, number>();
   const eventIdByRide = new Map<number, number>();
@@ -441,11 +475,13 @@ async function runAlertsPass(): Promise<NextResponse> {
   //   toRearm        — alerte de SEUIL : le temps est remonté, on réarme.
   //   toReopen       — alerte de RÉOUVERTURE : l'attraction vient de rouvrir.
   //   toReopenRearm  — alerte de RÉOUVERTURE déjà notifiée : rechute dans l'heure.
+  //   toSlot         — alerte de CRÉNEAU : un créneau assez tôt est proposé.
   const toFire: typeof alerts = [];
   const toRearm: string[] = [];
   const toExpire: string[] = [];
   const toReopen: typeof alerts = [];
   const toReopenRearm: typeof alerts = [];
+  const toSlot: typeof alerts = [];
   for (const a of alerts) {
     // Expiration quotidienne : une alerte ne vaut que pour la journée où elle a
     // été activée. Passé MINUIT DANS LE FUSEAU DU PARC (pas celui du serveur ni
@@ -480,7 +516,18 @@ async function runAlertsPass(): Promise<NextResponse> {
       }
     }
 
-    const entry = waitByRide.get(a.rideId);
+    const entry = entryOf(a);
+
+    // ———————————————————————— Alertes de CRÉNEAU (slot) ————————————————————————
+    // À usage unique, comme une alerte de seuil : la file propose un créneau qui
+    // commence au plus tard à l'heure voulue. Comparaison de chaînes « HH:mm »,
+    // toutes deux en heure du parc (celle que publie la source).
+    if (a.type === "slot") {
+      if (!a.active || !a.slotBefore) continue;
+      const slot = entry?.status === "open" ? entry.timeSlot : null;
+      if (slot && slot.start <= a.slotBefore) toSlot.push(a);
+      continue;
+    }
 
     // ————————————————————————— Alertes de RÉOUVERTURE —————————————————————————
     if (a.type === "reopen") {
@@ -573,7 +620,8 @@ async function runAlertsPass(): Promise<NextResponse> {
   if (
     toFire.length === 0 &&
     toReopen.length === 0 &&
-    toReopenRearm.length === 0
+    toReopenRearm.length === 0 &&
+    toSlot.length === 0
   ) {
     return NextResponse.json({
       checked: alerts.length,
@@ -591,9 +639,53 @@ async function runAlertsPass(): Promise<NextResponse> {
   //    peut très bien être concerné par plusieurs dans le même passage.
   const userIds = [
     ...new Set(
-      [...toFire, ...toReopen, ...toReopenRearm].map((a) => a.userId),
+      [...toFire, ...toReopen, ...toReopenRearm, ...toSlot].map(
+        (a) => a.userId,
+      ),
     ),
   ];
+  // Libellés de file propres à chaque parc (« Disney Premier Access ») pour
+  // nommer une file secondaire dans la notification. Aucune requête quand seules
+  // des attractions sont concernées — le cas courant.
+  const queueParkIds = [
+    ...new Set(
+      [...toFire, ...toReopen, ...toReopenRearm, ...toSlot]
+        .filter((a) => a.queueType !== STANDBY_QUEUE)
+        .map((a) => a.parkIdentifier),
+    ),
+  ];
+  const labelsByPark = new Map(
+    queueParkIds.length > 0
+      ? (
+          await prisma.park.findMany({
+            where: { identifier: { in: queueParkIds } },
+            select: { identifier: true, queueTypeLabels: true },
+          })
+        ).map((p) => [
+          p.identifier,
+          p.queueTypeLabels as Record<string, string> | null,
+        ])
+      : [],
+  );
+  // « Hyperspace Mountain » pour l'attraction, « Hyperspace Mountain (Single
+  // Rider) » pour une de ses files.
+  const displayName = (a: (typeof alerts)[number]) =>
+    a.queueType === STANDBY_QUEUE
+      ? a.rideName
+      : `${a.rideName} (${getQueueLabel(
+          a.queueType,
+          labelsByPark.get(a.parkIdentifier),
+        )})`;
+  // Lien profond : la page de l'attraction, qui ouvre le popup de la FILE quand
+  // `?queue=` est posé.
+  const rideUrl = (locale: string, a: (typeof alerts)[number]) =>
+    `/${locale}/park/${a.parkIdentifier}/ride/${rideSlug(a.rideId, a.rideName)}` +
+    (a.queueType === STANDBY_QUEUE ? "" : `?queue=${a.queueType}`);
+  // Tag par file : une notification remplace la précédente de la MÊME file.
+  const tagOf = (prefix: string, a: (typeof alerts)[number]) =>
+    a.queueType === STANDBY_QUEUE
+      ? `${prefix}-${a.rideId}`
+      : `${prefix}-${a.rideId}-${a.queueType}`;
   const [subs, prefs] = await Promise.all([
     userPrisma.pushSubscription.findMany({ where: { userId: { in: userIds } } }),
     userPrisma.userPreferences.findMany({
@@ -656,8 +748,8 @@ async function runAlertsPass(): Promise<NextResponse> {
     const msg = buildAlertMessage(
       locale,
       userAlerts.map((a) => ({
-        ride: a.rideName,
-        wait: waitByRide.get(a.rideId)!.waitTime,
+        ride: displayName(a),
+        wait: entryOf(a)!.waitTime,
         // Non nul par construction : la boucle de décision écarte les alertes de
         // seuil sans seuil (ce sont les alertes de réouverture).
         threshold: a.threshold!,
@@ -673,12 +765,9 @@ async function runAlertsPass(): Promise<NextResponse> {
       title: msg.title,
       body: msg.body,
       url: single
-        ? `/${locale}/park/${single.parkIdentifier}/ride/${rideSlug(
-            single.rideId,
-            single.rideName,
-          )}`
+        ? rideUrl(locale, single)
         : `/${locale}/park/${userAlerts[0].parkIdentifier}`,
-      tag: single ? `ride-${single.rideId}` : "qp-alerts-digest",
+      tag: single ? tagOf("ride", single) : "qp-alerts-digest",
     };
 
     const delivered = await deliver(userId, payload);
@@ -692,12 +781,13 @@ async function runAlertsPass(): Promise<NextResponse> {
     // (10 → 15 → 20 …) : plus d'alerte, donc plus de notification répétée.
     // L'historique survit à la suppression (relation en `onDelete: SetNull`).
     for (const a of userAlerts) {
-      const entry = waitByRide.get(a.rideId)!;
+      const entry = entryOf(a)!;
       await userPrisma.alertHistory.create({
         data: {
           userId: a.userId,
           alertId: a.id,
           rideId: a.rideId,
+          queueType: a.queueType,
           rideName: a.rideName,
           parkIdentifier: a.parkIdentifier,
           type: "threshold",
@@ -720,36 +810,31 @@ async function runAlertsPass(): Promise<NextResponse> {
   let reopenSent = 0;
   for (const [userId, userAlerts] of groupByUser(toReopen)) {
     const locale = localeByUser.get(userId) ?? DEFAULT_LOCALE;
-    const msg = buildReopenMessage(
-      locale,
-      userAlerts.map((a) => a.rideName),
-    );
+    const msg = buildReopenMessage(locale, userAlerts.map(displayName));
     const single = userAlerts.length === 1 ? userAlerts[0] : null;
     const payload: PushPayload = {
       title: msg.title,
       body: msg.body,
       url: single
-        ? `/${locale}/park/${single.parkIdentifier}/ride/${rideSlug(
-            single.rideId,
-            single.rideName,
-          )}`
+        ? rideUrl(locale, single)
         : `/${locale}/park/${userAlerts[0].parkIdentifier}`,
       // Tag distinct de celui des alertes de seuil : les deux natures ne peuvent
       // pas coexister sur une attraction, mais elles se SUCCÈDENT dans la même
       // journée (une réouverture peut être suivie d'une alerte de seuil posée
       // dans la foulée). Un tag commun ferait disparaître la première.
-      tag: single ? `reopen-${single.rideId}` : "qp-reopen-digest",
+      tag: single ? tagOf("reopen", single) : "qp-reopen-digest",
     };
 
     const delivered = await deliver(userId, payload);
 
     for (const a of userAlerts) {
-      const entry = waitByRide.get(a.rideId)!;
+      const entry = entryOf(a)!;
       await userPrisma.alertHistory.create({
         data: {
           userId: a.userId,
           alertId: a.id,
           rideId: a.rideId,
+          queueType: a.queueType,
           rideName: a.rideName,
           parkIdentifier: a.parkIdentifier,
           type: "reopen",
@@ -773,21 +858,15 @@ async function runAlertsPass(): Promise<NextResponse> {
   let reopenRearmed = 0;
   for (const [userId, userAlerts] of groupByUser(toReopenRearm)) {
     const locale = localeByUser.get(userId) ?? DEFAULT_LOCALE;
-    const msg = buildReopenRearmMessage(
-      locale,
-      userAlerts.map((a) => a.rideName),
-    );
+    const msg = buildReopenRearmMessage(locale, userAlerts.map(displayName));
     const single = userAlerts.length === 1 ? userAlerts[0] : null;
     const payload: PushPayload = {
       title: msg.title,
       body: msg.body,
       url: single
-        ? `/${locale}/park/${single.parkIdentifier}/ride/${rideSlug(
-            single.rideId,
-            single.rideName,
-          )}`
+        ? rideUrl(locale, single)
         : `/${locale}/park/${userAlerts[0].parkIdentifier}`,
-      tag: single ? `reopen-${single.rideId}` : "qp-reopen-digest",
+      tag: single ? tagOf("reopen", single) : "qp-reopen-digest",
     };
 
     await deliver(userId, payload);
@@ -801,6 +880,52 @@ async function runAlertsPass(): Promise<NextResponse> {
       data: { active: true, armed: true },
     });
     reopenRearmed += userAlerts.length;
+  }
+
+  // 6d. CRÉNEAUX : « un créneau assez tôt est proposé ». À usage unique, comme
+  //     une alerte de seuil : journal puis suppression.
+  let slotSent = 0;
+  for (const [userId, userAlerts] of groupByUser(toSlot)) {
+    const locale = localeByUser.get(userId) ?? DEFAULT_LOCALE;
+    const msg = buildSlotMessage(
+      locale,
+      userAlerts.map((a) => {
+        // Non nul par construction : la boucle de décision ne retient que les
+        // files qui proposent un créneau.
+        const slot = entryOf(a)!.timeSlot!;
+        return { ride: displayName(a), start: slot.start, end: slot.end };
+      }),
+    );
+    const single = userAlerts.length === 1 ? userAlerts[0] : null;
+    const payload: PushPayload = {
+      title: msg.title,
+      body: msg.body,
+      url: single
+        ? rideUrl(locale, single)
+        : `/${locale}/park/${userAlerts[0].parkIdentifier}`,
+      tag: single ? tagOf("slot", single) : "qp-slot-digest",
+    };
+
+    const delivered = await deliver(userId, payload);
+
+    for (const a of userAlerts) {
+      await userPrisma.alertHistory.create({
+        data: {
+          userId: a.userId,
+          alertId: a.id,
+          rideId: a.rideId,
+          queueType: a.queueType,
+          rideName: a.rideName,
+          parkIdentifier: a.parkIdentifier,
+          type: "slot",
+          threshold: null,
+          slotBefore: a.slotBefore,
+          actualWaitTime: entryOf(a)!.waitTime,
+        },
+      });
+      await userPrisma.alert.delete({ where: { id: a.id } });
+    }
+    if (delivered) slotSent++;
   }
 
   // 7. Purge des abonnements morts.
@@ -819,6 +944,8 @@ async function runAlertsPass(): Promise<NextResponse> {
     reopened: toReopen.length,
     reopenSent,
     reopenRearmed,
+    slotFired: toSlot.length,
+    slotSent,
     purgedAlerts: purgedAlerts.count,
     purgedRequestLogs,
     prunedSubscriptions: deadEndpoints.length,

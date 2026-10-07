@@ -497,7 +497,9 @@
     "editLead": "Modifier le délai",
     "leadTooLate": "Le spectacle est trop proche pour modifier le délai.",
     "reopenBadge": "Réouverture",
-    "historyReopenLine": "A rouvert"
+    "historyReopenLine": "A rouvert",
+    "slotBadge": "Avant {time}",
+    "historySlotLine": "Créneau avant {time} disponible"
   },
   "privacy": {
     "emailLabel": "Adresse e-mail",
@@ -579,6 +581,7 @@
     "reopenTooLate": "Le parc est fermé, les alertes ne sont pas disponibles. Revenez à la prochaine ouverture du parc.",
     "statusChanged": "L'état de l'attraction vient de changer. Rouvre la fiche pour créer la bonne alerte.",
     "liveWait": "Attente",
+    "liveSlot": "Créneau",
     "liveStatus": "État",
     "liveOpensAt": "Ouvre à",
     "liveClosesAt": "Ferme à",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "Alerte sous {minutes} min",
     "close": "Fermer",
     "pushDeniedShort": "Notifications bloquées sur cet appareil",
-    "insightBest": "Meilleur moment prévu : <b>~{minutes} min vers {time}</b>"
+    "insightBest": "Meilleur moment prévu : <b>~{minutes} min vers {time}</b>",
+    "slotRowTitle": "Guetter un créneau plus tôt",
+    "slotRowPick": "Choisir l'heure",
+    "slotOption": "Avant {time}",
+    "slotActiveRow": "Alerte active · créneau avant {time}",
+    "slotHint": "Tu es prévenu dès qu'un créneau commence au plus tard à cette heure.",
+    "slotNothingEarlier": "Pas de créneau plus tôt à guetter pour le moment.",
+    "queueReopenLabel": "Cette file est fermée. Sois prévenu dès qu'elle rouvre.",
+    "queueNothingToWatch": "Cette file ne publie ni temps d'attente ni créneau : rien à surveiller pour l'instant.",
+    "queueSeeRide": "Voir l'attraction"
   },
   "poiDetail": {
     "openFor": "Voir le détail de {poi}",

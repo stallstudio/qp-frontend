@@ -497,7 +497,9 @@
     "editLead": "Redigera framförhållning",
     "leadTooLate": "Showen börjar för snart för att ändra framförhållningen.",
     "reopenBadge": "Återöppning",
-    "historyReopenLine": "Öppnade igen"
+    "historyReopenLine": "Öppnade igen",
+    "slotBadge": "Före {time}",
+    "historySlotLine": "Tid före {time} ledig"
   },
   "privacy": {
     "emailLabel": "E-postadress",
@@ -579,6 +581,7 @@
     "reopenTooLate": "Parken är stängd, aviseringar är inte tillgängliga. Kom tillbaka vid parkens nästa öppning.",
     "statusChanged": "Attraktionens status har just ändrats. Öppna sidan igen för att skapa rätt avisering.",
     "liveWait": "Kötid",
+    "liveSlot": "Tid",
     "liveStatus": "Status",
     "liveOpensAt": "Öppnar kl.",
     "liveClosesAt": "Stänger kl.",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "Bevakning under {minutes} min",
     "close": "Stäng",
     "pushDeniedShort": "Aviseringar blockerade på den här enheten",
-    "insightBest": "Bästa läget enligt prognosen: <b>~{minutes} min runt {time}</b>"
+    "insightBest": "Bästa läget enligt prognosen: <b>~{minutes} min runt {time}</b>",
+    "slotRowTitle": "Bevaka en tidigare tid",
+    "slotRowPick": "Välj en tid",
+    "slotOption": "Före {time}",
+    "slotActiveRow": "Bevakning aktiv · tid före {time}",
+    "slotHint": "Du får besked så snart en tid börjar senast vid den här tidpunkten.",
+    "slotNothingEarlier": "Det finns ingen tidigare tid att bevaka just nu.",
+    "queueReopenLabel": "Den här kön är stängd. Få besked så snart den öppnar igen.",
+    "queueNothingToWatch": "Den här kön visar varken väntetid eller tid: inget att bevaka just nu.",
+    "queueSeeRide": "Visa attraktionen"
   },
   "poiDetail": {
     "openFor": "Visa information om {poi}",

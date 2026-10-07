@@ -10,10 +10,12 @@ import {
   BellRing,
   ChevronRight,
   Loader2,
+  TicketCheck,
   Trash2,
   Wrench,
   X,
 } from "lucide-react";
+import { DateTime } from "luxon";
 import { Button } from "@/components/ui/button";
 import NumberStepper from "@/components/ui/number-stepper";
 import {
@@ -24,15 +26,26 @@ import { useUser } from "@/components/providers/user-provider";
 import { useNotifications } from "@/components/providers/notifications-provider";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import NotificationGate from "@/components/parks/notification-gate";
-import { cn } from "@/lib/utils";
+import { cn, getLuxonFormat } from "@/lib/utils";
+import { useTimeFormat } from "@/hooks/useTimeFormat";
+import { STANDBY_QUEUE } from "@/lib/queue-types";
 import type { AlertDTO, AlertType } from "@/types/user";
-import type { WaitTimeStatus } from "@/types/waitTime";
+import type { TimeSlot, WaitTimeStatus } from "@/types/waitTime";
 
 type AlertSectionProps = {
   rideId: number;
   rideName: string;
   parkIdentifier: string;
   parkName: string;
+  // File surveillée : `standby` (l'attraction elle-même) par défaut, ou une
+  // file secondaire depuis son propre popup. Une alerte par file.
+  queueType?: string;
+  // Créneau que la file propose en ce moment (Disney Premier Access, file
+  // virtuelle) : c'est lui qui fait passer l'alerte en mode CRÉNEAU.
+  currentSlot?: TimeSlot | null;
+  // Fuseau du parc, pour ne proposer que des heures de créneau À VENIR. Sans
+  // lui, la liste n'est pas bornée par l'heure qu'il est.
+  timezone?: string | null;
   // Temps d'attente standby actuel (si disponible/ouvert) : sert à proposer un
   // seuil par défaut « un cran en dessous » pour une nouvelle alerte.
   currentWaitTime?: number;
@@ -47,6 +60,9 @@ type AlertSectionProps = {
   // Attraction indisponible sur une longue période : on n'autorise pas d'alerte
   // (aucun temps d'attente à surveiller).
   unavailable?: boolean;
+  // Le texte de cette ligne inerte, quand ce n'est pas celui de l'attraction
+  // (une file secondaire qui ne publie rien à surveiller).
+  unavailableMessage?: string;
   // Le seuil à matérialiser sur le graphique du popup : celui qu'on règle
   // (carte dépliée) ou celui de l'alerte active ; `null` sinon.
   onThresholdPreview?: (threshold: number | null) => void;
@@ -59,8 +75,47 @@ type AlertSectionProps = {
 //   • à l'arrêt -> RÉOUVERTURE. Aucun temps d'attente n'est publié, donc aucun
 //     seuil ne peut être franchi : une alerte de seuil resterait muette.
 // Sans file standby (statut inconnu), on garde le comportement d'origine.
-function alertModeFor(status: WaitTimeStatus | null | undefined): AlertType {
-  return status && status !== "open" ? "reopen" : "threshold";
+//   • ouverte ET un créneau publié -> CRÉNEAU : une file à créneau n'a pas de
+//     durée d'attente qui baisse, on guette une heure de passage plus tôt.
+function alertModeFor(
+  status: WaitTimeStatus | null | undefined,
+  slot?: TimeSlot | null,
+): AlertType {
+  if (status && status !== "open") return "reopen";
+  return slot ? "slot" : "threshold";
+}
+
+// Pas de la liste d'heures d'une alerte de créneau, et sa longueur : deux
+// heures en quarts d'heure avant le créneau actuel.
+const SLOT_STEP_MINUTES = 15;
+const SLOT_OPTIONS = 8;
+
+const toMinutes = (hhmm: string): number => {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+};
+const toHhmm = (minutes: number): string =>
+  `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+
+/**
+ * Heures proposées pour « un créneau avant… », en minutes depuis minuit (heure
+ * du parc), croissantes : les quarts d'heure STRICTEMENT antérieurs au début du
+ * créneau actuel — un créneau à 13:05 donne 13:00, 12:45… — et postérieurs à
+ * maintenant quand le fuseau est connu. Vide si plus rien ne peut arriver.
+ */
+function slotOptions(slot: TimeSlot, timezone?: string | null): number[] {
+  const start = toMinutes(slot.start);
+  const now = timezone
+    ? DateTime.now().setZone(timezone)
+    : null;
+  const floor = now ? now.hour * 60 + now.minute : 0;
+  const first = Math.ceil(start / SLOT_STEP_MINUTES) * SLOT_STEP_MINUTES - SLOT_STEP_MINUTES;
+  const out: number[] = [];
+  for (let m = first; m >= 0 && out.length < SLOT_OPTIONS; m -= SLOT_STEP_MINUTES) {
+    if (m < floor) break;
+    out.unshift(m);
+  }
+  return out;
 }
 
 // Mêmes dimensions pour la ligne repliée, la ligne « alerte active » et la
@@ -83,13 +138,18 @@ const ICON_TILE = "grid size-8 shrink-0 place-items-center rounded-lg";
 // l'app installée) ; sur desktop on va directement au formulaire.
 export default function AlertSection({
   unavailable,
+  unavailableMessage,
   ...props
 }: AlertSectionProps) {
   const t = useTranslations("attractionDetail");
 
   // Indisponible en continu : aucune file à surveiller -> on ne propose pas
   // d'alerte, on l'explique simplement.
-  if (unavailable) return <AlertNotice>{t("alertsUnavailable")}</AlertNotice>;
+  if (unavailable) {
+    return (
+      <AlertNotice>{unavailableMessage ?? t("alertsUnavailable")}</AlertNotice>
+    );
+  }
 
   // Attraction à l'arrêt, mais le parc est fermé ou sur le point de l'être : la
   // seule alerte qui aurait un sens est celle de réouverture, et elle n'en a
@@ -99,7 +159,7 @@ export default function AlertSection({
   // qu'on ne tiendra pas — et que la route de création refuserait de toute façon.
   if (
     props.reopenAllowed === false &&
-    alertModeFor(props.currentStatus) === "reopen"
+    alertModeFor(props.currentStatus, props.currentSlot) === "reopen"
   ) {
     return <AlertNotice>{t("reopenTooLate")}</AlertNotice>;
   }
@@ -124,10 +184,16 @@ function AlertPanel({
   rideName,
   parkIdentifier,
   parkName,
+  queueType = STANDBY_QUEUE,
+  currentSlot,
+  timezone,
   currentWaitTime,
   currentStatus,
   onThresholdPreview,
-}: Omit<AlertSectionProps, "unavailable" | "reopenAllowed">) {
+}: Omit<
+  AlertSectionProps,
+  "unavailable" | "unavailableMessage" | "reopenAllowed"
+>) {
   const t = useTranslations("attractionDetail");
   const tAlert = useTranslations("alerts");
   const tStatus = useTranslations("attractionStatus");
@@ -138,8 +204,24 @@ function AlertPanel({
   // Nature de l'alerte, dictée par l'état de l'attraction — jamais par un choix
   // de l'utilisateur : les deux natures ne sont pas des options concurrentes,
   // c'est l'attraction qui détermine celle qui peut fonctionner.
-  const mode = alertModeFor(currentStatus);
+  const mode = alertModeFor(currentStatus, currentSlot);
   const isReopen = mode === "reopen";
+  const isSlot = mode === "slot";
+  const isStandby = queueType === STANDBY_QUEUE;
+  const { is12Hour } = useTimeFormat();
+  const timeLabel = (minutes: number) =>
+    DateTime.fromObject({
+      hour: Math.floor(minutes / 60),
+      minute: minutes % 60,
+    }).toFormat(getLuxonFormat(is12Hour));
+  // Heures proposées pour une alerte de créneau, et la valeur choisie : par
+  // défaut la plus TARDIVE, la seule qui a une chance réaliste d'arriver.
+  const slotChoices = currentSlot ? slotOptions(currentSlot, timezone) : [];
+  const [slotBefore, setSlotBefore] = useState<number | null>(null);
+  const slotValue =
+    slotBefore != null && slotChoices.includes(slotBefore)
+      ? slotBefore
+      : (slotChoices[slotChoices.length - 1] ?? null);
   // Défaut d'une nouvelle alerte : un cran sous le temps actuel de l'attraction.
   const defaultThreshold = defaultThresholdForWait(currentWaitTime);
   const [expanded, setExpanded] = useState(false);
@@ -163,9 +245,13 @@ function AlertPanel({
       .get<AlertDTO[]>("/api/user/alerts")
       .then((res) => {
         if (cancelled) return;
-        const found = res.data.find((n) => n.rideId === rideId) ?? null;
+        const found =
+          res.data.find(
+            (n) => n.rideId === rideId && n.queueType === queueType,
+          ) ?? null;
         setStored(found);
         if (found?.threshold != null) setThreshold(found.threshold);
+        if (found?.slotBefore) setSlotBefore(toMinutes(found.slotBefore));
       })
       .catch(() => {})
       .finally(() => {
@@ -174,7 +260,7 @@ function AlertPanel({
     return () => {
       cancelled = true;
     };
-  }, [rideId, isAuthenticated]);
+  }, [rideId, queueType, isAuthenticated]);
 
   // L'alerte en base ne compte comme « existante » que si elle est de la MÊME
   // nature que celle qu'on propose. Une alerte de réouverture déjà consommée
@@ -207,7 +293,7 @@ function AlertPanel({
   // Le seuil tracé sur le graphique : en réglage (connecté), la valeur du
   // sélecteur ; replié, celle de l'alerte active. Jamais en mode réouverture,
   // qui n'a pas de seuil.
-  const preview = isReopen
+  const preview = isReopen || isSlot
     ? null
     : expanded && isAuthenticated
       ? threshold
@@ -235,9 +321,15 @@ function AlertPanel({
         parkIdentifier,
         parkName,
         type: mode,
+        // Rien pour la file standby : l'appel reste celui que connaissent les
+        // versions précédentes du serveur.
+        ...(isStandby ? {} : { queueType }),
         // Une alerte de réouverture n'a pas de seuil : ne rien envoyer plutôt
         // qu'une valeur que le serveur devrait ignorer.
         ...(mode === "threshold" ? { threshold } : {}),
+        ...(mode === "slot" && slotValue != null
+          ? { slotBefore: toHhmm(slotValue) }
+          : {}),
       });
       setStored(data);
       setExpanded(false);
@@ -284,7 +376,18 @@ function AlertPanel({
     }
   };
 
-  const title = isReopen ? t("reopenSave") : t("alertRowTitle");
+  const title = isReopen
+    ? t("reopenSave")
+    : isSlot
+      ? t("slotRowTitle")
+      : t("alertRowTitle");
+  const ModeIcon = isReopen ? Wrench : isSlot ? TicketCheck : Bell;
+
+  // Créneau : plus aucune heure à proposer (le créneau actuel est déjà le plus
+  // tôt possible, ou il est trop tard). Une alerte posée reste, elle, affichée.
+  if (isSlot && slotValue == null && !active) {
+    return <AlertNotice>{t("slotNothingEarlier")}</AlertNotice>;
+  }
 
   // ————— Alerte posée : la ligne le dit, et offre de la modifier ou retirer —————
   if (active && !expanded) {
@@ -299,7 +402,13 @@ function AlertPanel({
           <span className="block truncate text-sm font-semibold">
             {isReopen
               ? t("reopenActive")
-              : t("alertActiveRow", { minutes: active.threshold ?? 0 })}
+              : isSlot
+                ? t("slotActiveRow", {
+                    time: active.slotBefore
+                      ? timeLabel(toMinutes(active.slotBefore))
+                      : "",
+                  })
+                : t("alertActiveRow", { minutes: active.threshold ?? 0 })}
           </span>
           {/* Permission navigateur refusée : l'alerte est enregistrée mais ce
               navigateur ne recevra rien tant que l'utilisateur ne réautorise
@@ -310,8 +419,9 @@ function AlertPanel({
             </span>
           )}
         </span>
-        {/* Une alerte de réouverture n'a rien à régler. */}
-        {!isReopen && (
+        {/* Une alerte de réouverture n'a rien à régler. Une alerte de créneau
+            dont l'heure n'est plus proposable non plus. */}
+        {!isReopen && !(isSlot && slotValue == null) && (
           <Button variant="ghost" size="sm" onClick={() => setExpanded(true)}>
             {t("alertEdit")}
           </Button>
@@ -351,7 +461,7 @@ function AlertPanel({
         )}
       >
         <span className={cn(ICON_TILE, "bg-primary/15 text-primary")}>
-          {isReopen ? <Wrench className="size-4" /> : <Bell className="size-4" />}
+          <ModeIcon className="size-4" />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold">{title}</span>
@@ -360,7 +470,9 @@ function AlertPanel({
               ? t("alertRowSignIn")
               : isReopen
                 ? tStatus(currentStatus ?? "closed")
-                : t("alertRowPick")}
+                : isSlot
+                  ? t("slotRowPick")
+                  : t("alertRowPick")}
           </span>
         </span>
         {loading ? (
@@ -375,13 +487,17 @@ function AlertPanel({
   // ————— Dépliée : réglage (ou installation / connexion d'abord) —————
   const dirty = isReopen
     ? !existing || !existing.active
-    : !existing || !existing.active || existing.threshold !== threshold;
+    : isSlot
+      ? !existing ||
+        !existing.active ||
+        existing.slotBefore !== (slotValue != null ? toHhmm(slotValue) : null)
+      : !existing || !existing.active || existing.threshold !== threshold;
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border bg-muted/40 p-3">
       <div className="flex items-center gap-3">
         <span className={cn(ICON_TILE, "bg-primary/15 text-primary")}>
-          {isReopen ? <Wrench className="size-4" /> : <Bell className="size-4" />}
+          <ModeIcon className="size-4" />
         </span>
         <span className="min-w-0 flex-1 truncate text-sm font-semibold">{title}</span>
         <Button
@@ -401,7 +517,25 @@ function AlertPanel({
         {isReopen ? (
           // Mode RÉOUVERTURE : pas de sélecteur de seuil (il n'y a rien à
           // paramétrer) — l'état constaté, rappelé sur la ligne repliée, suffit.
-          <p className="text-sm text-muted-foreground">{t("reopenLabel")}</p>
+          <p className="text-sm text-muted-foreground">
+            {isStandby ? t("reopenLabel") : t("queueReopenLabel")}
+          </p>
+        ) : isSlot && slotValue != null ? (
+          // Mode CRÉNEAU : l'heure limite, en quarts d'heure avant le créneau
+          // que la file propose en ce moment.
+          <div className="flex flex-col gap-2">
+            <NumberStepper
+              value={slotValue}
+              onChange={setSlotBefore}
+              values={slotChoices}
+              format={(v) => t("slotOption", { time: timeLabel(v) })}
+              aria-label={t("slotRowPick")}
+              className="w-full justify-between"
+            />
+            <p className="text-center text-xs text-muted-foreground">
+              {t("slotHint")}
+            </p>
+          </div>
         ) : (
           <div className="flex flex-col gap-2">
             <NumberStepper

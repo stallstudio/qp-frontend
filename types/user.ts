@@ -8,17 +8,27 @@ import type { UserPreferences } from "@/lib/user-preferences";
 // ouverte). `reopen` : prévenir quand l'attraction rouvre (attraction en panne,
 // en maintenance ou fermée). L'état courant de l'attraction décide de celle qui
 // est proposée ; les deux ne coexistent jamais sur une même attraction.
-export type AlertType = "threshold" | "reopen";
+// `slot` : prévenir quand un créneau commençant au plus tard à `slotBefore` est
+// proposé (file à créneau : Disney Premier Access, file virtuelle).
+//
+// Depuis le 2026-10-07, ces règles valent FILE PAR FILE (`queueType`).
+export type AlertType = "threshold" | "reopen" | "slot";
 
 export interface AlertDTO {
   id: string;
   rideId: number;
+  // File surveillée (`standby` = l'attraction elle-même), et son nom
+  // affichable, résolu par le serveur (null pour la file standby).
+  queueType: string;
+  queueLabel: string | null;
   parkIdentifier: string;
   rideName: string;
   parkName: string;
   type: AlertType;
-  // null pour une alerte de réouverture (elle n'a pas de seuil).
+  // null pour une alerte de réouverture ou de créneau (elle n'a pas de seuil).
   threshold: number | null;
+  // Alerte `slot` : « HH:mm », heure du parc. null sinon.
+  slotBefore: string | null;
   active: boolean;
   createdAt: string;
 }
@@ -26,6 +36,8 @@ export interface AlertDTO {
 export interface AlertHistoryDTO {
   id: string;
   rideId: number;
+  queueType: string;
+  queueLabel: string | null;
   parkIdentifier: string;
   rideName: string;
   // Nom lisible du parc, résolu depuis la base principale au moment de la lecture
@@ -34,6 +46,7 @@ export interface AlertHistoryDTO {
   type: AlertType;
   // null pour une notification de réouverture.
   threshold: number | null;
+  slotBefore: string | null;
   actualWaitTime: number;
   sentAt: string;
 }

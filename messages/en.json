@@ -497,7 +497,9 @@
     "editLead": "Edit lead time",
     "leadTooLate": "The show is too soon to change the lead time.",
     "reopenBadge": "Reopening",
-    "historyReopenLine": "Reopened"
+    "historyReopenLine": "Reopened",
+    "slotBadge": "Before {time}",
+    "historySlotLine": "Slot before {time} available"
   },
   "privacy": {
     "emailLabel": "Email address",
@@ -579,6 +581,7 @@
     "reopenTooLate": "The park is closed, alerts are unavailable. Come back when the park next opens.",
     "statusChanged": "The ride's status just changed. Reopen the page to create the right alert.",
     "liveWait": "Wait",
+    "liveSlot": "Slot",
     "liveStatus": "Status",
     "liveOpensAt": "Opens at",
     "liveClosesAt": "Closes at",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "Alert below {minutes} min",
     "close": "Close",
     "pushDeniedShort": "Notifications blocked on this device",
-    "insightBest": "Best time expected: <b>~{minutes} min around {time}</b>"
+    "insightBest": "Best time expected: <b>~{minutes} min around {time}</b>",
+    "slotRowTitle": "Watch for an earlier slot",
+    "slotRowPick": "Pick a time",
+    "slotOption": "Before {time}",
+    "slotActiveRow": "Alert on · slot before {time}",
+    "slotHint": "You'll be notified as soon as a slot starts at or before this time.",
+    "slotNothingEarlier": "No earlier slot to watch for right now.",
+    "queueReopenLabel": "This queue is closed. Get notified as soon as it reopens.",
+    "queueNothingToWatch": "This queue publishes neither a wait time nor a slot: nothing to watch for now.",
+    "queueSeeRide": "See the ride"
   },
   "poiDetail": {
     "openFor": "View details for {poi}",

@@ -11,6 +11,8 @@
 // reste factuel (attraction, temps, seuil).
 
 export type AlertRide = { ride: string; wait: number; threshold: number };
+// Un créneau proposé, « HH:mm » heure du parc (alertes de type `slot`).
+export type AlertSlot = { ride: string; start: string; end: string };
 
 type AlertStrings = {
   // Titres « une attraction » : tirés au hasard à chaque envoi. Emoji + phrase
@@ -43,6 +45,12 @@ type AlertStrings = {
   rearmTitle: string;
   rearmBody: (ride: string) => string;
   rearmDigestTitle: (count: number) => string;
+
+  // ———————————— Créneau (alertes de type `slot`, files virtuelles) ————————————
+  slotTitles: string[];
+  slotBody: (p: AlertSlot) => string;
+  slotDigestTitle: (count: number) => string;
+  slotDigestLine: (p: AlertSlot) => string;
 };
 
 const DICT: Record<string, AlertStrings> = {
@@ -81,6 +89,16 @@ const DICT: Record<string, AlertStrings> = {
       `${ride} est de nouveau à l'arrêt — on a réactivé ton alerte de réouverture.`,
     rearmDigestTitle: (count) =>
       `😕 ${count} attractions de nouveau à l'arrêt`,
+    slotTitles: [
+      "Un créneau s'est libéré ⏰",
+      "Ton créneau est là ! 🎟️",
+      "Vite, un créneau ! 🏃",
+      "Bonne nouvelle ! 🎉",
+    ],
+    slotBody: ({ ride, start, end }) =>
+      `${ride} : créneau ${start}–${end} disponible`,
+    slotDigestTitle: (count) => `🎟️ ${count} créneaux disponibles !`,
+    slotDigestLine: ({ ride, start, end }) => `• ${ride} — ${start}–${end}`,
   },
   en: {
     singleTitles: [
@@ -116,6 +134,16 @@ const DICT: Record<string, AlertStrings> = {
     rearmBody: (ride) =>
       `${ride} is down again — we've re-enabled your reopening alert.`,
     rearmDigestTitle: (count) => `😕 ${count} rides are down again`,
+    slotTitles: [
+      "A slot just opened ⏰",
+      "Your slot is here! 🎟️",
+      "Quick, a slot! 🏃",
+      "Great news! 🎉",
+    ],
+    slotBody: ({ ride, start, end }) =>
+      `${ride}: ${start}–${end} slot available`,
+    slotDigestTitle: (count) => `🎟️ ${count} slots available!`,
+    slotDigestLine: ({ ride, start, end }) => `• ${ride} — ${start}–${end}`,
   },
 };
 
@@ -201,4 +229,26 @@ export function buildReopenRearmMessage(
   const rest = rides.length - shown.length;
   if (rest > 0) lines.push(d.more(rest));
   return { title: d.rearmDigestTitle(rides.length), body: lines.join("\n") };
+}
+
+// Message « un créneau assez tôt est proposé » (alertes de type `slot`). Même
+// regroupement que les autres : une file -> titre aléatoire, plusieurs ->
+// digest, les créneaux les plus proches d'abord.
+export function buildSlotMessage(
+  locale: string | null | undefined,
+  slots: AlertSlot[],
+): { title: string; body: string } {
+  const lang = locale && DICT[locale] ? locale : "en";
+  const d = DICT[lang];
+
+  if (slots.length === 1) {
+    return { title: pick(d.slotTitles), body: d.slotBody(slots[0]) };
+  }
+
+  const sorted = [...slots].sort((a, b) => a.start.localeCompare(b.start));
+  const shown = sorted.slice(0, DIGEST_MAX_LINES);
+  const lines = shown.map((p) => d.slotDigestLine(p));
+  const rest = sorted.length - shown.length;
+  if (rest > 0) lines.push(d.more(rest));
+  return { title: d.slotDigestTitle(slots.length), body: lines.join("\n") };
 }

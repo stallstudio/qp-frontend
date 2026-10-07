@@ -497,7 +497,9 @@
     "editLead": "通知タイミングを編集",
     "leadTooLate": "公演の開始が近すぎるため、通知タイミングを変更できません。",
     "reopenBadge": "再開",
-    "historyReopenLine": "再開しました"
+    "historyReopenLine": "再開しました",
+    "slotBadge": "{time}より前",
+    "historySlotLine": "{time}より前の枠が空きました"
   },
   "privacy": {
     "emailLabel": "メールアドレス",
@@ -579,6 +581,7 @@
     "reopenTooLate": "パークは閉園中のため、アラートはご利用いただけません。次の開園時にお越しください。",
     "statusChanged": "アトラクションの状態が変わりました。ページを開き直して、適切なアラートを作成してください。",
     "liveWait": "待ち時間",
+    "liveSlot": "枠",
     "liveStatus": "状態",
     "liveOpensAt": "オープン",
     "liveClosesAt": "クローズ",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "{minutes}分未満で通知",
     "close": "閉じる",
     "pushDeniedShort": "この端末では通知がブロックされています",
-    "insightBest": "おすすめの時間帯：<b>{time}ごろ・約{minutes}分</b>"
+    "insightBest": "おすすめの時間帯：<b>{time}ごろ・約{minutes}分</b>",
+    "slotRowTitle": "早い枠が空いたら通知",
+    "slotRowPick": "時刻を選択",
+    "slotOption": "{time}より前",
+    "slotActiveRow": "通知オン・{time}より前の枠",
+    "slotHint": "この時刻までに始まる枠が出たらすぐにお知らせします。",
+    "slotNothingEarlier": "今のところ、待つべき早い枠はありません。",
+    "queueReopenLabel": "この列は現在閉じています。再開したらすぐにお知らせします。",
+    "queueNothingToWatch": "この列は待ち時間も枠も公開していないため、今は通知できる内容がありません。",
+    "queueSeeRide": "アトラクションを見る"
   },
   "poiDetail": {
     "openFor": "{poi} の詳細を見る",

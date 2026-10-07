@@ -497,7 +497,9 @@
     "editLead": "修改提前时间",
     "leadTooLate": "演出即将开始，来不及修改提前时间了。",
     "reopenBadge": "重新开放",
-    "historyReopenLine": "已恢复运营"
+    "historyReopenLine": "已恢复运营",
+    "slotBadge": "{time} 之前",
+    "historySlotLine": "{time} 之前的时段可用"
   },
   "privacy": {
     "emailLabel": "邮箱地址",
@@ -579,6 +581,7 @@
     "reopenTooLate": "乐园已闭园，提醒功能不可用。请在下次开园时再来。",
     "statusChanged": "该项目的状态刚刚发生变化。请重新打开页面以创建合适的提醒。",
     "liveWait": "排队",
+    "liveSlot": "时段",
     "liveStatus": "状态",
     "liveOpensAt": "开放于",
     "liveClosesAt": "关闭于",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "低于 {minutes} 分钟提醒",
     "close": "关闭",
     "pushDeniedShort": "此设备已屏蔽通知",
-    "insightBest": "预计最佳时间：<b>{time}左右，约 {minutes} 分钟</b>"
+    "insightBest": "预计最佳时间：<b>{time}左右，约 {minutes} 分钟</b>",
+    "slotRowTitle": "有更早时段时提醒我",
+    "slotRowPick": "选择时间",
+    "slotOption": "{time} 之前",
+    "slotActiveRow": "提醒已开启 · {time} 之前的时段",
+    "slotHint": "一旦有不晚于此时间开始的时段，我们会立即通知你。",
+    "slotNothingEarlier": "目前没有更早的时段可以等待。",
+    "queueReopenLabel": "该队列目前已关闭。重新开放后我们会立即通知你。",
+    "queueNothingToWatch": "该队列既不公布等待时间也不公布时段：目前没有可提醒的内容。",
+    "queueSeeRide": "查看项目"
   },
   "poiDetail": {
     "openFor": "查看 {poi} 的详情",

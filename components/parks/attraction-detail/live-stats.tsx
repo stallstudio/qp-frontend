@@ -96,7 +96,9 @@ export default function LiveStats({
   return (
     <StatStrip>
       {queue && showWait && (
-        <Stat label={t("liveWait")}>
+        // Une file à créneau (Disney Premier Access) n'a pas d'attente : la
+        // case dit ce qu'elle montre.
+        <Stat label={queue.timeSlot ? t("liveSlot") : t("liveWait")}>
           {queue.timeSlot ? (
             // File virtuelle : un créneau de passage, pas une durée.
             <span className="text-[15px] font-semibold leading-7 whitespace-nowrap text-sky-600 dark:text-sky-400">

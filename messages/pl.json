@@ -497,7 +497,9 @@
     "editLead": "Edytuj wyprzedzenie",
     "leadTooLate": "Pokaz zaczyna się zbyt szybko, aby zmienić wyprzedzenie.",
     "reopenBadge": "Ponowne otwarcie",
-    "historyReopenLine": "Ponownie otwarta"
+    "historyReopenLine": "Ponownie otwarta",
+    "slotBadge": "Przed {time}",
+    "historySlotLine": "Termin przed {time} dostępny"
   },
   "privacy": {
     "emailLabel": "Adres e-mail",
@@ -579,6 +581,7 @@
     "reopenTooLate": "Park jest zamknięty, alerty są niedostępne. Wróć przy następnym otwarciu parku.",
     "statusChanged": "Status atrakcji właśnie się zmienił. Otwórz kartę ponownie, aby utworzyć właściwy alert.",
     "liveWait": "Oczekiwanie",
+    "liveSlot": "Termin",
     "liveStatus": "Status",
     "liveOpensAt": "Otwarcie o",
     "liveClosesAt": "Zamknięcie o",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "Alert poniżej {minutes} min",
     "close": "Zamknij",
     "pushDeniedShort": "Powiadomienia zablokowane na tym urządzeniu",
-    "insightBest": "Najlepszy moment według prognozy: <b>~{minutes} min około {time}</b>"
+    "insightBest": "Najlepszy moment według prognozy: <b>~{minutes} min około {time}</b>",
+    "slotRowTitle": "Powiadom o wcześniejszym terminie",
+    "slotRowPick": "Wybierz godzinę",
+    "slotOption": "Przed {time}",
+    "slotActiveRow": "Alert aktywny · termin przed {time}",
+    "slotHint": "Powiadomimy Cię, gdy tylko pojawi się termin zaczynający się najpóźniej o tej godzinie.",
+    "slotNothingEarlier": "Na razie nie ma wcześniejszego terminu do śledzenia.",
+    "queueReopenLabel": "Ta kolejka jest zamknięta. Powiadomimy Cię, gdy tylko zostanie ponownie otwarta.",
+    "queueNothingToWatch": "Ta kolejka nie podaje ani czasu oczekiwania, ani terminu: na razie nie ma czego śledzić.",
+    "queueSeeRide": "Zobacz atrakcję"
   },
   "poiDetail": {
     "openFor": "Zobacz szczegóły: {poi}",

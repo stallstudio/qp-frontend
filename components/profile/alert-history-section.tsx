@@ -133,6 +133,15 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
   // l'historique doit rejouer l'horaire tel qu'il était sur place. `formatDate`
   // au-dessus, lui, date la RÉCEPTION de la notification — c'est un moment vécu
   // par le lecteur, il reste donc dans son fuseau.
+  // Heure limite d'une alerte de créneau, « HH:mm » en heure du parc.
+  const formatSlot = (hhmm: string) =>
+    DateTime.fromFormat(hhmm, "HH:mm")
+      .setLocale(locale)
+      .toLocaleString({
+        ...DateTime.TIME_SIMPLE,
+        hourCycle: is12Hour ? "h12" : "h23",
+      });
+
   const formatTime = (iso: string, timezone: string | null) =>
     DateTime.fromISO(iso, { zone: timezone ?? undefined })
       .setLocale(locale)
@@ -150,11 +159,13 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
             id: h.id,
             kind: "ride",
             sentAt: h.sentAt,
-            title: h.rideName,
+            title: h.queueLabel ? `${h.rideName} · ${h.queueLabel}` : h.rideName,
             // Une notification de réouverture n'a ni seuil ni temps franchi :
             // la ligne dit l'événement, pas une valeur qui n'existe pas.
             subtitle: `${h.parkName} · ${
-              h.type === "reopen" || h.threshold == null
+              h.type === "slot" && h.slotBefore
+                ? t("historySlotLine", { time: formatSlot(h.slotBefore) })
+                : h.type === "reopen" || h.threshold == null
                 ? t("historyReopenLine")
                 : t("historyLine", {
                     actual: h.actualWaitTime,

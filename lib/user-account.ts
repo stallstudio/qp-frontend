@@ -48,15 +48,18 @@ export async function getPreferences(
   };
 }
 
-export function toAlertDTO(a: Alert): AlertDTO {
+export function toAlertDTO(a: Alert, queueLabel: string | null = null): AlertDTO {
   return {
     id: a.id,
     rideId: a.rideId,
+    queueType: a.queueType,
+    queueLabel,
     parkIdentifier: a.parkIdentifier,
     rideName: a.rideName,
     parkName: a.parkName,
     type: a.type,
     threshold: a.threshold,
+    slotBefore: a.slotBefore,
     active: a.active,
     createdAt: a.createdAt.toISOString(),
   };
@@ -100,15 +103,19 @@ export function toShowReminderHistoryDTO(
 export function toAlertHistoryDTO(
   h: AlertHistory,
   parkName?: string,
+  queueLabel: string | null = null,
 ): AlertHistoryDTO {
   return {
     id: h.id,
     rideId: h.rideId,
+    queueType: h.queueType,
+    queueLabel,
     parkIdentifier: h.parkIdentifier,
     rideName: h.rideName,
     parkName: parkName ?? h.parkIdentifier,
     type: h.type,
     threshold: h.threshold,
+    slotBefore: h.slotBefore,
     actualWaitTime: h.actualWaitTime,
     sentAt: h.sentAt.toISOString(),
   };

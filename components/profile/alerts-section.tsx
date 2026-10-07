@@ -261,6 +261,16 @@ export default function AlertsSection() {
   // de 23:35 à Disneyland California doit se lire « 23:35 », pas l'heure qu'il
   // est alors chez le lecteur. Fuseau absent (parc introuvable) = repli sur le
   // navigateur, comme avant.
+  // Heure limite d'une alerte de créneau : « HH:mm » en heure du PARC, telle
+  // que la source la publie — affichée telle quelle, au format choisi.
+  const formatSlot = (hhmm: string) =>
+    DateTime.fromFormat(hhmm, "HH:mm")
+      .setLocale(locale)
+      .toLocaleString({
+        ...DateTime.TIME_SIMPLE,
+        hourCycle: is12Hour ? "h12" : "h23",
+      });
+
   const formatTime = (iso: string, timezone: string | null) =>
     DateTime.fromISO(iso, { zone: timezone ?? undefined })
       .setLocale(locale)
@@ -363,13 +373,24 @@ export default function AlertsSection() {
                     key={item.id}
                     kind="ride"
                     icon={<RollerCoaster className="size-4" />}
-                    title={item.alert.rideName}
+                    // Alerte d'une FILE : son nom suit celui de l'attraction.
+                    title={
+                      item.alert.queueLabel
+                        ? `${item.alert.rideName} · ${item.alert.queueLabel}`
+                        : item.alert.rideName
+                    }
                     subtitle={item.alert.parkName}
                     trailing={
                       // Une alerte de réouverture n'a pas de seuil : la pastille
                       // annonce l'événement attendu au lieu d'une valeur.
-                      item.alert.type === "reopen" ||
-                      item.alert.threshold == null ? (
+                      item.alert.type === "slot" && item.alert.slotBefore ? (
+                        <ValueBadge kind="ride">
+                          {t("slotBadge", {
+                            time: formatSlot(item.alert.slotBefore),
+                          })}
+                        </ValueBadge>
+                      ) : item.alert.type === "reopen" ||
+                        item.alert.threshold == null ? (
                         <ValueBadge kind="ride">
                           {t("reopenBadge")}
                         </ValueBadge>

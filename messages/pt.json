@@ -497,7 +497,9 @@
     "editLead": "Editar antecedência",
     "leadTooLate": "O espetáculo começa demasiado cedo para alterar a antecedência.",
     "reopenBadge": "Reabertura",
-    "historyReopenLine": "Reabriu"
+    "historyReopenLine": "Reabriu",
+    "slotBadge": "Antes das {time}",
+    "historySlotLine": "Horário antes das {time} disponível"
   },
   "privacy": {
     "emailLabel": "Endereço de e-mail",
@@ -579,6 +581,7 @@
     "reopenTooLate": "O parque está fechado, os alertas não estão disponíveis. Volta na próxima abertura do parque.",
     "statusChanged": "O estado da atração acabou de mudar. Volta a abrir a ficha para criar o alerta certo.",
     "liveWait": "Espera",
+    "liveSlot": "Horário",
     "liveStatus": "Estado",
     "liveOpensAt": "Abre às",
     "liveClosesAt": "Fecha às",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "Alerta abaixo de {minutes} min",
     "close": "Fechar",
     "pushDeniedShort": "Notificações bloqueadas neste dispositivo",
-    "insightBest": "Melhor altura prevista: <b>~{minutes} min por volta das {time}</b>"
+    "insightBest": "Melhor altura prevista: <b>~{minutes} min por volta das {time}</b>",
+    "slotRowTitle": "Avisar de horário mais cedo",
+    "slotRowPick": "Escolher a hora",
+    "slotOption": "Antes das {time}",
+    "slotActiveRow": "Alerta ativo · horário antes das {time}",
+    "slotHint": "Avisamos-te assim que houver um horário que comece a esta hora ou antes.",
+    "slotNothingEarlier": "De momento não há um horário mais cedo a vigiar.",
+    "queueReopenLabel": "Esta fila está fechada. Avisamos-te assim que reabrir.",
+    "queueNothingToWatch": "Esta fila não publica tempo de espera nem horário: nada a vigiar por agora.",
+    "queueSeeRide": "Ver a atração"
   },
   "poiDetail": {
     "openFor": "Ver a ficha de {poi}",

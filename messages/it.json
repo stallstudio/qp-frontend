@@ -497,7 +497,9 @@
     "editLead": "Modifica anticipo",
     "leadTooLate": "Lo spettacolo è troppo vicino per cambiare l'anticipo.",
     "reopenBadge": "Riapertura",
-    "historyReopenLine": "Ha riaperto"
+    "historyReopenLine": "Ha riaperto",
+    "slotBadge": "Prima delle {time}",
+    "historySlotLine": "Fascia prima delle {time} disponibile"
   },
   "privacy": {
     "emailLabel": "Indirizzo email",
@@ -579,6 +581,7 @@
     "reopenTooLate": "Il parco è chiuso, gli avvisi non sono disponibili. Torna alla prossima apertura del parco.",
     "statusChanged": "Lo stato dell'attrazione è appena cambiato. Riapri la scheda per creare l'avviso giusto.",
     "liveWait": "Attesa",
+    "liveSlot": "Fascia",
     "liveStatus": "Stato",
     "liveOpensAt": "Apre alle",
     "liveClosesAt": "Chiude alle",
@@ -597,7 +600,16 @@
     "alertThresholdLine": "Avviso sotto {minutes} min",
     "close": "Chiudi",
     "pushDeniedShort": "Notifiche bloccate su questo dispositivo",
-    "insightBest": "Momento migliore previsto: <b>~{minutes} min verso le {time}</b>"
+    "insightBest": "Momento migliore previsto: <b>~{minutes} min verso le {time}</b>",
+    "slotRowTitle": "Avviso fascia più presto",
+    "slotRowPick": "Scegli l'orario",
+    "slotOption": "Prima delle {time}",
+    "slotActiveRow": "Avviso attivo · fascia prima delle {time}",
+    "slotHint": "Ti avvisiamo appena c'è una fascia che inizia entro quest'ora.",
+    "slotNothingEarlier": "Al momento non c'è una fascia più presto da attendere.",
+    "queueReopenLabel": "Questa coda è chiusa. Ti avvisiamo appena riapre.",
+    "queueNothingToWatch": "Questa coda non pubblica né tempo d'attesa né fascia oraria: per ora non c'è nulla da monitorare.",
+    "queueSeeRide": "Vedi l'attrazione"
   },
   "poiDetail": {
     "openFor": "Vedi la scheda di {poi}",
