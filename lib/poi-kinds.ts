@@ -145,9 +145,22 @@ export const POI_KIND_ICONS: Record<PoiKind, LucideIcon> = {
  *
  * Le critère pour ajouter un parc : plus de deux valeurs distinctes de
  * `waitTime` dans l'historique de ce parc pour ce kind.
+ *
+ * ⚠️ **Les quatre parcs PRS entrent ENSEMBLE, sur la foi de la source.** Leur
+ * attente vient du terminal de commande de chaque restaurant
+ * (`parkfood/queue/{id}`), l'écran même qui affiche « 0-10 min väntetid » sur
+ * le site. Mesuré le 2026-10-07, premier jour de collecte : Gröna Lund a déjà
+ * 10, 20 et 30 min. Kolmården et Furuvik n'avaient encore qu'une valeur, avec
+ * leurs terminaux presque tous éteints, et Skara Sommarland, fermé pour la
+ * saison, aucune. Les quatre déclarent pourtant des terminaux dans leur CMS et
+ * passent par la même route.
  */
 const REAL_WAIT_TIMES: Record<string, readonly PoiKind[]> = {
   "nagashima-spa-land": ["restaurant"],
+  "grona-lund": ["restaurant"],
+  kolmarden: ["restaurant"],
+  furuvik: ["restaurant"],
+  "skara-sommarland": ["restaurant"],
 };
 
 /** Voir `REAL_WAIT_TIMES`. */

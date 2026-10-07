@@ -44,7 +44,7 @@ type PoiStatusTableProps = {
  * sources publient est un état, pas une file : chez Compagnie des Alpes un
  * restaurant ouvert annonce une constante (5 min à Bellewaerde) et `-1` fermé.
  * La colonne « temps » ne s'ouvre que pour les parcs listés dans
- * `REAL_WAIT_TIMES` (`lib/poi-kinds.ts`), aujourd'hui aucun.
+ * `REAL_WAIT_TIMES` (`lib/poi-kinds.ts`).
  */
 export default function PoiStatusTable({
   pois,
