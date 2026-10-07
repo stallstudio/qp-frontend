@@ -179,11 +179,20 @@ export function TimelineRow({
 
       {/* Repère « maintenant » : visible tant que la position tombe DANS la
           grille. Le test sur `now.hour` faisait disparaître le trait après
-          minuit alors que la journée du parc n'est pas finie. */}
+          minuit alors que la journée du parc n'est pas finie.
+
+          ⚠️ `-bottom-px` (et `-top-0.5` sous le séparateur des favoris) : un
+          enfant `absolute` se place dans la boîte INTÉRIEURE de la ligne, et
+          la bordure grise est dessinée à l'extérieur. Avec `top-0 bottom-0`,
+          le trait s'arrêtait juste avant chaque séparateur et laissait une
+          coupure d'un pixel à chaque ligne. */}
       {currentHourPosition >= 0 &&
         currentHourPosition <= parkHours.length * 60 && (
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-primary z-10 pointer-events-none"
+            className={cn(
+              "absolute -bottom-px w-0.5 bg-primary z-10 pointer-events-none",
+              dividerTop ? "-top-0.5" : "top-0",
+            )}
             style={{
               left: `${currentHourPosition * PIXEL_PER_MINUTE}px`,
             }}

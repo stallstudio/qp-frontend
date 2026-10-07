@@ -381,7 +381,9 @@ export default function ScheduleGrid({
               {nowInGrid && (
                 <div
                   ref={currentTimeRef}
-                  className="absolute top-0 bottom-0 w-0.5 bg-primary z-20"
+                  // `-bottom-px` : rejoint le trait de la première ligne
+                  // PAR-DESSUS la bordure de l'en-tête — voir `TimelineRow`.
+                  className="absolute top-0 -bottom-px w-0.5 bg-primary z-20"
                   style={{
                     left: `${currentHourPosition * PIXEL_PER_MINUTE}px`,
                   }}
