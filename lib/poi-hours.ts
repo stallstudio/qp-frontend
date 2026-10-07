@@ -11,22 +11,29 @@ import type { PoiHours } from "@/types/poiHours";
  * (`migrations/2026-10-06-poi-hours` du worker), et un frontend déployé avant
  * la migration doit continuer d'afficher tout le reste de la page.
  *
- * ⚠️ Les POI désactivés à la main dans l'admin sont écartés — Het Badhuys
+ * ⚠️ **Les POI désactivés à la main dans l'admin sont écartés… SAUF ceux que
+ * `keepInactive` désigne.** Le drapeau `active` est une ancienne curation que
+ * le reste du front IGNORE : la liste des temps d'attente en affiche 209 au
+ * 2026-10-07, dont Frozen Ever After. Les filtrer ici seulement retirait au
+ * popup l'heure de fermeture d'une attraction pourtant affichée juste à côté.
+ * Le filtre reste pour ce qui n'est montré nulle part ailleurs — Het Badhuys
  * d'Efteling publie ses heures alors qu'on a décidé de ne plus le montrer.
  */
 export async function getPoiHoursByParkAndDate(
   parkId: number,
   date: string,
+  keepInactive: ReadonlySet<number> = new Set(),
 ): Promise<PoiHours[]> {
   try {
     const prisma = getPrisma();
     const rows = await prisma.poiHours.findMany({
-      where: { parkId, date, poi: { active: true } },
+      where: { parkId, date },
       include: {
         poi: {
           select: {
             name: true,
             kind: true,
+            active: true,
             eventId: true,
             additionalData: true,
           },
@@ -37,6 +44,7 @@ export async function getPoiHoursByParkAndDate(
 
     const byPoi = new Map<number, PoiHours>();
     for (const row of rows) {
+      if (!row.poi.active && !keepInactive.has(row.poiId)) continue;
       const kind = parsePoiKind(row.poi.kind);
       if (!kind) continue;
 

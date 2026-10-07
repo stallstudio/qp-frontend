@@ -181,13 +181,24 @@ async function buildParkLiveSnapshot(
   // dépasse minuit range ses dernières représentations sous le lendemain (voir
   // `getShowTimesByParkAndDates`). Elles sont retriées juste après sur les
   // horaires, jamais sur la date.
+  //
+  // ⚠️ Les heures des POI ATTENDENT les temps d'attente, et seulement elles : un
+  // POI désactivé dans l'admin mais affiché en direct doit garder ses heures
+  // (voir `getPoiHoursByParkAndDate`).
+  const waitTimesQuery = getLatestWaitTimesByPark(park.id, park.lastUpdatedAt);
   const [waitTimes, showTimes, openingHours, daily, poiHours] =
     await Promise.all([
-      getLatestWaitTimesByPark(park.id, park.lastUpdatedAt),
+      waitTimesQuery,
       getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
       getOpeningHoursByParkAndDate(park.id, today),
       getWeatherByParkAndDate(park.id, today),
-      getPoiHoursByParkAndDate(park.id, today),
+      waitTimesQuery.then((live) =>
+        getPoiHoursByParkAndDate(
+          park.id,
+          today,
+          new Set(live.map((wt) => wt.rideId)),
+        ),
+      ),
     ]);
 
   // ⚠️ EN SÉRIE, à dessein : les horaires portent l'`eventId` de chaque
