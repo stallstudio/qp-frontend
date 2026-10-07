@@ -576,11 +576,9 @@
   },
   "poiDetail": {
     "openFor": "Voir le détail de {poi}",
-    "statusTitle": "État",
     "menuTitle": "Carte",
     "menuAction": "Voir la carte",
-    "menuImage": "Image",
-    "menuPage": "Page web"
+    "orderAction": "Voir la carte et commander"
   },
   "legal": {
     "backHome": "Retour à l’accueil",

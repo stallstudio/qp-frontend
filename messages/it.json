@@ -576,11 +576,9 @@
   },
   "poiDetail": {
     "openFor": "Vedi la scheda di {poi}",
-    "statusTitle": "Stato",
     "menuTitle": "Menu",
     "menuAction": "Vedi il menu",
-    "menuImage": "Immagine",
-    "menuPage": "Pagina web"
+    "orderAction": "Vedi il menu e ordina"
   },
   "legal": {
     "backHome": "Torna alla home",

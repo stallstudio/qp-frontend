@@ -576,11 +576,9 @@
   },
   "poiDetail": {
     "openFor": "Xem chi tiết {poi}",
-    "statusTitle": "Trạng thái",
     "menuTitle": "Thực đơn",
     "menuAction": "Xem thực đơn",
-    "menuImage": "Hình ảnh",
-    "menuPage": "Trang web"
+    "orderAction": "Xem thực đơn và đặt món"
   },
   "legal": {
     "backHome": "Về trang chủ",

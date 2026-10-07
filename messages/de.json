@@ -576,11 +576,9 @@
   },
   "poiDetail": {
     "openFor": "Details zu {poi} ansehen",
-    "statusTitle": "Status",
     "menuTitle": "Speisekarte",
     "menuAction": "Speisekarte ansehen",
-    "menuImage": "Bild",
-    "menuPage": "Webseite"
+    "orderAction": "Speisekarte ansehen und bestellen"
   },
   "legal": {
     "backHome": "Zurück zur Startseite",

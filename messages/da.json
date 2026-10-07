@@ -576,11 +576,9 @@
   },
   "poiDetail": {
     "openFor": "Se detaljer om {poi}",
-    "statusTitle": "Status",
     "menuTitle": "Menukort",
     "menuAction": "Se menukortet",
-    "menuImage": "Billede",
-    "menuPage": "Webside"
+    "orderAction": "Se menukortet og bestil"
   },
   "legal": {
     "backHome": "Tilbage til forsiden",

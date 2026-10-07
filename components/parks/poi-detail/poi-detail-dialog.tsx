@@ -1,7 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { BookOpenText, Clock, ExternalLink, Radio } from "lucide-react";
+import {
+  BookOpenText,
+  Clock,
+  ExternalLink,
+  Radio,
+  Smartphone,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -44,23 +50,27 @@ function Section({
   );
 }
 
-type MenuFormat = "pdf" | "image" | "page";
-
 /**
- * Ce qu'ouvre le lien de la carte, d'après l'extension de son adresse : un
- * PDF, une image, ou à défaut une page web. Seul le FORMAT est dit, pas le
- * site — c'est toujours celui du parc, le nommer n'apprend rien. `null` sur
- * une URL illisible : le lien reste, sans sous-titre.
+ * Le lien de la carte mène-t-il à une page de COMMANDE en ligne ? Reconnue à
+ * son adresse (relevé en base le 2026-10-07). Une page web n'en est pas une par
+ * défaut : Tokyo Disney et Paultons (tenkites) publient une carte à lire, rien
+ * de plus.
+ *   - pej.se : la commande des parcs PRS (Gröna Lund, Furuvik, Skara…) ;
+ *   - /streamlinedmenu/ : l'app de commande des parcs Miral (Agilysys) ;
+ *   - kolmarden.com/mat-online : la page qui regroupe les liens pej.se.
  */
-function menuFormat(url: string | null | undefined): MenuFormat | null {
-  if (!url) return null;
+function isOrderPage(url: string | null | undefined): boolean {
+  if (!url) return false;
   try {
-    const path = new URL(url).pathname;
-    if (/\.pdf$/i.test(path)) return "pdf";
-    if (/\.(jpe?g|png|webp|gif|avif)$/i.test(path)) return "image";
-    return "page";
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    return (
+      host === "pej.se" ||
+      parsed.pathname.startsWith("/streamlinedmenu/") ||
+      (host === "kolmarden.com" && parsed.pathname.startsWith("/mat-online"))
+    );
   } catch {
-    return null;
+    return false;
   }
 }
 
@@ -100,16 +110,10 @@ export default function PoiDetailDialog({
   const tTabs = useTranslations("tabs");
   // Les heures du jour, quand la page de parc les a (voir `PoiHoursProvider`).
   const hours = usePoiHoursOf(target?.rideId);
-  const format = menuFormat(target?.menu);
-  // « PDF » se lit tel quel dans toutes les langues.
-  const menuSource =
-    format === "pdf"
-      ? "PDF"
-      : format === "image"
-        ? t("menuImage")
-        : format === "page"
-          ? t("menuPage")
-          : null;
+  // Sur une page de commande, le bouton dit qu'on peut aussi commander.
+  const isOrder = isOrderPage(target?.menu);
+  const menuAction = isOrder ? t("orderAction") : t("menuAction");
+  const MenuIcon = isOrder ? Smartphone : BookOpenText;
 
   const queue = target ? getPrimaryQueue(target) : undefined;
   const statusLabels: Record<string, string> = {
@@ -157,7 +161,7 @@ export default function PoiDetailDialog({
             <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
               {queue && (
                 <Section
-                  title={t("statusTitle")}
+                  title={tTabs("live")}
                   icon={<Radio className="size-4" />}
                 >
                   {getStatusBadge(queue.status, statusLabels)}
@@ -176,8 +180,8 @@ export default function PoiDetailDialog({
               {/* ⚠️ Une LIGNE de lien, pas une section : un titre « Carte »
                   au-dessus d'un bouton « Voir la carte » disait deux fois la
                   même chose, et le gros bouton orange prenait le pas sur l'état
-                  et les horaires, qui sont l'information. Le sous-titre dit ce
-                  qu'ouvre le lien : un PDF, une image ou une page web. */}
+                  et les horaires, qui sont l'information. Pas de sous-titre
+                  (retiré le 2026-10-07) : le libellé suffit. */}
               {target.menu && (
                 <div className="border-t px-5 py-4">
                   {/* Nouvel onglet, et `noopener` comme tout lien sortant. */}
@@ -185,21 +189,14 @@ export default function PoiDetailDialog({
                     href={target.menu}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`${t("menuTitle")} — ${t("menuAction")}`}
+                    aria-label={`${t("menuTitle")} — ${menuAction}`}
                     className="group flex items-center gap-3 rounded-2xl border bg-muted/40 p-3 transition-colors hover:bg-muted"
                   >
                     <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-restaurant/15 text-restaurant">
-                      <BookOpenText className="size-5" />
+                      <MenuIcon className="size-5" />
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold">
-                        {t("menuAction")}
-                      </span>
-                      {menuSource && (
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {menuSource}
-                        </span>
-                      )}
+                    <span className="min-w-0 flex-1 text-sm font-semibold">
+                      {menuAction}
                     </span>
                     <ExternalLink className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
                   </a>

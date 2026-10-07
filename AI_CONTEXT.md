@@ -178,8 +178,10 @@ le compte (`FavNamespace`, plafonds compris) ; en inventer un troisième aurait
 ouvert une liste que ni l'espace compte ni les rappels ne lisent.
 
 ⚠️ **Le popup se limite à sa bannière, sa zone, l'état et ses horaires du
-jour**, plus une ligne « Voir la carte » (format : PDF, image ou page web) quand
-la source publie un menu — ce qu'aucun parc CDA ne fait
+jour**, plus une ligne « Voir la carte » (sans sous-titre) quand
+la source publie un menu — « Voir la carte et commander » quand l'adresse est une page de
+commande reconnue (`isOrderPage` : pej.se des parcs PRS, `/streamlinedmenu/` de
+Miral, Kolmården), une page web n'en étant pas une par défaut — ce qu'aucun parc CDA ne fait
 aujourd'hui, alors que le champ existe dans leur CMS (Disney Japon, Miral, Parc
 Astérix, Paultons, Tibidabo et Dreamworld en publient). Un bloc
 « Informations » reprenant zone, catégorie et étiquettes a été écrit puis

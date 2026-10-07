@@ -576,11 +576,9 @@
   },
   "poiDetail": {
     "openFor": "Visa information om {poi}",
-    "statusTitle": "Status",
     "menuTitle": "Meny",
     "menuAction": "Visa menyn",
-    "menuImage": "Bild",
-    "menuPage": "Webbsida"
+    "orderAction": "Visa menyn och beställ"
   },
   "legal": {
     "backHome": "Tillbaka till startsidan",

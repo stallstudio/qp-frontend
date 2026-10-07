@@ -576,11 +576,9 @@
   },
   "poiDetail": {
     "openFor": "Details van {poi} bekijken",
-    "statusTitle": "Status",
     "menuTitle": "Menukaart",
     "menuAction": "Menukaart bekijken",
-    "menuImage": "Afbeelding",
-    "menuPage": "Webpagina"
+    "orderAction": "Menukaart bekijken en bestellen"
   },
   "legal": {
     "backHome": "Terug naar de startpagina",

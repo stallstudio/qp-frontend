@@ -576,11 +576,9 @@
   },
   "poiDetail": {
     "openFor": "Ver la ficha de {poi}",
-    "statusTitle": "Estado",
     "menuTitle": "Carta",
     "menuAction": "Ver la carta",
-    "menuImage": "Imagen",
-    "menuPage": "Página web"
+    "orderAction": "Ver la carta y pedir"
   },
   "legal": {
     "backHome": "Volver al inicio",

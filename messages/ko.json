@@ -576,11 +576,9 @@
   },
   "poiDetail": {
     "openFor": "{poi} 상세 보기",
-    "statusTitle": "상태",
     "menuTitle": "메뉴",
     "menuAction": "메뉴 보기",
-    "menuImage": "이미지",
-    "menuPage": "웹페이지"
+    "orderAction": "메뉴 보고 주문하기"
   },
   "legal": {
     "backHome": "홈으로 돌아가기",

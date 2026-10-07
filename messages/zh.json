@@ -576,11 +576,9 @@
   },
   "poiDetail": {
     "openFor": "查看 {poi} 的详情",
-    "statusTitle": "状态",
     "menuTitle": "菜单",
     "menuAction": "查看菜单",
-    "menuImage": "图片",
-    "menuPage": "网页"
+    "orderAction": "查看菜单并点餐"
   },
   "legal": {
     "backHome": "返回首页",
