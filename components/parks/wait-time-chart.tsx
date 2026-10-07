@@ -176,22 +176,35 @@ export default function WaitTimeChart({
     // `p.margin` existe toujours dans la réponse de l'API (le worker la calcule
     // par point), mais le graphique ne s'en sert plus : la marge est désormais
     // dite en texte sous la courbe, pas dessinée dessus.
+    // Raccord : le dernier point observé amorce la prévision (voir plus bas).
+    const lastActual = [...today].reverse().find((p) => p.waitTime != null);
+    const lastActualMs = lastActual ? Date.parse(lastActual.t) : null;
+
     for (const p of forecast) {
-      const r = row(Date.parse(p.t));
+      const t = Date.parse(p.t);
+      // La courbe observée va jusqu'à « maintenant » (`sampleDaySeries`) ; un
+      // point de prévision calé sur un pas déjà échu tomberait AVANT son point
+      // de départ et dessinerait un pointillé à rebours.
+      if (lastActualMs != null && t <= lastActualMs) continue;
+      const r = row(t);
       r.forecast = p.waitTime;
     }
     // Trace des prévisions écoulées. Elle ne couvre que le passé, donc elle ne
     // chevauche jamais `forecast` — et ne s'y raccorde pas (voir plus bas).
+    // ⚠️ La route y ajoute le premier point À VENIR, qui ne sert qu'à calculer
+    // ce qui était prévu pour « maintenant » (`expected`) : il n'est pas tracé.
+    const nowLimitMs = Date.parse(now);
     for (const p of forecastTrail ?? []) {
-      const r = row(Date.parse(p.t));
+      const t = Date.parse(p.t);
+      if (t > nowLimitMs) continue;
+      const r = row(t);
       r.trail = p.waitTime;
     }
 
     // Raccord : le dernier point observé amorce aussi la prévision (continuité
     // solide -> pointillé).
-    const lastActual = [...today].reverse().find((p) => p.waitTime != null);
-    if (lastActual) {
-      const r = row(Date.parse(lastActual.t));
+    if (lastActual && lastActualMs != null) {
+      const r = row(lastActualMs);
       r.forecast = lastActual.waitTime;
     }
 
@@ -277,8 +290,10 @@ export default function WaitTimeChart({
           : 0;
       for (const d of data) {
         // Pas de filtre sur `actual` : une plage d'indispo (fermé, panne…) a
-        // elle aussi sa valeur prévue au survol. La trace ne couvrant que le
-        // passé, une ligne de prévision pure ne trouve jamais de voisin.
+        // elle aussi sa valeur prévue au survol. Une ligne de prévision pure,
+        // elle, n'en reçoit pas : le seul point de trace à venir est là pour
+        // « maintenant », pas pour doubler la prévision en cours.
+        if (d.t > nowLimitMs) continue;
         const i = trailPts.findIndex((p) => p.t >= d.t);
         if (i === -1) continue;
         const b = trailPts[i];

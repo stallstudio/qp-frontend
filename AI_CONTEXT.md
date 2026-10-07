@@ -890,6 +890,13 @@ n'indiqueraient jamais où aller.
   une ligne déjà présente vient de la courbe observée, sa prévision y est donc
   nulle — la rupture existe, et en ajouter une couperait la courbe observée en
   deux.
+- ⚠️ **En cours de journée, la courbe observée va jusqu'à « MAINTENANT »**
+  (2026-10-07) : `sampleDaySeries` ajoute un point à `upTo`. Elle s'arrêtait
+  au dernier pas échu (10:15 à 10:22), dont la prévision partait : un temps
+  passé de 50 à 55 min s'affichait 50 jusqu'au pas suivant, sous un bandeau qui
+  disait 55. Corollaires : le graphique ignore les points de prévision
+  antérieurs à ce point, et la route envoie le PREMIER point de trace à venir
+  (non tracé) pour que le survol de « maintenant » ait sa valeur « Prévu ».
 - ⚠️ **La courbe observée doit atteindre la FERMETURE.** La grille de buckets
   s'arrête *avant* `close` : une journée terminée voyait donc sa courbe s'arrêter
   jusqu'à un pas complet trop tôt (fermeture 19:30 → dernier point 19:15) alors

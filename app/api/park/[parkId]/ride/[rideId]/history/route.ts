@@ -190,12 +190,22 @@ export async function GET(
     // fige chaque point une heure avant son échéance (`buildForecastTrail`).
     // On ne sert que les points échus — au-delà, la prévision en cours fait
     // foi, et deux courbes concurrentes sur l'avenir ne se liraient pas.
+    //
+    // ⚠️ PLUS LE PREMIER point à venir, que le graphique ne trace pas : la
+    // courbe observée va jusqu'à « maintenant » (10:27), entre deux points de
+    // la trace (10:15, 10:30). Sans celui de 10:30, le survol de « maintenant »
+    // ne pouvait pas dire ce qui était prévu pour cet instant.
     const nowMs = rideHistory.now.getTime();
-    const forecastTrail: TimedPoint[] = fresh
-      ? (
-          (forecastRow.forecastTrail as unknown as TimedPoint[]) ?? []
-        ).filter((p) => Date.parse(p.t) <= nowMs)
+    const storedTrail = fresh
+      ? ((forecastRow.forecastTrail as unknown as TimedPoint[]) ?? [])
       : [];
+    const nextTrail = storedTrail
+      .filter((p) => Date.parse(p.t) > nowMs)
+      .sort((a, b) => Date.parse(a.t) - Date.parse(b.t))[0];
+    const forecastTrail: TimedPoint[] = [
+      ...storedTrail.filter((p) => Date.parse(p.t) <= nowMs),
+      ...(nextTrail ? [nextTrail] : []),
+    ];
     const baseProfile =
       fresh &&
       forecastRow.baseProfile &&

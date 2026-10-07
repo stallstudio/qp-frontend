@@ -144,5 +144,15 @@ export function sampleDaySeries(
     pushPoint(day.close, true);
   }
 
+  // Point « MAINTENANT », en cours de journée. Sans lui, la courbe s'arrêtait au
+  // dernier pas ÉCHU (10:15 à 10:22) avec la valeur de ce pas-là, et la
+  // prévision partait de ce point : un temps passé à 55 min s'affichait encore
+  // 50 jusqu'au pas suivant, alors que le direct, juste au-dessus du graphique,
+  // disait 55. Le dernier segment est donc plus court que les autres — c'est
+  // voulu, comme pour la fermeture.
+  if (limit === upTo.getTime() && lastMs !== null && lastMs < limit) {
+    pushPoint(upTo);
+  }
+
   return points;
 }
