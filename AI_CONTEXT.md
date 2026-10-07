@@ -674,15 +674,24 @@ ligne GRISE au milieu d'une carte Halloween rouge, comme la colonne de noms des
 spectacles avant `--table-surface`. Les redéfinitions se mélangent à
 `transparent` (et non au fond) : c'est un voile de PLUS sur celui de la carte.
 
-⚠️ **Les spectacles d'un événement SANS séance ont leur liste** (2026-10-07,
-`lib/event-shows.ts`, `unscheduledShows`). Le front ne connaissait un spectacle
-que par ses séances : les cinq maisons de Bellewaerde, publiées avec prix et
-niveau de peur mais sans aucun horaire, n'apparaissaient nulle part. Elles sont
-listées sous la grille, dans la carte de leur événement, et ouvrent le même
-popup — sans panneau de séances ni de rappel, qui diraient « plus de
-représentation aujourd'hui » quand on n'en sait rien. ⚠️ L'exclusion porte sur
-les séances AVANT `limitShowsToSessions` : un spectacle dont toutes les séances
-sont tombées hors des sessions du jour a bien un horaire.
+⚠️ **Les POI d'un événement SANS la donnée de leur liste ont la leur**
+(2026-10-07, `lib/event-pois.ts`, `unscheduledShows` et `unlistedRides`). Le
+front ne connaissait un spectacle que par ses séances, une attraction que par
+ses temps d'attente : les cinq maisons de Bellewaerde, publiées avec prix et
+niveau de peur mais sans aucun horaire, n'apparaissaient nulle part. Spectacles
+sans séance et attractions sans temps vivant sont listés sous la grille ou la
+table, dans la carte de leur événement (`EventExtrasList`), et ouvrent le même
+popup — celui d'un spectacle sans panneau de séances ni de rappel, qui diraient
+« plus de représentation aujourd'hui » quand on n'en sait rien.
+
+- ⚠️ L'exclusion des spectacles porte sur les séances AVANT
+  `limitShowsToSessions` : un spectacle dont toutes les séances sont tombées
+  hors des sessions du jour a bien un horaire.
+- ⚠️ **Rien ne revient l'année suivante** : seuls les événements AFFICHÉS sont
+  lus, et une édition est une LIGNE par saison. Le worker ne migre vers la
+  nouvelle que les POI que la source déclare encore ; une maison retirée du
+  catalogue reste attachée à l'édition passée. Pendant une même édition, en
+  revanche, une maison retirée en cours de route reste listée.
 
 ### Peur et prix des maisons hantées (`lib/poi-facts.ts`, `attraction-detail/poi-facts.tsx`)
 

@@ -166,7 +166,8 @@
     "lastUpdate": "Cập nhật lần cuối",
     "updatedAgo": "Cập nhật {age} trước",
     "liveConnected": "Trực tiếp",
-    "liveFallback": "Tự động làm mới"
+    "liveFallback": "Tự động làm mới",
+    "unlistedTitle": "Chưa công bố thời gian chờ"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Bảo lưu mọi quyền.",

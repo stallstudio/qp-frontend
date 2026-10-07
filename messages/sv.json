@@ -166,7 +166,8 @@
     "lastUpdate": "Senast uppdaterad",
     "updatedAgo": "Uppdaterad för {age} sedan",
     "liveConnected": "Live",
-    "liveFallback": "Automatisk uppdatering"
+    "liveFallback": "Automatisk uppdatering",
+    "unlistedTitle": "Väntetider inte publicerade"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Med ensamrätt.",

@@ -441,6 +441,7 @@ export default function MainCard({
     park.waitTimes.some((wt) => wt.eventId === eventId) ||
     (park.shows ?? []).some((s) => s.eventId === eventId) ||
     (park.unscheduledShows ?? []).some((s) => s.eventId === eventId) ||
+    (park.unlistedRides ?? []).some((wt) => wt.eventId === eventId) ||
     poiHours.some((h) => h.eventId === eventId);
 
   // ⚠️ **Les cartes d'événement suivent la famille choisie**, comme le reste de
@@ -455,10 +456,19 @@ export default function MainCard({
         items: park.waitTimes.filter(
           (wt) => wt.eventId === view.event.id && wt.kind === family,
         ),
+        // Les attractions SANS temps d'attente : des mazes que la source tague
+        // sans les mesurer. Seulement sous la pastille des attractions.
+        unlisted:
+          family === "ride"
+            ? (park.unlistedRides ?? []).filter(
+                (wt) => wt.eventId === view.event.id,
+              )
+            : [],
       }))
       .filter(
-        ({ view, items }) =>
+        ({ view, items, unlisted }) =>
           items.length > 0 ||
+          unlisted.length > 0 ||
           (family === "ride" &&
             view.event.visibility === "forced" &&
             !hasEventItems(view.event.id)),
@@ -466,7 +476,7 @@ export default function MainCard({
 
   const eventWaitTimeCardsFor = (family: LiveFamily): StackCard[] =>
     eventItemsFor(family).map(
-      ({ view, items }): StackCard =>
+      ({ view, items, unlisted }): StackCard =>
         function eventCard(radius: string) {
           return (
             <EventCard
@@ -474,11 +484,12 @@ export default function MainCard({
               view={view}
               timezone={park.timezone}
               className={radius}
-              isEmpty={items.length === 0}
+              isEmpty={items.length === 0 && unlisted.length === 0}
             >
               {family === "ride" ? (
                 <ParkWaitTimeTable
                   waitTimes={items}
+                  unlisted={unlisted}
                   queueTypeLabels={park.queueTypeLabels}
                   parkIdentifier={park.identifier}
                   parkName={park.name}

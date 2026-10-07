@@ -166,7 +166,8 @@
     "lastUpdate": "最后更新",
     "updatedAgo": "{age}前更新",
     "liveConnected": "实时",
-    "liveFallback": "自动刷新"
+    "liveFallback": "自动刷新",
+    "unlistedTitle": "等候时间未公布"
   },
   "footer": {
     "copyright": "© {year} Queue Park. 保留所有权利。",

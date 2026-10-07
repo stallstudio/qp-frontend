@@ -166,7 +166,8 @@
     "lastUpdate": "最終更新",
     "updatedAgo": "{age}前に更新",
     "liveConnected": "ライブ",
-    "liveFallback": "自動更新"
+    "liveFallback": "自動更新",
+    "unlistedTitle": "待ち時間未公開"
   },
   "footer": {
     "copyright": "© {year} Queue Park. 無断転載を禁じます。",

@@ -4,7 +4,7 @@ export type ShowTimeTableProps = {
   shows: ShowTime[];
   /**
    * Spectacles de l'événement SANS séance aujourd'hui (voir
-   * `lib/event-shows.ts`), listés sous la grille. Seulement dans une carte
+   * `lib/event-pois.ts`), listés sous la grille. Seulement dans une carte
    * d'événement.
    */
   unscheduled?: ShowTime[];

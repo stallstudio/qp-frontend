@@ -7,7 +7,7 @@ import {
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDates } from "@/lib/show-times";
 import { getPoiHoursByParkAndDate } from "@/lib/poi-hours";
-import { getUnscheduledEventShows } from "@/lib/event-shows";
+import { getEventPoisWithoutData } from "@/lib/event-pois";
 import { limitShowsToSessions } from "@/lib/show-window";
 import { getWeatherByParkAndDate } from "@/lib/weather";
 import { getParkEventsByDate } from "@/lib/park-events-db";
@@ -208,11 +208,13 @@ async function buildParkLiveSnapshot(
   const events = await getParkEventsByDate(park.id, today, openingHours ?? []);
 
   // Après les événements, et pour la même raison : seuls ceux qui s'affichent
-  // ont une carte où ranger leurs spectacles sans séance.
-  const unscheduledShows = await getUnscheduledEventShows(
+  // ont une carte où ranger leurs spectacles sans séance et leurs attractions
+  // sans temps d'attente.
+  const { unscheduledShows, unlistedRides } = await getEventPoisWithoutData(
     park.id,
     events.map((event) => event.id),
     new Set((showTimes ?? []).map((show) => show.poiId)),
+    new Set(waitTimes.map((wt) => wt.rideId)),
   );
 
   // Chaque créneau est rendu à la SÉANCE qui le contient — un spectacle
@@ -248,6 +250,7 @@ async function buildParkLiveSnapshot(
       waitTimes,
       shows,
       unscheduledShows,
+      unlistedRides,
       poiHours,
       weather,
       events,

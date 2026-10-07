@@ -166,7 +166,8 @@
     "lastUpdate": "Last Update",
     "updatedAgo": "Updated {age} ago",
     "liveConnected": "Live",
-    "liveFallback": "Automatic refresh"
+    "liveFallback": "Automatic refresh",
+    "unlistedTitle": "Wait times not published"
   },
   "footer": {
     "copyright": "© {year} Queue Park. All rights reserved.",

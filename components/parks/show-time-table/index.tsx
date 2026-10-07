@@ -14,7 +14,7 @@ import type { ShowTime } from "@/types/show";
 import { ShowTimeTableProps } from "./types";
 import { compareShowSortKeys, showSortKey } from "./utils";
 import ScheduleGrid, { type GridRow } from "./schedule-grid";
-import UnscheduledShowList from "./unscheduled-show-list";
+import EventExtrasList from "@/components/parks/event-extras-list";
 
 export default function ParkShowTimeTable({
   shows,
@@ -107,10 +107,17 @@ export default function ParkShowTimeTable({
       )}
 
       {unscheduled.length > 0 && (
-        <UnscheduledShowList
-          shows={unscheduled}
-          withHeading={rows.length > 0}
-          onActivate={setDetailTarget}
+        <EventExtrasList
+          items={unscheduled.map((show) => ({
+            id: show.poiId,
+            name: show.showName,
+            place: show.zone ?? show.venue,
+          }))}
+          heading={rows.length > 0 ? tShowDetail("unscheduledTitle") : null}
+          ariaLabel={(show) => tShowDetail("openFor", { show })}
+          onActivate={(poiId) =>
+            setDetailTarget(unscheduled.find((s) => s.poiId === poiId) ?? null)
+          }
         />
       )}
 

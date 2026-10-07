@@ -166,7 +166,8 @@
     "lastUpdate": "마지막 갱신",
     "updatedAgo": "{age} 전 업데이트",
     "liveConnected": "실시간",
-    "liveFallback": "자동 새로 고침"
+    "liveFallback": "자동 새로 고침",
+    "unlistedTitle": "대기 시간 미공개"
   },
   "footer": {
     "copyright": "© {year} Queue Park. 모든 권리 보유.",

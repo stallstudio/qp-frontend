@@ -9,7 +9,7 @@ export interface ShowTime {
   /**
    * Le POI du spectacle. Sert à reconnaître, parmi les spectacles d'un
    * événement, ceux qui n'ont AUCUNE séance aujourd'hui (voir
-   * `lib/event-shows.ts`).
+   * `lib/event-pois.ts`).
    */
   poiId: number;
   showName: string;

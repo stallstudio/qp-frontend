@@ -166,7 +166,8 @@
     "lastUpdate": "Senest opdateret",
     "updatedAgo": "Opdateret for {age} siden",
     "liveConnected": "Live",
-    "liveFallback": "Automatisk opdatering"
+    "liveFallback": "Automatisk opdatering",
+    "unlistedTitle": "Ventetider ikke offentliggjort"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Alle rettigheder forbeholdes.",
