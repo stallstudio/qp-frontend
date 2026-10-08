@@ -395,9 +395,16 @@ Conséquences assumées, à ne pas « corriger » :
 - L'attraction est résolue depuis la table `pois` (`kind: "ride"`), pas depuis
   les temps d'attente du moment : une attraction fermée pour la saison ne doit pas
   transformer un lien en 404. Si elle est absente du flux, la page du parc
-  s'affiche sans popup.
+  s'affiche sans popup — SAUF une attraction d'événement sans temps vivant
+  (`unlisted`, les maisons d'IBILAW) : listée sous sa carte d'événement, elle
+  ouvre son popup comme au clic (2026-10-08 ; l'effet ne cherchait que dans le
+  direct).
 - L'ouverture du popup est gardée par un `useRef` : sans lui, le
   rafraîchissement 60 s rouvrirait le popup après chaque fermeture.
+- ⚠️ **`htmlLimitedBots: /.*/` dans `next.config.ts`** : sans lui, Next diffuse
+  les métadonnées de cette route en streaming (elles attendent la base), et
+  CHAQUE lien profond ratait son hydratation — tous les `useId` de la page
+  divergeaient entre serveur et client. Voir le commentaire du réglage.
 
 **⚠️ Deux pièges à connaître avant de remettre un `<a>` au clic annulé dans une
 liste.** La liste n'en contient plus (l'œil, seul lien de ce genre, a été retiré
