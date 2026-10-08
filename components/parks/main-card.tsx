@@ -786,8 +786,11 @@ export default function MainCard({
    * La carte d'un événement dans un onglet : son sélecteur, puis la liste de la
    * famille choisie, qui glisse comme celle de la carte de la liste.
    *
-   * Le sélecteur vit DANS le contenu dépliable : replié, l'événement reste une
+   * Le sélecteur vit dans l'EN-TÊTE de la carte, à droite du titre (sous lui
+   * sur téléphone), et n'y paraît que DÉPLIÉ : replié, l'événement reste une
    * ligne d'en-tête, sans pastilles à côté d'un contenu qu'on ne voit pas.
+   * Arbitré le 2026-10-08, avec le trait sous l'en-tête retiré — voir
+   * `event-card.tsx`.
    */
   const eventCard = (
     tab: ColumnTab,
@@ -806,43 +809,43 @@ export default function MainCard({
           timezone={park.timezone}
           className={radius}
           isEmpty={family == null}
+          headerAside={
+            family != null ? (
+              <FamilySwitcher
+                options={familyOptions(families)}
+                value={family}
+                onChange={(picked) =>
+                  pickEventFamily(tab, eventId, families, picked)
+                }
+                ariaLabel={tTabs("families")}
+                idPrefix={idPrefix}
+                panelId={panelId}
+              />
+            ) : undefined
+          }
         >
           {family != null && (
-            <>
-              <div className="pt-2.5 pb-1 sm:pt-3">
-                <FamilySwitcher
-                  options={familyOptions(families)}
-                  value={family}
-                  onChange={(picked) =>
-                    pickEventFamily(tab, eventId, families, picked)
-                  }
-                  ariaLabel={tTabs("families")}
-                  idPrefix={idPrefix}
-                  panelId={panelId}
-                />
-              </div>
-              {/* `overflow-x-clip` : voir la carte de la liste. */}
-              <div className="overflow-x-clip">
-                <AnimatePresence
-                  mode="wait"
-                  initial={false}
-                  custom={slideDirection}
+            // `overflow-x-clip` : voir la carte de la liste.
+            <div className="overflow-x-clip">
+              <AnimatePresence
+                mode="wait"
+                initial={false}
+                custom={slideDirection}
+              >
+                <motion.div
+                  key={family}
+                  id={panelId}
+                  role="tabpanel"
+                  aria-labelledby={`${idPrefix}-${family}`}
+                  {...slideProps}
                 >
-                  <motion.div
-                    key={family}
-                    id={panelId}
-                    role="tabpanel"
-                    aria-labelledby={`${idPrefix}-${family}`}
-                    {...slideProps}
-                  >
-                    <h3 className="sr-only">
-                      {tCards(CARD_TITLE_KEYS[family])}
-                    </h3>
-                    {eventList(tab, eventId, family)}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </>
+                  <h3 className="sr-only">
+                    {tCards(CARD_TITLE_KEYS[family])}
+                  </h3>
+                  {eventList(tab, eventId, family)}
+                </motion.div>
+              </AnimatePresence>
+            </div>
           )}
         </EventCard>
       );

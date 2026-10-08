@@ -33,20 +33,23 @@ type FamilySwitcherProps = {
 //
 // ⚠️ **Chaque teinte passe d'abord par `--tint-<famille>`**, que seule une carte
 // d'événement définit (`event-accents.tsx`) : le sélecteur posé dans la carte
-// de Halloween y prend un vert de Halloween au lieu du vert franc des
+// de Halloween y prend le vert mousse de sa palette au lieu du vert franc des
 // restaurants, sans connaître la carte qui le porte. Ailleurs, la variable
-// n'existe pas et le repli rend la teinte de toujours. Même chose pour le fond
-// des pastilles inactives (`--tint-idle`), dont le gris se lisait comme une
-// pastille désactivée sur le voile rouge.
+// n'existe pas et le repli rend la teinte de toujours. Même chose pour le
+// libellé de la pastille active (`--tint-fg` : les palettes d'événement sont
+// sourdes et portent un texte CLAIR, là où les couleurs franches du thème
+// sombre en portent un foncé) et pour la pastille inactive (`--tint-idle`,
+// `--tint-idle-fg`), dont le gris se lisait comme une pastille désactivée sur
+// le voile rouge.
 const FAMILY_TINT: Record<ParkFamily, string> = {
-  ride: "[--fam:var(--tint-ride,var(--primary))] [--fam-fg:var(--primary-foreground)]",
-  show: "[--fam:var(--tint-show,var(--show))] [--fam-fg:var(--show-foreground)]",
+  ride: "[--fam:var(--tint-ride,var(--primary))] [--fam-fg:var(--tint-fg,var(--primary-foreground))]",
+  show: "[--fam:var(--tint-show,var(--show))] [--fam-fg:var(--tint-fg,var(--show-foreground))]",
   restaurant:
-    "[--fam:var(--tint-restaurant,var(--restaurant))] [--fam-fg:var(--restaurant-foreground)]",
-  shop: "[--fam:var(--tint-shop,var(--shop))] [--fam-fg:var(--shop-foreground)]",
-  hotel: "[--fam:var(--tint-hotel,var(--hotel))] [--fam-fg:var(--hotel-foreground)]",
+    "[--fam:var(--tint-restaurant,var(--restaurant))] [--fam-fg:var(--tint-fg,var(--restaurant-foreground))]",
+  shop: "[--fam:var(--tint-shop,var(--shop))] [--fam-fg:var(--tint-fg,var(--shop-foreground))]",
+  hotel: "[--fam:var(--tint-hotel,var(--hotel))] [--fam-fg:var(--tint-fg,var(--hotel-foreground))]",
   service:
-    "[--fam:var(--tint-service,var(--service))] [--fam-fg:var(--service-foreground)]",
+    "[--fam:var(--tint-service,var(--service))] [--fam-fg:var(--tint-fg,var(--service-foreground))]",
 };
 
 // Ressort de la pastille qui s'ouvre et de celle qui se referme : assez vif
@@ -169,7 +172,7 @@ export default function FamilySwitcher({
                   ? // Aplat seul, sans halo coloré dessous (retiré le
                     // 2026-10-06) : la couleur suffit à désigner la pastille.
                     "bg-(--fam) px-4 text-(--fam-fg)"
-                  : "bg-[var(--tint-idle,var(--muted))] px-3 text-muted-foreground hover:bg-foreground/10 hover:text-foreground",
+                  : "bg-[var(--tint-idle,var(--muted))] px-3 text-[var(--tint-idle-fg,var(--muted-foreground))] hover:bg-foreground/10 hover:text-foreground",
               )}
             >
               {/* Petit sursaut du pictogramme à l'arrivée, rien au départ.

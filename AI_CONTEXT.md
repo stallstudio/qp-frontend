@@ -131,14 +131,21 @@ couleur de sa famille (`--primary`, `--show`, `--restaurant`, `--shop`,
   `main-card.tsx`), dont les pastilles sont les familles qu'ELLE contient — à
   Walibi Belgium, « Attractions » (maisons, zones) et « Spectacles » (Bill).
   Elle suivait auparavant la pastille de la carte de la liste, qui devait donc
-  exister pour qu'on atteigne l'événement. Le sélecteur vit dans le contenu
-  dépliable ; les horaires s'y ouvrent sur les spectacles, comme la liste.
-- **Les pastilles d'une carte d'événement sont TERNIES par sa teinte** :
-  `family-switcher.tsx` lit `--tint-<famille>` avant la couleur franche, et
-  seules les cartes d'événement définissent ces variables
-  (`event-accents.tsx`, mélange `oklab` à 25 % de l'accent, vers le 900 en
-  clair et le 400 en sombre). `--tint-idle` remplace le gris des pastilles
-  inactives.
+  exister pour qu'on atteigne l'événement. Les horaires s'y ouvrent sur les
+  spectacles, comme la liste.
+- **Ce sélecteur vit dans l'EN-TÊTE de la carte, déplié seulement**
+  (`headerAside`, `event-card.tsx`) : à droite du titre, sous lui sur
+  téléphone, et plus de trait entre l'en-tête et la liste. L'en-tête n'est donc
+  plus UN bouton (il ne peut pas en contenir d'autres) : le bouton de repli
+  couvre la ligne par son `::after`, les pastilles passent au-dessus (`z-10`).
+- **Les pastilles d'une carte d'événement suivent la palette de l'événement** :
+  `family-switcher.tsx` lit `--tint-<famille>`, `--tint-fg`, `--tint-idle` et
+  `--tint-idle-fg` avant les couleurs franches, et seules les cartes
+  d'événement les définissent (`event-accents.tsx`). Choisies sur maquette le
+  2026-10-08 : « Brume » pour Halloween (rouille, prune, mousse, ardoise, rose
+  fané, bronze), son pendant givré pour Noël (pain d'épice, améthyste, sapin,
+  bleu nuit, canneberge, or). Chaque famille garde sa couleur ; des tons
+  sourds (L ≈ 0,5) à texte CLAIR dans les deux thèmes.
 - **Horaires d'ouverture des POI = table `poi_hours`** (2026-10-06, migration
   `2026-10-06-poi-hours` du worker), lue par `lib/poi-hours.ts` (liste vide
   sur toute erreur, table absente comprise) et transportée dans
