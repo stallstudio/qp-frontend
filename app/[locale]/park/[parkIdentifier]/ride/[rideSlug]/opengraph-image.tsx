@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { buildParkLiveData, getParkIdentity } from "@/lib/park-live-data";
 import { getRideIdentity } from "@/lib/ride-detail";
 import { parseRideSlug } from "@/lib/slug";
+import { MACK_WAIT_CAP, formatWaitMinutes } from "@/lib/wait-time-cap";
 
 export const runtime = "nodejs";
 export const alt = "Queue Park";
@@ -115,7 +116,9 @@ export default async function Image({
                 color: waitColor(wait),
               }}
             >
-              {wait} min
+              {/* Même plafond par défaut que les pastilles des listes
+                  (`getWaitTimeBadge`) : le provider n'est pas connu ici. */}
+              {formatWaitMinutes(wait, MACK_WAIT_CAP)} min
             </div>
           </div>
         ) : (

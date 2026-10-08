@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { getTranslations } from "next-intl/server";
 import { buildParkLiveData } from "@/lib/park-live-data";
 import type { QueueTime } from "@/types/waitTime";
+import { MACK_WAIT_CAP, formatWaitMinutes } from "@/lib/wait-time-cap";
 
 export const runtime = "nodejs";
 export const alt = "Queue Park";
@@ -155,7 +156,9 @@ export default async function Image({
                     lineHeight: 1.2,
                   }}
                 >
-                  {busiest.name} · {busiest.wait} min
+                  {/* Même plafond par défaut que les pastilles des listes
+                      (`getWaitTimeBadge`) : le provider n'est pas connu ici. */}
+                  {busiest.name} · {formatWaitMinutes(busiest.wait, MACK_WAIT_CAP)} min
                 </div>
               </div>
             )}
