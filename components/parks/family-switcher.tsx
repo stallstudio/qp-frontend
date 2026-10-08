@@ -30,14 +30,23 @@ type FamilySwitcherProps = {
 //
 // ⚠️ Des chaînes ENTIÈRES, jamais assemblées : Tailwind ne génère que les
 // classes qu'il lit telles quelles dans le source.
+//
+// ⚠️ **Chaque teinte passe d'abord par `--tint-<famille>`**, que seule une carte
+// d'événement définit (`event-accents.tsx`) : le sélecteur posé dans la carte
+// de Halloween y prend un vert de Halloween au lieu du vert franc des
+// restaurants, sans connaître la carte qui le porte. Ailleurs, la variable
+// n'existe pas et le repli rend la teinte de toujours. Même chose pour le fond
+// des pastilles inactives (`--tint-idle`), dont le gris se lisait comme une
+// pastille désactivée sur le voile rouge.
 const FAMILY_TINT: Record<ParkFamily, string> = {
-  ride: "[--fam:var(--primary)] [--fam-fg:var(--primary-foreground)]",
-  show: "[--fam:var(--show)] [--fam-fg:var(--show-foreground)]",
+  ride: "[--fam:var(--tint-ride,var(--primary))] [--fam-fg:var(--primary-foreground)]",
+  show: "[--fam:var(--tint-show,var(--show))] [--fam-fg:var(--show-foreground)]",
   restaurant:
-    "[--fam:var(--restaurant)] [--fam-fg:var(--restaurant-foreground)]",
-  shop: "[--fam:var(--shop)] [--fam-fg:var(--shop-foreground)]",
-  hotel: "[--fam:var(--hotel)] [--fam-fg:var(--hotel-foreground)]",
-  service: "[--fam:var(--service)] [--fam-fg:var(--service-foreground)]",
+    "[--fam:var(--tint-restaurant,var(--restaurant))] [--fam-fg:var(--restaurant-foreground)]",
+  shop: "[--fam:var(--tint-shop,var(--shop))] [--fam-fg:var(--shop-foreground)]",
+  hotel: "[--fam:var(--tint-hotel,var(--hotel))] [--fam-fg:var(--hotel-foreground)]",
+  service:
+    "[--fam:var(--tint-service,var(--service))] [--fam-fg:var(--service-foreground)]",
 };
 
 // Ressort de la pastille qui s'ouvre et de celle qui se referme : assez vif
@@ -160,7 +169,7 @@ export default function FamilySwitcher({
                   ? // Aplat seul, sans halo coloré dessous (retiré le
                     // 2026-10-06) : la couleur suffit à désigner la pastille.
                     "bg-(--fam) px-4 text-(--fam-fg)"
-                  : "bg-muted px-3 text-muted-foreground hover:bg-foreground/10 hover:text-foreground",
+                  : "bg-[var(--tint-idle,var(--muted))] px-3 text-muted-foreground hover:bg-foreground/10 hover:text-foreground",
               )}
             >
               {/* Petit sursaut du pictogramme à l'arrivée, rien au départ.

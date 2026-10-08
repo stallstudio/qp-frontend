@@ -84,6 +84,29 @@ export type AccentStyle = {
 // sombre, contre 50/400 pour le fond) : la ligne doit se détacher du voile
 // qu'elle recouvre, sinon le clignotement de changement passe inaperçu — c'est
 // la seule chose qu'il ait à faire.
+//
+// ————— Les pastilles du sélecteur de famille (`--tint-*`) —————
+//
+// Les MÊMES couleurs que dans les cartes ordinaires, TERNIES par la teinte de
+// l'événement : chaque famille garde la sienne — le vert reste le vert des
+// restaurants —, mais un vert de Halloween, qui tient sur le voile rouge au lieu
+// d'y crier. Lues par `family-switcher.tsx`, qui retombe sur la couleur franche
+// partout ailleurs.
+//
+// ⚠️ **Mélange en `oklab`**, et c'est ce qui ternit : le rouge et le vert y
+// sont presque opposés, leur mélange perd de la saturation au lieu de virer à
+// une troisième teinte (en `oklch`, le vert passerait par le jaune). Un quart
+// d'accent seulement : au-delà, le violet des spectacles et le bleu des
+// boutiques se confondent.
+//
+// ⚠️ **L'accent change de sens avec le thème**, pour la même raison que les
+// textes posés dessus : en clair, les pastilles portent du texte BLANC et
+// s'assombrissent (rouge 900) ; en sombre, elles portent du texte foncé et
+// restent claires (rouge 400). Ternir dans le mauvais sens écrasait le
+// contraste du libellé.
+//
+// `--tint-idle` : le fond des pastilles inactives, un voile de l'accent au lieu
+// du gris `muted`.
 const ACCENT_STYLES: Record<string, AccentStyle> = {
   halloween: {
     icon: Ghost,
@@ -95,6 +118,20 @@ const ACCENT_STYLES: Record<string, AccentStyle> = {
       "[--table-row-hover:color-mix(in_srgb,var(--color-red-500)_6%,transparent)]",
       "dark:[--table-row-accent:color-mix(in_srgb,var(--color-red-400)_20%,transparent)]",
       "dark:[--table-row-hover:color-mix(in_srgb,var(--color-red-400)_10%,transparent)]",
+      "[--tint-ride:color-mix(in_oklab,var(--primary)_75%,var(--color-red-900))]",
+      "[--tint-show:color-mix(in_oklab,var(--show)_75%,var(--color-red-900))]",
+      "[--tint-restaurant:color-mix(in_oklab,var(--restaurant)_75%,var(--color-red-900))]",
+      "[--tint-shop:color-mix(in_oklab,var(--shop)_75%,var(--color-red-900))]",
+      "[--tint-hotel:color-mix(in_oklab,var(--hotel)_75%,var(--color-red-900))]",
+      "[--tint-service:color-mix(in_oklab,var(--service)_75%,var(--color-red-900))]",
+      "dark:[--tint-ride:color-mix(in_oklab,var(--primary)_75%,var(--color-red-400))]",
+      "dark:[--tint-show:color-mix(in_oklab,var(--show)_75%,var(--color-red-400))]",
+      "dark:[--tint-restaurant:color-mix(in_oklab,var(--restaurant)_75%,var(--color-red-400))]",
+      "dark:[--tint-shop:color-mix(in_oklab,var(--shop)_75%,var(--color-red-400))]",
+      "dark:[--tint-hotel:color-mix(in_oklab,var(--hotel)_75%,var(--color-red-400))]",
+      "dark:[--tint-service:color-mix(in_oklab,var(--service)_75%,var(--color-red-400))]",
+      "[--tint-idle:color-mix(in_srgb,var(--color-red-500)_10%,transparent)]",
+      "dark:[--tint-idle:color-mix(in_srgb,var(--color-red-400)_14%,transparent)]",
     ),
     iconClass: "text-red-700 dark:text-red-300",
   },
@@ -108,6 +145,20 @@ const ACCENT_STYLES: Record<string, AccentStyle> = {
       "[--table-row-hover:color-mix(in_srgb,var(--color-sky-500)_6%,transparent)]",
       "dark:[--table-row-accent:color-mix(in_srgb,var(--color-sky-400)_20%,transparent)]",
       "dark:[--table-row-hover:color-mix(in_srgb,var(--color-sky-400)_10%,transparent)]",
+      "[--tint-ride:color-mix(in_oklab,var(--primary)_75%,var(--color-sky-900))]",
+      "[--tint-show:color-mix(in_oklab,var(--show)_75%,var(--color-sky-900))]",
+      "[--tint-restaurant:color-mix(in_oklab,var(--restaurant)_75%,var(--color-sky-900))]",
+      "[--tint-shop:color-mix(in_oklab,var(--shop)_75%,var(--color-sky-900))]",
+      "[--tint-hotel:color-mix(in_oklab,var(--hotel)_75%,var(--color-sky-900))]",
+      "[--tint-service:color-mix(in_oklab,var(--service)_75%,var(--color-sky-900))]",
+      "dark:[--tint-ride:color-mix(in_oklab,var(--primary)_75%,var(--color-sky-300))]",
+      "dark:[--tint-show:color-mix(in_oklab,var(--show)_75%,var(--color-sky-300))]",
+      "dark:[--tint-restaurant:color-mix(in_oklab,var(--restaurant)_75%,var(--color-sky-300))]",
+      "dark:[--tint-shop:color-mix(in_oklab,var(--shop)_75%,var(--color-sky-300))]",
+      "dark:[--tint-hotel:color-mix(in_oklab,var(--hotel)_75%,var(--color-sky-300))]",
+      "dark:[--tint-service:color-mix(in_oklab,var(--service)_75%,var(--color-sky-300))]",
+      "[--tint-idle:color-mix(in_srgb,var(--color-sky-500)_10%,transparent)]",
+      "dark:[--tint-idle:color-mix(in_srgb,var(--color-sky-400)_14%,transparent)]",
     ),
     iconClass: "text-sky-700 dark:text-sky-300",
   },

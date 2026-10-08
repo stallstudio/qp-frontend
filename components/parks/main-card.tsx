@@ -30,6 +30,7 @@ import {
   dayOpeningHours,
   parkOpensToday,
   visibleParkEvents,
+  type ParkEventView,
 } from "@/lib/park-events";
 import ParkShowTimeTable from "./show-time-table";
 import PoiStatusTable from "./poi-status-table";
@@ -433,10 +434,10 @@ export default function MainCard({
   // (`STALE_WAIT_TIME_MS`). La carte n'avait donc plus rien à contenir, et
   // disparaissait alors même qu'on venait de demander l'inverse.
   //
-  // ⚠️ La carte vide n'apparaît QUE dans l'onglet des temps d'attente, et dans
-  // la famille des attractions, jamais ailleurs : ce sont l'onglet et la
-  // famille par défaut, et le même encadré vide dupliqué de part et d'autre
-  // d'un sélecteur se lirait comme deux événements distincts.
+  // ⚠️ La carte vide n'apparaît QUE dans l'onglet des temps d'attente, jamais
+  // ailleurs : c'est l'onglet par défaut, et le même encadré vide dupliqué de
+  // part et d'autre du sélecteur d'onglets se lirait comme deux événements
+  // distincts.
   const hasEventItems = (eventId: number) =>
     park.waitTimes.some((wt) => wt.eventId === eventId) ||
     (park.shows ?? []).some((s) => s.eventId === eventId) ||
@@ -444,139 +445,122 @@ export default function MainCard({
     (park.unlistedRides ?? []).some((wt) => wt.eventId === eventId) ||
     poiHours.some((h) => h.eventId === eventId);
 
-  // ⚠️ **Les cartes d'événement suivent la famille choisie**, comme le reste de
-  // la colonne : leurs mazes avec les attractions, un stand éphémère avec les
-  // restaurants. Laisser la carte de Halloween et ses mazes au-dessus de la
-  // liste des restaurants, ce serait afficher sous la pastille « Restaurants »
-  // autre chose que des restaurants.
-  const eventItemsFor = (family: LiveFamily) =>
+  // ————— Les cartes d'événement : chacune a SON sélecteur —————
+  //
+  // ⚠️ **Une carte d'événement ne suit plus la famille choisie dans la carte de
+  // la liste** (2026-10-08). Elle porte son propre sélecteur, dont les pastilles
+  // sont les familles QU'ELLE contient : à Walibi Belgium, Halloween s'ouvre sur
+  // « Spectacles » (Bill) et « Attractions » (maisons et zones), quelles que
+  // soient les familles du reste du parc. Suivre la pastille de la liste
+  // obligeait à garder une liste vide pour pouvoir y atteindre l'événement :
+  // une carte « Spectacles » sans un spectacle, sous une carte de Halloween qui
+  // les avait tous.
+  //
+  // ⚠️ Les pastilles prennent la teinte TERNIE de l'événement (`--tint-*`,
+  // voir `event-accents.tsx`) : le même vert des restaurants, en vert de
+  // Halloween.
+
+  // Le contenu d'UNE famille d'un événement dans un onglet, ou `null` s'il n'en
+  // a pas. Mêmes listes que hors événement, filtrées sur l'événement.
+  const eventList = (
+    tab: ColumnTab,
+    eventId: number,
+    family: ParkFamily,
+  ): React.ReactNode => {
+    if (tab === "show-times") {
+      if (family === "show") {
+        const shows = (park.shows ?? []).filter((s) => s.eventId === eventId);
+        // Les spectacles SANS séance comptent aussi : sans eux, un événement
+        // qui ne publie aucun horaire n'aurait pas de carte du tout.
+        const unscheduled = (park.unscheduledShows ?? []).filter(
+          (s) => s.eventId === eventId,
+        );
+        if (shows.length === 0 && unscheduled.length === 0) return null;
+        return (
+          <ParkShowTimeTable
+            shows={shows}
+            unscheduled={unscheduled}
+            timezone={park.timezone}
+            parkDate={parkDate}
+            parkIdentifier={park.identifier}
+            parkName={park.name}
+          />
+        );
+      }
+      if (!isScheduleFamily(family)) return null;
+      const items = poiHours.filter(
+        (h) => h.eventId === eventId && h.kind === family,
+      );
+      if (items.length === 0) return null;
+      return (
+        <PoiHoursTable
+          items={items}
+          timezone={park.timezone}
+          parkDate={parkDate}
+          parkIdentifier={park.identifier}
+          parkName={park.name}
+          waitTimes={park.waitTimes}
+          reopenAllowed={reopenAllowed}
+        />
+      );
+    }
+
+    if (!isLiveFamily(family)) return null;
+    const items = park.waitTimes.filter(
+      (wt) => wt.eventId === eventId && wt.kind === family,
+    );
+    if (family === "ride") {
+      // Les attractions SANS temps d'attente : des mazes que la source tague
+      // sans les mesurer.
+      const unlisted = (park.unlistedRides ?? []).filter(
+        (wt) => wt.eventId === eventId,
+      );
+      if (items.length === 0 && unlisted.length === 0) return null;
+      return (
+        <ParkWaitTimeTable
+          waitTimes={items}
+          unlisted={unlisted}
+          queueTypeLabels={park.queueTypeLabels}
+          parkIdentifier={park.identifier}
+          parkName={park.name}
+          reopenAllowed={reopenAllowed}
+          initialRideId={initialRideId}
+        />
+      );
+    }
+    if (items.length === 0) return null;
+    return (
+      <PoiStatusTable
+        pois={items}
+        kind={family}
+        parkIdentifier={park.identifier}
+        parkName={park.name}
+      />
+    );
+  };
+
+  // Les familles d'un onglet, dans l'ordre des pastilles.
+  const familyOrder = (tab: ColumnTab): readonly ParkFamily[] =>
+    tab === "show-times" ? SCHEDULE_FAMILIES : LIVE_FAMILIES;
+
+  // Les cartes d'événement d'un onglet, chacune avec ses familles.
+  //
+  // ⚠️ Un événement « Toujours » sans rien à montrer garde sa carte, vide, dans
+  // l'onglet des temps d'attente seulement — voir plus haut.
+  const eventCardsFor = (tab: ColumnTab) =>
     eventViews
       .map((view) => ({
         view,
-        items: park.waitTimes.filter(
-          (wt) => wt.eventId === view.event.id && wt.kind === family,
+        families: familyOrder(tab).filter(
+          (family) => eventList(tab, view.event.id, family) != null,
         ),
-        // Les attractions SANS temps d'attente : des mazes que la source tague
-        // sans les mesurer. Seulement sous la pastille des attractions.
-        unlisted:
-          family === "ride"
-            ? (park.unlistedRides ?? []).filter(
-                (wt) => wt.eventId === view.event.id,
-              )
-            : [],
       }))
       .filter(
-        ({ view, items, unlisted }) =>
-          items.length > 0 ||
-          unlisted.length > 0 ||
-          (family === "ride" &&
+        ({ view, families }) =>
+          families.length > 0 ||
+          (tab === "wait-times" &&
             view.event.visibility === "forced" &&
             !hasEventItems(view.event.id)),
-      );
-
-  const eventWaitTimeCardsFor = (family: LiveFamily): StackCard[] =>
-    eventItemsFor(family).map(
-      ({ view, items, unlisted }): StackCard =>
-        function eventCard(radius: string) {
-          return (
-            <EventCard
-              key={view.event.id}
-              view={view}
-              timezone={park.timezone}
-              className={radius}
-              isEmpty={items.length === 0 && unlisted.length === 0}
-            >
-              {family === "ride" ? (
-                <ParkWaitTimeTable
-                  waitTimes={items}
-                  unlisted={unlisted}
-                  queueTypeLabels={park.queueTypeLabels}
-                  parkIdentifier={park.identifier}
-                  parkName={park.name}
-                  reopenAllowed={reopenAllowed}
-                  initialRideId={initialRideId}
-                />
-              ) : (
-                <PoiStatusTable
-                  pois={items}
-                  kind={family}
-                  parkIdentifier={park.identifier}
-                  parkName={park.name}
-                />
-              )}
-            </EventCard>
-          );
-        },
-    );
-
-  // Les spectacles SANS séance de l'événement (`unscheduledShows`) comptent
-  // aussi : sans eux, les maisons de Bellewaerde, qui ne publient aucun
-  // horaire, n'auraient pas de carte du tout.
-  const eventShowCards = eventViews
-    .map((view) => ({
-      view,
-      items: (park.shows ?? []).filter((s) => s.eventId === view.event.id),
-      unscheduled: (park.unscheduledShows ?? []).filter(
-        (s) => s.eventId === view.event.id,
-      ),
-    }))
-    .filter(({ items, unscheduled }) => items.length > 0 || unscheduled.length > 0)
-    .map(
-      ({ view, items, unscheduled }): StackCard =>
-        function eventCard(radius: string) {
-          return (
-            <EventCard
-              key={view.event.id}
-              view={view}
-              timezone={park.timezone}
-              className={radius}
-            >
-              <ParkShowTimeTable
-                shows={items}
-                unscheduled={unscheduled}
-                timezone={park.timezone}
-                parkDate={parkDate}
-                parkIdentifier={park.identifier}
-                parkName={park.name}
-              />
-            </EventCard>
-          );
-        },
-    );
-
-  // Les heures d'ouverture des POI d'un événement, dans sa carte — un stand
-  // éphémère de Noël sous la pastille « Restaurants » des horaires.
-  const eventHoursCardsFor = (family: HoursFamily): StackCard[] =>
-    eventViews
-      .map((view) => ({
-        view,
-        items: poiHours.filter(
-          (h) => h.eventId === view.event.id && h.kind === family,
-        ),
-      }))
-      .filter(({ items }) => items.length > 0)
-      .map(
-        ({ view, items }): StackCard =>
-          function eventCard(radius: string) {
-            return (
-              <EventCard
-                key={view.event.id}
-                view={view}
-                timezone={park.timezone}
-                className={radius}
-              >
-                <PoiHoursTable
-                  items={items}
-                  timezone={park.timezone}
-                  parkDate={parkDate}
-                  parkIdentifier={park.identifier}
-                  parkName={park.name}
-                  waitTimes={park.waitTimes}
-                  reopenAllowed={reopenAllowed}
-                />
-              </EventCard>
-            );
-          },
       );
 
   // La liste d'une famille hors événement dans un onglet, ou `null` si elle
@@ -636,38 +620,32 @@ export default function MainCard({
     ) : null;
   };
 
-  const familyEventCards = (
-    tab: ColumnTab,
-    family: ParkFamily,
-  ): StackCard[] => {
-    if (tab === "show-times") {
-      if (family === "show") return eventShowCards;
-      return isScheduleFamily(family) ? eventHoursCardsFor(family) : [];
-    }
-    return isLiveFamily(family) ? eventWaitTimeCardsFor(family) : [];
-  };
-
-  // Les familles que chaque onglet a de quoi montrer, dans l'ordre des
-  // pastilles. Une famille sans rien à montrer n'a pas de pastille.
+  // Les familles de la carte de la LISTE dans chaque onglet, dans l'ordre des
+  // pastilles. Une famille qui n'a rien hors événement n'y a pas de pastille —
+  // et sans aucune, la carte de la liste ne se rend pas.
   const tabFamilies: Record<ColumnTab, ParkFamily[]> = {
     "wait-times": LIVE_FAMILIES.filter(
-      (family) =>
-        liveItems[family].length > 0 || eventItemsFor(family).length > 0,
+      (family) => familyList("wait-times", family) != null,
     ),
     "show-times": SCHEDULE_FAMILIES.filter(
-      (family) =>
-        familyList("show-times", family) != null ||
-        familyEventCards("show-times", family).length > 0,
+      (family) => familyList("show-times", family) != null,
     ),
   };
+
+  const eventCards = {
+    "wait-times": eventCardsFor("wait-times"),
+    "show-times": eventCardsFor("show-times"),
+  } satisfies Record<ColumnTab, unknown>;
 
   // ⚠️ **Ce qui décide du sélecteur d'onglets, c'est « l'onglet a-t-il quelque
   // chose à montrer ? »**, pas « y a-t-il des attractions ? ». Une source qui ne
   // publierait QUE des états de restaurants perdrait sinon son sélecteur, et
   // avec lui l'accès aux spectacles. Même règle côté horaires : un parc dont
   // seuls les spectacles d'un événement sont connus a, lui aussi, son onglet.
-  const hasLiveContent = tabFamilies["wait-times"].length > 0;
-  const hasSchedule = tabFamilies["show-times"].length > 0;
+  const hasLiveContent =
+    tabFamilies["wait-times"].length > 0 || eventCards["wait-times"].length > 0;
+  const hasSchedule =
+    tabFamilies["show-times"].length > 0 || eventCards["show-times"].length > 0;
   const showTabs = hasLiveContent && hasSchedule;
 
   // L'onglet ouvert, décidé AU PREMIER RENDU — donc dès le rendu serveur. Il
@@ -712,6 +690,10 @@ export default function MainCard({
     // représentations qu'il faut ouvrir, pas la première famille venue.
     "show-times": requestedTab === "shows" ? "show" : null,
   }));
+  // La même chose pour chaque carte d'événement, par onglet et par événement.
+  const [pickedEventFamily, setPickedEventFamily] = useState<
+    Record<ColumnTab, Record<number, ParkFamily>>
+  >({ "wait-times": {}, "show-times": {} });
   const [slideDirection, setSlideDirection] = useState(1);
 
   // ⚠️ Résolue à chaque rendu, jamais figée : si la famille retenue disparaît
@@ -723,6 +705,20 @@ export default function MainCard({
     return picked && available.includes(picked)
       ? picked
       : (available[0] ?? null);
+  };
+
+  // Même règle dans une carte d'événement, à ceci près que les horaires s'y
+  // ouvrent sur les spectacles même sans passer par le direct : c'est la
+  // famille qu'on vient y chercher, comme dans la carte de la liste.
+  const eventFamilyFor = (
+    tab: ColumnTab,
+    eventId: number,
+    families: readonly ParkFamily[],
+  ): ParkFamily | null => {
+    const picked = pickedEventFamily[tab][eventId];
+    if (picked && families.includes(picked)) return picked;
+    if (tab === "show-times" && families.includes("show")) return "show";
+    return families[0] ?? null;
   };
 
   const pickFamily = (tab: ColumnTab, family: ParkFamily) => {
@@ -737,19 +733,40 @@ export default function MainCard({
     setPickedFamily((prev) => ({ ...prev, [tab]: family }));
   };
 
+  const pickEventFamily = (
+    tab: ColumnTab,
+    eventId: number,
+    families: readonly ParkFamily[],
+    family: ParkFamily,
+  ) => {
+    const current = eventFamilyFor(tab, eventId, families);
+    if (family === current) return;
+    setSlideDirection(
+      current == null || families.indexOf(family) > families.indexOf(current)
+        ? 1
+        : -1,
+    );
+    setPickedEventFamily((prev) => ({
+      ...prev,
+      [tab]: { ...prev[tab], [eventId]: family },
+    }));
+  };
+
   const changeTab = (tab: ColumnTab) => {
     // Venir du direct, c'est arriver sur les spectacles, quel que soit le choix
-    // laissé la dernière fois dans les horaires. Sans spectacle ce jour-là,
-    // `familyFor` retombe sur la première famille.
+    // laissé la dernière fois dans les horaires — dans la carte de la liste
+    // comme dans celles des événements. Sans spectacle ce jour-là, la carte
+    // retombe sur sa première famille.
     if (tab === "show-times" && activeTab === "wait-times") {
       setPickedFamily((prev) => ({ ...prev, "show-times": "show" }));
+      setPickedEventFamily((prev) => ({ ...prev, "show-times": {} }));
     }
     setActiveTab(tab);
   };
 
   const panelIdFor = (tab: ColumnTab) => `${familyIdBase}-panel-${tab}`;
 
-  // Props communes aux deux blocs qui glissent quand on change de famille.
+  // Props communes aux blocs qui glissent quand on change de famille.
   const slideProps = {
     custom: slideDirection,
     variants: reduceMotion ? FAMILY_FADE : FAMILY_SLIDE,
@@ -758,8 +775,81 @@ export default function MainCard({
     exit: "exit",
   } as const;
 
+  const familyOptions = (families: readonly ParkFamily[]) =>
+    families.map((option) => ({
+      family: option,
+      label: tCards(CARD_TITLE_KEYS[option]),
+      icon: POI_KIND_ICONS[option],
+    }));
+
   /**
-   * La colonne d'un onglet : les cartes de la famille choisie.
+   * La carte d'un événement dans un onglet : son sélecteur, puis la liste de la
+   * famille choisie, qui glisse comme celle de la carte de la liste.
+   *
+   * Le sélecteur vit DANS le contenu dépliable : replié, l'événement reste une
+   * ligne d'en-tête, sans pastilles à côté d'un contenu qu'on ne voit pas.
+   */
+  const eventCard = (
+    tab: ColumnTab,
+    view: ParkEventView,
+    families: readonly ParkFamily[],
+  ): StackCard =>
+    function eventCardOf(radius: string) {
+      const eventId = view.event.id;
+      const family = eventFamilyFor(tab, eventId, families);
+      const idPrefix = `${familyIdBase}-event-${eventId}-${tab}`;
+      const panelId = `${idPrefix}-panel`;
+      return (
+        <EventCard
+          key={eventId}
+          view={view}
+          timezone={park.timezone}
+          className={radius}
+          isEmpty={family == null}
+        >
+          {family != null && (
+            <>
+              <div className="pt-2.5 pb-1 sm:pt-3">
+                <FamilySwitcher
+                  options={familyOptions(families)}
+                  value={family}
+                  onChange={(picked) =>
+                    pickEventFamily(tab, eventId, families, picked)
+                  }
+                  ariaLabel={tTabs("families")}
+                  idPrefix={idPrefix}
+                  panelId={panelId}
+                />
+              </div>
+              {/* `overflow-x-clip` : voir la carte de la liste. */}
+              <div className="overflow-x-clip">
+                <AnimatePresence
+                  mode="wait"
+                  initial={false}
+                  custom={slideDirection}
+                >
+                  <motion.div
+                    key={family}
+                    id={panelId}
+                    role="tabpanel"
+                    aria-labelledby={`${idPrefix}-${family}`}
+                    {...slideProps}
+                  >
+                    <h3 className="sr-only">
+                      {tCards(CARD_TITLE_KEYS[family])}
+                    </h3>
+                    {eventList(tab, eventId, family)}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </>
+          )}
+        </EventCard>
+      );
+    };
+
+  /**
+   * La colonne d'un onglet : les cartes d'événement, puis la carte de la liste.
    *
    * Le sélecteur prend la tête de la carte de la liste, à la place de son
    * titre — la pastille active DIT déjà « Restaurants » —, et c'est le CONTENU
@@ -771,11 +861,12 @@ export default function MainCard({
    * sa pastille unique, à la couleur de la famille, sert de titre à la carte.
    * La carte titrée de la v3 (`SectionCard`) n'est plus rendue ici ; une page
    * ne change donc plus de forme selon que le parc publie ses restaurants ou
-   * non.
+   * non. Mais **sans AUCUNE famille, pas de carte** : tout le contenu de
+   * l'onglet est alors dans les cartes d'événement (2026-10-08).
    *
-   * ⚠️ Les cartes d'événement de la famille restent AU-DESSUS, sélecteur
-   * compris — la règle « l'événement d'abord » vaut toujours. Elles glissent
-   * avec la liste, et disparaissent avec elle quand la famille n'en a pas.
+   * ⚠️ Les cartes d'événement restent AU-DESSUS — la règle « l'événement
+   * d'abord » vaut toujours —, chacune avec son propre sélecteur (voir
+   * `eventCard`).
    *
    * ⚠️ `mode="wait"` : l'ancienne liste part AVANT que la nouvelle n'arrive.
    * Les deux ensemble, la carte additionnerait leurs hauteurs le temps de
@@ -784,62 +875,61 @@ export default function MainCard({
    */
   const renderColumn = (tab: ColumnTab) => {
     const family = familyFor(tab);
-    if (family == null) return null;
     const families = tabFamilies[tab];
-    const events = familyEventCards(tab, family);
     const tabIdPrefix = `${familyIdBase}-family-${tab}`;
     return (
       <>
-        <AnimatePresence mode="wait" initial={false} custom={slideDirection}>
-          {events.length > 0 && (
-            <motion.div key={family} {...slideProps} className={CARD_STACK}>
-              {renderStack(events)}
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {/* Même boîte que `SectionCard` ; le haut de la carte prend le même
-            retrait que ses côtés, pour que la pastille de gauche se loge dans
-            l'angle à égale distance des deux bords. */}
-        <Card
-          className={cn("w-full gap-0 p-2.5 py-0 sm:p-4 sm:py-0", CARD_RADIUS)}
-        >
-          <div className="pt-2.5 pb-1 sm:pt-4">
-            <FamilySwitcher
-              options={families.map((option) => ({
-                family: option,
-                label: tCards(CARD_TITLE_KEYS[option]),
-                icon: POI_KIND_ICONS[option],
-              }))}
-              value={family}
-              onChange={(picked) => pickFamily(tab, picked)}
-              ariaLabel={tTabs("families")}
-              idPrefix={tabIdPrefix}
-              panelId={panelIdFor(tab)}
-            />
-          </div>
-          {/* `overflow-x-clip` : la liste qui glisse de 28 px ne doit pas
-              déborder de la carte le temps de l'animation. `clip` et non
-              `hidden` : rien ne devient conteneur de défilement, et les
-              éléments collants de la grille des spectacles collent toujours. */}
-          <div className="overflow-x-clip pb-2">
-            <AnimatePresence
-              mode="wait"
-              initial={false}
-              custom={slideDirection}
-            >
-              <motion.div
-                key={family}
-                id={panelIdFor(tab)}
-                role="tabpanel"
-                aria-labelledby={`${tabIdPrefix}-${family}`}
-                {...slideProps}
+        {renderStack(
+          eventCards[tab].map(({ view, families: eventFamilies }) =>
+            eventCard(tab, view, eventFamilies),
+          ),
+        )}
+        {family != null && (
+          // Même boîte que `SectionCard` ; le haut de la carte prend le même
+          // retrait que ses côtés, pour que la pastille de gauche se loge dans
+          // l'angle à égale distance des deux bords.
+          <Card
+            className={cn(
+              "w-full gap-0 p-2.5 py-0 sm:p-4 sm:py-0",
+              CARD_RADIUS,
+            )}
+          >
+            <div className="pt-2.5 pb-1 sm:pt-4">
+              <FamilySwitcher
+                options={familyOptions(families)}
+                value={family}
+                onChange={(picked) => pickFamily(tab, picked)}
+                ariaLabel={tTabs("families")}
+                idPrefix={tabIdPrefix}
+                panelId={panelIdFor(tab)}
+              />
+            </div>
+            {/* `overflow-x-clip` : la liste qui glisse de 28 px ne doit pas
+                déborder de la carte le temps de l'animation. `clip` et non
+                `hidden` : rien ne devient conteneur de défilement, et les
+                éléments collants de la grille des spectacles collent toujours. */}
+            <div className="overflow-x-clip pb-2">
+              <AnimatePresence
+                mode="wait"
+                initial={false}
+                custom={slideDirection}
               >
-                <h3 className="sr-only">{tCards(CARD_TITLE_KEYS[family])}</h3>
-                {familyList(tab, family)}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </Card>
+                <motion.div
+                  key={family}
+                  id={panelIdFor(tab)}
+                  role="tabpanel"
+                  aria-labelledby={`${tabIdPrefix}-${family}`}
+                  {...slideProps}
+                >
+                  <h3 className="sr-only">
+                    {tCards(CARD_TITLE_KEYS[family])}
+                  </h3>
+                  {familyList(tab, family)}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </Card>
+        )}
       </>
     );
   };
