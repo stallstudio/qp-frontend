@@ -1,3 +1,5 @@
+import type { WaitRange } from "@/types/waitTime";
+
 /**
  * Valeurs de temps d'attente PLAFONNÉES à la source.
  *
@@ -49,13 +51,16 @@ export function isCapped(
 }
 
 /**
- * Rend un temps d'attente en minutes, SANS unité : « 90+ » sur la sentinelle,
- * le nombre sinon. L'unité est ajoutée par l'appelant, les libellés étant
- * traduits.
+ * Rend un temps d'attente en minutes, SANS unité : la fourchette publiée
+ * (« 10–20 », « 90+ ») quand la source en donne une, « 90+ » sur la
+ * sentinelle, le nombre sinon. L'unité est ajoutée par l'appelant, les
+ * libellés étant traduits.
  */
 export function formatWaitMinutes(
   waitTime: number,
   cap: WaitCap | null | undefined,
+  range?: WaitRange | null,
 ): string {
+  if (range) return range.max == null ? `${range.min}+` : `${range.min}–${range.max}`;
   return isCapped(waitTime, cap) ? `${cap!.display}+` : String(waitTime);
 }

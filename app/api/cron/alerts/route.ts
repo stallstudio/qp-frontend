@@ -11,7 +11,8 @@ import {
   buildSlotMessage,
 } from "@/lib/alert-messages";
 import { STANDBY_QUEUE, getQueueLabel } from "@/lib/queue-types";
-import type { TimeSlot } from "@/types/waitTime";
+import type { TimeSlot, WaitRange } from "@/types/waitTime";
+import { readWaitRange } from "@/lib/wait-range";
 import { rideSlug } from "@/lib/slug";
 import {
   localDayStillRunning,
@@ -373,6 +374,8 @@ async function runAlertsPass(): Promise<NextResponse> {
         poiId: true,
         type: true,
         waitTime: true,
+        waitTimeMin: true,
+        waitTimeMax: true,
         status: true,
         startTime: true,
         timeSlot: true,
@@ -406,6 +409,7 @@ async function runAlertsPass(): Promise<NextResponse> {
     string,
     {
       waitTime: number;
+      waitRange: WaitRange | null;
       status: string;
       startTime: Date;
       timeSlot: TimeSlot | null;
@@ -415,6 +419,7 @@ async function runAlertsPass(): Promise<NextResponse> {
     if (row.poiId != null) {
       waitByQueue.set(queueKey(row.poiId, row.type), {
         waitTime: row.waitTime,
+        waitRange: readWaitRange(row.waitTimeMin, row.waitTimeMax),
         status: String(row.status),
         startTime: row.startTime,
         timeSlot: readTimeSlot(row.timeSlot),
@@ -750,6 +755,7 @@ async function runAlertsPass(): Promise<NextResponse> {
       userAlerts.map((a) => ({
         ride: displayName(a),
         wait: entryOf(a)!.waitTime,
+        waitRange: entryOf(a)!.waitRange,
         // Non nul par construction : la boucle de décision écarte les alertes de
         // seuil sans seuil (ce sont les alertes de réouverture).
         threshold: a.threshold!,

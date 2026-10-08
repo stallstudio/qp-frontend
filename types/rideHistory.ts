@@ -1,5 +1,6 @@
 import type { TimedPoint } from "@/lib/wait-times-series";
 import type { WaitCap } from "@/lib/wait-time-cap";
+import type { ValueRange } from "@/lib/wait-range";
 
 export type { TimedPoint };
 
@@ -51,6 +52,12 @@ export interface RideHistoryResponse {
      * publie des durées jusqu'au bout. Voir `lib/wait-time-cap.ts`.
      */
     waitCap: WaitCap | null;
+    /**
+     * La fourchette derrière chaque valeur, pour les attractions qui en
+     * publient (« 10-20 min ») : la prévision et la trace se disent alors en
+     * fourchette. Vide ailleurs. Voir `lib/wait-range.ts`.
+     */
+    valueRanges: ValueRange[];
   };
 }
 

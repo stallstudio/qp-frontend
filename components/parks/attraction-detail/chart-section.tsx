@@ -8,6 +8,7 @@ import { ClickableTooltip } from "@/components/ui/clickable-tooltip";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { getLuxonFormat } from "@/lib/utils";
 import { formatWaitMinutes } from "@/lib/wait-time-cap";
+import { rangeLookup } from "@/lib/wait-range";
 import type { RideHistoryResponse } from "@/types/rideHistory";
 import type { WaitTimeStatus } from "@/types/waitTime";
 
@@ -194,6 +195,7 @@ export default function ChartSection({
         forecastLabel={t("chartForecast")}
         trailLabel={t("chartForecastPast")}
         waitCap={data.meta.waitCap}
+        valueRanges={data.meta.valueRanges}
         threshold={
           threshold != null
             ? {
@@ -219,7 +221,11 @@ export default function ChartSection({
           )}
           <p className="text-muted-foreground">
             {t.rich(INSIGHT_STYLE[insight.kind].key, {
-              minutes: formatWaitMinutes(insight.value, data.meta.waitCap),
+              minutes: formatWaitMinutes(
+                insight.value,
+                data.meta.waitCap,
+                rangeLookup(data.meta.valueRanges)(insight.value),
+              ),
               time: insightTime,
               b: (chunks) => (
                 <span className="font-semibold text-foreground">{chunks}</span>

@@ -3,6 +3,7 @@ import { getPrisma } from "./prisma";
 import { readBanner, readPoiMenu, readPoiZone } from "@/lib/poi-banner";
 import { readPoiFearLevel, readPoiPrice } from "@/lib/poi-facts";
 import { parsePoiKind } from "@/lib/poi-kinds";
+import { readWaitRange } from "@/lib/wait-range";
 
 function parseTimeSlot(raw: unknown): TimeSlot | null {
   if (!raw || typeof raw !== "object") return null;
@@ -100,6 +101,7 @@ export async function getLatestWaitTimesByPark(
       rideMap.get(rideId)!.queues.push({
         type: wt.type,
         waitTime: wt.waitTime,
+        waitRange: readWaitRange(wt.waitTimeMin, wt.waitTimeMax),
         status: wt.status,
         timeSlot: parseTimeSlot(wt.timeSlot),
       });

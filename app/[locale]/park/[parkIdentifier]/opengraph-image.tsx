@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getTranslations } from "next-intl/server";
 import { buildParkLiveData } from "@/lib/park-live-data";
-import type { QueueTime } from "@/types/waitTime";
+import type { QueueTime, WaitRange } from "@/types/waitTime";
 import { MACK_WAIT_CAP, formatWaitMinutes } from "@/lib/wait-time-cap";
 
 export const runtime = "nodejs";
@@ -38,7 +38,8 @@ export default async function Image({
   let parkName = "Queue Park";
   let openCount = 0;
   let averageWait: number | null = null;
-  let busiest: { name: string; wait: number } | null = null;
+  let busiest: { name: string; wait: number; range: WaitRange | null } | null =
+    null;
 
   try {
     const live = await buildParkLiveData(parkIdentifier);
@@ -68,7 +69,11 @@ export default async function Image({
         const top = standby.reduce((a, b) =>
           b.queue.waitTime > a.queue.waitTime ? b : a,
         );
-        busiest = { name: top.name, wait: top.queue.waitTime };
+        busiest = {
+          name: top.name,
+          wait: top.queue.waitTime,
+          range: top.queue.waitRange ?? null,
+        };
       }
     }
   } catch {
@@ -158,7 +163,7 @@ export default async function Image({
                 >
                   {/* Même plafond par défaut que les pastilles des listes
                       (`getWaitTimeBadge`) : le provider n'est pas connu ici. */}
-                  {busiest.name} · {formatWaitMinutes(busiest.wait, MACK_WAIT_CAP)} min
+                  {busiest.name} · {formatWaitMinutes(busiest.wait, MACK_WAIT_CAP, busiest.range)} min
                 </div>
               </div>
             )}

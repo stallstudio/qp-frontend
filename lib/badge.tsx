@@ -1,4 +1,4 @@
-import { TimeSlot, WaitTimeStatus } from "@/types/waitTime";
+import { TimeSlot, WaitRange, WaitTimeStatus } from "@/types/waitTime";
 import { DateTime } from "luxon";
 import { getLuxonFormat } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -34,11 +34,15 @@ function getWaitTimeColorClass(waitTime: number): string {
  * pour ne pas régresser sur Europa-Park en attendant, et il vaut une valeur de
  * plus qu'un parc qui afficherait un vrai 91 min verrait arrondie — cas jamais
  * observé sur les sources actuelles.
+ *
+ * `range` : la fourchette publiée, affichée telle quelle. La couleur, elle,
+ * reste celle de `waitTime` (sa borne haute).
  */
 function getWaitTimeBadge(
   waitTime: number,
   unavailableLabel: ReactNode = "Unavailable",
   cap: WaitCap | null = MACK_WAIT_CAP,
+  range: WaitRange | null = null,
 ) {
   const colorClass = getWaitTimeColorClass(waitTime);
 
@@ -48,7 +52,7 @@ function getWaitTimeBadge(
     >
       {waitTime === -1
         ? unavailableLabel
-        : `${formatWaitMinutes(waitTime, cap)} min`}
+        : `${formatWaitMinutes(waitTime, cap, range)} min`}
     </span>
   );
 }

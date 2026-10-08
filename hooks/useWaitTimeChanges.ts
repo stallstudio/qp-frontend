@@ -36,6 +36,7 @@ export function useWaitTimeChanges(
             // Check if wait time, status or time slot changed for this queue type
             if (
               previousQueue.waitTime !== currentQueue.waitTime ||
+              previousQueue.waitRange?.min !== currentQueue.waitRange?.min ||
               previousQueue.status !== currentQueue.status ||
               !timeSlotsEqual(previousQueue.timeSlot, currentQueue.timeSlot)
             ) {

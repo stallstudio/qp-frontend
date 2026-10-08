@@ -504,23 +504,27 @@ enum WaitTimeStatus {
 }
 
 model WaitTime {
-  id         Int            @id @default(autoincrement())
-  poiId      Int?
-  poi        Poi?           @relation(fields: [poiId], references: [id], onDelete: SetNull)
-  parkId     Int
-  park       Park           @relation(fields: [parkId], references: [id], onDelete: Cascade)
-  externalId String         @db.VarChar(255)
-  type       String         @default("standby") @db.VarChar(50)
-  waitTime   Int
-  status     WaitTimeStatus
-  customText String?        @db.Text
-  timeSlot   Json?
-  startTime  DateTime
-  endTime    DateTime?
-  lastSeenAt DateTime       @default(now())
-  stateHash  String         @db.Char(32)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id          Int            @id @default(autoincrement())
+  poiId       Int?
+  poi         Poi?           @relation(fields: [poiId], references: [id], onDelete: SetNull)
+  parkId      Int
+  park        Park           @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  externalId  String         @db.VarChar(255)
+  type        String         @default("standby") @db.VarChar(50)
+  waitTime    Int
+  // Fourchette publiée (« 10-20 min »), pour l'affichage : `waitTime` en
+  // est la borne haute. `waitTimeMax` seul à NULL : borne ouverte (« 90+ »).
+  waitTimeMin Int?
+  waitTimeMax Int?
+  status      WaitTimeStatus
+  customText  String?        @db.Text
+  timeSlot    Json?
+  startTime   DateTime
+  endTime     DateTime?
+  lastSeenAt  DateTime       @default(now())
+  stateHash   String         @db.Char(32)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   @@index([poiId, endTime])
   @@index([externalId, endTime])

@@ -125,14 +125,24 @@ export default function LiveStats({
               {slotTime(queue.timeSlot.start)}–{slotTime(queue.timeSlot.end)}
             </span>
           ) : waitMinutes != null ? (
+            // Une fourchette (« 10–20 ») prend la taille des autres cases : en
+            // 26 px, elle déborde d'une case sur trois d'un téléphone.
             <span
               className={cn(
-                "text-[26px] leading-7 font-bold tabular-nums",
+                "leading-7 font-bold tabular-nums whitespace-nowrap",
+                queue.waitRange ? "text-xl" : "text-[26px]",
                 waitTone(waitMinutes),
               )}
             >
-              {formatWaitMinutes(waitMinutes, waitCap)}
-              <span className="ml-0.5 text-sm font-semibold">min</span>
+              {formatWaitMinutes(waitMinutes, waitCap, queue.waitRange)}
+              <span
+                className={cn(
+                  "ml-0.5 font-semibold",
+                  queue.waitRange ? "text-xs" : "text-sm",
+                )}
+              >
+                min
+              </span>
             </span>
           ) : (
             <span className="text-[26px] leading-7 font-bold text-muted-foreground">

@@ -228,7 +228,12 @@ export default function PoiStatusTable({
                   </div>
                   {withWaitTime && (
                     <div role="cell" className="py-2">
-                      {getWaitTimeBadge(queue.waitTime, unavailableLabel)}
+                      {getWaitTimeBadge(
+                        queue.waitTime,
+                        unavailableLabel,
+                        undefined,
+                        queue.waitRange,
+                      )}
                     </div>
                   )}
                   <div

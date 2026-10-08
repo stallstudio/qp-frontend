@@ -525,6 +525,8 @@ export default function ParkWaitTimeTable({
                           : getWaitTimeBadge(
                               standbyQueue.waitTime,
                               unavailableLabel,
+                              undefined,
+                              standbyQueue.waitRange,
                             )}
                       </div>
                       <div
@@ -600,7 +602,12 @@ export default function ParkWaitTimeTable({
                         <div role="cell" className="py-2">
                           {queue.timeSlot
                             ? getTimeSlotBadge(queue.timeSlot, is12Hour)
-                            : getWaitTimeBadge(queue.waitTime, unavailableLabel)}
+                            : getWaitTimeBadge(
+                                queue.waitTime,
+                                unavailableLabel,
+                                undefined,
+                                queue.waitRange,
+                              )}
                         </div>
                         <div
                           role="cell"

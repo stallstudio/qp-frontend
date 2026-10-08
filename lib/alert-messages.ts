@@ -10,7 +10,19 @@
 // aléatoire + emoji) pour ne pas être redondant d'une alerte à l'autre. Le corps
 // reste factuel (attraction, temps, seuil).
 
-export type AlertRide = { ride: string; wait: number; threshold: number };
+import type { WaitRange } from "@/types/waitTime";
+import { formatWaitMinutes } from "@/lib/wait-time-cap";
+
+// `waitRange` : la fourchette publiée (« 0-10 min »), dite telle quelle ; `wait`
+// en est la borne haute, celle que le seuil compare.
+export type AlertRide = {
+  ride: string;
+  wait: number;
+  waitRange?: WaitRange | null;
+  threshold: number;
+};
+
+const minutes = (p: AlertRide) => formatWaitMinutes(p.wait, null, p.waitRange);
 // Un créneau proposé, « HH:mm » heure du parc (alertes de type `slot`).
 export type AlertSlot = { ride: string; start: string; end: string };
 
@@ -66,9 +78,9 @@ const DICT: Record<string, AlertStrings> = {
       "L'attente baisse 📉",
     ],
     digestTitle: (count) => `🎢 ${count} temps d'attente en baisse !`,
-    singleBody: ({ ride, wait, threshold }) =>
-      `${ride} est à ${wait} min (🎯 ≤ ${threshold} min)`,
-    digestLine: ({ ride, wait }) => `• ${ride} — ${wait} min`,
+    singleBody: (p) =>
+      `${p.ride} est à ${minutes(p)} min (🎯 ≤ ${p.threshold} min)`,
+    digestLine: (p) => `• ${p.ride} — ${minutes(p)} min`,
     more: (n) => `+ ${n} autre${n > 1 ? "s" : ""}`,
     deactivatedNote: (count) =>
       count > 1
@@ -112,9 +124,9 @@ const DICT: Record<string, AlertStrings> = {
       "Wait time is down 📉",
     ],
     digestTitle: (count) => `🎢 ${count} wait times just dropped!`,
-    singleBody: ({ ride, wait, threshold }) =>
-      `${ride} is at ${wait} min (🎯 ≤ ${threshold} min)`,
-    digestLine: ({ ride, wait }) => `• ${ride} — ${wait} min`,
+    singleBody: (p) =>
+      `${p.ride} is at ${minutes(p)} min (🎯 ≤ ${p.threshold} min)`,
+    digestLine: (p) => `• ${p.ride} — ${minutes(p)} min`,
     more: (n) => `+ ${n} more`,
     deactivatedNote: (count) =>
       count > 1

@@ -8,9 +8,20 @@ export type TimeSlot = {
   end: string;   // "HH:mm" (24h, heure locale du parc)
 };
 
+/**
+ * Fourchette publiée par la source (« 10-20 min »), pour l'affichage.
+ * `max: null` = borne ouverte (« 90+ »).
+ */
+export type WaitRange = { min: number; max: number | null };
+
 export type QueueTime = {
   type: string;
+  /**
+   * La valeur de CALCUL : couleur, tri, alertes. Pour une fourchette, sa borne
+   * haute — le chiffre qui ne promet jamais moins que ce que le parc annonce.
+   */
   waitTime: number;
+  waitRange?: WaitRange | null;
   status: WaitTimeStatus;
   timeSlot: TimeSlot | null;
 };

@@ -12,6 +12,7 @@ import { calculateParkDate, getOpeningHoursByParkAndDate } from "@/lib/opening-h
 import type { DayIntervals, WaitInterval } from "@/lib/wait-times-series";
 import { sliceIntervalsForWindow } from "@/lib/wait-times-series";
 import { STANDBY_QUEUE } from "@/lib/queue-types";
+import { readWaitRange } from "@/lib/wait-range";
 
 const DEFAULT_HISTORY_DAYS = 7;
 
@@ -127,6 +128,8 @@ export async function getRideStandbyIntervals(
     },
     select: {
       waitTime: true,
+      waitTimeMin: true,
+      waitTimeMax: true,
       status: true,
       startTime: true,
       endTime: true,
@@ -156,6 +159,7 @@ export async function getRideStandbyIntervals(
       start: r.startTime,
       end,
       waitTime: r.waitTime,
+      waitRange: readWaitRange(r.waitTimeMin, r.waitTimeMax),
       status: r.status,
       available: r.status === "open" && r.waitTime >= 0,
     });

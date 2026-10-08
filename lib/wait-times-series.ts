@@ -7,6 +7,8 @@
 // frontend se contente de LIRE la prévision stockée — il ne reste donc ici que
 // l'échantillonnage de l'observé.
 
+import type { WaitRange } from "@/types/waitTime";
+
 // Un point horodaté d'une courbe. `waitTime = null` = attraction indisponible
 // (fermée / en panne / valeur -1) à cet instant : le front trace une coupure.
 // `status` (renseigné seulement quand indispo) porte la RAISON (closed / down /
@@ -29,6 +31,9 @@ export type WaitInterval = {
   start: Date;
   end: Date | null;
   waitTime: number;
+  // Fourchette publiée derrière `waitTime`, quand la source en publie une.
+  // Jamais tracée : elle alimente `meta.valueRanges` (voir `lib/wait-range.ts`).
+  waitRange?: WaitRange | null;
   // Statut brut (`open` | `closed` | `down` | `maintenance`) conservé pour
   // colorer l'indispo côté front.
   status: string;

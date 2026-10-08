@@ -12,6 +12,7 @@ import { isAdminViewer } from "@/lib/auth-helpers";
 import { sampleDaySeries, type TimedPoint } from "@/lib/wait-times-series";
 import type { ConfidenceLevel, RideHistoryResponse } from "@/types/rideHistory";
 import { waitCapFor } from "@/lib/wait-time-cap";
+import { mergeValueRanges } from "@/lib/wait-range";
 import { CHARTED_QUEUE_TYPES, STANDBY_QUEUE } from "@/lib/queue-types";
 
 // Colonnes lues sur la ligne de prévision, identiques dans les deux tables.
@@ -75,6 +76,7 @@ export async function GET(
       marginMinutes: null,
       marginSamples: 0,
       waitCap: null,
+      valueRanges: [],
     },
   });
 
@@ -246,6 +248,7 @@ export async function GET(
             historyDays?: number;
             observedDays?: number;
             availabilityRatio?: number;
+            valueRanges?: unknown;
           })
         : null;
     const historyDays = baseProfile ? Number(baseProfile.historyDays ?? 0) : 0;
@@ -300,6 +303,10 @@ export async function GET(
         // Le plafond tient au FLUX, pas au parc : tout parc servi par la même
         // source en hérite, sans liste à tenir à jour.
         waitCap: waitCapFor(park.provider),
+        valueRanges: mergeValueRanges(
+          baseProfile?.valueRanges,
+          rideHistory.today.intervals,
+        ),
       },
     };
 

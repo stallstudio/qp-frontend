@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { TimedPoint } from "@/types/rideHistory";
 import { formatWaitMinutes, type WaitCap } from "@/lib/wait-time-cap";
+import { rangeLookup, type ValueRange } from "@/lib/wait-range";
 
 type WaitTimeChartProps = {
   today: TimedPoint[];
@@ -45,6 +46,12 @@ type WaitTimeChartProps = {
   trailLabel?: string;
   /** Plafond de publication de la source : 91 s'affiche « 90+ ». */
   waitCap?: WaitCap | null;
+  /**
+   * La fourchette derrière chaque valeur, pour une attraction qui en publie :
+   * le survol dit « 10–20 min » là où la courbe passe à 20. L'axe, lui, reste
+   * en minutes.
+   */
+  valueRanges?: ValueRange[];
   /**
    * Rendu resserré : moins haut, axe des temps plus étroit, moins de graduations
    * horaires. Utilisé par la démo de la page À propos, qui vit dans une vignette
@@ -137,10 +144,12 @@ export default function WaitTimeChart({
   forecastLabel,
   trailLabel,
   waitCap,
+  valueRanges,
   compact = false,
   threshold,
 }: WaitTimeChartProps) {
   const { is12Hour } = useTimeFormat();
+  const rangeOf = useMemo(() => rangeLookup(valueRanges), [valueRanges]);
   const tStatus = useTranslations("attractionStatus");
 
   const fmtTime = (ms: number) =>
@@ -616,7 +625,12 @@ export default function WaitTimeChart({
                     : forecastLabel}
               </span>
               <span className="ml-auto font-mono font-medium tabular-nums">
-                {formatWaitMinutes(r.value as number, waitCap)} min
+                {formatWaitMinutes(
+                  r.value as number,
+                  waitCap,
+                  rangeOf(r.value as number),
+                )}{" "}
+                min
               </span>
             </div>
           ))}
