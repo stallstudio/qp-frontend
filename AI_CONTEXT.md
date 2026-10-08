@@ -719,9 +719,18 @@ popup — celui d'un spectacle sans panneau de séances ni de rappel, qui diraie
 
 `additionalData.fearLevel` (1 à 5) et `additionalData.price`, écrits par le
 worker pour les parcs CDA, portés par `WaitTime`, `ShowTime` et `PoiHours` et
-affichés par `PoiFacts` dans les TROIS popups — une maison est un spectacle chez
-CDA, une attraction ailleurs. Une ligne dans le corps, pas dans le bandeau
-(plafonné à trois cases). Rien quand la source ne publie rien.
+affichés dans les TROIS popups — une maison est un spectacle chez CDA, une
+attraction ailleurs. Rien quand la source ne publie rien.
+
+⚠️ **Dans le bandeau s'ils y tiennent, dans le corps sinon** (arbitré le
+2026-10-08, `factsFitInStrip`) : le bandeau est plafonné à trois cases
+(`STAT_STRIP_MAX_CELLS`). Une maison connue par ses seuls horaires n'y a que
+« Fermeture » : la peur et le prix montent à côté (`poiFactStats`), au lieu d'un
+second bloc d'une valeur sous le premier. Une attraction suivie en direct
+remplit le bandeau (attente, état, horaires) : ils restent dessous
+(`PoiFacts`). Toujours ENSEMBLE, jamais l'un en haut et l'autre en bas. Le
+bandeau compte ses enfants directs : les cases passent en tableau, pas en
+fragment, et `liveStatCount` dit d'avance combien `LiveStats` en rendra.
 
 ⚠️ **Le prix du jour est DÉDUIT de la fermeture du parc** (`priceForToday`) :
 le worker joint au prix la fermeture la plus tardive d'une journée classique et
@@ -838,6 +847,18 @@ moteur `dev`.
 
 ⚠️ **Le bandeau est dans l'en-tête ÉPINGLÉE, pas dans le corps défilant** : il
 chevauche la photo par une marge négative, que `overflow-y-auto` rognerait.
+
+⚠️ **Une attraction SANS AUCUNE FILE n'a ni alerte, ni graphique, ni requête
+d'historique** (2026-10-08). La grille des horaires (`poi-hours-table.tsx`) et
+la carte d'un événement (`unlistedRides`) ouvrent ce popup avec `queues: []`
+pour une attraction connue par ses seuls horaires, sa peur ou son prix (les
+maisons d'IBILAW, que le flux de Walibi Belgium ne mesure pas). Le verdict de
+l'historique ne l'écartait pas : jamais observée, elle a `observedDays = 0`,
+comme une attraction d'un parc fraîchement ajouté — le popup proposait « M'alerter
+si l'attente baisse », une alerte qui ne serait jamais partie, au-dessus d'un
+« Attraction indisponible pour le moment » faux (la route d'historique rend une
+série du jour vide, pas une absence). Le critère est donc le DIRECT
+(`target.queues.length > 0`), pas l'historique.
 
 ⚠️ **Le seuil d'alerte est tracé sur le graphique** (ligne verte) pendant le
 réglage et tant que l'alerte est active : `AlertSection` le remonte au popup

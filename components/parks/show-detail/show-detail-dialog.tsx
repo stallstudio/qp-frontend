@@ -21,7 +21,11 @@ import {
 } from "@/components/parks/attraction-detail/live-stats";
 import { getShowAccessInfo } from "@/components/parks/show-time-table/utils";
 import ShowSchedulePanel, { useShowSlots } from "./show-schedule-panel";
-import PoiFacts from "@/components/parks/attraction-detail/poi-facts";
+import PoiFacts, {
+  factsFitInStrip,
+  poiFactStats,
+  usePoiFacts,
+} from "@/components/parks/attraction-detail/poi-facts";
 
 type ShowDetailDialogProps = {
   target: ShowTime | null;
@@ -86,68 +90,86 @@ export default function ShowDetailDialog({
   const ongoing = slots.find((s) => s.state === "ongoing");
   const remaining = slots.filter((s) => s.state === "upcoming").length;
 
-  let strip: React.ReactNode;
+  // Les cases du bandeau, en tableau : il faut leur nombre pour savoir si la
+  // peur et le prix y tiennent (voir `factsFitInStrip`).
+  const cells: React.ReactNode[] = [];
   if (access?.kind === "continuous") {
     const state = ongoing ? "ongoing" : next ? "upcoming" : "past";
-    strip = (
-      <StatStrip>
-        <Stat label={t("liveAccess")}>
-          <StatusValue
-            status={state === "ongoing" ? "open" : "closed"}
-            label={
-              state === "ongoing"
-                ? tShows("legendOngoing")
-                : state === "upcoming"
-                  ? tShows("legendUpcoming")
-                  : tShows("legendPast")
-            }
-          />
-        </Stat>
-        {state !== "past" && (
-          <Stat
-            label={
-              state === "ongoing"
-                ? tAttraction("liveClosesAt")
-                : tAttraction("liveOpensAt")
-            }
-          >
-            <StatTime>
-              {time(state === "ongoing" ? access.endTime : access.startTime)}
-            </StatTime>
-          </Stat>
-        )}
-      </StatStrip>
+    cells.push(
+      <Stat key="access" label={t("liveAccess")}>
+        <StatusValue
+          status={state === "ongoing" ? "open" : "closed"}
+          label={
+            state === "ongoing"
+              ? tShows("legendOngoing")
+              : state === "upcoming"
+                ? tShows("legendUpcoming")
+                : tShows("legendPast")
+          }
+        />
+      </Stat>,
     );
+    if (state !== "past") {
+      cells.push(
+        <Stat
+          key="time"
+          label={
+            state === "ongoing"
+              ? tAttraction("liveClosesAt")
+              : tAttraction("liveOpensAt")
+          }
+        >
+          <StatTime>
+            {time(state === "ongoing" ? access.endTime : access.startTime)}
+          </StatTime>
+        </Stat>,
+      );
+    }
   } else if (slots.length > 0) {
-    strip = (
-      <StatStrip>
-        <Stat label={t("liveNext")}>
-          {next ? (
-            <StatTime>{next.label}</StatTime>
-          ) : ongoing ? (
-            <StatusValue status="open" label={tShows("legendOngoing")} />
-          ) : (
-            <span className="text-xl leading-7 font-bold text-muted-foreground">
-              –
-            </span>
-          )}
-        </Stat>
-        {access?.kind === "duration" && (
-          <Stat label={t("liveDuration")}>
-            <DurationValue minutes={access.minutes} />
-          </Stat>
-        )}
-        <Stat label={t("liveRemaining")}>
-          <span className="text-xl leading-7 font-bold tabular-nums">
-            {remaining}
-            <span className="ml-0.5 text-sm font-semibold text-muted-foreground">
-              /{slots.length}
-            </span>
+    cells.push(
+      <Stat key="next" label={t("liveNext")}>
+        {next ? (
+          <StatTime>{next.label}</StatTime>
+        ) : ongoing ? (
+          <StatusValue status="open" label={tShows("legendOngoing")} />
+        ) : (
+          <span className="text-xl leading-7 font-bold text-muted-foreground">
+            –
           </span>
-        </Stat>
-      </StatStrip>
+        )}
+      </Stat>,
+    );
+    if (access?.kind === "duration") {
+      cells.push(
+        <Stat key="duration" label={t("liveDuration")}>
+          <DurationValue minutes={access.minutes} />
+        </Stat>,
+      );
+    }
+    cells.push(
+      <Stat key="remaining" label={t("liveRemaining")}>
+        <span className="text-xl leading-7 font-bold tabular-nums">
+          {remaining}
+          <span className="ml-0.5 text-sm font-semibold text-muted-foreground">
+            /{slots.length}
+          </span>
+        </span>
+      </Stat>,
     );
   }
+
+  // Peur et prix d'une maison hantée, quand la source les publie (les parcs
+  // CDA) : dans le bandeau s'ils y tiennent, dans le corps sinon. Une maison
+  // de Bellewaerde, sans séance, n'a qu'eux pour bandeau.
+  const facts = usePoiFacts(target?.fearLevel ?? null, target?.price ?? null);
+  const factsInStrip = factsFitInStrip(facts, cells.length);
+  const strip =
+    cells.length > 0 || factsInStrip ? (
+      <StatStrip>
+        {cells}
+        {factsInStrip && poiFactStats(facts)}
+      </StatStrip>
+    ) : null;
 
   return (
     <Dialog open={target !== null} onOpenChange={onOpenChange}>
@@ -190,9 +212,9 @@ export default function ShowDetailDialog({
               key={target.showName}
               className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0"
             >
-              {/* Peur et prix d'une maison hantée, quand la source les
-                  publie (les parcs CDA) — rien sinon. */}
-              <PoiFacts fearLevel={target.fearLevel} price={target.price} />
+              {/* Peur et prix d'une maison hantée, quand le bandeau est
+                  plein — rien sinon. */}
+              {!factsInStrip && <PoiFacts facts={facts} />}
               {/* Un spectacle d'événement SANS séance publiée (les maisons de
                   Bellewaerde) : ni grille ni rappel, qui diraient « plus de
                   représentation aujourd'hui » — faux, on n'en sait rien. */}

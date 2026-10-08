@@ -16,8 +16,12 @@ import { getPrimaryQueue } from "@/lib/poi-list";
 import { CHARTED_QUEUE_TYPES, STANDBY_QUEUE } from "@/lib/queue-types";
 import { MACK_WAIT_CAP } from "@/lib/wait-time-cap";
 import ImageSection from "./image-section";
-import LiveStats from "./live-stats";
-import PoiFacts from "./poi-facts";
+import LiveStats, { liveStatCount } from "./live-stats";
+import PoiFacts, {
+  factsFitInStrip,
+  poiFactStats,
+  usePoiFacts,
+} from "./poi-facts";
 import AlertSection from "./alert-section";
 import ChartSection from "./chart-section";
 import { usePoiHoursOf } from "@/components/parks/poi-hours-context";
@@ -52,6 +56,16 @@ type AttractionDetailDialogProps = {
 // alerte. Le graphique n'existe que pour les files à attente classique
 // (`CHARTED_QUEUE_TYPES`) : un créneau ou une file virtuelle ne se prévoient
 // pas.
+//
+// ⚠️ **Une attraction peut n'avoir AUCUNE file** (2026-10-08) : la grille des
+// horaires et la carte d'un événement ouvrent aussi ce popup pour une
+// attraction connue par ses seuls horaires, sa peur ou son prix — les maisons
+// d'IBILAW, que le flux de Walibi Belgium ne mesure pas. Ni alerte, ni
+// graphique, ni requête d'historique : on ne relève rien pour elle. Le verdict
+// de l'historique ne suffisait pas à l'écarter — jamais observée, elle passait
+// pour une attraction d'un parc fraîchement ajouté (`observedDays` à 0), et le
+// popup proposait une alerte qui ne serait jamais partie, au-dessus d'un
+// « Attraction indisponible pour le moment » faux.
 export default function AttractionDetailDialog({
   target,
   parkIdentifier,
@@ -72,8 +86,16 @@ export default function AttractionDetailDialog({
       ? getPrimaryQueue(target)
       : target.queues.find((q) => q.type === queueType)
     : undefined;
+  // Une file au moins dans le direct : sans elle, rien à surveiller ni à tracer.
+  const tracked = (target?.queues.length ?? 0) > 0;
   // Les heures du jour, quand la page de parc les a (voir `PoiHoursProvider`).
   const hours = usePoiHoursOf(target?.rideId);
+  // Peur et prix d'une maison hantée : dans le bandeau s'ils y tiennent, dans
+  // le corps sinon (voir `factsFitInStrip`).
+  const facts = usePoiFacts(target?.fearLevel ?? null, target?.price ?? null);
+  const stripCells = liveStatCount({ queue, hours });
+  const factsInStrip = factsFitInStrip(facts, stripCells);
+  const hasStrip = stripCells > 0 || factsInStrip;
   // Le seuil d'alerte que le graphique matérialise, remonté par `AlertSection`.
   const [alertThreshold, setAlertThreshold] = useState<number | null>(null);
 
@@ -81,14 +103,14 @@ export default function AttractionDetailDialog({
   // ouvert) : le graphique les affiche, et la section Alertes s'en sert pour
   // savoir si l'attraction est indisponible en continu. Le hook est partagé avec
   // la page dédiée de l'attraction. Aucune requête pour une file sans
-  // graphique.
+  // graphique, ni pour une attraction sans file.
   const {
     history,
     loading: historyLoading,
     chronicallyUnavailable,
   } = useRideHistory(
     parkIdentifier,
-    target && charted ? target.rideId : null,
+    target && charted && tracked ? target.rideId : null,
     queueType,
   );
 
@@ -123,6 +145,13 @@ export default function AttractionDetailDialog({
     charted && chronicallyUnavailable && currentWaitTime === undefined;
 
   const hasStandby = !!target?.queues.some((q) => q.type === STANDBY_QUEUE);
+  // Rien à mettre sous le bandeau (une maison hantée sans file, dont la peur
+  // et le prix ont tenu dans le bandeau) : pas de corps du tout, plutôt qu'une
+  // marge vide — comme le popup d'un POI. Le retour à l'attraction d'un popup
+  // de file suppose une file : `tracked` le couvre.
+  const factsInBody =
+    !factsInStrip && (facts.fearLevel !== null || facts.price !== null);
+  const hasBody = tracked || factsInBody;
 
   return (
     <Dialog open={target !== null} onOpenChange={onOpenChange}>
@@ -156,7 +185,7 @@ export default function AttractionDetailDialog({
                 son bas, le bandeau de chiffres — voir `LiveStats` pour la
                 raison de sa place ici. Pour une file : son nom en titre,
                 l'attraction dessous ; l'étoile reste celle de l'attraction. */}
-            <div className="shrink-0">
+            <div className={hasStrip ? "shrink-0" : "shrink-0 pb-1"}>
               <ImageSection
                 title={isStandby ? target.rideName : (queueLabel ?? queueType)}
                 subtitle={isStandby ? undefined : target.rideName}
@@ -165,87 +194,98 @@ export default function AttractionDetailDialog({
                 place={target.zone}
                 banner={target.banner}
                 credit={parkName}
-                overlapped
+                overlapped={hasStrip}
               />
-              <div className="relative z-10 -mt-10 px-4">
-                <LiveStats
-                  queue={queue}
-                  hours={hours}
-                  // Le plafond de la source vient avec l'historique ; avant, on
-                  // garde le défaut des listes (`getWaitTimeBadge`).
-                  waitCap={history ? history.meta.waitCap : MACK_WAIT_CAP}
-                />
-              </div>
+              {/* ⚠️ Sans case à afficher, pas même le conteneur : sa marge
+                  négative remonterait le corps sur la bannière. */}
+              {hasStrip && (
+                <div className="relative z-10 -mt-10 px-4">
+                  <LiveStats
+                    queue={queue}
+                    hours={hours}
+                    // Le plafond de la source vient avec l'historique ; avant,
+                    // on garde le défaut des listes (`getWaitTimeBadge`).
+                    waitCap={history ? history.meta.waitCap : MACK_WAIT_CAP}
+                  >
+                    {factsInStrip && poiFactStats(facts)}
+                  </LiveStats>
+                </div>
+              )}
             </div>
 
             {/* Corps défilant. `scrollbar-hide` masque la barre de défilement
                 (le petit dépassement résiduel reste scrollable, mais sans barre
                 visible). `key` : changer d'attraction ou de file sans fermer
                 le popup repart d'une alerte repliée. */}
-            <div
-              key={`${target.rideId}:${queueType}`}
-              className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0"
-            >
-              {/* Peur et prix d'une maison hantée publiée en attraction —
-                  rien pour un manège ordinaire. Une ligne : l'alerte reste
-                  au-dessus de la flottaison. */}
-              <PoiFacts fearLevel={target.fearLevel} price={target.price} />
+            {hasBody && (
+              <div
+                key={`${target.rideId}:${queueType}`}
+                className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0"
+              >
+                {/* Peur et prix d'une maison hantée publiée en attraction, quand
+                  le bandeau est plein — rien pour un manège ordinaire. Une
+                  ligne : l'alerte reste au-dessus de la flottaison. */}
+                {factsInBody && <PoiFacts facts={facts} />}
 
-              {/* ⚠️ L'alerte AVANT le graphique (2026-10-07) : placée dessous,
+                {/* ⚠️ L'alerte AVANT le graphique (2026-10-07) : placée dessous,
                   elle tombait sous la ligne de flottaison sur un iPhone, et
                   rien ne disait qu'elle existait. C'est la seule action du
                   popup, le reste se lit. */}
-              <AlertSection
-                rideId={target.rideId}
-                rideName={target.rideName}
-                parkIdentifier={parkIdentifier}
-                parkName={parkName}
-                queueType={queueType}
-                currentSlot={currentSlot}
-                timezone={hours?.timezone ?? history?.timezone ?? null}
-                unavailable={historyUnavailable || queueSilent}
-                unavailableMessage={
-                  isStandby ? undefined : t("queueNothingToWatch")
-                }
-                currentWaitTime={currentWaitTime}
-                currentStatus={currentStatus}
-                reopenAllowed={reopenAllowed}
-                onThresholdPreview={setAlertThreshold}
-              />
+                {tracked && (
+                  <AlertSection
+                    rideId={target.rideId}
+                    rideName={target.rideName}
+                    parkIdentifier={parkIdentifier}
+                    parkName={parkName}
+                    queueType={queueType}
+                    currentSlot={currentSlot}
+                    timezone={hours?.timezone ?? history?.timezone ?? null}
+                    unavailable={historyUnavailable || queueSilent}
+                    unavailableMessage={
+                      isStandby ? undefined : t("queueNothingToWatch")
+                    }
+                    currentWaitTime={currentWaitTime}
+                    currentStatus={currentStatus}
+                    reopenAllowed={reopenAllowed}
+                    onThresholdPreview={setAlertThreshold}
+                  />
+                )}
 
-              {charted && (
-                <ChartSection
-                  data={history}
-                  loading={historyLoading}
-                  currentWaitTime={currentWaitTime}
-                  currentStatus={currentStatus}
-                  threshold={alertThreshold}
-                />
-              )}
+                {charted && tracked && (
+                  <ChartSection
+                    data={history}
+                    loading={historyLoading}
+                    currentWaitTime={currentWaitTime}
+                    currentStatus={currentStatus}
+                    threshold={alertThreshold}
+                  />
+                )}
 
-              {/* Popup d'une file : retour à l'attraction elle-même, son
+                {/* Popup d'une file : retour à l'attraction elle-même, son
                   graphique et son alerte. */}
-              {!isStandby && hasStandby && onSelectQueue && (
-                <button
-                  type="button"
-                  onClick={() => onSelectQueue(STANDBY_QUEUE)}
-                  className="flex w-full items-center gap-3 rounded-2xl border bg-muted/40 px-3 py-2.5 text-left transition-colors hover:bg-muted"
-                >
-                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary">
-                    <FerrisWheel className="size-4" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">
-                      {t("queueSeeRide")}
+                {!isStandby && hasStandby && onSelectQueue && (
+                  <button
+                    type="button"
+                    onClick={() => onSelectQueue(STANDBY_QUEUE)}
+                    className="flex w-full items-center gap-3 rounded-2xl border bg-muted/40 px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                  >
+                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary">
+                      <FerrisWheel className="size-4" />
                     </span>
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {target.rideName}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold">
+                        {t("queueSeeRide")}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {target.rideName}
+                      </span>
                     </span>
-                  </span>
-                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-                </button>
-              )}
-            </div>
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            )}
+            {!hasBody && hasStrip && <div className="h-4" />}
           </>
         )}
       </DialogContent>

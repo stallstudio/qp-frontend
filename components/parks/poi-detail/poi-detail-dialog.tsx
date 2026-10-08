@@ -10,8 +10,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ImageSection from "@/components/parks/attraction-detail/image-section";
-import LiveStats from "@/components/parks/attraction-detail/live-stats";
-import PoiFacts from "@/components/parks/attraction-detail/poi-facts";
+import LiveStats, {
+  liveStatCount,
+} from "@/components/parks/attraction-detail/live-stats";
+import PoiFacts, {
+  factsFitInStrip,
+  poiFactStats,
+  usePoiFacts,
+} from "@/components/parks/attraction-detail/poi-facts";
 import { getPrimaryQueue } from "@/lib/poi-list";
 import { showsWaitTime } from "@/lib/poi-kinds";
 import type { WaitTime } from "@/types/waitTime";
@@ -98,13 +104,19 @@ export default function PoiDetailDialog({
   const MenuIcon = isOrder ? Smartphone : BookOpenText;
 
   const queue = target ? getPrimaryQueue(target) : undefined;
-  const hasStrip = Boolean(queue || hours);
+  const showWait = target ? showsWaitTime(parkIdentifier, target.kind) : false;
+  // Peur et prix : une maison hantée que la source range ailleurs qu'en
+  // attraction ou en spectacle. Dans le bandeau s'ils y tiennent, dans le corps
+  // sinon (voir `factsFitInStrip`).
+  const facts = usePoiFacts(target?.fearLevel ?? null, target?.price ?? null);
+  const stripCells = liveStatCount({ queue, hours, showWait });
+  const factsInStrip = factsFitInStrip(facts, stripCells);
+  const hasStrip = stripCells > 0 || factsInStrip;
   // Un service coupé (déjeuner, dîner) : le bandeau ne dit que l'heure qui
   // compte à l'instant, la liste dit la journée.
   const splitDay = hours && hours.slots.length > 1;
-  // Peur et prix : une maison hantée que la source range ailleurs qu'en
-  // attraction ou en spectacle.
-  const hasFacts = Boolean(target && (target.fearLevel !== null || target.price !== null));
+  const hasFacts =
+    !factsInStrip && (facts.fearLevel !== null || facts.price !== null);
 
   return (
     <Dialog open={target !== null} onOpenChange={onOpenChange}>
@@ -144,17 +156,20 @@ export default function PoiDetailDialog({
                     hours={hours}
                     // Un témoin ouvert/fermé n'a pas de plafond de source.
                     waitCap={null}
-                    showWait={showsWaitTime(parkIdentifier, target.kind)}
-                  />
+                    showWait={showWait}
+                  >
+                    {factsInStrip && poiFactStats(facts)}
+                  </LiveStats>
                 </div>
               )}
             </div>
 
-            {/* Rien à mettre dessous (ni journée coupée, ni carte) : pas de
-                corps du tout, plutôt qu'une marge vide sous le bandeau. */}
+            {/* Rien à mettre dessous (ni journée coupée, ni carte, ni peur et
+                prix restés hors du bandeau) : pas de corps du tout, plutôt
+                qu'une marge vide sous le bandeau. */}
             {(splitDay || target.menu || hasFacts) && (
             <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0">
-              <PoiFacts fearLevel={target.fearLevel} price={target.price} />
+              {hasFacts && <PoiFacts facts={facts} />}
 
               {splitDay && (
                 <div className="flex flex-col gap-2">

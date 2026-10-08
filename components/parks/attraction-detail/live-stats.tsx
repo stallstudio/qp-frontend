@@ -47,6 +47,28 @@ function hoursCell(slots: PoiHoursSlot[], nowMs: number): HoursCell {
   return { label: "liveClosedAt", at: slots[slots.length - 1].closeTime };
 }
 
+type LiveStatsInput = {
+  queue: QueueTime | undefined;
+  hours: { slots: PoiHoursSlot[]; timezone: string } | null;
+  // Colonne « Attente » : toujours pour une attraction, jamais pour un
+  // restaurant ou une boutique dont la source ne publie qu'un témoin
+  // ouvert/fermé (voir `showsWaitTime` dans `lib/poi-kinds.ts`).
+  showWait?: boolean;
+};
+
+/**
+ * Le nombre de cases que `LiveStats` affichera : le popup doit le savoir AVANT
+ * de le rendre, pour décider si la peur et le prix d'une maison hantée tiennent
+ * dans le bandeau (voir `factsFitInStrip`). Mêmes conditions que le rendu.
+ */
+export function liveStatCount({
+  queue,
+  hours,
+  showWait = true,
+}: LiveStatsInput): number {
+  return (queue ? (showWait ? 2 : 1) : 0) + (hours ? 1 : 0);
+}
+
 /**
  * Le bandeau de chiffres du popup attraction : attente, état et horaires, côte
  * à côte, posé à cheval sur le bas de la bannière.
@@ -56,21 +78,20 @@ function hoursCell(slots: PoiHoursSlot[], nowMs: number): HoursCell {
  * (`overflow-y-auto`) rognerait. Et c'est l'information qu'on vient chercher :
  * elle doit rester visible quand on fait défiler le graphique.
  *
- * Sans horaires connus pour l'attraction, la troisième colonne disparaît.
+ * Sans horaires connus pour l'attraction, la troisième colonne disparaît. Sans
+ * file relevée (une maison hantée connue par ses seuls horaires), il ne reste
+ * qu'elle. `children` : des cases en plus, à la suite — la peur et le prix
+ * quand la place le permet.
  */
 export default function LiveStats({
   queue,
   hours,
   waitCap,
   showWait = true,
-}: {
-  queue: QueueTime | undefined;
-  hours: { slots: PoiHoursSlot[]; timezone: string } | null;
+  children,
+}: LiveStatsInput & {
   waitCap: WaitCap | null;
-  // Colonne « Attente » : toujours pour une attraction, jamais pour un
-  // restaurant ou une boutique dont la source ne publie qu'un témoin
-  // ouvert/fermé (voir `showsWaitTime` dans `lib/poi-kinds.ts`).
-  showWait?: boolean;
+  children?: React.ReactNode;
 }) {
   const t = useTranslations("attractionDetail");
   const tStatus = useTranslations("attractionStatus");
@@ -91,8 +112,7 @@ export default function LiveStats({
       ? queue.waitTime
       : null;
 
-  if (!queue && !cell) return null;
-
+  // Aucune case : `StatStrip` ne rend rien.
   return (
     <StatStrip>
       {queue && showWait && (
@@ -136,9 +156,13 @@ export default function LiveStats({
           <StatTime>{time(cell.at, hours.timezone)}</StatTime>
         </Stat>
       )}
+      {children}
     </StatStrip>
   );
 }
+
+/** Au-delà, les cases deviennent trop étroites sur un téléphone. */
+export const STAT_STRIP_MAX_CELLS = 3;
 
 const GRID_COLS = ["grid-cols-1", "grid-cols-1", "grid-cols-2", "grid-cols-3"];
 
@@ -146,6 +170,9 @@ const GRID_COLS = ["grid-cols-1", "grid-cols-1", "grid-cols-2", "grid-cols-3"];
  * Le bandeau lui-même, partagé par les popups attraction, spectacle et POI :
  * une case par enfant, colonnes égales. Les enfants `null`/`false` ne comptent
  * pas — une case absente ne laisse pas de trou.
+ *
+ * ⚠️ **Une case = un enfant DIRECT** (ou un élément d'un tableau) : un fragment
+ * ou un composant qui rendrait plusieurs cases compterait pour une.
  */
 export function StatStrip({ children }: { children: React.ReactNode }) {
   const count = Children.toArray(children).length;
@@ -156,7 +183,7 @@ export function StatStrip({ children }: { children: React.ReactNode }) {
         // `bg-card` et non `bg-background` : en sombre, le fond du popup est
         // quasi noir, et le bandeau doit s'en détacher en gris très foncé.
         "grid divide-x divide-border rounded-3xl border bg-card/85 shadow-lg shadow-black/25 backdrop-blur-md",
-        GRID_COLS[Math.min(count, 3)],
+        GRID_COLS[Math.min(count, STAT_STRIP_MAX_CELLS)],
       )}
     >
       {children}
