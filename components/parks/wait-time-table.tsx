@@ -154,7 +154,13 @@ export default function ParkWaitTimeTable({
   const deepLinkHandled = useRef(false);
   useEffect(() => {
     if (deepLinkHandled.current || initialRideId == null) return;
-    const target = waitTimes.find((wt) => wt.rideId === initialRideId);
+    // ⚠️ `unlisted` aussi (2026-10-08) : une maison d'événement sans temps
+    // d'attente (IBILAW à Walibi Belgium) a sa page `/ride/{slug}`, mais le
+    // lien n'ouvrait rien — l'effet ne cherchait que dans le direct, alors que
+    // le clic sur sa ligne, lui, trouvait bien son popup.
+    const target =
+      waitTimes.find((wt) => wt.rideId === initialRideId) ??
+      unlisted.find((wt) => wt.rideId === initialRideId);
     // Attraction absente du flux du moment (fermée pour la saison, retirée par
     // le fournisseur) : on reste simplement sur la page du parc.
     //
@@ -171,7 +177,7 @@ export default function ParkWaitTimeTable({
       );
     }
     deepLinkHandled.current = true;
-  }, [initialRideId, waitTimes]);
+  }, [initialRideId, waitTimes, unlisted]);
 
   // Données VIVES de l'attraction ouverte dans le popup, relues à chaque
   // rafraîchissement de la liste.
