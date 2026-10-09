@@ -27,7 +27,9 @@ export function ParkStatusBadge({ status }: { status: ParkStatus }) {
       </div>
     );
   }
-  return getStatusBadge("closed");
+  // Le libellé TRADUIT : sans lui, `getStatusBadge` retombe sur son texte par
+  // défaut, en anglais — « Closed » sur la page française d'un parc fermé.
+  return getStatusBadge("closed", { closed: t("closed") });
 }
 
 export default function ParkNameStatus({
