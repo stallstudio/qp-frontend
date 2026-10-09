@@ -21,6 +21,10 @@ export type EventExtra = {
  * ⚠️ **Mêmes lignes que la liste du parc** (2026-10-09) : le nom seul, au bord,
  * sans zone ni chevron. Le retrait, le quartier et la flèche en faisaient une
  * liste d'un autre genre, juste au-dessus de la table qu'elle complète.
+ *
+ * L'intertitre a la forme d'un en-tête de colonne (`h-10 border-b`, comme
+ * celui de la table et la ligne des heures de la grille) : une petite table
+ * sous la grande, détachée par de l'air plutôt que par un filet au-dessus.
  */
 export default function EventExtrasList({
   items,
@@ -35,9 +39,9 @@ export default function EventExtrasList({
   onActivate: (id: number) => void;
 }) {
   return (
-    <div className={cn("text-sm", heading && "border-t")}>
+    <div className={cn("text-sm", heading && "mt-5")}>
       {heading && (
-        <p className="pt-3 pb-1 text-[11px] font-medium text-muted-foreground">
+        <p className="flex h-10 items-center border-b font-medium text-muted-foreground">
           {heading}
         </p>
       )}
