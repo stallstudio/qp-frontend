@@ -7,6 +7,7 @@ import {
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDates } from "@/lib/show-times";
 import { getPoiHoursByParkAndDate } from "@/lib/poi-hours";
+import { getTimedKinds } from "@/lib/timed-kinds";
 import { getEventPoisWithoutData } from "@/lib/event-pois";
 import { limitShowsToSessions } from "@/lib/show-window";
 import { getWeatherByParkAndDate } from "@/lib/weather";
@@ -187,7 +188,7 @@ async function buildParkLiveSnapshot(
   // POI désactivé dans l'admin mais affiché en direct doit garder ses heures
   // (voir `getPoiHoursByParkAndDate`).
   const waitTimesQuery = getLatestWaitTimesByPark(park.id, park.lastUpdatedAt);
-  const [waitTimes, showTimes, openingHours, daily, poiHours] =
+  const [waitTimes, showTimes, openingHours, daily, poiHours, timedKinds] =
     await Promise.all([
       waitTimesQuery,
       getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
@@ -199,6 +200,9 @@ async function buildParkLiveSnapshot(
           today,
           new Set(live.map((wt) => wt.rideId)),
         ),
+      ),
+      waitTimesQuery.then((live) =>
+        getTimedKinds(park.id, park.identifier, live),
       ),
     ]);
 
@@ -252,6 +256,7 @@ async function buildParkLiveSnapshot(
       unscheduledShows,
       unlistedRides,
       poiHours,
+      timedKinds,
       weather,
       events,
       lastUpdate:

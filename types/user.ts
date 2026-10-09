@@ -1,4 +1,6 @@
 import type { UserPreferences } from "@/lib/user-preferences";
+import type { FavNamespace } from "@/lib/favorites-storage";
+import type { PoiKind } from "@/lib/poi-kinds";
 
 // Types du domaine utilisateur exposés par les routes /api/user/* et consommés
 // par le UserProvider et la page Profil.
@@ -24,6 +26,10 @@ export interface AlertDTO {
   parkIdentifier: string;
   rideName: string;
   parkName: string;
+  // Famille du POI surveillé — `ride` pour la quasi-totalité, `restaurant`
+  // pour ceux qui publient leur attente. Résolue à la lecture depuis la base
+  // principale (voir `poiKindResolver`).
+  poiKind: PoiKind;
   type: AlertType;
   // null pour une alerte de réouverture ou de créneau (elle n'a pas de seuil).
   threshold: number | null;
@@ -43,6 +49,8 @@ export interface AlertHistoryDTO {
   // Nom lisible du parc, résolu depuis la base principale au moment de la lecture
   // (l'historique ne stocke que l'identifiant). Repli sur l'identifiant si absent.
   parkName: string;
+  // Voir `AlertDTO.poiKind`.
+  poiKind: PoiKind;
   type: AlertType;
   // null pour une notification de réouverture.
   threshold: number | null;
@@ -51,11 +59,9 @@ export interface AlertHistoryDTO {
   sentAt: string;
 }
 
-export interface FavoritesPayload {
-  parks: string[];
-  rides: string[];
-  shows: string[];
-}
+// Une liste de clés par namespace : `parks`, puis une par famille de POI (voir
+// `FAV_NAMESPACES`).
+export type FavoritesPayload = Record<FavNamespace, string[]>;
 
 // Rappel de spectacle : notification programmée `leadMinutes` avant une
 // représentation. `startTime` / `fireAt` sont des instants ISO (UTC).

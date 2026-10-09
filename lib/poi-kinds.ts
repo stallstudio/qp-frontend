@@ -168,3 +168,12 @@ export function showsWaitTime(parkIdentifier: string, kind: PoiKind): boolean {
   if (kind === "ride") return true;
   return REAL_WAIT_TIMES[parkIdentifier]?.includes(kind) ?? false;
 }
+
+/**
+ * Les familles de POI sur lesquelles une alerte PEUT exister, tous parcs
+ * confondus : les attractions, et ce que `REAL_WAIT_TIMES` déclare. Pour un parc
+ * donné, c'est `getTimedKinds` (`lib/timed-kinds.ts`) qui tranche.
+ */
+export const ALERT_KINDS: readonly PoiKind[] = [
+  ...new Set<PoiKind>(["ride", ...Object.values(REAL_WAIT_TIMES).flat()]),
+];

@@ -6,6 +6,7 @@ import { ArrowRight, Loader2, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useFavorites } from "@/hooks/useFavorites";
 import FavoriteStar from "@/components/ui/favorite-star";
+import type { PoiFavNamespace } from "@/lib/favorites-storage";
 
 const DEFAULT_COVER = "/default_cover.webp";
 
@@ -15,17 +16,12 @@ const DEFAULT_COVER = "/default_cover.webp";
 // en bas : le titre (+ lieu, ou lien externe) à gauche et l'étoile favori à
 // droite.
 //
-// `favNamespace` isole la liste de favoris ("rides" | "shows"), `favKey` est la
-// clé (ex. "{parkIdentifier}:{rideId}" ou "{parkIdentifier}:{showName}").
+// `favNamespace` isole la liste de favoris de la famille du POI ("rides",
+// "shows", "restaurants"…), `favKey` est la clé — voir `poiFavorite`.
 //
-// ⚠️ **Les deux sont OPTIONNELS, et leur absence retire l'étoile.** Le popup des
-// POI qui ne sont ni attraction ni spectacle (restaurants, boutiques…) réutilise
-// cet en-tête, mais les favoris sont persistés PAR NAMESPACE sur le compte de
-// l'utilisateur (`FavNamespace`, plafonds compris) : leur en inventer un
-// troisième pour ce popup, ce serait ouvrir une liste que rien ne lit, ni
-// l'espace compte ni les rappels. Le jour où ces POI méritent d'être mis en
-// favori, c'est le namespace qu'il faudra créer — pas ce composant qu'il faudra
-// détourner.
+// ⚠️ **Les deux sont OPTIONNELS, et leur absence retire l'étoile.** Depuis le
+// 2026-10-09, tous les popups de POI en passent : chaque famille a son
+// namespace, lu par les listes du parc ET par le profil.
 export default function ImageSection({
   title,
   favNamespace,
@@ -41,7 +37,7 @@ export default function ImageSection({
   // Un bloc vient chevaucher le bas de l'image (bandeau de chiffres du popup
   // attraction) : le titre et l'étoile remontent d'autant pour rester visibles.
   overlapped?: boolean;
-  favNamespace?: "rides" | "shows";
+  favNamespace?: PoiFavNamespace;
   favKey?: string;
   // ⚠️ **`place` et `link` s'excluent**, et ce n'est pas une contrainte
   // technique : ils occupent la même ligne sous le nom, celle qui répond à

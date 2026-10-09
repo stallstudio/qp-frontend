@@ -7,7 +7,8 @@ import { FAV_LIMITS, type FavNamespace } from "@/lib/favorites-storage";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// GET : favoris du compte, au format { parks, rides, shows }.
+// GET : favoris du compte, une liste par namespace ({ parks, rides, shows,
+// restaurants… }, voir `FAV_NAMESPACES`).
 export async function GET() {
   const { userId, response } = await requireUserId();
   if (!userId)
@@ -29,8 +30,7 @@ export async function GET() {
  * poussaient chacun leur vision complète de la liste pouvaient s'écraser
  * mutuellement.
  *
- * Corps attendu : `{ namespace: "parks" | "rides" | "shows", key: string,
- * value: boolean }`.
+ * Corps attendu : `{ namespace: FavNamespace, key: string, value: boolean }`.
  */
 export async function PATCH(request: NextRequest) {
   const { userId, response } = await requireUserId();

@@ -3,7 +3,7 @@ import { requireUserId } from "@/lib/auth-helpers";
 import { getUserPrisma } from "@/lib/user-prisma";
 import { getPrisma } from "@/lib/prisma";
 import { toAlertHistoryDTO } from "@/lib/user-account";
-import { queueLabelResolver } from "@/lib/queue-labels-db";
+import { poiKindResolver, queueLabelResolver } from "@/lib/queue-labels-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,7 +37,10 @@ export async function GET() {
       })
     : [];
   const parkNameByIdentifier = new Map(parks.map((p) => [p.identifier, p.name]));
-  const labelOf = await queueLabelResolver(rows);
+  const [labelOf, kindOf] = await Promise.all([
+    queueLabelResolver(rows),
+    poiKindResolver(rows),
+  ]);
 
   return NextResponse.json(
     rows.map((r) =>
@@ -45,6 +48,7 @@ export async function GET() {
         r,
         parkNameByIdentifier.get(r.parkIdentifier),
         labelOf(r),
+        kindOf(r),
       ),
     ),
   );

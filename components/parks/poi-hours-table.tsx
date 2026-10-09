@@ -2,7 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-import { useFavorites } from "@/hooks/useFavorites";
+import { useFavoritesContext } from "@/components/providers/favorites-provider";
+import { poiFavorite } from "@/lib/favorites-storage";
 import AttractionDetailDialog from "@/components/parks/attraction-detail/attraction-detail-dialog";
 import PoiDetailDialog from "@/components/parks/poi-detail/poi-detail-dialog";
 import ScheduleGrid, {
@@ -32,10 +33,8 @@ type PoiHoursTableProps = {
  * ⚠️ **Trié sur la FERMETURE, la plus tardive en tête** (arbitré le
  * 2026-10-06) : ce que le visiteur cherche dans cette liste, c'est ce qui sera
  * encore ouvert ce soir. Les favoris restent épinglés au-dessus, à égalité
- * l'alphabet départage.
- *
- * ⚠️ **Seules les attractions ont des favoris** : le namespace `rides` existe,
- * il n'y en a pas pour les restaurants ni les boutiques — voir `ImageSection`.
+ * l'alphabet départage — ceux de chaque famille depuis le 2026-10-09, et plus
+ * seulement les attractions.
  */
 export default function PoiHoursTable({
   items,
@@ -47,16 +46,22 @@ export default function PoiHoursTable({
   reopenAllowed = true,
 }: PoiHoursTableProps) {
   const t = useTranslations("poiDetail");
-  const { isFavorite } = useFavorites("rides");
+  const { favorites } = useFavoritesContext();
   const [detailPoiId, setDetailPoiId] = useState<number | null>(null);
 
   const rows = useMemo(() => {
-    const keyed = items.map((item) => ({
-      item,
-      fav:
-        item.kind === "ride" && isFavorite(`${parkIdentifier}:${item.poiId}`),
-      closesAt: Math.max(...item.slots.map((s) => Date.parse(s.closeTime))),
-    }));
+    const keyed = items.map((item) => {
+      const { namespace, key } = poiFavorite(parkIdentifier, {
+        id: item.poiId,
+        name: item.name,
+        kind: item.kind,
+      });
+      return {
+        item,
+        fav: favorites[namespace].has(key),
+        closesAt: Math.max(...item.slots.map((s) => Date.parse(s.closeTime))),
+      };
+    });
 
     keyed.sort((a, b) => {
       if (a.fav !== b.fav) return a.fav ? -1 : 1;
@@ -76,7 +81,7 @@ export default function PoiHoursTable({
       })),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, isFavorite, parkIdentifier]);
+  }, [items, favorites, parkIdentifier]);
 
   // Le popup : celui du direct si le POI y figure, sinon le même popup bâti
   // sur la seule fiche du POI — sans état, puisqu'on n'en a pas relevé.
@@ -125,6 +130,7 @@ export default function PoiHoursTable({
         target={detail && detail.kind !== "ride" ? detail : null}
         parkIdentifier={parkIdentifier}
         parkName={parkName}
+        reopenAllowed={reopenAllowed}
         onOpenChange={close}
       />
     </>

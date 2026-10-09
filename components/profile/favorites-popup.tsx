@@ -12,11 +12,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useFavorites } from "@/hooks/useFavorites";
+import type { FavNamespace } from "@/lib/favorites-storage";
 import type {
-  ResolvedPark,
-  ResolvedRide,
-  ResolvedShow,
+  ResolvedFavorites,
+  ResolvedPoi,
 } from "@/app/api/user/favorites/resolve/route";
+
+// Le titre du popup de chaque namespace, dans `profile`. Une TABLE et non une
+// clé fabriquée : `next-intl` exige des clés littérales.
+const TITLE_KEYS: Record<FavNamespace, string> = {
+  parks: "favoritesParksTitle",
+  rides: "favoritesRidesTitle",
+  shows: "favoritesShowsTitle",
+  restaurants: "favoritesRestaurantsTitle",
+  shops: "favoritesShopsTitle",
+  hotels: "favoritesHotelsTitle",
+  services: "favoritesServicesTitle",
+};
 
 const SPRING = { type: "spring", stiffness: 320, damping: 36 } as const;
 
@@ -53,13 +65,14 @@ function FavoriteRow({
   );
 }
 
-// Popup « Mes favoris », décliné par type (parcs OU attractions) selon `scope`,
-// déclenché depuis la vignette correspondante du profil. Les clés (identifiants)
-// sont résolues en noms à l'ouverture : tant que la résolution tourne, on affiche
-// un rond de chargement plutôt que des identifiants bruts.
+// Popup « Mes favoris », décliné par namespace (parcs, attractions, spectacles,
+// restaurants…) selon `scope`, déclenché depuis la vignette correspondante du
+// profil. Les clés (identifiants) sont résolues en noms à l'ouverture : tant que
+// la résolution tourne, on affiche un rond de chargement plutôt que des
+// identifiants bruts.
 //
-// Attractions : regroupées PAR PARC (en-tête de section) — plus lisible que le
-// nom du parc répété sous chaque ligne. Cliquer l'étoile retire le favori (la
+// Tout sauf les parcs : regroupé PAR PARC (en-tête de section) — plus lisible
+// que le nom du parc répété sous chaque ligne. Cliquer l'étoile retire le favori (la
 // ligne « part », les autres se réordonnent en douceur) ; un parc dont on retire
 // la dernière attraction voit sa section disparaître. Hauteur bornée, défilement
 // interne, scrollbar masquée.
@@ -68,16 +81,17 @@ export default function FavoritesPopup({
   open,
   onOpenChange,
 }: {
-  scope: "parks" | "rides" | "shows";
+  scope: FavNamespace;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("profile");
   const { favorites: keys, toggle } = useFavorites(scope);
 
-  const [rideNames, setRideNames] = useState<Map<string, ResolvedRide>>(new Map());
-  const [parkNames, setParkNames] = useState<Map<string, ResolvedPark>>(new Map());
-  const [showNames, setShowNames] = useState<Map<string, ResolvedShow>>(new Map());
+  // Noms résolus, quel que soit le namespace : un parc n'a pas de `parkName`.
+  const [names, setNames] = useState<
+    Map<string, { name: string; parkName?: string }>
+  >(new Map());
   const [loading, setLoading] = useState(false);
 
   // Résolution des noms à l'ouverture (les clés ne stockent que des identifiants).
@@ -85,30 +99,23 @@ export default function FavoritesPopup({
     if (!open) return;
     const list = [...keys];
     if (list.length === 0) {
-      setRideNames(new Map());
-      setParkNames(new Map());
-      setShowNames(new Map());
+      setNames(new Map());
       setLoading(false);
       return;
     }
     let cancelled = false;
     setLoading(true);
-    const payload =
-      scope === "rides"
-        ? { rides: list, parks: [], shows: [] }
-        : scope === "shows"
-          ? { shows: list, parks: [], rides: [] }
-          : { parks: list, rides: [], shows: [] };
     axios
-      .post<{ parks: ResolvedPark[]; rides: ResolvedRide[]; shows: ResolvedShow[] }>(
-        "/api/user/favorites/resolve",
-        payload,
-      )
+      .post<ResolvedFavorites>("/api/user/favorites/resolve", {
+        [scope]: list,
+      })
       .then(({ data }) => {
         if (cancelled) return;
-        setRideNames(new Map(data.rides.map((r) => [r.key, r])));
-        setParkNames(new Map(data.parks.map((p) => [p.key, p])));
-        setShowNames(new Map((data.shows ?? []).map((s) => [s.key, s])));
+        const resolved: { key: string; name: string; parkName?: string }[] =
+          scope === "parks"
+            ? data.parks
+            : ((data[scope] ?? []) as ResolvedPoi[]);
+        setNames(new Map(resolved.map((item) => [item.key, item])));
       })
       .catch(() => {
         // silencieux : on retombe sur l'affichage de la clé brute.
@@ -123,34 +130,21 @@ export default function FavoritesPopup({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const title =
-    scope === "rides"
-      ? t("favoritesRidesTitle")
-      : scope === "shows"
-        ? t("favoritesShowsTitle")
-        : t("favoritesParksTitle");
+  const title = t(TITLE_KEYS[scope]);
   const removeLabel = (name: string) => t("favoritesRemove", { name });
 
   // Parcs : liste plate triée par nom.
   const parkItems = [...keys]
-    .map((key) => ({ key, name: parkNames.get(key)?.name ?? key }))
+    .map((key) => ({ key, name: names.get(key)?.name ?? key }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Attractions / spectacles : regroupés par parc, parcs et éléments triés par nom.
+  // Tout le reste : regroupé par parc, parcs et éléments triés par nom.
   const groupedItems = (() => {
     const byPark = new Map<string, { key: string; name: string }[]>();
     for (const key of keys) {
-      let name: string;
-      let park: string;
-      if (scope === "shows") {
-        const s = showNames.get(key);
-        name = s?.showName ?? key;
-        park = s?.parkName ?? "";
-      } else {
-        const r = rideNames.get(key);
-        name = r?.rideName ?? key;
-        park = r?.parkName ?? "";
-      }
+      const resolved = names.get(key);
+      const name = resolved?.name ?? key;
+      const park = resolved?.parkName ?? "";
       const arr = byPark.get(park) ?? [];
       arr.push({ key, name });
       byPark.set(park, arr);

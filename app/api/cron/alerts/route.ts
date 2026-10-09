@@ -11,6 +11,7 @@ import {
   buildSlotMessage,
 } from "@/lib/alert-messages";
 import { STANDBY_QUEUE, getQueueLabel } from "@/lib/queue-types";
+import { ALERT_KINDS } from "@/lib/poi-kinds";
 import type { TimeSlot, WaitRange } from "@/types/waitTime";
 import { readWaitRange } from "@/lib/wait-range";
 import { rideSlug } from "@/lib/slug";
@@ -388,10 +389,13 @@ async function runAlertsPass(): Promise<NextResponse> {
     // étrangère vers celle-ci. Ces identifiants ont survécu tels quels à la
     // migration du 2026-08-21 — les attractions ont gardé les leurs, seuls les
     // spectacles ont été décalés — mais rien ne le garantirait à l'exécution :
-    // le `kind: "ride"` est donc la seule chose qui empêche une alerte de
+    // le filtre sur `kind` est donc la seule chose qui empêche une alerte de
     // pointer sur un POI d'un autre type si un identifiant venait à dériver.
+    // Depuis le 2026-10-09, il admet les familles qui peuvent porter une
+    // alerte (`ALERT_KINDS`, les restaurants des parcs PRS) : en dehors, une
+    // alerte de restaurant aurait été jugée sur le fuseau de Paris.
     prisma.poi.findMany({
-      where: { kind: "ride", id: { in: rideIds } },
+      where: { kind: { in: [...ALERT_KINDS] }, id: { in: rideIds } },
       // `eventId` : une attraction rattachée à un événement (un maze de
       // Halloween Horror Nights) est jugée sur les horaires de SON événement —
       // sans quoi elle n'aurait jamais droit à un réarmement au moment précis

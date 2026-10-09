@@ -66,6 +66,10 @@ type AlertSectionProps = {
   // Le seuil à matérialiser sur le graphique du popup : celui qu'on règle
   // (carte dépliée) ou celui de l'alerte active ; `null` sinon.
   onThresholdPreview?: (threshold: number | null) => void;
+  // Le popup d'un POI qui n'est pas une attraction (un restaurant qui publie
+  // son attente) : pas de graphique où lire le seuil, et des textes qui ne
+  // parlent pas d'« attraction ».
+  poi?: boolean;
 };
 
 // Nature d'alerte pertinente pour l'état courant de l'attraction. Les deux
@@ -190,6 +194,7 @@ function AlertPanel({
   currentWaitTime,
   currentStatus,
   onThresholdPreview,
+  poi = false,
 }: Omit<
   AlertSectionProps,
   "unavailable" | "unavailableMessage" | "reopenAllowed"
@@ -350,7 +355,7 @@ function AlertPanel({
       // alerte qui ne pourrait plus se déclencher ; on le dit clairement au lieu
       // du message d'échec générique, et on invite à rouvrir la fiche.
       if (axios.isAxiosError(err) && err.response?.status === 409) {
-        toast.error(t("statusChanged"));
+        toast.error(poi ? t("poiStatusChanged") : t("statusChanged"));
       } else {
         toast.error(tAlert("createError"));
       }
@@ -518,7 +523,11 @@ function AlertPanel({
           // Mode RÉOUVERTURE : pas de sélecteur de seuil (il n'y a rien à
           // paramétrer) — l'état constaté, rappelé sur la ligne repliée, suffit.
           <p className="text-sm text-muted-foreground">
-            {isStandby ? t("reopenLabel") : t("queueReopenLabel")}
+            {poi
+              ? t("poiReopenLabel")
+              : isStandby
+                ? t("reopenLabel")
+                : t("queueReopenLabel")}
           </p>
         ) : isSlot && slotValue != null ? (
           // Mode CRÉNEAU : l'heure limite, en quarts d'heure avant le créneau
@@ -546,9 +555,11 @@ function AlertPanel({
               aria-label={tAlert("thresholdLabel")}
               className="w-full justify-between"
             />
-            <p className="text-center text-xs text-muted-foreground">
-              {t("alertThresholdHint")}
-            </p>
+            {!poi && (
+              <p className="text-center text-xs text-muted-foreground">
+                {t("alertThresholdHint")}
+              </p>
+            )}
           </div>
         )}
 

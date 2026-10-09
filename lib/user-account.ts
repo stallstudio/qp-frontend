@@ -10,6 +10,7 @@ import type {
   ShowReminderDTO,
   ShowReminderHistoryDTO,
 } from "@/types/user";
+import type { PoiKind } from "@/lib/poi-kinds";
 import type {
   Alert,
   AlertHistory,
@@ -48,7 +49,11 @@ export async function getPreferences(
   };
 }
 
-export function toAlertDTO(a: Alert, queueLabel: string | null = null): AlertDTO {
+export function toAlertDTO(
+  a: Alert,
+  queueLabel: string | null = null,
+  poiKind: PoiKind = "ride",
+): AlertDTO {
   return {
     id: a.id,
     rideId: a.rideId,
@@ -57,6 +62,7 @@ export function toAlertDTO(a: Alert, queueLabel: string | null = null): AlertDTO
     parkIdentifier: a.parkIdentifier,
     rideName: a.rideName,
     parkName: a.parkName,
+    poiKind,
     type: a.type,
     threshold: a.threshold,
     slotBefore: a.slotBefore,
@@ -104,6 +110,7 @@ export function toAlertHistoryDTO(
   h: AlertHistory,
   parkName?: string,
   queueLabel: string | null = null,
+  poiKind: PoiKind = "ride",
 ): AlertHistoryDTO {
   return {
     id: h.id,
@@ -113,6 +120,7 @@ export function toAlertHistoryDTO(
     parkIdentifier: h.parkIdentifier,
     rideName: h.rideName,
     parkName: parkName ?? h.parkIdentifier,
+    poiKind,
     type: h.type,
     threshold: h.threshold,
     slotBefore: h.slotBefore,

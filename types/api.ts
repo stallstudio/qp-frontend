@@ -3,6 +3,7 @@ import { OpeningHour } from "./openingHour";
 import { ParkEventDto } from "./parkEvent";
 import { ShowTime } from "./show";
 import type { PoiHours } from "./poiHours";
+import type { PoiKind } from "@/lib/poi-kinds";
 import { WaitTime } from "./waitTime";
 
 export type CoverImage = {
@@ -46,6 +47,11 @@ export type ParkLiveData = {
    * pour l'onglet « Horaires du jour ». Vide pour la quasi-totalité des parcs.
    */
   poiHours: PoiHours[];
+  /**
+   * Familles de POI dont le parc communique les temps d'attente — et donc les
+   * seules sur lesquelles une alerte est proposée. Voir `lib/timed-kinds.ts`.
+   */
+  timedKinds: PoiKind[];
   weather: ParkWeather | null;
   /**
    * Événements saisonniers du parc (Halloween, Noël). Tableau VIDE onze mois par

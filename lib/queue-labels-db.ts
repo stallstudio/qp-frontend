@@ -1,5 +1,6 @@
 import { getPrisma } from "@/lib/prisma";
 import { STANDBY_QUEUE, getQueueLabel } from "@/lib/queue-types";
+import { parsePoiKind, type PoiKind } from "@/lib/poi-kinds";
 
 /**
  * Nom affichable de la file d'une alerte, résolu depuis la base principale :
@@ -39,4 +40,34 @@ export async function queueLabelResolver(
     row.queueType === STANDBY_QUEUE
       ? null
       : getQueueLabel(row.queueType, labelsByPark.get(row.parkIdentifier));
+}
+
+/**
+ * Famille du POI d'une alerte (attraction, restaurant…), pour que le profil
+ * l'affiche avec son pictogramme et la range sous la bonne pastille. Même
+ * principe que le nom de la file : relue ici, jamais recopiée dans l'alerte.
+ *
+ * `ride` par repli — POI supprimé depuis, base injoignable : c'est la famille
+ * de toutes les alertes d'avant le 2026-10-09.
+ */
+export async function poiKindResolver(
+  rows: { rideId: number }[],
+): Promise<(row: { rideId: number }) => PoiKind> {
+  const ids = [...new Set(rows.map((r) => r.rideId))];
+  const kindById = new Map<number, PoiKind>();
+  if (ids.length > 0) {
+    try {
+      const pois = await getPrisma().poi.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, kind: true },
+      });
+      for (const p of pois) {
+        const kind = parsePoiKind(p.kind);
+        if (kind) kindById.set(p.id, kind);
+      }
+    } catch {
+      // Base principale injoignable : tout reste « attraction ».
+    }
+  }
+  return (row) => kindById.get(row.rideId) ?? "ride";
 }

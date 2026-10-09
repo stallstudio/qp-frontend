@@ -18,19 +18,24 @@ import PoiFacts, {
   poiFactStats,
   usePoiFacts,
 } from "@/components/parks/attraction-detail/poi-facts";
+import AlertSection from "@/components/parks/attraction-detail/alert-section";
 import { getPrimaryQueue } from "@/lib/poi-list";
 import { showsWaitTime } from "@/lib/poi-kinds";
+import { poiFavorite } from "@/lib/favorites-storage";
 import type { WaitTime } from "@/types/waitTime";
 import {
   PoiHoursList,
   usePoiHoursOf,
 } from "@/components/parks/poi-hours-context";
+import { useCommunicatesTimes } from "@/components/parks/timed-kinds-context";
 
 type PoiDetailDialogProps = {
   target: WaitTime | null;
   // Décide si le bandeau montre un temps d'attente (voir `showsWaitTime`).
   parkIdentifier: string;
   parkName: string;
+  // Voir `AlertSection`. Non fourni = on autorise.
+  reopenAllowed?: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
@@ -63,12 +68,16 @@ function isOrderPage(url: string | null | undefined): boolean {
  * boutique, hôtel, service.
  *
  * ⚠️ **Même EN-TÊTE que le popup d'attraction, corps entièrement différent.**
- * `ImageSection` est réutilisé tel quel — bannière du parc, nom, lien Thrills,
+ * `ImageSection` est réutilisé tel quel — bannière du parc, nom, étoile,
  * crédit — parce que c'est l'identité visuelle de la fiche, pas un détail
- * d'attraction. En dessous, ni graphique ni alerte : l'historique d'un témoin
- * ouvert/fermé est une ligne plate, et une alerte de seuil n'a pas de seuil à
- * franchir. `useRideHistory` n'est donc pas appelé — c'est une requête réseau
- * par ouverture en moins.
+ * d'attraction. En dessous, pas de graphique : l'historique d'un témoin
+ * ouvert/fermé est une ligne plate. `useRideHistory` n'est donc pas appelé —
+ * c'est une requête réseau par ouverture en moins.
+ *
+ * ⚠️ **Une alerte, mais seulement là où le parc publie l'attente** (2026-10-09)
+ * — les restaurants des parcs PRS, de Nagashima Spa Land : `showsWaitTime`, et
+ * `useCommunicatesTimes` pour le parc. Sur un simple témoin ouvert/fermé, ni
+ * seuil à franchir, ni réouverture qui vaille une notification.
  *
  * ⚠️ **Même forme que le popup d'attraction depuis le 2026-10-07** : le
  * bandeau de chiffres à cheval sur la bannière (`LiveStats`, sans la colonne
@@ -92,6 +101,7 @@ export default function PoiDetailDialog({
   target,
   parkIdentifier,
   parkName,
+  reopenAllowed = true,
   onOpenChange,
 }: PoiDetailDialogProps) {
   const t = useTranslations("poiDetail");
@@ -105,6 +115,20 @@ export default function PoiDetailDialog({
 
   const queue = target ? getPrimaryQueue(target) : undefined;
   const showWait = target ? showsWaitTime(parkIdentifier, target.kind) : false;
+  const timed = useCommunicatesTimes(target?.kind);
+  // Une alerte n'a de sens que sur une attente publiée — voir plus haut.
+  const alertable = showWait && timed && queue !== undefined;
+  const currentWaitTime =
+    queue && queue.status === "open" && queue.waitTime >= 0
+      ? queue.waitTime
+      : undefined;
+  const favorite = target
+    ? poiFavorite(parkIdentifier, {
+        id: target.rideId,
+        name: target.rideName,
+        kind: target.kind,
+      })
+    : null;
   // Peur et prix : une maison hantée que la source range ailleurs qu'en
   // attraction ou en spectacle. Dans le bandeau s'ils y tiennent, dans le corps
   // sinon (voir `factsFitInStrip`).
@@ -137,10 +161,10 @@ export default function PoiDetailDialog({
             </DialogHeader>
 
             <div className={hasStrip ? "shrink-0" : "shrink-0 pb-1"}>
-              {/* Ni `favNamespace` ni `favKey` : pas d'étoile sur ces POI, voir
-                  `ImageSection`. */}
               <ImageSection
                 title={target.rideName}
+                favNamespace={favorite?.namespace}
+                favKey={favorite?.key}
                 // Le quartier du parc sous le nom, comme pour une attraction
                 // (« Frontierland »). Sans zone publiée, la ligne disparaît —
                 // voir `readPoiZone`.
@@ -164,12 +188,29 @@ export default function PoiDetailDialog({
               )}
             </div>
 
-            {/* Rien à mettre dessous (ni journée coupée, ni carte, ni peur et
-                prix restés hors du bandeau) : pas de corps du tout, plutôt
-                qu'une marge vide sous le bandeau. */}
-            {(splitDay || target.menu || hasFacts) && (
+            {/* Rien à mettre dessous (ni alerte, ni journée coupée, ni carte,
+                ni peur et prix restés hors du bandeau) : pas de corps du tout,
+                plutôt qu'une marge vide sous le bandeau. */}
+            {(alertable || splitDay || target.menu || hasFacts) && (
             <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0">
               {hasFacts && <PoiFacts facts={facts} />}
+
+              {/* La seule action du popup, en tête comme sur une attraction. */}
+              {alertable && queue && (
+                <AlertSection
+                  rideId={target.rideId}
+                  rideName={target.rideName}
+                  parkIdentifier={parkIdentifier}
+                  parkName={parkName}
+                  queueType={queue.type}
+                  currentSlot={queue.timeSlot}
+                  timezone={hours?.timezone ?? null}
+                  currentWaitTime={currentWaitTime}
+                  currentStatus={queue.status}
+                  reopenAllowed={reopenAllowed}
+                  poi
+                />
+              )}
 
               {splitDay && (
                 <div className="flex flex-col gap-2">
@@ -204,7 +245,7 @@ export default function PoiDetailDialog({
               )}
             </div>
             )}
-            {!(splitDay || target.menu || hasFacts) && hasStrip && <div className="h-4" />}
+            {!(alertable || splitDay || target.menu || hasFacts) && hasStrip && <div className="h-4" />}
           </>
         )}
       </DialogContent>

@@ -25,6 +25,7 @@ import PoiFacts, {
 import AlertSection from "./alert-section";
 import ChartSection from "./chart-section";
 import { usePoiHoursOf } from "@/components/parks/poi-hours-context";
+import { useCommunicatesTimes } from "@/components/parks/timed-kinds-context";
 
 type AttractionDetailDialogProps = {
   target: WaitTime | null;
@@ -66,6 +67,12 @@ type AttractionDetailDialogProps = {
 // pour une attraction d'un parc fraîchement ajouté (`observedDays` à 0), et le
 // popup proposait une alerte qui ne serait jamais partie, au-dessus d'un
 // « Attraction indisponible pour le moment » faux.
+//
+// ⚠️ **Un parc peut ne publier AUCUN temps d'attente** (2026-10-09) : The Land
+// of Legends, les parcs Enchanted Parks, ne donnent que l'état de leurs
+// attractions. Ni graphique ni alerte, juste la ligne qui le dit — voir
+// `lib/timed-kinds.ts`, et pourquoi le verdict de l'historique n'y suffisait
+// pas.
 export default function AttractionDetailDialog({
   target,
   parkIdentifier,
@@ -88,12 +95,17 @@ export default function AttractionDetailDialog({
     : undefined;
   // Une file au moins dans le direct : sans elle, rien à surveiller ni à tracer.
   const tracked = (target?.queues.length ?? 0) > 0;
+  // Le parc publie-t-il des temps d'attente ? Sans eux, une attraction n'a
+  // qu'un état : rien à tracer, rien à surveiller.
+  const timed = useCommunicatesTimes("ride");
   // Les heures du jour, quand la page de parc les a (voir `PoiHoursProvider`).
   const hours = usePoiHoursOf(target?.rideId);
   // Peur et prix d'une maison hantée : dans le bandeau s'ils y tiennent, dans
   // le corps sinon (voir `factsFitInStrip`).
   const facts = usePoiFacts(target?.fearLevel ?? null, target?.price ?? null);
-  const stripCells = liveStatCount({ queue, hours });
+  // Sans temps publiés, pas de case « Attente » : elle ne dirait que « — »,
+  // juste au-dessus de la ligne qui explique pourquoi.
+  const stripCells = liveStatCount({ queue, hours, showWait: timed });
   const factsInStrip = factsFitInStrip(facts, stripCells);
   const hasStrip = stripCells > 0 || factsInStrip;
   // Le seuil d'alerte que le graphique matérialise, remonté par `AlertSection`.
@@ -110,7 +122,7 @@ export default function AttractionDetailDialog({
     chronicallyUnavailable,
   } = useRideHistory(
     parkIdentifier,
-    target && charted && tracked ? target.rideId : null,
+    target && charted && tracked && timed ? target.rideId : null,
     queueType,
   );
 
@@ -206,6 +218,7 @@ export default function AttractionDetailDialog({
                     // Le plafond de la source vient avec l'historique ; avant,
                     // on garde le défaut des listes (`getWaitTimeBadge`).
                     waitCap={history ? history.meta.waitCap : MACK_WAIT_CAP}
+                    showWait={timed}
                   >
                     {factsInStrip && poiFactStats(facts)}
                   </LiveStats>
@@ -240,9 +253,11 @@ export default function AttractionDetailDialog({
                     queueType={queueType}
                     currentSlot={currentSlot}
                     timezone={hours?.timezone ?? history?.timezone ?? null}
-                    unavailable={historyUnavailable || queueSilent}
+                    unavailable={historyUnavailable || queueSilent || !timed}
                     unavailableMessage={
-                      isStandby ? undefined : t("queueNothingToWatch")
+                      isStandby || !timed
+                        ? undefined
+                        : t("queueNothingToWatch")
                     }
                     currentWaitTime={currentWaitTime}
                     currentStatus={currentStatus}
@@ -251,7 +266,7 @@ export default function AttractionDetailDialog({
                   />
                 )}
 
-                {charted && tracked && (
+                {charted && tracked && timed && (
                   <ChartSection
                     data={history}
                     loading={historyLoading}

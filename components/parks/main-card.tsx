@@ -36,6 +36,7 @@ import ParkShowTimeTable from "./show-time-table";
 import PoiStatusTable from "./poi-status-table";
 import PoiHoursTable from "./poi-hours-table";
 import { PoiHoursProvider } from "./poi-hours-context";
+import { TimedKindsProvider } from "./timed-kinds-context";
 import { parkCloseMinutes } from "@/lib/poi-facts";
 import EventCard from "./event-card";
 import FamilySwitcher from "./family-switcher";
@@ -56,7 +57,8 @@ type MainCardProps = {
    *  c'est lui qui fixe l'échéance du cycle suivant (voir `useAutoRefresh`). */
   onRefresh?: () => Promise<number | null | undefined>;
   // Lien profond vers une attraction : force l'onglet « temps d'attente » et
-  // demande à la table d'ouvrir le popup correspondant.
+  // demande à la table d'ouvrir le popup correspondant. Un restaurant aussi,
+  // depuis qu'il peut porter une alerte : c'est alors sa famille qui s'ouvre.
   initialRideId?: number | null;
 };
 
@@ -361,6 +363,13 @@ export default function MainCard({
     [park.poiHours, park.timezone, park.openingHours],
   );
 
+  // Pour les popups aussi : les familles sur lesquelles une alerte est
+  // proposée (voir `TimedKindsProvider`).
+  const timedKinds = useMemo(
+    () => new Set(park.timedKinds ?? []),
+    [park.timedKinds],
+  );
+
   const parkDate = park.openingHours?.[0]?.date ?? null;
 
   // Le parc est-il fermé, ou sur le point de l'être ? Sert au formulaire
@@ -541,6 +550,8 @@ export default function MainCard({
         kind={family}
         parkIdentifier={park.identifier}
         parkName={park.name}
+        reopenAllowed={reopenAllowed}
+        initialPoiId={initialRideId}
       />
     );
   };
@@ -622,6 +633,8 @@ export default function MainCard({
         kind={family}
         parkIdentifier={park.identifier}
         parkName={park.name}
+        reopenAllowed={reopenAllowed}
+        initialPoiId={initialRideId}
       />
     ) : null;
   };
@@ -690,8 +703,13 @@ export default function MainCard({
   const [pickedFamily, setPickedFamily] = useState<
     Record<ColumnTab, ParkFamily | null>
   >(() => ({
-    // Le popup d'un lien profond est dans la liste des attractions.
-    "wait-times": initialRideId != null ? "ride" : null,
+    // Le popup d'un lien profond est dans la liste de SA famille : les
+    // attractions, ou les restaurants pour une alerte de restaurant.
+    "wait-times":
+      initialRideId != null
+        ? (park.waitTimes.find((wt) => wt.rideId === initialRideId)?.kind ??
+          "ride")
+        : null,
     // `?tab=shows` vient d'un rappel de spectacle : c'est la grille des
     // représentations qu'il faut ouvrir, pas la première famille venue.
     "show-times": requestedTab === "shows" ? "show" : null,
@@ -1032,110 +1050,114 @@ export default function MainCard({
   // Un seul type de données : pas de sélecteur d'onglets. Celui des familles
   // peut rester — un parc sans spectacles qui publie ses restaurants —, il vit
   // dans la carte de la liste (voir `renderColumn`).
+  // Ce que les popups lisent de la page, quelle que soit la liste qui les
+  // ouvre : les heures du jour et les familles qui ont des alertes.
+  const popupContext = (children: React.ReactNode) => (
+    <PoiHoursProvider value={hoursContext}>
+      <TimedKindsProvider value={timedKinds}>{children}</TimedKindsProvider>
+    </PoiHoursProvider>
+  );
+
   if (!showTabs) {
-    return (
-      <PoiHoursProvider value={hoursContext}>
-        <div className={CARD_STACK}>
-          {/* `overflow-x-clip` : les cartes d'événement qui glissent de 28 px
-              ne doivent pas ouvrir de défilement horizontal sur la page le
-              temps de l'animation. */}
-          <div className={cn(CARD_STACK, "overflow-x-clip")}>
-            {renderColumn(columnTab)}
-          </div>
-          {footer}
+    return popupContext(
+      <div className={CARD_STACK}>
+        {/* `overflow-x-clip` : les cartes d'événement qui glissent de 28 px
+            ne doivent pas ouvrir de défilement horizontal sur la page le
+            temps de l'animation. */}
+        <div className={cn(CARD_STACK, "overflow-x-clip")}>
+          {renderColumn(columnTab)}
         </div>
-      </PoiHoursProvider>
+        {footer}
+      </div>,
     );
   }
 
-  return (
-    <PoiHoursProvider value={hoursContext}>
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => changeTab(value as ColumnTab)}
-        className={CARD_STACK}
+  return popupContext(
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => changeTab(value as ColumnTab)}
+      className={CARD_STACK}
+    >
+      {/* Le sélecteur d'onglets a sa PROPRE carte : c'est de la navigation, pas
+        de la donnée. Le mélanger au contenu, c'était faire de l'un des deux
+        blocs le « propriétaire » visuel des onglets. Une pill, comme ce
+        qu'elle contient — cf. le bloc de géométrie en tête de fichier. */}
+      <Card
+        className={cn(
+          "w-full gap-0 p-(--tab-pad)",
+          TAB_GEOMETRY,
+          TAB_PILL_RADIUS,
+        )}
       >
-        {/* Le sélecteur d'onglets a sa PROPRE carte : c'est de la navigation, pas
-          de la donnée. Le mélanger au contenu, c'était faire de l'un des deux
-          blocs le « propriétaire » visuel des onglets. Une pill, comme ce
-          qu'elle contient — cf. le bloc de géométrie en tête de fichier. */}
-        <Card
-          className={cn(
-            "w-full gap-0 p-(--tab-pad)",
-            TAB_GEOMETRY,
-            TAB_PILL_RADIUS,
-          )}
+        <TabsList
+          className={cn("relative w-full overflow-hidden", TAB_PILL_RADIUS)}
         >
-          <TabsList
-            className={cn("relative w-full overflow-hidden", TAB_PILL_RADIUS)}
+          {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
+            Deux onglets de largeur égale -> largeur 50% (moins le padding),
+            translation 0% / 100%. Courbe d'accélération type iOS. */}
+          <span
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] bg-background shadow-sm dark:border dark:border-input dark:bg-input/30",
+              TAB_PILL_RADIUS,
+            )}
+            style={{
+              transform:
+                activeTab === "show-times"
+                  ? "translateX(100%)"
+                  : "translateX(0%)",
+              transitionProperty: "transform",
+              transitionDuration: "1000ms",
+              transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
+            }}
+          />
+          {/* ⚠️ L'onglet actif est TRANSPARENT — c'est le curseur qui est
+            dessiné dessous — donc son arrondi ne se voit qu'à l'anneau de
+            focus clavier. Il prend quand même la pill : un anneau
+            rectangulaire posé sur un curseur arrondi se remarquerait. */}
+          <TabsTrigger
+            value="wait-times"
+            className={cn(
+              "relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent",
+              TAB_PILL_RADIUS,
+            )}
           >
-            {/* Pastille coulissante façon iOS : glisse d'un onglet à l'autre.
-              Deux onglets de largeur égale -> largeur 50% (moins le padding),
-              translation 0% / 100%. Courbe d'accélération type iOS. */}
-            <span
-              aria-hidden
-              className={cn(
-                "pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] bg-background shadow-sm dark:border dark:border-input dark:bg-input/30",
-                TAB_PILL_RADIUS,
-              )}
-              style={{
-                transform:
-                  activeTab === "show-times"
-                    ? "translateX(100%)"
-                    : "translateX(0%)",
-                transitionProperty: "transform",
-                transitionDuration: "1000ms",
-                transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
-              }}
-            />
-            {/* ⚠️ L'onglet actif est TRANSPARENT — c'est le curseur qui est
-              dessiné dessous — donc son arrondi ne se voit qu'à l'anneau de
-              focus clavier. Il prend quand même la pill : un anneau
-              rectangulaire posé sur un curseur arrondi se remarquerait. */}
-            <TabsTrigger
-              value="wait-times"
-              className={cn(
-                "relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent",
-                TAB_PILL_RADIUS,
-              )}
-            >
-              {/* Ondes de diffusion, pas une horloge : l'onglet ne parle plus de
-                temps d'attente mais de tout ce qui est vrai MAINTENANT. */}
-              <Radio />
-              {tTabs("live")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="show-times"
-              className={cn(
-                "relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent",
-                TAB_PILL_RADIUS,
-              )}
-            >
-              {/* Calendrier + horloge : des heures dans une journée. Les masques
-                de théâtre ne valaient que tant que l'onglet ne portait que des
-                spectacles. */}
-              <CalendarClock />
-              {tTabs("schedule")}
-            </TabsTrigger>
-          </TabsList>
-        </Card>
+            {/* Ondes de diffusion, pas une horloge : l'onglet ne parle plus de
+              temps d'attente mais de tout ce qui est vrai MAINTENANT. */}
+            <Radio />
+            {tTabs("live")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="show-times"
+            className={cn(
+              "relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent",
+              TAB_PILL_RADIUS,
+            )}
+          >
+            {/* Calendrier + horloge : des heures dans une journée. Les masques
+              de théâtre ne valaient que tant que l'onglet ne portait que des
+              spectacles. */}
+            <CalendarClock />
+            {tTabs("schedule")}
+          </TabsTrigger>
+        </TabsList>
+      </Card>
 
-        {/* `overflow-x-clip` : voir la colonne sans onglets, plus haut. */}
-        <TabsContent
-          value="wait-times"
-          className={cn(CARD_STACK, "overflow-x-clip")}
-        >
-          {renderColumn("wait-times")}
-        </TabsContent>
-        <TabsContent
-          value="show-times"
-          className={cn(CARD_STACK, "overflow-x-clip")}
-        >
-          {renderColumn("show-times")}
-        </TabsContent>
+      {/* `overflow-x-clip` : voir la colonne sans onglets, plus haut. */}
+      <TabsContent
+        value="wait-times"
+        className={cn(CARD_STACK, "overflow-x-clip")}
+      >
+        {renderColumn("wait-times")}
+      </TabsContent>
+      <TabsContent
+        value="show-times"
+        className={cn(CARD_STACK, "overflow-x-clip")}
+      >
+        {renderColumn("show-times")}
+      </TabsContent>
 
-        {footer}
-      </Tabs>
-    </PoiHoursProvider>
+      {footer}
+    </Tabs>,
   );
 }

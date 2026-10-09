@@ -137,15 +137,24 @@ model UserPreferences {
 //
 // FAVORIS
 //
-// On reprend exactement les namespaces du localStorage (hooks/useFavorites.ts) :
+// On reprend exactement les namespaces du localStorage (lib/favorites-storage.ts) :
 //   - type `park` → key = park.identifier
-//   - type `ride` → key = "{parkIdentifier}:{rideId}"
+//   - type `show` → key = "{parkIdentifier}:{showName}"
+//   - les autres familles de POI (`ride`, `restaurant`, `shop`, `hotel`,
+//     `service`) → key = "{parkIdentifier}:{poiId}"
 // Ainsi la synchro compte <-> localStorage est un simple miroir, sans traduction.
+//
+// ⚠️ Restaurants, boutiques, hôtels et services depuis le 2026-10-09 (migration
+// manual/2026-10-09-poi-favorites.sql).
 
 enum FavoriteType {
   park
   ride
   show
+  restaurant
+  shop
+  hotel
+  service
 }
 
 model Favorite {

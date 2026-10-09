@@ -1,11 +1,14 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { BellRing, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { getStatusBadge, getWaitTimeBadge } from "@/lib/badge";
 import { useWaitTimeChanges } from "@/hooks/useWaitTimeChanges";
+import { useFavoritesContext } from "@/components/providers/favorites-provider";
+import { useNotifications } from "@/components/providers/notifications-provider";
+import { poiFavorite } from "@/lib/favorites-storage";
 import { STATUS_ORDER, getPrimaryQueue, splitGluedTail } from "@/lib/poi-list";
 import { showsWaitTime, type PoiCardKind } from "@/lib/poi-kinds";
 import PoiDetailDialog from "@/components/parks/poi-detail/poi-detail-dialog";
@@ -23,6 +26,12 @@ type PoiStatusTableProps = {
   kind: PoiCardKind;
   parkIdentifier: string;
   parkName: string;
+  // Le parc laisse-t-il encore le temps à une alerte de réouverture de servir ?
+  // Simplement transmis au popup, comme pour les attractions.
+  reopenAllowed?: boolean;
+  // Lien profond `/park/{parc}/ride/{slug}` vers un POI de cette liste (la
+  // notification d'une alerte de restaurant) : son popup s'ouvre à l'arrivée.
+  initialPoiId?: number | null;
 };
 
 /**
@@ -30,15 +39,17 @@ type PoiStatusTableProps = {
  * boutiques, hôtels, services.
  *
  * ⚠️ **Un composant à part, et non un mode de `wait-time-table.tsx`.** Ce
- * dernier porte les favoris, les alertes, le dépliage des files secondaires, le
- * lien profond `/ride/{slug}`, l'épinglage des favoris en tête et l'animation de
- * reclassement — six mécanismes dont AUCUN n'a de sens sur un témoin
- * ouvert/fermé. Le paramétrer, ce serait en désactiver la moitié depuis
- * l'appelant, et rendre chacune de ses évolutions futures conditionnelle.
+ * dernier porte le dépliage des files secondaires, leurs popups et le tri par
+ * temps d'attente — des mécanismes qui n'ont aucun sens sur un témoin
+ * ouvert/fermé. Le paramétrer, ce serait les désactiver depuis l'appelant, et
+ * rendre chacune de ses évolutions futures conditionnelle.
  *
  * Ce qui est partagé l'est vraiment : `STATUS_ORDER` et `splitGluedTail`
  * (`lib/poi-list.ts`), les pastilles de `lib/badge.tsx`, et `useWaitTimeChanges`
- * pour le clignotement au changement d'état.
+ * pour le clignotement au changement d'état. Et depuis le 2026-10-09, les
+ * FAVORIS — étoile devant le nom, épinglés en tête, trait épais sous le
+ * dernier —, la cloche d'une alerte active et le lien profond, avec les mêmes
+ * repères que la liste des attractions.
  *
  * ⚠️ **Deux colonnes, pas trois, sauf déclaration explicite.** Ce que ces
  * sources publient est un état, pas une file : chez Compagnie des Alpes un
@@ -51,9 +62,25 @@ export default function PoiStatusTable({
   kind,
   parkIdentifier,
   parkName,
+  reopenAllowed = true,
+  initialPoiId = null,
 }: PoiStatusTableProps) {
   const t = useTranslations("waitTimeTable");
   const tStatus = useTranslations("attractionStatus");
+  const tFav = useTranslations("favorites");
+  const tDetail = useTranslations("attractionDetail");
+  // Le (dé)favori se fait depuis le popup ; la liste ne fait que les épingler.
+  const { favorites } = useFavoritesContext();
+  const isFavorite = (poi: WaitTime) => {
+    const { namespace, key } = poiFavorite(parkIdentifier, {
+      id: poi.rideId,
+      name: poi.rideName,
+      kind: poi.kind,
+    });
+    return favorites[namespace].has(key);
+  };
+  // Une alerte n'existe que sur un POI qui publie son attente (voir le popup).
+  const { alertRideIds } = useNotifications();
   const [detailPoiId, setDetailPoiId] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -81,6 +108,17 @@ export default function PoiStatusTable({
 
   const changed = useWaitTimeChanges(pois, 3000);
 
+  // Lien profond : ouvert une seule fois, à l'arrivée — même garde que dans la
+  // liste des attractions, sans quoi chaque rafraîchissement le rouvrirait.
+  const deepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (deepLinkHandled.current || initialPoiId == null) return;
+    if (pois.some((poi) => poi.rideId === initialPoiId)) {
+      setDetailPoiId(initialPoiId);
+    }
+    deepLinkHandled.current = true;
+  }, [initialPoiId, pois]);
+
   // Données VIVES du POI ouvert dans le popup, relues à chaque rafraîchissement
   // — même raison que dans le tableau des attractions : garder l'OBJET du clic
   // en ferait une photo que le cycle de 60 s ne mettrait jamais à jour.
@@ -92,6 +130,10 @@ export default function PoiStatusTable({
   const sorted = useMemo(() => {
     const mult = sortDir === "asc" ? 1 : -1;
     return [...pois].sort((a, b) => {
+      // Favoris toujours épinglés en tête, quel que soit le tri.
+      const aFav = isFavorite(a);
+      const bFav = isFavorite(b);
+      if (aFav !== bFav) return aFav ? -1 : 1;
       if (sortKey === "name") {
         return mult * a.rideName.localeCompare(b.rideName);
       }
@@ -102,7 +144,8 @@ export default function PoiStatusTable({
       if (ao !== bo) return mult * (ao - bo);
       return a.rideName.localeCompare(b.rideName);
     });
-  }, [pois, sortKey, sortDir]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pois, sortKey, sortDir, favorites, parkIdentifier]);
 
   const handleSort = (key: SortKey) => {
     if (key === sortKey) {
@@ -135,6 +178,11 @@ export default function PoiStatusTable({
   // Signature de l'ordre courant : le `layout` ne se rejoue que sur un
   // reclassement réel, jamais sur un simple re-rendu.
   const orderKey = sorted.map((poi) => poi.rideId).join(",");
+
+  // Frontière entre les favoris épinglés et le reste : même trait épais que
+  // dans la liste des attractions.
+  const favCount = sorted.filter(isFavorite).length;
+  const hasFavBoundary = favCount > 0 && favCount < sorted.length;
 
   return (
     <div className="w-full text-sm">
@@ -190,15 +238,21 @@ export default function PoiStatusTable({
           const queue = getPrimaryQueue(poi);
           if (!queue) return null;
           const { head, tail } = splitGluedTail(poi.rideName);
+          const isBoundary = hasFavBoundary && index === favCount;
 
           return (
             <Fragment key={poi.rideId}>
+              {/* Purement visuel : hors de l'arbre d'accessibilité, sans quoi
+                  il casserait la structure `table > rowgroup > row`. */}
+              {isBoundary && (
+                <div role="presentation" className="border-t-[3px] border-border" />
+              )}
               <motion.div
                 role="rowgroup"
                 layout="position"
                 layoutDependency={orderKey}
                 transition={{ type: "spring", stiffness: 320, damping: 36 }}
-                className={cn(index > 0 && "border-t")}
+                className={cn(index > 0 && !isBoundary && "border-t")}
               >
                 <div
                   role="row"
@@ -223,8 +277,24 @@ export default function PoiStatusTable({
                     role="rowheader"
                     className="min-w-0 py-2 pe-1 font-medium sm:pe-2"
                   >
+                    {isFavorite(poi) && (
+                      <Star
+                        aria-label={tFav("myFavorites")}
+                        className="mr-1 inline-block size-3.5 align-[-2px] fill-amber-400 text-amber-400"
+                      />
+                    )}
                     <span className="wrap-break-word">{head}</span>
-                    <span className="whitespace-nowrap">{tail}</span>
+                    {/* Dernier mot + cloche : bloc insécable, comme dans la
+                        liste des attractions. */}
+                    <span className="whitespace-nowrap">
+                      {tail}
+                      {alertRideIds.has(poi.rideId) && (
+                        <BellRing
+                          aria-label={tDetail("notifActive")}
+                          className="ms-1.5 inline-block size-3.5 align-[-2px] text-primary"
+                        />
+                      )}
+                    </span>
                   </div>
                   {withWaitTime && (
                     <div role="cell" className="py-2">
@@ -253,6 +323,7 @@ export default function PoiStatusTable({
         target={detailTarget}
         parkIdentifier={parkIdentifier}
         parkName={parkName}
+        reopenAllowed={reopenAllowed}
         onOpenChange={(open) => {
           if (!open) setDetailPoiId(null);
         }}
