@@ -1,13 +1,12 @@
 import { proxiedImageUrl } from "@/lib/image-proxy";
 
 // ————————————————————————————————————————————————————————————————————————
-// LES DEUX VRAIES IMAGES DE L'ANNONCE DE VERSION
+// LA VRAIE IMAGE DE L'ANNONCE DE VERSION
 //
-// Les scènes de `scenes.tsx` MIMENT l'interface réelle. Deux d'entre elles
-// portent une image : la fiche d'attraction (scène 5) et l'en-tête de parc de la
-// météo (scène 7). Sur `default_cover.webp` — la photo de repli de Queue Park —
-// elles montraient un écran que personne ne verra jamais : un en-tête de parc
-// affiche la photo DU parc, une fiche d'attraction la bannière DE l'attraction.
+// Les scènes de `scenes.tsx` MIMENT l'interface réelle. L'une d'elles porte une
+// image : la fiche d'attraction. Sur `default_cover.webp` — la photo de repli
+// de Queue Park — elle montrerait un écran que personne ne verra jamais : une
+// fiche d'attraction affiche la bannière DE l'attraction.
 //
 // ⚠️ **Ce module est SERVEUR, et il doit le rester** : `proxiedImageUrl` signe
 // avec une clé dérivée d'`AUTH_SECRET`, absente du navigateur. Les scènes, elles,
@@ -20,6 +19,9 @@ import { proxiedImageUrl } from "@/lib/image-proxy";
 // poste qui l'a produite — ou à la première rotation de secret —, l'image est
 // rejetée par `/api/image` et disparaît SANS ERREUR VISIBLE. Ici, elle suit le
 // secret de l'environnement qui rend la page.
+//
+// La v3 portait aussi la couverture de Cedar Point, pour sa scène météo : la v4
+// n'en a plus l'usage.
 // ————————————————————————————————————————————————————————————————————————
 
 /**
@@ -34,30 +36,16 @@ import { proxiedImageUrl } from "@/lib/image-proxy";
 const RIDE_BANNER =
   "https://live-phlsys.s3.amazonaws.com/0c354b6fcc62400c74c9b7ed98a5c089.jpg";
 
-/**
- * Cedar Point, telle que la page du parc l'affiche.
- *
- * ⚠️ **Pas de proxy ici, à dessein** : les covers de parcs sont servies par
- * `cdn.queue-park.com`, qui est déclaré dans `IMAGE_ALLOWED_HOSTS`.
- * `next/image` l'optimise donc directement, comme sur la vraie page du parc
- * (`components/parks/cover-image.tsx`). La faire passer par `/api/image` la
- * ferait transiter deux fois par notre serveur pour rien.
- */
-const PARK_COVER =
-  "https://cdn.queue-park.com/images/parks/cedar-point/ab29d92351c7.webp";
-
 /** La photo de repli de Queue Park, quand la signature n'est pas possible. */
 const DEFAULT_COVER = "/default_cover.webp";
 
 export type WhatsNewBanners = {
   /** Bannière d'attraction, chemin local signé. */
   ride: string;
-  /** Cover de parc, URL du CDN. */
-  park: string;
 };
 
 /**
- * Les deux images de l'annonce, prêtes à être rendues.
+ * L'image de l'annonce, prête à être rendue.
  *
  * ⚠️ **Le repli sur `default_cover.webp` n'est pas de la prudence de façade** :
  * `proxiedImageUrl` LÈVE quand `AUTH_SECRET` manque, et ce module est appelé
@@ -72,5 +60,5 @@ export function whatsNewBanners(): WhatsNewBanners {
   } catch {
     // AUTH_SECRET absent : l'annonce garde la photo de repli, le site vit.
   }
-  return { ride, park: PARK_COVER };
+  return { ride };
 }

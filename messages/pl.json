@@ -317,12 +317,12 @@
     "temperatureUnit": "Jednostka temperatury"
   },
   "whatsNew": {
-    "srTitle": "Nowości w Queue Park v3",
-    "srDescription": "Przegląd nowości w wersji 3 aplikacji Queue Park.",
+    "srTitle": "Nowości w Queue Park v4",
+    "srDescription": "Przegląd nowości w wersji 4 Queue Park.",
     "hero": {
       "eyebrow": "{count} nowości",
-      "title": "Queue Park przechodzi na v3",
-      "body": "Konto, które podąża za tobą z jednego urządzenia na drugie, powiadomienia w odpowiednim momencie, prognozy czasu oczekiwania: oto co się zmienia."
+      "title": "Queue Park przechodzi na v4",
+      "body": "Restauracje i sklepy, godziny otwarcia każdego miejsca, przeprojektowana karta atrakcji, prognozy, które możesz sprawdzić: cały park mieści się teraz na jednej stronie."
     },
     "nav": {
       "scrollHint": "Przewiń",
@@ -333,55 +333,44 @@
       "beta": "Beta"
     },
     "slides": {
-      "account": {
-        "title": "Twoje konto Queue Park",
-        "body": "Zaloguj się w mgnieniu oka — przez Google albo zwykłym linkiem otrzymanym e-mailem, bez hasła. Twoje ulubione, twoje powiadomienia i twoje ustawienia podążają wtedy za tobą, od telefonu w parku po komputer w domu."
-      },
-      "favorites": {
-        "title": "Twoje ulubione, na wszystkich urządzeniach",
-        "body": "Gwiazdka działa teraz na parkach, atrakcjach i pokazach. Ulubione parki są przypięte na górze strony głównej, ulubione atrakcje i pokazy trafiają na początek tabel parku, a wszystkie znajdziesz w swoim profilu — zsynchronizowane na wszystkich urządzeniach."
-      },
-      "notifications": {
-        "title": "Powiadomienie w odpowiednim momencie",
-        "body": "Zainstaluj Queue Park jako aplikację i pozwól jej pilnować parku za ciebie.",
-        "install": "Zainstaluj aplikację",
+      "park": {
+        "title": "Cały park, nie tylko atrakcje",
+        "body": "Atrakcje, pokazy, restauracje, sklepy: każda kategoria ma swój przycisk na górze listy, a między nimi przełączasz się jednym dotknięciem. W parkach, które publikują te dane, każda restauracja i każdy sklep pokazuje swój stan na żywo i swoją strefę.",
         "points": {
-          "threshold": "Czas oczekiwania na atrakcję spada poniżej wybranego przez ciebie progu.",
-          "reopened": "Atrakcja otwiera się ponownie po awarii lub zamknięciu.",
-          "show": "Pokaz zaraz się zacznie — z takim wyprzedzeniem, jakie ci odpowiada."
+          "menu": "Menu restauracji i zamawianie online, jeśli park je oferuje.",
+          "favorites": "Gwiazdka wszędzie: restaurację lub sklep dodasz do ulubionych tak jak atrakcję, a trafi na górę swojej listy.",
+          "wait": "Czas oczekiwania w restauracjach, które go publikują, z alertem, gdy spada."
         }
       },
-      "forecast": {
-        "title": "Prognozy czasu oczekiwania",
-        "body": "Linia ciągła pokazuje czas oczekiwania od otwarcia, przerywana szacuje go aż do zamknięcia. Tyle, ile trzeba, by wybrać właściwy moment."
+      "hours": {
+        "title": "Godziny otwarcia każdego miejsca",
+        "body": "Karta «Godziny otwarcia» nie ogranicza się już do pokazów: w parkach, które je publikują, atrakcje, restauracje, sklepy i hotele mają tam swoje godziny otwarcia na osi czasu dnia. To, co zamyka się najpóźniej, jest na górze — od razu widać, co będzie jeszcze otwarte wieczorem."
       },
       "detail": {
-        "title": "Karta każdej atrakcji",
-        "body": "Dotknij atrakcji lub pokazu: zdjęcie, strefa parku, wykres dnia wraz z prognozą i ustawienia twoich powiadomień — wszystko w jednym miejscu."
+        "title": "Karta, która od razu przechodzi do rzeczy",
+        "body": "Pod zdjęciem pasek pokazuje najważniejsze: czas oczekiwania, stan i godzinę zamknięcia. Zdanie oparte na prognozie mówi, czy to dobry moment, a alert ustawiasz w jednym wierszu."
       },
-      "events": {
-        "title": "Wydarzenia w parku",
-        "body": "Podczas Halloween czy świąt Bożego Narodzenia atrakcje i pokazy związane z wydarzeniem mają własną kartę w barwach sezonu — z adnotacją «Osobny bilet», gdy wstęp nie jest wliczony w cenę biletu."
+      "queues": {
+        "title": "Każda kolejka ma swoją kartę",
+        "body": "Single Rider, Disney Premier Access, kolejka wirtualna: dotknij kolejki, aby otworzyć jej własną kartę z czasem oczekiwania lub przedziałem czasowym, stanem i alertem. W kolejce z przedziałami czasowymi alert powiadomi cię, gdy tylko zwolni się wcześniejszy przedział."
       },
-      "weather": {
-        "title": "Pogoda w parku, na żywo",
-        "body": "Temperatura i niebo nad parkiem pojawiają się w jego nagłówku i są aktualizowane co godzinę. Przydatne, by przewidzieć tłumy — i wiedzieć, czy zabrać kurtkę przeciwdeszczową."
+      "forecast": {
+        "title": "Prognozy, które możesz sprawdzić",
+        "body": "Na szaro to, co przewidzieliśmy godzinę wcześniej, obok tego, co faktycznie się wydarzyło: oceń sam. A gdy park podaje przedział, pokazujemy go bez zmian — «10–20 min» zamiast jednej liczby."
+      },
+      "halloween": {
+        "title": "Halloween, dom po domu",
+        "body": "Nawiedzone domy pokazują poziom strachu, od jednej do pięciu czaszek, i cenę, gdy wstęp jest płatny. Karta wydarzenia podąża za jego sesjami — za dnia, potem wieczorem — i ma własne przyciski: domy, pokazy, restauracje."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "Czas oczekiwania spadł do 15 min",
-        "reopened": "Atrakcja właśnie otwarta ponownie",
-        "show": "Zaczyna się za 15 minut"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Boże Narodzenie"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Udanej wizyty!",
-      "body": "Wszystko gotowe. Nowa strona «O nas» opowiada, skąd biorą się czasy oczekiwania, i opisuje każdą funkcję, jeśli chcesz zgłębić temat.",
+      "body": "Wszystko gotowe. Uwaga, pomysł, park do dodania? Napisz do nas: adres znajdziesz na stronie «O nas».",
       "aboutLink": "Poznaj stronę O nas"
     }
   },

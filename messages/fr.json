@@ -317,12 +317,12 @@
     "temperatureUnit": "Unité de température"
   },
   "whatsNew": {
-    "srTitle": "Les nouveautés de Queue Park v3",
-    "srDescription": "Présentation des nouveautés de la version 3 de Queue Park.",
+    "srTitle": "Les nouveautés de Queue Park v4",
+    "srDescription": "Présentation des nouveautés de la version 4 de Queue Park.",
     "hero": {
       "eyebrow": "{count} nouveautés",
-      "title": "Queue Park passe en v3",
-      "body": "Un compte qui vous suit d'un appareil à l'autre, des notifications au bon moment, des prévisions d'affluence : voici ce qui change."
+      "title": "Queue Park passe en v4",
+      "body": "Les restaurants et les boutiques, les horaires de chaque lieu, une fiche repensée, des prévisions qu'on peut vérifier : le parc entier tient maintenant sur une page."
     },
     "nav": {
       "scrollHint": "Faites défiler",
@@ -333,55 +333,44 @@
       "beta": "Bêta"
     },
     "slides": {
-      "account": {
-        "title": "Votre compte Queue Park",
-        "body": "Connectez-vous en un instant, avec Google ou un simple lien reçu par e-mail — sans mot de passe. Vos favoris, vos alertes et vos préférences vous suivent alors du téléphone au parc à l'ordinateur à la maison."
-      },
-      "favorites": {
-        "title": "Vos favoris, sur tous vos appareils",
-        "body": "L'étoile fonctionne désormais sur les parcs, les attractions et les spectacles. Vos parcs favoris s'épinglent en haut de l'accueil, vos attractions et spectacles remontent en tête des tableaux du parc, et vous les retrouvez tous dans votre profil — synchronisés sur tous vos appareils."
-      },
-      "notifications": {
-        "title": "Prévenu au bon moment",
-        "body": "Installez Queue Park comme une application, et laissez-la surveiller le parc à votre place.",
-        "install": "Installer l'application",
+      "park": {
+        "title": "Tout le parc, pas seulement ses attractions",
+        "body": "Attractions, spectacles, restaurants, boutiques : chaque famille a sa pastille en tête de liste, et on passe de l'une à l'autre d'un geste. Dans les parcs qui publient ces données, chaque restaurant et chaque boutique affiche son état en direct et son quartier.",
         "points": {
-          "threshold": "L'attente d'une attraction passe sous le seuil que vous avez choisi.",
-          "reopened": "Une attraction rouvre après une panne ou une fermeture.",
-          "show": "Un spectacle va commencer, avec le temps d'avance qui vous convient."
+          "menu": "La carte du restaurant, et la commande en ligne quand le parc la propose.",
+          "favorites": "L'étoile partout : un restaurant ou une boutique se met en favori comme une attraction, et remonte en tête de sa liste.",
+          "wait": "L'attente des restaurants qui la publient, avec une alerte quand elle baisse."
         }
       },
-      "forecast": {
-        "title": "Prévisions d'affluence",
-        "body": "La courbe pleine retrace l'attente depuis l'ouverture, le pointillé l'estime jusqu'à la fermeture. De quoi repérer le bon moment pour y aller."
+      "hours": {
+        "title": "Les horaires de chaque lieu",
+        "body": "L'onglet « Horaires du jour » ne s'arrête plus aux spectacles : dans les parcs qui les publient, attractions, restaurants, boutiques et hôtels y ont leurs heures d'ouverture, sur une frise de la journée. Ce qui ferme le plus tard passe en tête, pour savoir d'un coup d'œil ce qui sera encore ouvert ce soir."
       },
       "detail": {
-        "title": "La fiche de chaque attraction",
-        "body": "Touchez une attraction ou un spectacle : sa photo, son quartier dans le parc, la courbe de la journée avec sa prévision et le réglage de vos alertes, tout est réuni au même endroit."
+        "title": "Une fiche qui va droit au but",
+        "body": "Sous la photo, un bandeau donne l'essentiel : l'attente, l'état et l'heure de fermeture. Une phrase tirée de la prévision dit si c'est le bon moment, et l'alerte se règle sur une seule ligne."
       },
-      "events": {
-        "title": "Les événements du parc",
-        "body": "Pendant Halloween ou Noël, les attractions et spectacles propres à l'événement ont leur propre carte, aux couleurs de la saison — avec la mention « Billet séparé » quand l'accès n'est pas compris dans l'entrée."
+      "queues": {
+        "title": "Chaque file a sa fiche",
+        "body": "Single Rider, Disney Premier Access, file virtuelle : touchez une file pour ouvrir sa propre fiche, avec son attente ou son créneau, son état et son alerte. Sur une file à créneau, l'alerte vous prévient dès qu'un créneau plus tôt se libère."
       },
-      "weather": {
-        "title": "La météo du parc, en direct",
-        "body": "La température et le ciel du parc s'affichent dans son en-tête, mis à jour chaque heure. Pratique pour anticiper l'affluence — et savoir s'il faut prendre le K-way."
+      "forecast": {
+        "title": "Des prévisions qu'on peut vérifier",
+        "body": "En gris, ce que nous avions prévu une heure plus tôt, tracé à côté de ce qui s'est vraiment passé : vous jugez sur pièces. Et quand un parc annonce une fourchette, elle s'affiche telle quelle — « 10–20 min » plutôt qu'un seul chiffre."
+      },
+      "halloween": {
+        "title": "Halloween, maison par maison",
+        "body": "Les maisons hantées affichent leur niveau de peur, d'un à cinq crânes, et leur prix quand l'entrée est payante. La carte de l'événement suit ses sessions — la journée, puis la nocturne — et a ses propres pastilles : maisons, spectacles, restaurants."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "L'attente est descendue à 15 min",
-        "reopened": "L'attraction vient de rouvrir",
-        "show": "Commence dans 15 minutes"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Noël"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Bonne visite !",
-      "body": "Tout est en place. Une nouvelle page « À propos » raconte d'où viennent les temps d'attente et détaille chaque fonctionnalité, si vous voulez creuser.",
+      "body": "Tout est en place. Une remarque, une idée, un parc à ajouter ? Écrivez-nous : l'adresse est sur la page « À propos ».",
       "aboutLink": "Découvrir la page À propos"
     }
   },

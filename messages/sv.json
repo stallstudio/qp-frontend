@@ -317,12 +317,12 @@
     "temperatureUnit": "Temperaturenhet"
   },
   "whatsNew": {
-    "srTitle": "Nyheterna i Queue Park v3",
-    "srDescription": "En presentation av nyheterna i version 3 av Queue Park.",
+    "srTitle": "Nyheterna i Queue Park v4",
+    "srDescription": "En genomgång av nyheterna i version 4 av Queue Park.",
     "hero": {
       "eyebrow": "{count} nyheter",
-      "title": "Queue Park blir v3",
-      "body": "Ett konto som följer med dig från en enhet till nästa, aviseringar i rätt ögonblick, kötidsprognoser: det här är vad som ändras."
+      "title": "Queue Park blir v4",
+      "body": "Restauranger och butiker, öppettider för varje plats, en omgjord attraktionssida, prognoser du kan kontrollera: hela parken ryms nu på en sida."
     },
     "nav": {
       "scrollHint": "Skrolla",
@@ -333,55 +333,44 @@
       "beta": "Beta"
     },
     "slides": {
-      "account": {
-        "title": "Ditt Queue Park-konto",
-        "body": "Logga in på ett ögonblick, med Google eller en enkel länk via e-post — helt utan lösenord. Dina favoriter, dina aviseringar och dina inställningar följer sedan med dig från mobilen i parken till datorn hemma."
-      },
-      "favorites": {
-        "title": "Dina favoriter, på alla dina enheter",
-        "body": "Stjärnan fungerar nu på parker, attraktioner och shower. Dina favoritparker ligger överst på startsidan, dina favoritattraktioner och -shower hamnar högst upp i parkens tabeller, och du hittar dem alla igen i din profil — synkroniserade på alla dina enheter."
-      },
-      "notifications": {
-        "title": "Aviserad i rätt ögonblick",
-        "body": "Installera Queue Park som app och låt den hålla koll på parken åt dig.",
-        "install": "Installera appen",
+      "park": {
+        "title": "Hela parken, inte bara attraktionerna",
+        "body": "Attraktioner, shower, restauranger, butiker: varje kategori har sin knapp överst i listan, och du byter mellan dem med ett tryck. I parker som publicerar de här uppgifterna visar varje restaurang och butik sin status i realtid och sitt område.",
         "points": {
-          "threshold": "Kötiden till en attraktion sjunker under gränsen du har valt.",
-          "reopened": "En attraktion öppnar igen efter ett stopp eller en stängning.",
-          "show": "En show är på väg att börja, med så lång framförhållning du vill."
+          "menu": "Restaurangens meny, och beställning online när parken erbjuder det.",
+          "favorites": "Stjärnor överallt: en restaurang eller butik blir favorit precis som en attraktion, och hamnar överst i sin lista.",
+          "wait": "Kötiden på restauranger som publicerar den, med en avisering när den sjunker."
         }
       },
-      "forecast": {
-        "title": "Kötidsprognoser",
-        "body": "Den heldragna linjen visar kötiden sedan öppning, den streckade uppskattar den fram till stängning. Precis vad som behövs för att hitta rätt tillfälle att gå dit."
+      "hours": {
+        "title": "Öppettider för varje plats",
+        "body": "Fliken »Öppettider« visar inte längre bara shower: i parker som publicerar dem har attraktioner, restauranger, butiker och hotell sina öppettider där, på en tidslinje över dagen. Det som stänger senast ligger överst, så du ser direkt vad som fortfarande är öppet i kväll."
       },
       "detail": {
-        "title": "Sidan för varje attraktion",
-        "body": "Tryck på en attraktion eller en show: bilden, området i parken, dagens kurva med sin prognos och inställningen av dina aviseringar — allt är samlat på ett ställe."
+        "title": "En sida som går rakt på sak",
+        "body": "Under bilden visar ett band det viktigaste: kötiden, statusen och stängningstiden. En mening från prognosen säger om det är rätt läge, och aviseringen ställs in på en enda rad."
       },
-      "events": {
-        "title": "Parkens evenemang",
-        "body": "Under Halloween eller julen får evenemangets egna attraktioner och shower ett eget kort, i säsongens färger — med noteringen »Separat biljett« när tillträdet inte ingår i entrén."
+      "queues": {
+        "title": "Varje kö har sin egen sida",
+        "body": "Single Rider, Disney Premier Access, virtuell kö: tryck på en kö för att öppna dess egen sida, med kötid eller tidslucka, status och avisering. För en kö med tidsluckor meddelar aviseringen dig så snart en tidigare tidslucka blir ledig."
       },
-      "weather": {
-        "title": "Vädret i parken, live",
-        "body": "Parkens temperatur och himmel visas i sidhuvudet och uppdateras varje timme. Praktiskt för att förutse trängseln — och för att veta om regnjackan ska med."
+      "forecast": {
+        "title": "Prognoser du kan kontrollera",
+        "body": "I grått det vi hade förutsagt en timme tidigare, bredvid det som faktiskt hände: döm själv. Och när en park anger ett spann visas det som det är — »10–20 min« i stället för en enda siffra."
+      },
+      "halloween": {
+        "title": "Halloween, hus för hus",
+        "body": "Skräckhusen visar sin skräcknivå, från en till fem dödskallar, och sitt pris när inträdet kostar extra. Evenemangskortet följer sina sessioner — dagen, sedan kvällen — och har egna knappar: hus, shower, restauranger."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "Kötiden har sjunkit till 15 min",
-        "reopened": "Attraktionen har just öppnat igen",
-        "show": "Börjar om 15 minuter"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Jul"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Ha ett trevligt besök!",
-      "body": "Allt är på plats. En ny sida, »Om oss«, berättar var kötiderna kommer ifrån och går igenom varje funktion, om du vill fördjupa dig.",
+      "body": "Allt är på plats. En kommentar, en idé, en park som saknas? Skriv till oss: adressen finns på sidan »Om oss«.",
       "aboutLink": "Upptäck sidan Om oss"
     }
   },

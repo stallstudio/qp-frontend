@@ -317,12 +317,12 @@
     "temperatureUnit": "Unità di temperatura"
   },
   "whatsNew": {
-    "srTitle": "Le novità di Queue Park v3",
-    "srDescription": "Una presentazione delle novità della versione 3 di Queue Park.",
+    "srTitle": "Le novità di Queue Park v4",
+    "srDescription": "Presentazione delle novità della versione 4 di Queue Park.",
     "hero": {
       "eyebrow": "{count} novità",
-      "title": "Queue Park passa alla v3",
-      "body": "Un account che ti segue da un dispositivo all'altro, avvisi al momento giusto, previsioni di attesa: ecco cosa cambia."
+      "title": "Queue Park passa alla v4",
+      "body": "Ristoranti e negozi, gli orari di ogni luogo, una scheda ridisegnata, previsioni che puoi verificare: ora tutto il parco sta in una pagina."
     },
     "nav": {
       "scrollHint": "Scorri",
@@ -333,55 +333,44 @@
       "beta": "Beta"
     },
     "slides": {
-      "account": {
-        "title": "Il tuo account Queue Park",
-        "body": "Accedi in un attimo, con Google o con un semplice link ricevuto per e-mail — senza password. I tuoi preferiti, i tuoi avvisi e le tue preferenze ti seguono così dal telefono al parco al computer di casa."
-      },
-      "favorites": {
-        "title": "I tuoi preferiti, su tutti i tuoi dispositivi",
-        "body": "La stella ora funziona su parchi, attrazioni e spettacoli. I tuoi parchi preferiti restano in cima alla home, le tue attrazioni e i tuoi spettacoli salgono in testa alle tabelle del parco, e li ritrovi tutti nel tuo profilo — sincronizzati su tutti i dispositivi."
-      },
-      "notifications": {
-        "title": "Avvisato al momento giusto",
-        "body": "Installa Queue Park come app e lascia che tenga d'occhio il parco per te.",
-        "install": "Installa l'app",
+      "park": {
+        "title": "Tutto il parco, non solo le attrazioni",
+        "body": "Attrazioni, spettacoli, ristoranti, negozi: ogni categoria ha il suo pulsante in cima alla lista, e passi dall'una all'altra con un tocco. Nei parchi che pubblicano questi dati, ogni ristorante e ogni negozio mostra il suo stato in diretta e la sua zona.",
         "points": {
-          "threshold": "L'attesa di un'attrazione scende sotto la soglia che hai scelto.",
-          "reopened": "Un'attrazione riapre dopo un guasto o una chiusura.",
-          "show": "Uno spettacolo sta per iniziare, con l'anticipo che preferisci."
+          "menu": "Il menu del ristorante, e l'ordine online quando il parco lo offre.",
+          "favorites": "La stella ovunque: un ristorante o un negozio si aggiunge ai preferiti come un'attrazione, e sale in cima alla sua lista.",
+          "wait": "L'attesa dei ristoranti che la pubblicano, con un avviso quando scende."
         }
       },
-      "forecast": {
-        "title": "Previsioni di attesa",
-        "body": "La linea continua ripercorre l'attesa dall'apertura, quella tratteggiata la stima fino alla chiusura. Quanto basta per individuare il momento giusto per andarci."
+      "hours": {
+        "title": "Gli orari di ogni luogo",
+        "body": "La scheda «Orari di oggi» non si ferma più agli spettacoli: nei parchi che li pubblicano, attrazioni, ristoranti, negozi e hotel vi mostrano i loro orari di apertura, su una linea del tempo della giornata. Chi chiude più tardi sta in cima, così vedi a colpo d'occhio cosa sarà ancora aperto stasera."
       },
       "detail": {
-        "title": "La scheda di ogni attrazione",
-        "body": "Tocca un'attrazione o uno spettacolo: la foto, l'area del parco, la curva della giornata con la sua previsione e la regolazione dei tuoi avvisi, tutto riunito nello stesso posto."
+        "title": "Una scheda che va dritta al punto",
+        "body": "Sotto la foto, una fascia mostra l'essenziale: l'attesa, lo stato e l'orario di chiusura. Una frase tratta dalla previsione ti dice se è il momento giusto, e l'avviso si imposta in una sola riga."
       },
-      "events": {
-        "title": "Gli eventi del parco",
-        "body": "Durante Halloween o Natale, le attrazioni e gli spettacoli propri dell'evento hanno una scheda dedicata, nei colori della stagione — con la dicitura «Biglietto separato» quando l'accesso non è compreso nell'ingresso."
+      "queues": {
+        "title": "Ogni coda ha la sua scheda",
+        "body": "Single Rider, Disney Premier Access, coda virtuale: tocca una coda per aprire la sua scheda, con la sua attesa o la sua fascia oraria, il suo stato e il suo avviso. Su una coda a fasce orarie, l'avviso ti segnala appena si libera una fascia più presto."
       },
-      "weather": {
-        "title": "Il meteo del parco, in diretta",
-        "body": "La temperatura e il cielo del parco compaiono nella sua intestazione, aggiornati ogni ora. Utile per anticipare l'affluenza — e per sapere se serve la giacca antipioggia."
+      "forecast": {
+        "title": "Previsioni che puoi verificare",
+        "body": "In grigio, quello che avevamo previsto un'ora prima, tracciato accanto a quello che è successo davvero: giudica tu. E quando un parco annuncia un intervallo, viene mostrato così com'è — «10–20 min» invece di un solo numero."
+      },
+      "halloween": {
+        "title": "Halloween, casa per casa",
+        "body": "Le case horror mostrano il loro livello di paura, da uno a cinque teschi, e il prezzo quando l'ingresso è a pagamento. La scheda dell'evento segue le sue sessioni — il giorno, poi la sera — e ha i suoi pulsanti: case, spettacoli, ristoranti."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "L'attesa è scesa a 15 min",
-        "reopened": "L'attrazione ha appena riaperto",
-        "show": "Inizia tra 15 minuti"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Natale"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Buona visita!",
-      "body": "È tutto pronto. Una nuova pagina «Chi siamo» racconta da dove arrivano i tempi di attesa e descrive ogni funzione, se vuoi approfondire.",
+      "body": "È tutto pronto. Un commento, un'idea, un parco da aggiungere? Scrivici: l'indirizzo è nella pagina «Chi siamo».",
       "aboutLink": "Scopri la pagina Chi siamo"
     }
   },

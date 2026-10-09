@@ -10,22 +10,23 @@ import {
 } from "motion/react";
 import {
   ArrowRight,
-  BellRing,
+  BookOpenText,
+  CalendarClock,
   ChevronDown,
-  CloudSun,
-  Download,
-  Eye,
+  Ghost,
+  LayoutGrid,
   LineChart,
   type LucideIcon,
-  RotateCcw,
+  PanelTop,
   Sparkles,
   Star,
+  TicketCheck,
   Timer,
-  UserRound,
   X,
 } from "lucide-react";
 
 import { Link, usePathname } from "@/i18n/routing";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,7 +35,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import LanguageSwitcher from "@/components/ui/language-switcher";
-import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { CONSENT_EVENT, readConsent } from "@/lib/cookie-consent";
 import {
   hasSeenWhatsNew,
@@ -42,24 +42,23 @@ import {
   markWhatsNewSeen,
 } from "@/lib/whats-new";
 import {
-  AccountScene,
   DetailScene,
-  EventsScene,
-  FavoritesScene,
   FinaleScene,
   ForecastScene,
+  HalloweenScene,
   HeroScene,
-  NotificationsScene,
+  HoursScene,
+  ParkScene,
+  QueuesScene,
   SceneActivity,
-  WeatherScene,
 } from "./scenes";
 import { SceneBanners } from "./scene-frame";
 import type { WhatsNewBanners } from "./banners";
 
 // ————————————————————————————————————————————————————————————————————————
-// L'ANNONCE DE LA V3
+// L'ANNONCE DE VERSION (v4 depuis le 2026-10-09)
 //
-// Une page qui se déroule : une ouverture, les sept nouveautés en cartes, une
+// Une page qui se déroule : une ouverture, les nouveautés en cartes, une
 // clôture. Chacune est illustrée par une scène animée qui MIME l'interface
 // réelle (`scenes.tsx`), pour qu'on reconnaisse la fonctionnalité quand on
 // tombera dessus.
@@ -70,10 +69,16 @@ import type { WhatsNewBanners } from "./banners";
 // coup, le bouton de sortie reste sous le pouce du début à la fin, et le filet
 // de progression en haut dit ce qui reste — personne n'est retenu.
 //
-// ⚠️ **L'ORDRE est celui de l'utilité, pas celui du développement.** Le compte
-// d'abord, parce que tout le reste en dépend (favoris synchronisés, alertes,
-// rappels) ; les notifications ensuite, parce que c'est ce qui change vraiment
-// une journée au parc ; le décor (événements, météo) en dernier.
+// ⚠️ **L'ORDRE est celui de l'utilité, pas celui du développement.** Le parc
+// entier d'abord — restaurants et boutiques, ce que tout le monde verra dès la
+// première page de parc ; ses horaires ensuite ; puis la fiche et ses files ;
+// les prévisions et Halloween, qui ne concernent qu'une partie des parcs, en
+// dernier.
+//
+// ⚠️ **Les nouveautés MAJEURES seulement.** Pas de correctif, pas de retouche
+// d'affichage : une annonce qui liste tout n'est lue par personne. Les favoris
+// et les alertes des restaurants, par exemple, sont des puces de la première
+// carte, pas une carte à eux.
 //
 // ⚠️ **Une seule fois, et jamais deux.** Toute sortie — bouton, croix, Échap,
 // clic hors du dialog — vaut « lu » (`lib/whats-new.ts`).
@@ -91,25 +96,27 @@ type Feature = {
   badge?: "beta";
   /** Puces détaillant la nouveauté (`slides.<id>.points.<key>`). */
   points?: { key: string; icon: LucideIcon }[];
+  /** Une scène plus haute que les autres : la fiche et la carte d'Halloween,
+   *  qui empilent trois blocs. */
+  tall?: boolean;
 };
 
 const FEATURES: Feature[] = [
-  { id: "account", scene: AccountScene, icon: UserRound },
-  { id: "favorites", scene: FavoritesScene, icon: Star },
   {
-    id: "notifications",
-    scene: NotificationsScene,
-    icon: BellRing,
+    id: "park",
+    scene: ParkScene,
+    icon: LayoutGrid,
     points: [
-      { key: "threshold", icon: Timer },
-      { key: "reopened", icon: RotateCcw },
-      { key: "show", icon: Sparkles },
+      { key: "menu", icon: BookOpenText },
+      { key: "favorites", icon: Star },
+      { key: "wait", icon: Timer },
     ],
   },
-  { id: "forecast", scene: ForecastScene, icon: LineChart, badge: "beta" },
-  { id: "detail", scene: DetailScene, icon: Eye },
-  { id: "events", scene: EventsScene, icon: Sparkles },
-  { id: "weather", scene: WeatherScene, icon: CloudSun },
+  { id: "hours", scene: HoursScene, icon: CalendarClock },
+  { id: "detail", scene: DetailScene, icon: PanelTop, tall: true },
+  { id: "queues", scene: QueuesScene, icon: TicketCheck },
+  { id: "forecast", scene: ForecastScene, icon: LineChart },
+  { id: "halloween", scene: HalloweenScene, icon: Ghost, tall: true },
 ];
 
 // Laisse la page se peindre avant de la recouvrir : arriver sur un site déjà
@@ -211,7 +218,6 @@ export default function WhatsNewDialog({
 function WhatsNewBody({ onClose }: { onClose: () => void }) {
   const t = useTranslations("whatsNew");
   const reduceMotion = useReducedMotion();
-  const { canPrompt, promptInstall, isStandalone, hydrated } = usePwaInstall();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ container: scrollRef });
@@ -296,13 +302,6 @@ function WhatsNewBody({ onClose }: { onClose: () => void }) {
               feature={feature}
               first={position === 0}
               scrollRef={scrollRef}
-              showInstall={
-                feature.id === "notifications" &&
-                hydrated &&
-                !isStandalone &&
-                canPrompt
-              }
-              onInstall={promptInstall}
             />
           ))}
         </div>
@@ -353,23 +352,18 @@ function FeatureCard({
   feature,
   first,
   scrollRef,
-  showInstall,
-  onInstall,
 }: {
   feature: Feature;
   /** La première carte est visible d'emblée : sa scène démarre sans attendre. */
   first: boolean;
   scrollRef: React.RefObject<HTMLDivElement | null>;
-  showInstall: boolean;
-  onInstall: () => Promise<unknown>;
 }) {
   const t = useTranslations("whatsNew");
   const reduceMotion = useReducedMotion();
-  const [installing, setInstalling] = useState(false);
 
   // ⚠️ Deux repères DIFFÉRENTS, d'où deux observateurs.
   //   • `near` (marge large) monte la scène AVANT qu'on l'atteigne, et la fige
-  //     dès qu'on s'en éloigne : sept décors qui dérivent en même temps, c'est
+  //     dès qu'on s'en éloigne : six décors qui dérivent en même temps, c'est
   //     du travail continu pour rien sur un téléphone. Monter au dernier moment
   //     a un second effet, plus important : les animations d'entrée (le tracé
   //     de la courbe, l'ouverture de la fiche) se jouent quand on ARRIVE
@@ -392,7 +386,10 @@ function FeatureCard({
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
     >
       <motion.div
-        className="relative -mb-px h-40 bg-card"
+        className={cn(
+          "relative -mb-px bg-card",
+          feature.tall ? "h-52" : "h-40",
+        )}
         viewport={{ root: scrollRef, margin: "240px 0px 240px 0px" }}
         onViewportEnter={() => {
           setNear(true);
@@ -441,26 +438,6 @@ function FeatureCard({
           </ul>
         )}
 
-        {/* Le seul geste possible depuis l'annonce : installer l'application, et
-            uniquement là où le navigateur nous laisse la proposer. Sur iOS,
-            l'installation passe par le menu de partage : elle est expliquée au
-            bon endroit (la fiche d'une attraction), pas ici. */}
-        {showInstall && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-4"
-            disabled={installing}
-            onClick={async () => {
-              setInstalling(true);
-              await onInstall();
-              setInstalling(false);
-            }}
-          >
-            <Download />
-            {t("slides.notifications.install")}
-          </Button>
-        )}
       </div>
     </motion.section>
   );

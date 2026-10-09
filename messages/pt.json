@@ -317,12 +317,12 @@
     "temperatureUnit": "Unidade de temperatura"
   },
   "whatsNew": {
-    "srTitle": "As novidades do Queue Park v3",
-    "srDescription": "Uma apresentação das novidades da versão 3 do Queue Park.",
+    "srTitle": "As novidades do Queue Park v4",
+    "srDescription": "Apresentação das novidades da versão 4 do Queue Park.",
     "hero": {
       "eyebrow": "{count} novidades",
-      "title": "O Queue Park passa a v3",
-      "body": "Uma conta que te acompanha de um dispositivo para o outro, alertas no momento certo, previsões de espera: eis o que muda."
+      "title": "O Queue Park passa a v4",
+      "body": "Restaurantes e lojas, o horário de cada local, uma ficha redesenhada, previsões que podes verificar: o parque inteiro cabe agora numa página."
     },
     "nav": {
       "scrollHint": "Desliza",
@@ -333,55 +333,44 @@
       "beta": "Beta"
     },
     "slides": {
-      "account": {
-        "title": "A tua conta Queue Park",
-        "body": "Inicia sessão num instante, com a Google ou com uma simples ligação recebida por e-mail — sem palavra-passe. Os teus favoritos, os teus alertas e as tuas preferências acompanham-te do telemóvel no parque ao computador em casa."
-      },
-      "favorites": {
-        "title": "Os teus favoritos, em todos os teus dispositivos",
-        "body": "A estrela funciona agora em parques, atrações e espetáculos. Os teus parques favoritos ficam no topo da página inicial, as tuas atrações e espetáculos sobem para o início das tabelas do parque, e encontra-los todos no teu perfil — sincronizados em todos os dispositivos."
-      },
-      "notifications": {
-        "title": "Avisado no momento certo",
-        "body": "Instala o Queue Park como aplicação e deixa-o vigiar o parque por ti.",
-        "install": "Instalar a aplicação",
+      "park": {
+        "title": "O parque inteiro, não só as atrações",
+        "body": "Atrações, espetáculos, restaurantes, lojas: cada categoria tem o seu botão no topo da lista, e passas de uma para outra com um toque. Nos parques que publicam estes dados, cada restaurante e cada loja mostra o seu estado em direto e a sua zona.",
         "points": {
-          "threshold": "A espera de uma atração desce abaixo do limite que escolheste.",
-          "reopened": "Uma atração reabre depois de uma avaria ou de um encerramento.",
-          "show": "Um espetáculo está prestes a começar, com a antecedência que preferires."
+          "menu": "A ementa do restaurante, e a encomenda online quando o parque a propõe.",
+          "favorites": "A estrela em todo o lado: um restaurante ou uma loja junta-se aos favoritos como uma atração, e sobe para o topo da sua lista.",
+          "wait": "A espera dos restaurantes que a publicam, com um alerta quando desce."
         }
       },
-      "forecast": {
-        "title": "Previsões de espera",
-        "body": "A linha cheia traça a espera desde a abertura, a tracejada estima-a até ao encerramento. O suficiente para encontrares o melhor momento para ir."
+      "hours": {
+        "title": "O horário de cada local",
+        "body": "O separador «Horário de hoje» já não se limita aos espetáculos: nos parques que os publicam, atrações, restaurantes, lojas e hotéis mostram lá o seu horário de abertura, numa linha do tempo do dia. O que fecha mais tarde aparece primeiro, para veres num relance o que ainda estará aberto esta noite."
       },
       "detail": {
-        "title": "A ficha de cada atração",
-        "body": "Toca numa atração ou num espetáculo: a fotografia, a zona do parque, a curva do dia com a sua previsão e a definição dos teus alertas, está tudo reunido no mesmo sítio."
+        "title": "Uma ficha que vai direta ao assunto",
+        "body": "Por baixo da foto, uma faixa mostra o essencial: a espera, o estado e a hora de fecho. Uma frase tirada da previsão diz-te se é o momento certo, e o alerta configura-se numa só linha."
       },
-      "events": {
-        "title": "Os eventos do parque",
-        "body": "Durante o Halloween ou o Natal, as atrações e espetáculos próprios do evento têm um cartão próprio, com as cores da época — e a menção «Bilhete separado» quando o acesso não está incluído na entrada."
+      "queues": {
+        "title": "Cada fila tem a sua ficha",
+        "body": "Single Rider, Disney Premier Access, fila virtual: toca numa fila para abrir a sua própria ficha, com a sua espera ou o seu horário, o seu estado e o seu alerta. Numa fila com horários marcados, o alerta avisa-te assim que fica livre um horário mais cedo."
       },
-      "weather": {
-        "title": "A meteorologia do parque, em direto",
-        "body": "A temperatura e o céu do parque aparecem no cabeçalho, atualizados a cada hora. Prático para antecipares a afluência — e para saberes se levas o impermeável."
+      "forecast": {
+        "title": "Previsões que podes verificar",
+        "body": "A cinzento, o que tínhamos previsto uma hora antes, traçado ao lado do que aconteceu mesmo: julga por ti. E quando um parque anuncia um intervalo, aparece tal e qual — «10–20 min» em vez de um só número."
+      },
+      "halloween": {
+        "title": "Halloween, casa a casa",
+        "body": "As casas assombradas mostram o seu nível de medo, de uma a cinco caveiras, e o preço quando a entrada é paga. O cartão do evento acompanha as suas sessões — o dia e depois a noite — e tem os seus próprios botões: casas, espetáculos, restaurantes."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "A espera desceu para 15 min",
-        "reopened": "A atração acabou de reabrir",
-        "show": "Começa dentro de 15 minutos"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Natal"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Boa visita!",
-      "body": "Está tudo pronto. Uma nova página «Sobre» conta de onde vêm os tempos de espera e detalha cada funcionalidade, caso queiras aprofundar.",
+      "body": "Está tudo pronto. Um comentário, uma ideia, um parque a acrescentar? Escreve-nos: o endereço está na página «Sobre».",
       "aboutLink": "Descobrir a página Sobre"
     }
   },

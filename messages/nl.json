@@ -317,12 +317,12 @@
     "temperatureUnit": "Temperatuureenheid"
   },
   "whatsNew": {
-    "srTitle": "Wat er nieuw is in Queue Park v3",
-    "srDescription": "Een overzicht van wat er nieuw is in versie 3 van Queue Park.",
+    "srTitle": "Wat is er nieuw in Queue Park v4",
+    "srDescription": "Overzicht van wat er nieuw is in versie 4 van Queue Park.",
     "hero": {
       "eyebrow": "{count} nieuwe functies",
-      "title": "Queue Park gaat naar v3",
-      "body": "Een account dat met je meegaat van het ene apparaat naar het andere, meldingen op het juiste moment, wachttijdvoorspellingen: dit verandert er."
+      "title": "Queue Park gaat naar v4",
+      "body": "Restaurants en winkels, de openingstijden van elke plek, een vernieuwde attractiepagina, voorspellingen die je kunt controleren: het hele park past nu op één pagina."
     },
     "nav": {
       "scrollHint": "Scroll",
@@ -333,55 +333,44 @@
       "beta": "Bèta"
     },
     "slides": {
-      "account": {
-        "title": "Je Queue Park-account",
-        "body": "Meld je in een oogwenk aan, met Google of met een simpele link per e-mail — zonder wachtwoord. Je favorieten, je meldingen en je voorkeuren gaan dan met je mee, van je telefoon in het park tot je computer thuis."
-      },
-      "favorites": {
-        "title": "Je favorieten, op al je apparaten",
-        "body": "De ster werkt nu op parken, attracties en shows. Je favoriete parken staan bovenaan de startpagina, je favoriete attracties en shows komen boven aan de tabellen van het park, en je vindt ze allemaal terug in je profiel — gesynchroniseerd op al je apparaten."
-      },
-      "notifications": {
-        "title": "Op het juiste moment gewaarschuwd",
-        "body": "Installeer Queue Park als app en laat die het park voor je in de gaten houden.",
-        "install": "De app installeren",
+      "park": {
+        "title": "Het hele park, niet alleen de attracties",
+        "body": "Attracties, shows, restaurants, winkels: elke categorie heeft een eigen knop bovenaan de lijst, en je wisselt met één tik. In parken die deze gegevens publiceren, toont elk restaurant en elke winkel zijn live status en zijn themagebied.",
         "points": {
-          "threshold": "De wachttijd van een attractie zakt onder de drempel die je hebt gekozen.",
-          "reopened": "Een attractie gaat weer open na een storing of een sluiting.",
-          "show": "Een show begint zo, met zoveel voorsprong als jou uitkomt."
+          "menu": "De menukaart van het restaurant, en online bestellen als het park dat aanbiedt.",
+          "favorites": "Sterren overal: een restaurant of winkel zet je net als een attractie bij je favorieten, en die komt bovenaan zijn lijst.",
+          "wait": "De wachttijd van restaurants die die publiceren, met een melding als die daalt."
         }
       },
-      "forecast": {
-        "title": "Wachttijdvoorspellingen",
-        "body": "De doorlopende lijn toont de wachttijd sinds de opening, de stippellijn schat die tot de sluiting. Precies genoeg om het juiste moment te vinden."
+      "hours": {
+        "title": "De openingstijden van elke plek",
+        "body": "Het tabblad «Openingstijden» toont niet langer alleen shows: in parken die ze publiceren, staan attracties, restaurants, winkels en hotels er met hun openingstijden op een tijdlijn van de dag. Wat het laatst sluit staat bovenaan, zodat je in één oogopslag ziet wat vanavond nog open is."
       },
       "detail": {
-        "title": "De pagina van elke attractie",
-        "body": "Tik op een attractie of een show: de foto, het themagebied in het park, de curve van de dag met de voorspelling en de instelling van je meldingen — alles op één plek."
+        "title": "Een pagina die meteen ter zake komt",
+        "body": "Onder de foto toont een balk het belangrijkste: de wachttijd, de status en de sluitingstijd. Een zin uit de voorspelling vertelt of dit het goede moment is, en de melding stel je in op één regel."
       },
-      "events": {
-        "title": "De evenementen van het park",
-        "body": "Tijdens Halloween of Kerst krijgen de attracties en shows van het evenement een eigen kaart, in de kleuren van het seizoen — met de vermelding «Apart ticket» wanneer de toegang niet bij het entreebewijs zit."
+      "queues": {
+        "title": "Elke wachtrij heeft zijn eigen pagina",
+        "body": "Single Rider, Disney Premier Access, virtuele wachtrij: tik op een wachtrij om zijn eigen pagina te openen, met de wachttijd of het tijdslot, de status en de melding. Bij een wachtrij met tijdsloten waarschuwt de melding je zodra er een vroeger tijdslot vrijkomt."
       },
-      "weather": {
-        "title": "Het weer in het park, live",
-        "body": "De temperatuur en de lucht boven het park staan in de koptekst, elk uur bijgewerkt. Handig om de drukte in te schatten — en om te weten of je een regenjas meeneemt."
+      "forecast": {
+        "title": "Voorspellingen die je kunt controleren",
+        "body": "In grijs wat we een uur eerder voorspeld hadden, naast wat er echt gebeurde: oordeel zelf. En als een park een bereik opgeeft, wordt het zo getoond — «10–20 min» in plaats van één getal."
+      },
+      "halloween": {
+        "title": "Halloween, huis voor huis",
+        "body": "Spookhuizen tonen hun schrikniveau, van één tot vijf doodshoofden, en hun prijs als de toegang betalend is. De evenementkaart volgt zijn sessies — overdag, daarna 's avonds — en heeft eigen knoppen: huizen, shows, restaurants."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "De wachttijd is gezakt naar 15 min",
-        "reopened": "De attractie is net weer open",
-        "show": "Begint over 15 minuten"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Kerst"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Veel plezier!",
-      "body": "Alles staat klaar. Een nieuwe pagina «Over ons» vertelt waar de wachttijden vandaan komen en licht elke functie toe, als je verder wilt kijken.",
+      "body": "Alles staat klaar. Een opmerking, een idee, een park dat erbij moet? Schrijf ons: het adres staat op de pagina «Over ons».",
       "aboutLink": "Ontdek de pagina Over ons"
     }
   },

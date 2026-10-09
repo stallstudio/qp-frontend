@@ -317,12 +317,12 @@
     "temperatureUnit": "Đơn vị nhiệt độ"
   },
   "whatsNew": {
-    "srTitle": "Những điểm mới của Queue Park v3",
-    "srDescription": "Giới thiệu những điểm mới trong phiên bản 3 của Queue Park.",
+    "srTitle": "Điểm mới của Queue Park v4",
+    "srDescription": "Giới thiệu các điểm mới trong phiên bản 4 của Queue Park.",
     "hero": {
       "eyebrow": "{count} điểm mới",
-      "title": "Queue Park lên phiên bản 3",
-      "body": "Một tài khoản theo bạn từ thiết bị này sang thiết bị khác, nhắc nhở đúng lúc, dự báo thời gian chờ: đây là những gì thay đổi."
+      "title": "Queue Park lên phiên bản 4",
+      "body": "Nhà hàng và cửa hàng, giờ mở cửa của từng nơi, trang chi tiết được làm mới, dự báo mà bạn có thể kiểm chứng: giờ đây cả công viên nằm gọn trong một trang."
     },
     "nav": {
       "scrollHint": "Cuộn xuống",
@@ -333,55 +333,44 @@
       "beta": "Bản thử nghiệm"
     },
     "slides": {
-      "account": {
-        "title": "Tài khoản Queue Park của bạn",
-        "body": "Đăng nhập chỉ trong chốc lát, bằng Google hoặc một liên kết gửi qua e-mail — không cần mật khẩu. Mục yêu thích, nhắc nhở và tuỳ chọn của bạn sẽ theo bạn từ điện thoại trong công viên đến máy tính ở nhà."
-      },
-      "favorites": {
-        "title": "Mục yêu thích trên mọi thiết bị",
-        "body": "Ngôi sao giờ đây dùng được cho công viên, trò chơi và chương trình. Công viên yêu thích được ghim lên đầu trang chủ, trò chơi và chương trình yêu thích được đưa lên đầu bảng của công viên, và bạn tìm lại tất cả trong hồ sơ của mình — đồng bộ trên mọi thiết bị."
-      },
-      "notifications": {
-        "title": "Được báo đúng lúc",
-        "body": "Cài Queue Park như một ứng dụng và để nó trông chừng công viên thay bạn.",
-        "install": "Cài đặt ứng dụng",
+      "park": {
+        "title": "Cả công viên, không chỉ các trò chơi",
+        "body": "Trò chơi, chương trình, nhà hàng, cửa hàng: mỗi danh mục có nút riêng ở đầu danh sách, chỉ một chạm là chuyển sang danh mục khác. Ở những công viên công bố dữ liệu này, mỗi nhà hàng và cửa hàng đều hiển thị trạng thái trực tiếp và khu vực của mình.",
         "points": {
-          "threshold": "Thời gian chờ của một trò chơi xuống dưới ngưỡng bạn đã chọn.",
-          "reopened": "Một trò chơi mở lại sau khi hỏng hóc hoặc tạm ngừng.",
-          "show": "Một chương trình sắp bắt đầu, báo trước bao lâu là tuỳ bạn."
+          "menu": "Thực đơn của nhà hàng, và đặt món trực tuyến khi công viên hỗ trợ.",
+          "favorites": "Ngôi sao ở khắp nơi: bạn có thể thêm nhà hàng hay cửa hàng vào mục yêu thích như một trò chơi, và chúng sẽ lên đầu danh sách.",
+          "wait": "Thời gian chờ của những nhà hàng có công bố, kèm nhắc nhở khi thời gian chờ giảm."
         }
       },
-      "forecast": {
-        "title": "Dự báo thời gian chờ",
-        "body": "Đường liền vẽ lại thời gian chờ từ lúc mở cửa, đường đứt nét ước tính đến lúc đóng cửa. Vừa đủ để chọn đúng thời điểm nên đi."
+      "hours": {
+        "title": "Giờ mở cửa của từng nơi",
+        "body": "Thẻ «Giờ hôm nay» không còn chỉ có chương trình: ở những công viên có công bố, trò chơi, nhà hàng, cửa hàng và khách sạn đều hiện giờ mở cửa trên dòng thời gian của ngày. Nơi đóng cửa muộn nhất đứng đầu, để bạn biết ngay nơi nào vẫn còn mở tối nay."
       },
       "detail": {
-        "title": "Trang riêng cho từng trò chơi",
-        "body": "Chạm vào một trò chơi hoặc chương trình: ảnh, khu vực trong công viên, biểu đồ trong ngày kèm dự báo và phần cài đặt nhắc nhở, tất cả gom về một chỗ."
+        "title": "Trang chi tiết đi thẳng vào trọng tâm",
+        "body": "Bên dưới ảnh, một dải thông tin cho thấy điều cốt yếu: thời gian chờ, trạng thái và giờ đóng cửa. Một câu dựa trên dự báo cho bạn biết lúc này có phải thời điểm tốt không, và nhắc nhở chỉ cần đặt trên một dòng."
       },
-      "events": {
-        "title": "Sự kiện của công viên",
-        "body": "Vào dịp Halloween hay Giáng sinh, các trò chơi và chương trình riêng của sự kiện có thẻ riêng, mang màu sắc của mùa — kèm ghi chú «Vé riêng» khi vé vào cửa không bao gồm phần này."
+      "queues": {
+        "title": "Mỗi hàng chờ có trang riêng",
+        "body": "Single Rider, Disney Premier Access, hàng chờ ảo: chạm vào một hàng chờ để mở trang riêng của nó, với thời gian chờ hoặc khung giờ, trạng thái và nhắc nhở. Với hàng chờ theo khung giờ, nhắc nhở sẽ báo cho bạn ngay khi có khung giờ sớm hơn."
       },
-      "weather": {
-        "title": "Thời tiết công viên, theo thời gian thực",
-        "body": "Nhiệt độ và bầu trời của công viên hiển thị ngay ở phần đầu trang, cập nhật mỗi giờ. Tiện để đoán trước lượng khách — và để biết có nên mang áo mưa hay không."
+      "forecast": {
+        "title": "Dự báo bạn có thể kiểm chứng",
+        "body": "Màu xám là dự báo chúng tôi đưa ra trước đó một giờ, vẽ cạnh những gì thực sự đã diễn ra: bạn tự đánh giá. Và khi công viên công bố một khoảng thời gian, nó được hiển thị nguyên như vậy — «10–20 min» thay vì một con số duy nhất."
+      },
+      "halloween": {
+        "title": "Halloween, từng nhà ma một",
+        "body": "Các nhà ma hiển thị mức độ đáng sợ, từ một đến năm đầu lâu, và giá vé khi phải trả thêm. Thẻ sự kiện bám theo các suất của nó — ban ngày, rồi buổi tối — và có các nút riêng: nhà ma, chương trình, nhà hàng."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "Thời gian chờ đã giảm còn 15 phút",
-        "reopened": "Trò chơi vừa mở lại",
-        "show": "Bắt đầu sau 15 phút"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Giáng sinh"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Chúc bạn có chuyến đi vui vẻ!",
-      "body": "Mọi thứ đã sẵn sàng. Trang «Giới thiệu» mới kể về nguồn gốc của thời gian chờ và mô tả chi tiết từng tính năng, nếu bạn muốn tìm hiểu thêm.",
+      "body": "Mọi thứ đã sẵn sàng. Có góp ý, ý tưởng hay công viên muốn thêm? Hãy viết cho chúng tôi: địa chỉ có trên trang «Giới thiệu».",
       "aboutLink": "Khám phá trang Giới thiệu"
     }
   },

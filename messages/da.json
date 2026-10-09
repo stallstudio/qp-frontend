@@ -317,12 +317,12 @@
     "temperatureUnit": "Temperaturenhed"
   },
   "whatsNew": {
-    "srTitle": "Nyhederne i Queue Park v3",
-    "srDescription": "En præsentation af nyhederne i version 3 af Queue Park.",
+    "srTitle": "Nyhederne i Queue Park v4",
+    "srDescription": "Præsentation af nyhederne i version 4 af Queue Park.",
     "hero": {
       "eyebrow": "{count} nyheder",
-      "title": "Queue Park bliver til v3",
-      "body": "En konto, der følger dig fra den ene enhed til den næste, notifikationer på det rigtige tidspunkt, ventetidsprognoser: Det er det, der ændrer sig."
+      "title": "Queue Park bliver til v4",
+      "body": "Restauranter og butikker, åbningstider for hvert sted, en fornyet forlystelsesside, prognoser du kan tjekke: hele parken er nu samlet på én side."
     },
     "nav": {
       "scrollHint": "Rul ned",
@@ -333,55 +333,44 @@
       "beta": "Beta"
     },
     "slides": {
-      "account": {
-        "title": "Din Queue Park-konto",
-        "body": "Log ind på et øjeblik med Google eller et enkelt link i din indbakke — helt uden adgangskode. Dine favoritter, dine notifikationer og dine indstillinger følger dig så fra telefonen i parken til computeren derhjemme."
-      },
-      "favorites": {
-        "title": "Dine favoritter på alle dine enheder",
-        "body": "Stjernen virker nu på parker, forlystelser og shows. Dine yndlingsparker sidder øverst på forsiden, dine yndlingsforlystelser og -shows rykker op i toppen af parkens tabeller, og du finder dem alle igen i din profil — synkroniseret på alle dine enheder."
-      },
-      "notifications": {
-        "title": "Besked på det rigtige tidspunkt",
-        "body": "Installer Queue Park som en app, og lad den holde øje med parken for dig.",
-        "install": "Installer appen",
+      "park": {
+        "title": "Hele parken, ikke kun forlystelserne",
+        "body": "Forlystelser, shows, restauranter, butikker: hver kategori har sin knap øverst i listen, og du skifter med et tryk. I parker, der offentliggør disse data, viser hver restaurant og hver butik sin status live og sit område.",
         "points": {
-          "threshold": "Ventetiden på en forlystelse falder under den grænse, du har valgt.",
-          "reopened": "En forlystelse åbner igen efter et nedbrud eller en lukning.",
-          "show": "Et show er ved at begynde, med så meget varsel, som du ønsker."
+          "menu": "Restaurantens menukort og onlinebestilling, når parken tilbyder det.",
+          "favorites": "Stjerner overalt: en restaurant eller en butik kan blive favorit ligesom en forlystelse og ryger øverst i sin liste.",
+          "wait": "Ventetiden på restauranter, der offentliggør den, med en alarm, når den falder."
         }
       },
-      "forecast": {
-        "title": "Ventetidsprognoser",
-        "body": "Den fuldt optrukne linje viser ventetiden siden åbning, den stiplede anslår den frem til lukketid. Nok til at finde det rigtige tidspunkt at gå."
+      "hours": {
+        "title": "Åbningstider for hvert sted",
+        "body": "Fanen »Åbningstider« viser ikke længere kun shows: i parker, der offentliggør dem, har forlystelser, restauranter, butikker og hoteller deres åbningstider der på en tidslinje over dagen. Det, der lukker senest, står øverst, så du med det samme kan se, hvad der stadig er åbent i aften."
       },
       "detail": {
-        "title": "Siden for hver forlystelse",
-        "body": "Tryk på en forlystelse eller et show: billedet, området i parken, dagens kurve med sin prognose og indstillingen af dine notifikationer — det hele er samlet ét sted."
+        "title": "En side, der går lige til sagen",
+        "body": "Under billedet viser et bånd det vigtigste: ventetiden, status og lukketiden. En sætning fra prognosen fortæller, om det er et godt tidspunkt, og alarmen indstilles på én linje."
       },
-      "events": {
-        "title": "Parkens events",
-        "body": "Under Halloween eller jul får eventets egne forlystelser og shows deres eget kort i sæsonens farver — med bemærkningen »Separat billet«, når adgangen ikke er inkluderet i entréen."
+      "queues": {
+        "title": "Hver kø har sin egen side",
+        "body": "Single Rider, Disney Premier Access, virtuel kø: tryk på en kø for at åbne dens egen side med ventetid eller tidsrum, status og alarm. På en kø med tidsrum giver alarmen dig besked, så snart et tidligere tidsrum bliver ledigt."
       },
-      "weather": {
-        "title": "Vejret i parken, live",
-        "body": "Parkens temperatur og himmel står i toppen af siden og opdateres hver time. Praktisk til at forudse travlheden — og til at vide, om regnjakken skal med."
+      "forecast": {
+        "title": "Prognoser, du kan tjekke",
+        "body": "I gråt det, vi havde forudsagt en time før, tegnet ved siden af det, der faktisk skete: døm selv. Og når en park angiver et interval, vises det, som det er — »10–20 min« i stedet for ét tal."
+      },
+      "halloween": {
+        "title": "Halloween, hus for hus",
+        "body": "Gyserhusene viser deres uhyggeniveau, fra ét til fem dødningehoveder, og deres pris, når adgangen koster ekstra. Eventkortet følger sine sessioner — dagen og derefter aftenen — og har sine egne knapper: huse, shows, restauranter."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "Ventetiden er faldet til 15 min",
-        "reopened": "Forlystelsen er lige åbnet igen",
-        "show": "Begynder om 15 minutter"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Jul"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "God fornøjelse!",
-      "body": "Alt er på plads. En ny side, »Om os«, fortæller, hvor ventetiderne kommer fra, og gennemgår hver funktion, hvis du vil grave dybere.",
+      "body": "Alt er på plads. En kommentar, en idé, en park der mangler? Skriv til os: adressen står på siden »Om os«.",
       "aboutLink": "Se siden Om os"
     }
   },

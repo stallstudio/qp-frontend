@@ -10,15 +10,16 @@
 // visiteur de l'époque doit voir l'annonce v3, c'est tout l'objet du versionnage.
 // ————————————————————————————————————————————————————————————————————————
 
-export const WHATS_NEW_VERSION = "3";
+export const WHATS_NEW_VERSION = "4";
 
 export const WHATS_NEW_STORAGE_KEY = `qp-whats-new-v${WHATS_NEW_VERSION}-seen`;
 
 // Garde-fou : passé cette date, l'annonce ne s'affiche plus pour personne, même
 // pour un visiteur qui n'était pas revenu depuis. Annoncer « la nouvelle
 // version » un an après sa sortie ne rend service à personne, et évite qu'un
-// oubli de nettoyage se voie en production. Même principe que la v2.
-export const WHATS_NEW_EXPIRES_AT = "2027-03-01";
+// oubli de nettoyage se voie en production. Même principe que la v2 et la v3 :
+// environ six mois après la sortie.
+export const WHATS_NEW_EXPIRES_AT = "2027-05-01";
 
 export function isWhatsNewExpired(now: Date = new Date()): boolean {
   return now >= new Date(WHATS_NEW_EXPIRES_AT);
