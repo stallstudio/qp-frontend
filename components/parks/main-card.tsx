@@ -110,10 +110,16 @@ const FAMILY_SLIDE: Variants = {
 };
 
 // « Réduire les animations » : le changement reste perceptible, sans mouvement.
+//
+// ⚠️ `x: 0` partout, et ce n'est pas un mouvement : le SERVEUR ne connaît pas le
+// réglage du visiteur et rend toujours `FAMILY_SLIDE`, dont le repos écrit
+// `transform: none`. Sans `x` ici, le client de qui a demandé moins
+// d'animations rendait un style sans `transform`, et React signalait un écart
+// d'hydratation sur chaque liste de la page (relevé le 2026-10-09).
 const FAMILY_FADE: Variants = {
-  enter: { opacity: 0 },
-  center: { opacity: 1, transition: { duration: 0.15 } },
-  exit: { opacity: 0, transition: { duration: 0.1 } },
+  enter: { opacity: 0, x: 0 },
+  center: { opacity: 1, x: 0, transition: { duration: 0.15 } },
+  exit: { opacity: 0, x: 0, transition: { duration: 0.1 } },
 };
 
 // Au-delà de ce délai sans écriture du worker, on affiche l'horodatage des
