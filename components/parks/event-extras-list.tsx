@@ -1,13 +1,10 @@
 "use client";
 
-import { ChevronRight, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type EventExtra = {
   id: number;
   name: string;
-  /** Quartier ou salle, dans la langue de la source ; `null` = rien. */
-  place: string | null;
 };
 
 /**
@@ -20,6 +17,10 @@ export type EventExtra = {
  * ⚠️ **Pas de ligne vide dans la grille ou la table** : une timeline sans barre
  * ou un temps « – » se liraient comme « rien aujourd'hui » ou « fermé », alors
  * qu'on ne sait simplement pas.
+ *
+ * ⚠️ **Mêmes lignes que la liste du parc** (2026-10-09) : le nom seul, au bord,
+ * sans zone ni chevron. Le retrait, le quartier et la flèche en faisaient une
+ * liste d'un autre genre, juste au-dessus de la table qu'elle complète.
  */
 export default function EventExtrasList({
   items,
@@ -34,9 +35,9 @@ export default function EventExtrasList({
   onActivate: (id: number) => void;
 }) {
   return (
-    <div className={cn(heading && "border-t")}>
+    <div className={cn("text-sm", heading && "border-t")}>
       {heading && (
-        <p className="px-3 pt-3 pb-1 text-[11px] font-medium text-muted-foreground">
+        <p className="pt-3 pb-1 text-[11px] font-medium text-muted-foreground">
           {heading}
         </p>
       )}
@@ -47,21 +48,11 @@ export default function EventExtrasList({
               type="button"
               onClick={() => onActivate(item.id)}
               aria-label={ariaLabel(item.name)}
-              className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-[var(--table-row-hover)]"
+              // `min-h-10` : la hauteur qu'un badge donne à une ligne de la
+              // table ; sans, ces lignes seraient plus serrées que les siennes.
+              className="flex min-h-10 w-full items-center py-2 pe-2 text-left font-medium wrap-break-word transition-colors duration-500 hover:bg-[var(--table-row-hover)]"
             >
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium">{item.name}</span>
-                {item.place && (
-                  <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
-                    <MapPin className="size-3 shrink-0" aria-hidden="true" />
-                    {item.place}
-                  </span>
-                )}
-              </span>
-              <ChevronRight
-                className="size-4 shrink-0 text-muted-foreground"
-                aria-hidden="true"
-              />
+              {item.name}
             </button>
           </li>
         ))}
