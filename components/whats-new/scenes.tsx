@@ -156,6 +156,11 @@ const SM_QUERY = "(min-width: 640px)";
 // Jamais plus grand que ça, même si la place le permet : c'est une vignette.
 const MAX_SCALE = 0.78;
 
+// Les 2,5 derniers rem de la scène s'effacent. Ce qu'une scène doit montrer
+// (ligne d'alerte, bandeau, phrase de prévision) tient au-dessus : c'est ce
+// qui règle la hauteur de chacune (`FEATURES`) et sa réduction (`maxScale`).
+const FADE_MASK = "linear-gradient(to bottom, black calc(100% - 2.5rem), transparent)";
+
 /**
  * Rend ses enfants à `width` pixels, réduits pour tenir dans la largeur de la
  * scène, centrés et calés en haut. Le bas déborde volontairement : le fondu du
@@ -200,7 +205,13 @@ function Miniature({
   }, [widths, maxScale]);
 
   return (
-    <div ref={ref} className="absolute inset-0 overflow-hidden">
+    // Le bas s'efface plutôt que d'être coupé net : sans ce fondu, la liste
+    // s'arrêtait au ras de la scène, juste au-dessus du titre de la carte.
+    <div
+      ref={ref}
+      className="absolute inset-0 overflow-hidden"
+      style={{ maskImage: FADE_MASK, WebkitMaskImage: FADE_MASK }}
+    >
       <div
         inert
         aria-hidden
@@ -720,7 +731,7 @@ export function DetailScene() {
 
   return (
     <SceneFrame tint={["bg-violet-400/25", "bg-primary/25", "bg-sky-400/20"]}>
-      <Miniature width={POPUP_WIDTH} maxScale={0.66}>
+      <Miniature width={POPUP_WIDTH} maxScale={0.6}>
         <DemoState favorites={DLP_FAVORITES}>
           <PopupFrame>
             <div className="shrink-0">
@@ -769,13 +780,15 @@ export function QueuesScene() {
   const still = useStillness();
   const banners = useSceneBanners();
   // 0 : repliée · 1 : dépliée · 2 : le popup de la file Disney Premier Access.
+  // Immobile, la scène s'arrête sur le popup : c'est lui, la nouveauté, et la
+  // scène est taillée pour lui.
   const step = useLoop(3, 2200, !still);
   const expanded = still || step > 0;
-  const popup = !still && step === 2;
+  const popup = still || step === 2;
 
   return (
     <SceneFrame tint={["bg-sky-400/25", "bg-primary/25", "bg-violet-400/20"]}>
-      <Miniature width={LIST_WIDTH} maxScale={0.64}>
+      <Miniature width={LIST_WIDTH} maxScale={0.6}>
         <DemoState
           favorites={DLP_FAVORITES}
           alertQueues={[[HYPERSPACE_ID, "virtualqueue"]]}
@@ -894,7 +907,7 @@ export function HalloweenScene() {
 
   return (
     <SceneFrame tint={["bg-red-400/25", "bg-orange-400/20", "bg-violet-400/20"]}>
-      <Miniature width={LIST_WIDTH}>
+      <Miniature width={LIST_WIDTH} maxScale={0.68}>
         <DemoState favorites={FRIGHT_NIGHTS_FAVORITES}>
           {/* `bg-background` : la carte d'événement n'est qu'un voile teinté
               (`event-accents.tsx`), posé sur le FOND DE LA PAGE. Sur le décor

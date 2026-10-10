@@ -80,10 +80,10 @@ const FEATURES: Feature[] = [
     ],
   },
   { id: "hours", scene: HoursScene, icon: CalendarClock, height: "h-64" },
-  { id: "detail", scene: DetailScene, icon: PanelTop, height: "h-68" },
-  { id: "queues", scene: QueuesScene, icon: TicketCheck, height: "h-68" },
-  { id: "forecast", scene: ForecastScene, icon: LineChart, height: "h-60" },
-  { id: "halloween", scene: HalloweenScene, icon: Ghost, height: "h-64" },
+  { id: "detail", scene: DetailScene, icon: PanelTop, height: "h-72" },
+  { id: "queues", scene: QueuesScene, icon: TicketCheck, height: "h-72" },
+  { id: "forecast", scene: ForecastScene, icon: LineChart, height: "h-68" },
+  { id: "halloween", scene: HalloweenScene, icon: Ghost, height: "h-72" },
 ];
 
 /* ————————————————————————————————————————————————————————————————————————
@@ -282,7 +282,7 @@ function FeatureCard({
         )}
       </motion.div>
 
-      <div className="relative p-4 pt-2">
+      <div className="relative p-4 pt-5">
         <div className="mb-2 flex items-center gap-2.5">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Icon className="size-4.5" />
