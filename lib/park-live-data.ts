@@ -272,7 +272,6 @@ async function buildParkLiveSnapshot(
       unscheduledShows,
       unlistedRides,
       unlistedRestaurants: unlistedRestaurants ?? [],
-      listAllRestaurants: unlistedRestaurants !== null,
       poiHours,
       timedKinds,
       weather,

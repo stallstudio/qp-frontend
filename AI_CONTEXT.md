@@ -214,18 +214,17 @@ nom comme pour une attraction, à la place de l'ancien lien « Voir sur Thrills 
 
 ⚠️ **Dans un parc où la MAJORITÉ des restaurants publie sa carte, TOUS ont
 leur ligne, dans les deux onglets** (2026-10-10, `lib/menu-pois.ts`,
-`ParkLiveData.listAllRestaurants` / `unlistedRestaurants`). Le critère de base
+`ParkLiveData.unlistedRestaurants`). Le critère de base
 reste l'état ou les heures du jour, inchangé ailleurs. Mais le Parc Astérix ne
 publie aucun état (et des heures pour 3 restaurants à table sur 14) alors que
 12 sur 14 ont leur carte PDF : aucun n'apparaissait. Arbitré par Lilian : une ou
 deux cartes sur un parc ne valent pas une liste de noms ; une majorité, si — et
-alors tous, carte ou non, pour qu'aucun ne manque d'un onglet à l'autre.
+alors tous, carte ou non, dans l'onglet « En direct » seulement.
 - « En direct » : ceux sans état sous la liste, intertitre « État non publié »
   TOUJOURS affiché, même seul.
-- « Horaires du jour » : ceux sans heures (avec ou sans état) sous la grille,
-  intertitre « Horaires non publiés », même forme que les spectacles sans
-  séance d'un événement (`EventExtrasList`, `detached` quand l'intertitre est
-  seul). Les heures connues restent dans la grille, jamais ailleurs.
+- « Horaires du jour » : INCHANGÉ, seuls les restaurants qui ont des heures
+  (au Parc Astérix, les trois restaurants à table via Zenchef). Pas de liste
+  « Horaires non publiés » pour les restaurants (arbitré le 2026-10-10).
 - Le clic ouvre le popup POI habituel (« Voir la carte » s'il y en a une).
 
 ⚠️ **`service` n'est PAS affiché en direct**, bien que le worker le rattache
