@@ -6,6 +6,7 @@ import { useFavoritesContext } from "@/components/providers/favorites-provider";
 import { poiFavorite } from "@/lib/favorites-storage";
 import AttractionDetailDialog from "@/components/parks/attraction-detail/attraction-detail-dialog";
 import PoiDetailDialog from "@/components/parks/poi-detail/poi-detail-dialog";
+import EventExtrasList from "@/components/parks/event-extras-list";
 import ScheduleGrid, {
   type GridRow,
 } from "@/components/parks/show-time-table/schedule-grid";
@@ -23,6 +24,13 @@ type PoiHoursTableProps = {
    * l'onglet « En direct » quand le POI y figure (état, alertes, graphique).
    */
   waitTimes: WaitTime[];
+  /**
+   * POI de la famille SANS heures du jour, listés sous la grille avec
+   * l'intertitre « Horaires non publiés » — les restaurants du Parc Astérix
+   * hors des trois restaurants à table. Même forme que les spectacles sans
+   * séance d'une carte d'événement.
+   */
+  unlisted?: WaitTime[];
   reopenAllowed?: boolean;
 };
 
@@ -43,10 +51,20 @@ export default function PoiHoursTable({
   parkIdentifier,
   parkName,
   waitTimes,
+  unlisted = [],
   reopenAllowed = true,
 }: PoiHoursTableProps) {
   const t = useTranslations("poiDetail");
+  const tShowDetail = useTranslations("showDetail");
   const { favorites } = useFavoritesContext();
+  const isFavorite = (poi: WaitTime) => {
+    const { namespace, key } = poiFavorite(parkIdentifier, {
+      id: poi.rideId,
+      name: poi.rideName,
+      kind: poi.kind,
+    });
+    return favorites[namespace].has(key);
+  };
   const [detailPoiId, setDetailPoiId] = useState<number | null>(null);
 
   const rows = useMemo(() => {
@@ -87,7 +105,9 @@ export default function PoiHoursTable({
   // sur la seule fiche du POI — sans état, puisqu'on n'en a pas relevé.
   const detail = useMemo((): WaitTime | null => {
     if (detailPoiId == null) return null;
-    const live = waitTimes.find((wt) => wt.rideId === detailPoiId);
+    const live =
+      waitTimes.find((wt) => wt.rideId === detailPoiId) ??
+      unlisted.find((wt) => wt.rideId === detailPoiId);
     if (live) return live;
     const item = items.find((i) => i.poiId === detailPoiId);
     if (!item) return null;
@@ -103,7 +123,7 @@ export default function PoiHoursTable({
       fearLevel: item.fearLevel,
       price: item.price,
     };
-  }, [detailPoiId, waitTimes, items]);
+  }, [detailPoiId, waitTimes, unlisted, items]);
 
   const close = (open: boolean) => {
     if (!open) setDetailPoiId(null);
@@ -111,13 +131,31 @@ export default function PoiHoursTable({
 
   return (
     <>
-      <ScheduleGrid
-        rows={rows}
-        timezone={timezone}
-        parkDate={parkDate}
-        showRange
-        onActivate={(uid) => setDetailPoiId(Number(uid))}
-      />
+      {rows.length > 0 && (
+        <ScheduleGrid
+          rows={rows}
+          timezone={timezone}
+          parkDate={parkDate}
+          showRange
+          onActivate={(uid) => setDetailPoiId(Number(uid))}
+        />
+      )}
+
+      {/* Toujours titrée, même seule : c'est ce qui dit qu'on ne connaît pas
+          leurs heures, et non qu'ils sont fermés. */}
+      {unlisted.length > 0 && (
+        <EventExtrasList
+          items={unlisted.map((poi) => ({
+            id: poi.rideId,
+            name: poi.rideName,
+            favorite: isFavorite(poi),
+          }))}
+          heading={tShowDetail("unscheduledTitle")}
+          detached={rows.length > 0}
+          ariaLabel={(poi) => t("openFor", { poi })}
+          onActivate={(id) => setDetailPoiId(id)}
+        />
+      )}
 
       <AttractionDetailDialog
         target={detail?.kind === "ride" ? detail : null}

@@ -212,16 +212,19 @@ RETIRÉ le 2026-08-28 : ces valeurs arrivent dans la langue du flux du parc
 donc plus transportées du tout. Seule la ZONE est revenue (2026-10-06), sous le
 nom comme pour une attraction, à la place de l'ancien lien « Voir sur Thrills ».
 
-⚠️ **Un restaurant qui publie sa CARTE sans son état a sa ligne** (2026-10-10,
+⚠️ **TOUS les restaurants ont leur ligne, dans les deux onglets** (2026-10-10,
 `lib/menu-pois.ts`, `ParkLiveData.unlistedRestaurants`). Le front ne
 connaissait un restaurant que par son état ou ses heures du jour : le Parc
-Astérix publie la carte en PDF de 12 restaurants sur 14 mais aucun état, et
-aucun n'apparaissait. Ils sont listés SOUS la liste « Restaurants » du direct
-(`EventExtrasList`, intertitre « État non publié » s'il y a une table
-au-dessus), et la famille existe même s'il n'y a qu'eux. Le clic ouvre le même
-popup : carte, et horaires du jour s'il y en a (les restaurants à table
-d'Astérix, via Zenchef côté worker). Seulement AVEC une carte : un restaurant
-sans état ni carte n'aurait que son nom à montrer.
+Astérix ne publie aucun état (et des heures pour 3 restaurants à table sur 14),
+et aucun n'apparaissait, ni leurs cartes PDF. Arbitré par Lilian : tous, carte
+ou non, pour qu'aucun ne manque d'un onglet à l'autre.
+- « En direct » : ceux sans état sous la liste, intertitre « État non publié »
+  TOUJOURS affiché, même seul.
+- « Horaires du jour » : ceux sans heures (avec ou sans état) sous la grille,
+  intertitre « Horaires non publiés », même forme que les spectacles sans
+  séance d'un événement (`EventExtrasList`, `detached` quand l'intertitre est
+  seul). Les heures connues restent dans la grille, jamais ailleurs.
+- Le clic ouvre le popup POI habituel (« Voir la carte » s'il y en a une).
 
 ⚠️ **`service` n'est PAS affiché en direct**, bien que le worker le rattache
 comme les autres (absent de `LIVE_FAMILIES`) — seulement dans « Horaires du
