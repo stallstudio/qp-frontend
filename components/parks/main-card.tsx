@@ -323,6 +323,12 @@ export default function MainCard({
     return byFamily;
   }, [mainWaitTimes]);
 
+  // Les restaurants à carte sans état, même règle pour les événements.
+  const mainUnlistedRestaurants = useMemo(
+    () => (park.unlistedRestaurants ?? []).filter((wt) => wt.eventId == null),
+    [park.unlistedRestaurants],
+  );
+
   // Même partition pour les spectacles — mais ici la raison n'est pas seulement
   // le rangement : mélanger des représentations NOCTURNES dans la timeline du
   // jour étire l'axe de ~10 h à ~15 h d'amplitude et écrase toutes les
@@ -462,6 +468,7 @@ export default function MainCard({
     (park.shows ?? []).some((s) => s.eventId === eventId) ||
     (park.unscheduledShows ?? []).some((s) => s.eventId === eventId) ||
     (park.unlistedRides ?? []).some((wt) => wt.eventId === eventId) ||
+    (park.unlistedRestaurants ?? []).some((wt) => wt.eventId === eventId) ||
     poiHours.some((h) => h.eventId === eventId);
 
   // ————— Les cartes d'événement : chacune a SON sélecteur —————
@@ -547,10 +554,16 @@ export default function MainCard({
         />
       );
     }
-    if (items.length === 0) return null;
+    // Les restaurants SANS état mais avec leur carte (Parc Astérix).
+    const unlistedPois =
+      family === "restaurant"
+        ? (park.unlistedRestaurants ?? []).filter((wt) => wt.eventId === eventId)
+        : [];
+    if (items.length === 0 && unlistedPois.length === 0) return null;
     return (
       <PoiStatusTable
         pois={items}
+        unlisted={unlistedPois}
         kind={family}
         parkIdentifier={park.identifier}
         parkName={park.name}
@@ -631,9 +644,14 @@ export default function MainCard({
         />
       ) : null;
     }
-    return liveItems[family].length > 0 ? (
+    // ⚠️ Les restaurants qui publient leur carte sans leur état ont leur
+    // place sous la liste, et la famille existe même s'il n'y a qu'eux : au
+    // Parc Astérix, aucun restaurant ne publie d'état (voir `lib/menu-pois.ts`).
+    const unlistedPois = family === "restaurant" ? mainUnlistedRestaurants : [];
+    return liveItems[family].length > 0 || unlistedPois.length > 0 ? (
       <PoiStatusTable
         pois={liveItems[family]}
+        unlisted={unlistedPois}
         kind={family}
         parkIdentifier={park.identifier}
         parkName={park.name}

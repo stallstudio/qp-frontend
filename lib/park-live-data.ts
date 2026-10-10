@@ -8,6 +8,7 @@ import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDates } from "@/lib/show-times";
 import { getPoiHoursByParkAndDate } from "@/lib/poi-hours";
 import { getTimedKinds } from "@/lib/timed-kinds";
+import { getRestaurantsWithoutStatus } from "@/lib/menu-pois";
 import { getEventPoisWithoutData } from "@/lib/event-pois";
 import { limitShowsToSessions } from "@/lib/show-window";
 import { getWeatherByParkAndDate } from "@/lib/weather";
@@ -188,23 +189,37 @@ async function buildParkLiveSnapshot(
   // POI désactivé dans l'admin mais affiché en direct doit garder ses heures
   // (voir `getPoiHoursByParkAndDate`).
   const waitTimesQuery = getLatestWaitTimesByPark(park.id, park.lastUpdatedAt);
-  const [waitTimes, showTimes, openingHours, daily, poiHours, timedKinds] =
-    await Promise.all([
-      waitTimesQuery,
-      getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
-      getOpeningHoursByParkAndDate(park.id, today),
-      getWeatherByParkAndDate(park.id, today),
-      waitTimesQuery.then((live) =>
-        getPoiHoursByParkAndDate(
-          park.id,
-          today,
-          new Set(live.map((wt) => wt.rideId)),
-        ),
+  const [
+    waitTimes,
+    showTimes,
+    openingHours,
+    daily,
+    poiHours,
+    timedKinds,
+    unlistedRestaurants,
+  ] = await Promise.all([
+    waitTimesQuery,
+    getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
+    getOpeningHoursByParkAndDate(park.id, today),
+    getWeatherByParkAndDate(park.id, today),
+    waitTimesQuery.then((live) =>
+      getPoiHoursByParkAndDate(
+        park.id,
+        today,
+        new Set(live.map((wt) => wt.rideId)),
       ),
-      waitTimesQuery.then((live) =>
-        getTimedKinds(park.id, park.identifier, live),
+    ),
+    waitTimesQuery.then((live) =>
+      getTimedKinds(park.id, park.identifier, live),
+    ),
+    // Les restaurants à carte sans état, voir `lib/menu-pois.ts`.
+    waitTimesQuery.then((live) =>
+      getRestaurantsWithoutStatus(
+        park.id,
+        new Set(live.map((wt) => wt.rideId)),
       ),
-    ]);
+    ),
+  ]);
 
   // ⚠️ EN SÉRIE, à dessein : les horaires portent l'`eventId` de chaque
   // session, donc la fenêtre du jour de chaque événement. Les charger d'abord
@@ -255,6 +270,7 @@ async function buildParkLiveSnapshot(
       shows,
       unscheduledShows,
       unlistedRides,
+      unlistedRestaurants,
       poiHours,
       timedKinds,
       weather,

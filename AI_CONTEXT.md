@@ -212,6 +212,17 @@ RETIRÉ le 2026-08-28 : ces valeurs arrivent dans la langue du flux du parc
 donc plus transportées du tout. Seule la ZONE est revenue (2026-10-06), sous le
 nom comme pour une attraction, à la place de l'ancien lien « Voir sur Thrills ».
 
+⚠️ **Un restaurant qui publie sa CARTE sans son état a sa ligne** (2026-10-10,
+`lib/menu-pois.ts`, `ParkLiveData.unlistedRestaurants`). Le front ne
+connaissait un restaurant que par son état ou ses heures du jour : le Parc
+Astérix publie la carte en PDF de 12 restaurants sur 14 mais aucun état, et
+aucun n'apparaissait. Ils sont listés SOUS la liste « Restaurants » du direct
+(`EventExtrasList`, intertitre « État non publié » s'il y a une table
+au-dessus), et la famille existe même s'il n'y a qu'eux. Le clic ouvre le même
+popup : carte, et horaires du jour s'il y en a (les restaurants à table
+d'Astérix, via Zenchef côté worker). Seulement AVEC une carte : un restaurant
+sans état ni carte n'aurait que son nom à montrer.
+
 ⚠️ **`service` n'est PAS affiché en direct**, bien que le worker le rattache
 comme les autres (absent de `LIVE_FAMILIES`) — seulement dans « Horaires du
 jour », s'il a des horaires. Ce que les sources y rangent, ce sont des toilettes,

@@ -167,7 +167,8 @@
     "updatedAgo": "{age} geleden bijgewerkt",
     "liveConnected": "Live",
     "liveFallback": "Automatisch vernieuwen",
-    "unlistedTitle": "Wachttijden niet gepubliceerd"
+    "unlistedTitle": "Wachttijden niet gepubliceerd",
+    "unlistedStatusTitle": "Status niet gepubliceerd"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Alle rechten voorbehouden.",
