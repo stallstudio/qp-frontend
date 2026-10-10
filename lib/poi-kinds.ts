@@ -154,6 +154,16 @@ export const POI_KIND_ICONS: Record<PoiKind, LucideIcon> = {
  * leurs terminaux presque tous éteints, et Skara Sommarland, fermé pour la
  * saison, aucune. Les quatre déclarent pourtant des terminaux dans leur CMS et
  * passent par la même route.
+ *
+ * Ajoutés le 2026-10-10, avec la collecte des restaurants Disney (worker,
+ * audit des apps) :
+ * - **Tokyo Disneyland, Tokyo DisneySea, Hong Kong Disneyland** : mesurés le
+ *   jour même, 17, 14 et 5 valeurs distinctes (0 à 120 min à Tokyo, 5 à
+ *   25 min à Hong Kong). Tokyo publie parfois une fourchette (`waitRange`).
+ * - **Les cinq parcs de Walt Disney World et les deux du Disneyland Resort**,
+ *   sur la foi de la source, comme PRS : c'est l'attente walk-up que l'app
+ *   affiche sur la fiche du restaurant (10 à 65 min relevées le 2026-10-09).
+ *   À Disney Springs, seul T-REX la publie.
  */
 const REAL_WAIT_TIMES: Record<string, readonly PoiKind[]> = {
   "nagashima-spa-land": ["restaurant"],
@@ -161,6 +171,16 @@ const REAL_WAIT_TIMES: Record<string, readonly PoiKind[]> = {
   kolmarden: ["restaurant"],
   furuvik: ["restaurant"],
   "skara-sommarland": ["restaurant"],
+  "tokyo-disneyland": ["restaurant"],
+  "tokyo-disneysea": ["restaurant"],
+  "hong-kong-disneyland": ["restaurant"],
+  "magic-kingdom-florida": ["restaurant"],
+  epcot: ["restaurant"],
+  "hollywood-studios": ["restaurant"],
+  "animal-kingdom": ["restaurant"],
+  "disney-springs": ["restaurant"],
+  "disneyland-california": ["restaurant"],
+  "california-adventure": ["restaurant"],
 };
 
 /** Voir `REAL_WAIT_TIMES`. */
