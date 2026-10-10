@@ -45,16 +45,10 @@ export type ParkLiveData = {
   /**
    * Restaurants SANS état publié — `queues` vide —, rangés sous la liste
    * « Restaurants » du direct, ou dans la carte de leur événement. Vide sauf
-   * quand `listAllRestaurants`. Voir `lib/menu-pois.ts`.
+   * quand la majorité des restaurants du parc publie sa carte. Voir
+   * `lib/menu-pois.ts`.
    */
   unlistedRestaurants: WaitTime[];
-  /**
-   * La majorité des restaurants du parc publie sa carte : TOUS sont listés, y
-   * compris sans état (`unlistedRestaurants`) et sans heures (« Horaires non
-   * publiés »). `false` presque partout : seuls comptent alors l'état et les
-   * heures du jour. Voir `lib/menu-pois.ts`.
-   */
-  listAllRestaurants: boolean;
   /**
    * Heures d'ouverture du jour des POI (restaurants, boutiques, attractions…),
    * pour l'onglet « Horaires du jour ». Vide pour la quasi-totalité des parcs.

@@ -18,10 +18,14 @@ import type { WaitTime } from "@/types/waitTime";
  * jour : une ou deux cartes sur tout un parc ne valent pas une liste de noms
  * muets. Mais là où la plupart en publient — le Parc Astérix, 12 sur 14 —, la
  * carte est une vraie information, et on liste alors TOUS les restaurants,
- * carte ou non, pour qu'aucun ne manque d'un onglet à l'autre.
+ * carte ou non.
+ *
+ * ⚠️ **L'onglet « En direct » seulement.** « Horaires du jour » ne montre que
+ * les restaurants qui ont des heures (au Parc Astérix, les trois restaurants à
+ * table), sans liste « Horaires non publiés ».
  *
  * Rend `null` quand le parc ne remplit pas cette condition : l'appelant garde
- * alors le comportement de base, dans les deux onglets.
+ * alors le comportement de base.
  *
  * Les POI désactivés dans l'admin sont écartés, comme dans `poi_hours`. Rend
  * une liste vide sur toute erreur : c'est un complément, pas le cœur de la
