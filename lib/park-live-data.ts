@@ -212,7 +212,8 @@ async function buildParkLiveSnapshot(
     waitTimesQuery.then((live) =>
       getTimedKinds(park.id, park.identifier, live),
     ),
-    // Les restaurants à carte sans état, voir `lib/menu-pois.ts`.
+    // Les restaurants sans état, quand la plupart publient leur carte : voir
+    // `lib/menu-pois.ts`.
     waitTimesQuery.then((live) =>
       getRestaurantsWithoutStatus(
         park.id,
@@ -270,7 +271,8 @@ async function buildParkLiveSnapshot(
       shows,
       unscheduledShows,
       unlistedRides,
-      unlistedRestaurants,
+      unlistedRestaurants: unlistedRestaurants ?? [],
+      listAllRestaurants: unlistedRestaurants !== null,
       poiHours,
       timedKinds,
       weather,

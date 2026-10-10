@@ -360,16 +360,21 @@ export default function MainCard({
     return byFamily;
   }, [park.poiHours]);
 
-  // Les restaurants SANS heures du jour, tous parcs : ceux du direct comme
-  // ceux qui ne publient pas leur état. Listés sous la grille « Horaires non
-  // publiés », comme les spectacles sans séance d'un événement — un restaurant
-  // présent dans un onglet et absent de l'autre se lisait comme une erreur.
+  // Les restaurants SANS heures du jour, ceux du direct comme ceux qui ne
+  // publient pas leur état. Listés sous la grille « Horaires non publiés »,
+  // comme les spectacles sans séance d'un événement — un restaurant présent
+  // dans un onglet et absent de l'autre se lisait comme une erreur.
+  //
+  // ⚠️ Seulement quand la majorité des restaurants du parc publie sa carte
+  // (`listAllRestaurants`, voir `lib/menu-pois.ts`) : ailleurs, la grille ne
+  // montre que ce qui a des heures, comme avant.
   const restaurantsWithoutHours = useMemo(() => {
+    if (!park.listAllRestaurants) return [];
     const withHours = new Set(hoursItems.restaurant.map((h) => h.poiId));
     return [...liveItems.restaurant, ...mainUnlistedRestaurants]
       .filter((wt) => !withHours.has(wt.rideId))
       .sort((a, b) => a.rideName.localeCompare(b.rideName));
-  }, [hoursItems, liveItems, mainUnlistedRestaurants]);
+  }, [park.listAllRestaurants, hoursItems, liveItems, mainUnlistedRestaurants]);
 
   // Pour les popups, quelle que soit la liste qui les ouvre : voir
   // `PoiHoursProvider`.
