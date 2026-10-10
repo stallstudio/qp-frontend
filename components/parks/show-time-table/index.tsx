@@ -111,6 +111,7 @@ export default function ParkShowTimeTable({
           items={unscheduled.map((show) => ({
             id: show.poiId,
             name: show.showName,
+            favorite: isFavorite(favKey(show.showName)),
           }))}
           heading={rows.length > 0 ? tShowDetail("unscheduledTitle") : null}
           ariaLabel={(show) => tShowDetail("openFor", { show })}

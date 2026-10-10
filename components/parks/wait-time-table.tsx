@@ -638,6 +638,7 @@ export default function ParkWaitTimeTable({
           items={unlisted.map((wt) => ({
             id: wt.rideId,
             name: wt.rideName,
+            favorite: isFavorite(favKey(wt.rideId)),
           }))}
           heading={waitTimes.length > 0 ? t("unlistedTitle") : null}
           ariaLabel={(ride) => tDetail("openFor", { ride })}

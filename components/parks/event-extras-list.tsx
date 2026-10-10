@@ -1,10 +1,14 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type EventExtra = {
   id: number;
   name: string;
+  /** Favori du visiteur : épinglé en tête, étoile devant le nom. */
+  favorite?: boolean;
 };
 
 /**
@@ -25,6 +29,12 @@ export type EventExtra = {
  * L'intertitre a la forme d'un en-tête de colonne (`h-10 border-b`, comme
  * celui de la table et la ligne des heures de la grille) : une petite table
  * sous la grande, détachée par de l'air plutôt que par un filet au-dessus.
+ *
+ * ⚠️ **Les favoris y sont épinglés comme partout ailleurs** (2026-10-10) :
+ * étoile devant le nom, en tête de liste, trait épais sous le dernier. Les
+ * maisons d'IBILAW, que Walibi Belgium ne mesure pas, ne vivent QUE dans cette
+ * liste : une maison mise en favori y restait à sa place alphabétique, alors
+ * qu'elle remontait bien dans la grille des horaires.
  */
 export default function EventExtrasList({
   items,
@@ -38,6 +48,15 @@ export default function EventExtrasList({
   ariaLabel: (name: string) => string;
   onActivate: (id: number) => void;
 }) {
+  const tFav = useTranslations("favorites");
+  // Tri STABLE : les favoris passent devant, chaque groupe garde l'ordre reçu.
+  const sorted = [
+    ...items.filter((item) => item.favorite),
+    ...items.filter((item) => !item.favorite),
+  ];
+  const favCount = items.filter((item) => item.favorite).length;
+  const hasFavBoundary = favCount > 0 && favCount < sorted.length;
+
   return (
     <div className={cn("text-sm", heading && "mt-5")}>
       {heading && (
@@ -46,8 +65,16 @@ export default function EventExtrasList({
         </p>
       )}
       <ul>
-        {items.map((item, index) => (
-          <li key={item.id} className={cn(index > 0 && "border-t")}>
+        {sorted.map((item, index) => (
+          <li
+            key={item.id}
+            className={cn(
+              index > 0 &&
+                (hasFavBoundary && index === favCount
+                  ? "border-t-[3px] border-border"
+                  : "border-t"),
+            )}
+          >
             <button
               type="button"
               onClick={() => onActivate(item.id)}
@@ -56,7 +83,17 @@ export default function EventExtrasList({
               // table ; sans, ces lignes seraient plus serrées que les siennes.
               className="flex min-h-10 w-full items-center py-2 pe-2 text-left font-medium wrap-break-word transition-colors duration-500 hover:bg-[var(--table-row-hover)]"
             >
-              {item.name}
+              {/* Même étoile, même place que dans la table des attractions :
+                  en ligne avec le nom, qu'elle suit s'il passe à la ligne. */}
+              <span>
+                {item.favorite && (
+                  <Star
+                    aria-label={tFav("myFavorites")}
+                    className="mr-1 inline-block size-3.5 align-[-2px] fill-amber-400 text-amber-400"
+                  />
+                )}
+                {item.name}
+              </span>
             </button>
           </li>
         ))}
