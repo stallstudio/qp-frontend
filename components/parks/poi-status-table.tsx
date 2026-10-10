@@ -12,6 +12,7 @@ import { poiFavorite } from "@/lib/favorites-storage";
 import { STATUS_ORDER, getPrimaryQueue, splitGluedTail } from "@/lib/poi-list";
 import { showsWaitTime, type PoiCardKind } from "@/lib/poi-kinds";
 import PoiDetailDialog from "@/components/parks/poi-detail/poi-detail-dialog";
+import EventExtrasList from "@/components/parks/event-extras-list";
 import { cn } from "@/lib/utils";
 import type { WaitTime } from "@/types/waitTime";
 
@@ -23,6 +24,12 @@ const DEFAULT_DIR: Record<SortKey, SortDir> = { name: "asc", status: "asc" };
 
 type PoiStatusTableProps = {
   pois: WaitTime[];
+  /**
+   * POI SANS état publié mais avec quelque chose à montrer dans le popup — les
+   * restaurants à carte du Parc Astérix (`lib/menu-pois.ts`). Listés sous la
+   * table, comme les attractions sans temps d'une carte d'événement.
+   */
+  unlisted?: WaitTime[];
   kind: PoiCardKind;
   parkIdentifier: string;
   parkName: string;
@@ -59,6 +66,7 @@ type PoiStatusTableProps = {
  */
 export default function PoiStatusTable({
   pois,
+  unlisted = [],
   kind,
   parkIdentifier,
   parkName,
@@ -113,18 +121,23 @@ export default function PoiStatusTable({
   const deepLinkHandled = useRef(false);
   useEffect(() => {
     if (deepLinkHandled.current || initialPoiId == null) return;
-    if (pois.some((poi) => poi.rideId === initialPoiId)) {
+    if (
+      pois.some((poi) => poi.rideId === initialPoiId) ||
+      unlisted.some((poi) => poi.rideId === initialPoiId)
+    ) {
       setDetailPoiId(initialPoiId);
     }
     deepLinkHandled.current = true;
-  }, [initialPoiId, pois]);
+  }, [initialPoiId, pois, unlisted]);
 
   // Données VIVES du POI ouvert dans le popup, relues à chaque rafraîchissement
   // — même raison que dans le tableau des attractions : garder l'OBJET du clic
   // en ferait une photo que le cycle de 60 s ne mettrait jamais à jour.
   const detailTarget =
     detailPoiId != null
-      ? (pois.find((poi) => poi.rideId === detailPoiId) ?? null)
+      ? (pois.find((poi) => poi.rideId === detailPoiId) ??
+        unlisted.find((poi) => poi.rideId === detailPoiId) ??
+        null)
       : null;
 
   const sorted = useMemo(() => {
@@ -188,136 +201,155 @@ export default function PoiStatusTable({
     <div className="w-full text-sm">
       {/* Même sémantique ARIA que le tableau des attractions : les lignes sont
           des blocs animés, pas un `<table>`, et sans ces rôles un lecteur
-          d'écran n'annoncerait qu'une suite de `<div>`. */}
-      <div role="table" aria-label={t("tableLabel", { park: parkName })}>
-        <div role="rowgroup">
-          <div
-            role="row"
-            className={cn(
-              gridCols,
-              "h-10 border-b font-medium text-muted-foreground",
-            )}
-          >
+          d'écran n'annoncerait qu'une suite de `<div>`.
+          Rien d'état publié, mais des POI sans état : pas de table du tout,
+          dont l'en-tête surmonterait une liste vide. */}
+      {pois.length > 0 && (
+        <div role="table" aria-label={t("tableLabel", { park: parkName })}>
+          <div role="rowgroup">
             <div
-              role="columnheader"
-              aria-sort={ariaSort("name")}
-              className="justify-self-start"
+              role="row"
+              className={cn(
+                gridCols,
+                "h-10 border-b font-medium text-muted-foreground",
+              )}
             >
-              <button
-                type="button"
-                onClick={() => handleSort("name")}
-                className={sortButtonClass}
+              <div
+                role="columnheader"
+                aria-sort={ariaSort("name")}
+                className="justify-self-start"
               >
-                {t("name")}
-                {sortIndicator("name")}
-              </button>
-            </div>
-            {withWaitTime && (
-              <div role="columnheader" aria-sort="none">
-                {t("waitTime")}
+                <button
+                  type="button"
+                  onClick={() => handleSort("name")}
+                  className={sortButtonClass}
+                >
+                  {t("name")}
+                  {sortIndicator("name")}
+                </button>
               </div>
-            )}
-            <div
-              role="columnheader"
-              aria-sort={ariaSort("status")}
-              className="justify-self-end sm:justify-self-start"
-            >
-              <button
-                type="button"
-                onClick={() => handleSort("status")}
-                className={cn(sortButtonClass, "pe-0")}
+              {withWaitTime && (
+                <div role="columnheader" aria-sort="none">
+                  {t("waitTime")}
+                </div>
+              )}
+              <div
+                role="columnheader"
+                aria-sort={ariaSort("status")}
+                className="justify-self-end sm:justify-self-start"
               >
-                {t("status")}
-                {sortIndicator("status")}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handleSort("status")}
+                  className={cn(sortButtonClass, "pe-0")}
+                >
+                  {t("status")}
+                  {sortIndicator("status")}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {sorted.map((poi, index) => {
-          const queue = getPrimaryQueue(poi);
-          if (!queue) return null;
-          const { head, tail } = splitGluedTail(poi.rideName);
-          const isBoundary = hasFavBoundary && index === favCount;
+          {sorted.map((poi, index) => {
+            const queue = getPrimaryQueue(poi);
+            if (!queue) return null;
+            const { head, tail } = splitGluedTail(poi.rideName);
+            const isBoundary = hasFavBoundary && index === favCount;
 
-          return (
-            <Fragment key={poi.rideId}>
-              {/* Purement visuel : hors de l'arbre d'accessibilité, sans quoi
-                  il casserait la structure `table > rowgroup > row`. */}
-              {isBoundary && (
-                <div role="presentation" className="border-t-[3px] border-border" />
-              )}
-              <motion.div
-                role="rowgroup"
-                layout="position"
-                layoutDependency={orderKey}
-                transition={{ type: "spring", stiffness: 320, damping: 36 }}
-                className={cn(index > 0 && !isBoundary && "border-t")}
-              >
-                <div
-                  role="row"
-                  className={cn(
-                    gridCols,
-                    "cursor-pointer transition-colors duration-500",
-                    // Mêmes rôles que la table des temps d'attente : la teinte
-                    // suit la carte d'événement quand il y en a une.
-                    "hover:bg-[var(--table-row-hover)]",
-                    changed.has(`${poi.rideId}-${queue.type}`) &&
-                      "bg-[var(--table-row-accent)]",
-                  )}
-                  onClick={() => setDetailPoiId(poi.rideId)}
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key !== "Enter" && e.key !== " ") return;
-                    e.preventDefault();
-                    setDetailPoiId(poi.rideId);
-                  }}
+            return (
+              <Fragment key={poi.rideId}>
+                {/* Purement visuel : hors de l'arbre d'accessibilité, sans quoi
+                    il casserait la structure `table > rowgroup > row`. */}
+                {isBoundary && (
+                  <div role="presentation" className="border-t-[3px] border-border" />
+                )}
+                <motion.div
+                  role="rowgroup"
+                  layout="position"
+                  layoutDependency={orderKey}
+                  transition={{ type: "spring", stiffness: 320, damping: 36 }}
+                  className={cn(index > 0 && !isBoundary && "border-t")}
                 >
                   <div
-                    role="rowheader"
-                    className="min-w-0 py-2 pe-1 font-medium sm:pe-2"
-                  >
-                    {isFavorite(poi) && (
-                      <Star
-                        aria-label={tFav("myFavorites")}
-                        className="mr-1 inline-block size-3.5 align-[-2px] fill-amber-400 text-amber-400"
-                      />
+                    role="row"
+                    className={cn(
+                      gridCols,
+                      "cursor-pointer transition-colors duration-500",
+                      // Mêmes rôles que la table des temps d'attente : la teinte
+                      // suit la carte d'événement quand il y en a une.
+                      "hover:bg-[var(--table-row-hover)]",
+                      changed.has(`${poi.rideId}-${queue.type}`) &&
+                        "bg-[var(--table-row-accent)]",
                     )}
-                    <span className="wrap-break-word">{head}</span>
-                    {/* Dernier mot + cloche : bloc insécable, comme dans la
-                        liste des attractions. */}
-                    <span className="whitespace-nowrap">
-                      {tail}
-                      {alertRideIds.has(poi.rideId) && (
-                        <BellRing
-                          aria-label={tDetail("notifActive")}
-                          className="ms-1.5 inline-block size-3.5 align-[-2px] text-primary"
+                    onClick={() => setDetailPoiId(poi.rideId)}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" && e.key !== " ") return;
+                      e.preventDefault();
+                      setDetailPoiId(poi.rideId);
+                    }}
+                  >
+                    <div
+                      role="rowheader"
+                      className="min-w-0 py-2 pe-1 font-medium sm:pe-2"
+                    >
+                      {isFavorite(poi) && (
+                        <Star
+                          aria-label={tFav("myFavorites")}
+                          className="mr-1 inline-block size-3.5 align-[-2px] fill-amber-400 text-amber-400"
                         />
                       )}
-                    </span>
-                  </div>
-                  {withWaitTime && (
-                    <div role="cell" className="py-2">
-                      {getWaitTimeBadge(
-                        queue.waitTime,
-                        unavailableLabel,
-                        undefined,
-                        queue.waitRange,
-                      )}
+                      <span className="wrap-break-word">{head}</span>
+                      {/* Dernier mot + cloche : bloc insécable, comme dans la
+                          liste des attractions. */}
+                      <span className="whitespace-nowrap">
+                        {tail}
+                        {alertRideIds.has(poi.rideId) && (
+                          <BellRing
+                            aria-label={tDetail("notifActive")}
+                            className="ms-1.5 inline-block size-3.5 align-[-2px] text-primary"
+                          />
+                        )}
+                      </span>
                     </div>
-                  )}
-                  <div
-                    role="cell"
-                    className="flex justify-end py-2 pe-0 sm:block"
-                  >
-                    {getStatusBadge(queue.status, statusLabels, true)}
+                    {withWaitTime && (
+                      <div role="cell" className="py-2">
+                        {getWaitTimeBadge(
+                          queue.waitTime,
+                          unavailableLabel,
+                          undefined,
+                          queue.waitRange,
+                        )}
+                      </div>
+                    )}
+                    <div
+                      role="cell"
+                      className="flex justify-end py-2 pe-0 sm:block"
+                    >
+                      {getStatusBadge(queue.status, statusLabels, true)}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            </Fragment>
-          );
-        })}
-      </div>
+                </motion.div>
+              </Fragment>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ⚠️ Pas de ligne dans la table : un état « – » se lirait comme
+          « fermé », alors qu'on ne sait simplement pas. */}
+      {unlisted.length > 0 && (
+        <EventExtrasList
+          items={unlisted.map((poi) => ({
+            id: poi.rideId,
+            name: poi.rideName,
+            favorite: isFavorite(poi),
+          }))}
+          heading={pois.length > 0 ? t("unlistedStatusTitle") : null}
+          ariaLabel={(poi) => tDetail("openFor", { ride: poi })}
+          onActivate={(id) => setDetailPoiId(id)}
+        />
+      )}
 
       <PoiDetailDialog
         target={detailTarget}

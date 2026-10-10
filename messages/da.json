@@ -167,7 +167,8 @@
     "updatedAgo": "Opdateret for {age} siden",
     "liveConnected": "Live",
     "liveFallback": "Automatisk opdatering",
-    "unlistedTitle": "Ventetider ikke offentliggjort"
+    "unlistedTitle": "Ventetider ikke offentliggjort",
+    "unlistedStatusTitle": "Status ikke offentliggjort"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Alle rettigheder forbeholdes.",

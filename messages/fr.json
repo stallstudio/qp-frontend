@@ -167,7 +167,8 @@
     "updatedAgo": "Mis à jour il y a {age}",
     "liveConnected": "En direct",
     "liveFallback": "Actualisation automatique",
-    "unlistedTitle": "Temps d'attente non publiés"
+    "unlistedTitle": "Temps d'attente non publiés",
+    "unlistedStatusTitle": "État non publié"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Tous droits réservés.",
