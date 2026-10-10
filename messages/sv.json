@@ -48,7 +48,11 @@
     "hoursOther": "Öppettider",
     "cards": {
       "attractions": "Attraktioner",
-      "shows": "Shower"
+      "shows": "Shower",
+      "restaurants": "Restauranger",
+      "shops": "Butiker",
+      "hotels": "Hotell",
+      "services": "Service"
     }
   },
   "parkStatus": {
@@ -59,13 +63,15 @@
     "open": "Öppen",
     "closed": "Stängd",
     "down": "Driftstopp",
+    "downShort": "Stopp",
     "maintenance": "Underhåll",
     "unavailable": "Otillgänglig",
     "unavailableShort": "Otillg."
   },
   "tabs": {
     "live": "Live",
-    "schedule": "Öppettider"
+    "schedule": "Öppettider",
+    "families": "Kategorier"
   },
   "shows": {
     "show": "Show",
@@ -78,9 +84,6 @@
   },
   "showDetail": {
     "openFor": "Visa detaljer för {show}",
-    "notifTitle": "Aviseringar",
-    "duration": "Längd: {duration}",
-    "continuousAccess": "Löpande insläpp · {range}",
     "signInIntro": "Logga in för att få en påminnelse innan en show börjar.",
     "reminderIntro": "Välj en föreställning och sedan hur långt i förväg du vill bli påmind.",
     "leadLabel": "Hur långt före showen vill du bli påmind?",
@@ -97,7 +100,28 @@
     "noUpcoming": "Det finns inga fler shower i dag.",
     "leadTooLate": "Den här föreställningen börjar för snart för att ställa in en påminnelse.",
     "reminderActivate": "Aktivera påminnelse",
-    "reminderModify": "Redigera påminnelse"
+    "reminderModify": "Redigera påminnelse",
+    "liveNext": "Nästa föreställning",
+    "liveDuration": "Längd",
+    "liveRemaining": "Kvar",
+    "liveAccess": "Tillträde",
+    "reminderRowTitle": "Påminn mig före en föreställning",
+    "reminderRowPick": "Välj en föreställning",
+    "reminderRowEdit": "Ändra eller lägg till",
+    "reminderRowCount": "{count, plural, one {# påminnelse satt} other {# påminnelser satta}}",
+    "reminderSlot": "Föreställning kl. {time}",
+    "reminderPickHint": "Tryck på en annan kommande föreställning för att välja den.",
+    "noSchedule": "Parken publicerar inga tider för den här attraktionen.",
+    "unscheduledTitle": "Tider inte publicerade"
+  },
+  "poiFacts": {
+    "fearLevel": "Skräcknivå",
+    "fearLevelValue": "{level} av 5",
+    "price": "Pris",
+    "free": "Gratis",
+    "extendedPrice": "{price} på dagar med förlängda öppettider",
+    "extendedOnly": "På dagar med förlängda öppettider",
+    "extendedToday": "Pris vid förlängda öppettider"
   },
   "favorites": {
     "myFavorites": "Mina favoriter",
@@ -142,7 +166,8 @@
     "lastUpdate": "Senast uppdaterad",
     "updatedAgo": "Uppdaterad för {age} sedan",
     "liveConnected": "Live",
-    "liveFallback": "Automatisk uppdatering"
+    "liveFallback": "Automatisk uppdatering",
+    "unlistedTitle": "Väntetider inte publicerade"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Med ensamrätt.",
@@ -224,7 +249,7 @@
       },
       "favorites": {
         "title": "Favoriter",
-        "body": "Tryck på stjärnan för att lägga till en park, en attraktion eller en show bland dina favoriter. Favoritparker ligger överst på startsidan; dina favoritattraktioner och -shower är grupperade per park i ett fönster från din profil. Sparade på ditt konto och synkroniserade på alla dina enheter.",
+        "body": "Tryck på stjärnan för att lägga till en park, en attraktion, en show, en restaurang eller en butik bland dina favoriter. Favoritparker ligger överst på startsidan; resten hamnar överst i parkens listor och är grupperade per park i ett fönster från din profil. Sparade på ditt konto och synkroniserade på alla dina enheter.",
         "parksLabel": "Favoritparker",
         "ridesLabel": "Favoritattraktioner (profil)",
         "hint": "Tryck på en stjärna: favoritparken hoppar upp överst på startsidan."
@@ -255,7 +280,7 @@
       },
       "alerts": {
         "title": "Kötidsaviseringar",
-        "body": "Välj en gräns på en attraktions sida: du får en avisering så snart kötiden sjunker under den. När aviseringen väl skickats har den gjort sitt: den försvinner och flyttas till din historik. Skapa bara en ny från attraktionens sida. Kräver ett konto och tillåtelse för aviseringar."
+        "body": "Välj en gräns på en attraktions sida — eller på sidan för en restaurang som publicerar sin kötid: du får en avisering så snart kötiden sjunker under den. När aviseringen väl skickats har den gjort sitt: den försvinner och flyttas till din historik. Skapa bara en ny från sidan. Aviseringar erbjuds bara där parken publicerar sina kötider. Kräver ett konto och tillåtelse för aviseringar."
       },
       "reminders": {
         "title": "Showpåminnelser",
@@ -292,12 +317,12 @@
     "temperatureUnit": "Temperaturenhet"
   },
   "whatsNew": {
-    "srTitle": "Nyheterna i Queue Park v3",
-    "srDescription": "En presentation av nyheterna i version 3 av Queue Park.",
+    "srTitle": "Nyheterna i Queue Park v4",
+    "srDescription": "En genomgång av nyheterna i version 4 av Queue Park.",
     "hero": {
       "eyebrow": "{count} nyheter",
-      "title": "Queue Park blir v3",
-      "body": "Ett konto som följer med dig från en enhet till nästa, aviseringar i rätt ögonblick, kötidsprognoser: det här är vad som ändras."
+      "title": "Queue Park blir v4",
+      "body": "Restauranger och butiker, öppettider för varje plats, en omgjord attraktionssida, prognoser du kan kontrollera: hela parken ryms nu på en sida."
     },
     "nav": {
       "scrollHint": "Skrolla",
@@ -308,55 +333,44 @@
       "beta": "Beta"
     },
     "slides": {
-      "account": {
-        "title": "Ditt Queue Park-konto",
-        "body": "Logga in på ett ögonblick, med Google eller en enkel länk via e-post — helt utan lösenord. Dina favoriter, dina aviseringar och dina inställningar följer sedan med dig från mobilen i parken till datorn hemma."
-      },
-      "favorites": {
-        "title": "Dina favoriter, på alla dina enheter",
-        "body": "Stjärnan fungerar nu på parker, attraktioner och shower. Dina favoritparker ligger överst på startsidan, dina favoritattraktioner och -shower hamnar högst upp i parkens tabeller, och du hittar dem alla igen i din profil — synkroniserade på alla dina enheter."
-      },
-      "notifications": {
-        "title": "Aviserad i rätt ögonblick",
-        "body": "Installera Queue Park som app och låt den hålla koll på parken åt dig.",
-        "install": "Installera appen",
+      "park": {
+        "title": "Hela parken, inte bara attraktionerna",
+        "body": "Attraktioner, shower, restauranger, butiker: varje kategori har sin knapp överst i listan, och du byter mellan dem med ett tryck. I parker som publicerar de här uppgifterna visar varje restaurang och butik sin status i realtid och sitt område.",
         "points": {
-          "threshold": "Kötiden till en attraktion sjunker under gränsen du har valt.",
-          "reopened": "En attraktion öppnar igen efter ett stopp eller en stängning.",
-          "show": "En show är på väg att börja, med så lång framförhållning du vill."
+          "menu": "Restaurangens meny, och beställning online när parken erbjuder det.",
+          "favorites": "Stjärnor överallt: en restaurang eller butik blir favorit precis som en attraktion, och hamnar överst i sin lista.",
+          "wait": "Kötiden på restauranger som publicerar den, med en avisering när den sjunker."
         }
       },
-      "forecast": {
-        "title": "Kötidsprognoser",
-        "body": "Den heldragna linjen visar kötiden sedan öppning, den streckade uppskattar den fram till stängning. Precis vad som behövs för att hitta rätt tillfälle att gå dit."
+      "hours": {
+        "title": "Öppettider för varje plats",
+        "body": "Fliken »Öppettider« visar inte längre bara shower: i parker som publicerar dem har attraktioner, restauranger, butiker och hotell sina öppettider där, på en tidslinje över dagen. Det som stänger senast ligger överst, så du ser direkt vad som fortfarande är öppet i kväll."
       },
       "detail": {
-        "title": "Sidan för varje attraktion",
-        "body": "Tryck på en attraktion eller en show: bilden, området i parken, dagens kurva med sin prognos och inställningen av dina aviseringar — allt är samlat på ett ställe."
+        "title": "En sida som går rakt på sak",
+        "body": "Under bilden visar ett band det viktigaste: kötiden, statusen och stängningstiden. En mening från prognosen säger om det är rätt läge, och aviseringen ställs in på en enda rad."
       },
-      "events": {
-        "title": "Parkens evenemang",
-        "body": "Under Halloween eller julen får evenemangets egna attraktioner och shower ett eget kort, i säsongens färger — med noteringen »Separat biljett« när tillträdet inte ingår i entrén."
+      "queues": {
+        "title": "Varje kö har sin egen sida",
+        "body": "Single Rider, Disney Premier Access, virtuell kö: tryck på en kö för att öppna dess egen sida, med kötid eller tidslucka, status och avisering. För en kö med tidsluckor meddelar aviseringen dig så snart en tidigare tidslucka blir ledig."
       },
-      "weather": {
-        "title": "Vädret i parken, live",
-        "body": "Parkens temperatur och himmel visas i sidhuvudet och uppdateras varje timme. Praktiskt för att förutse trängseln — och för att veta om regnjackan ska med."
+      "forecast": {
+        "title": "Prognoser du kan kontrollera",
+        "body": "I grått det vi hade förutsagt en timme tidigare, bredvid det som faktiskt hände: döm själv. Och när en park anger ett spann visas det som det är — »10–20 min« i stället för en enda siffra."
+      },
+      "halloween": {
+        "title": "Halloween, hus för hus",
+        "body": "Skräckhusen visar sin skräcknivå, från en till fem dödskallar, och sitt pris när inträdet kostar extra. Evenemangskortet följer sina sessioner — dagen, sedan kvällen — och har egna knappar: hus, shower, restauranger."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "Kötiden har sjunkit till 15 min",
-        "reopened": "Attraktionen har just öppnat igen",
-        "show": "Börjar om 15 minuter"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Jul"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Ha ett trevligt besök!",
-      "body": "Allt är på plats. En ny sida, »Om oss«, berättar var kötiderna kommer ifrån och går igenom varje funktion, om du vill fördjupa dig.",
+      "body": "Allt är på plats. En kommentar, en idé, en park som saknas? Skriv till oss: adressen finns på sidan »Om oss«.",
       "aboutLink": "Upptäck sidan Om oss"
     }
   },
@@ -424,9 +438,17 @@
     "favoritesParksCount": "{count, plural, one {Favoritpark} other {Favoritparker}}",
     "favoritesRidesCount": "{count, plural, one {Favoritattraktion} other {Favoritattraktioner}}",
     "favoritesShowsCount": "{count, plural, one {Favoritshow} other {Favoritshower}}",
+    "favoritesRestaurantsCount": "{count, plural, one {Favoritrestaurang} other {Favoritrestauranger}}",
+    "favoritesShopsCount": "{count, plural, one {Favoritbutik} other {Favoritbutiker}}",
+    "favoritesHotelsCount": "{count, plural, one {Favorithotell} other {Favorithotell}}",
+    "favoritesServicesCount": "{count, plural, one {Favoritservice} other {Favoritservice}}",
     "favoritesParksTitle": "Favoritparker",
     "favoritesRidesTitle": "Favoritattraktioner",
     "favoritesShowsTitle": "Favoritshower",
+    "favoritesRestaurantsTitle": "Favoritrestauranger",
+    "favoritesShopsTitle": "Favoritbutiker",
+    "favoritesHotelsTitle": "Favorithotell",
+    "favoritesServicesTitle": "Favoritservice",
     "favoritesListEmpty": "Inga favoriter ännu.",
     "favoritesRemove": "Ta bort {name} från favoriter",
     "activeAlertsCount": "{count, plural, one {Aktiv avisering} other {Aktiva aviseringar}}",
@@ -470,8 +492,10 @@
     "historyShows": "Shower",
     "historyShowLine": "föreställning kl. {time} · {lead} min innan",
     "alertsEmptyRides": "Ingen avisering inställd. Skapa en från en attraktion.",
+    "alertsEmptyOther": "Ingen avisering av den här typen just nu.",
     "alertsEmptyShows": "Ingen påminnelse inställd. Skapa en från en show.",
     "historyEmptyRides": "Ingen avisering om attraktioner har skickats ännu.",
+    "historyEmptyOther": "Ingen avisering av den här typen har skickats ännu.",
     "historyEmptyShows": "Ingen avisering om shower har skickats ännu.",
     "edit": "Redigera gräns",
     "subTabActive": "Aktiva",
@@ -484,7 +508,9 @@
     "editLead": "Redigera framförhållning",
     "leadTooLate": "Showen börjar för snart för att ändra framförhållningen.",
     "reopenBadge": "Återöppning",
-    "historyReopenLine": "Öppnade igen"
+    "historyReopenLine": "Öppnade igen",
+    "slotBadge": "Före {time}",
+    "historySlotLine": "Tid före {time} ledig"
   },
   "privacy": {
     "emailLabel": "E-postadress",
@@ -527,11 +553,11 @@
   },
   "attractionDetail": {
     "openFor": "Visa detaljer för {ride}",
-    "alertsTitle": "Aviseringar",
-    "chartTitle": "Dagens kötid",
     "chartToday": "I dag",
     "chartActual": "Kötid",
     "chartForecast": "Prognos",
+    "chartForecastPast": "Prognos",
+    "chartForecastLegend": "Framtida prognos",
     "chartNow": "Nu",
     "chartEmpty": "Inga uppgifter för i dag ännu.",
     "chartUnavailable": "Attraktionen är otillgänglig just nu.",
@@ -540,8 +566,7 @@
     "chartForecastNote": "Grov uppskattning för resten av dagen.",
     "chartForecastPreOpeningNote": "Uppskattning utifrån tidigare dagar – uppdateras när parken öppnar.",
     "estimateTooltip": "Uppskattat utifrån jämförbara tidigare dagar. Verkligheten kan avvika.",
-    "marginNote": "De senaste dagarna har våra prognoser slagit fel med i genomsnitt <v>{minutes} min</v>.",
-    "marginNoteTooltip": "Genomsnittlig skillnad mellan våra prognoser och den kötid som faktiskt uppmätts under de senaste 14 dagarna.",
+    "marginNoteTooltip": "Genomsnittlig skillnad mellan det vi förutsade en timme i förväg och den kötid som faktiskt uppmätts under de senaste 14 dagarna.",
     "installTitle": "Installera Queue Park",
     "installIntro": "Aviseringar kräver att appen är installerad på din enhet.",
     "installButton": "Installera appen",
@@ -561,11 +586,49 @@
     "pushDenied": "Aviseringar är blockerade för den här webbplatsen. Tillåt dem i webbläsarens inställningar för att få dem på den här enheten.",
     "pushUnsupported": "Den här webbläsaren stöder inte push-aviseringar. Aviseringen syns ändå i din profil och i historiken.",
     "reopenLabel": "Den här attraktionen står stilla. Få besked så snart den öppnar igen.",
+    "poiReopenLabel": "Stängt för tillfället. Få besked så snart det öppnar igen.",
     "reopenSave": "Meddela mig när den öppnar igen",
     "reopenActive": "Återöppningsavisering aktiv",
     "reopenSaved": "Återöppningsavisering sparad",
     "reopenTooLate": "Parken är stängd, aviseringar är inte tillgängliga. Kom tillbaka vid parkens nästa öppning.",
-    "statusChanged": "Attraktionens status har just ändrats. Öppna sidan igen för att skapa rätt avisering."
+    "statusChanged": "Attraktionens status har just ändrats. Öppna sidan igen för att skapa rätt avisering.",
+    "poiStatusChanged": "Statusen har just ändrats. Öppna sidan igen för att skapa rätt avisering.",
+    "liveWait": "Kötid",
+    "liveSlot": "Tid",
+    "liveStatus": "Status",
+    "liveOpensAt": "Öppnar kl.",
+    "liveClosesAt": "Stänger kl.",
+    "liveClosedAt": "Stängning",
+    "chartLegendActual": "Uppmätt",
+    "marginShort": "Genomsnittlig avvikelse: <v>{minutes} min</v>.",
+    "insightRise": "Bra läge nu: kötiden väntas stiga till <b>~{minutes} min runt {time}</b>",
+    "insightDrop": "Bättre att vänta: kötiden väntas sjunka till <b>~{minutes} min runt {time}</b>",
+    "alertRowTitle": "Meddela mig när kötiden sjunker",
+    "alertRowSignIn": "Inloggning krävs",
+    "alertRowPick": "Välj en gräns",
+    "alertActiveRow": "Bevakning aktiv · under {minutes} min",
+    "alertThresholdHint": "Gränsen visas i grönt i diagrammet.",
+    "alertActivate": "Aktivera bevakning",
+    "alertEdit": "Ändra",
+    "alertThresholdLine": "Bevakning under {minutes} min",
+    "close": "Stäng",
+    "pushDeniedShort": "Aviseringar blockerade på den här enheten",
+    "insightBest": "Bästa läget enligt prognosen: <b>~{minutes} min runt {time}</b>",
+    "slotRowTitle": "Bevaka en tidigare tid",
+    "slotRowPick": "Välj en tid",
+    "slotOption": "Före {time}",
+    "slotActiveRow": "Bevakning aktiv · tid före {time}",
+    "slotHint": "Du får besked så snart en tid börjar senast vid den här tidpunkten.",
+    "slotNothingEarlier": "Det finns ingen tidigare tid att bevaka just nu.",
+    "queueReopenLabel": "Den här kön är stängd. Få besked så snart den öppnar igen.",
+    "queueNothingToWatch": "Den här kön visar varken väntetid eller tid: inget att bevaka just nu.",
+    "queueSeeRide": "Visa attraktionen"
+  },
+  "poiDetail": {
+    "openFor": "Visa information om {poi}",
+    "menuTitle": "Meny",
+    "menuAction": "Visa menyn",
+    "orderAction": "Visa menyn och beställ"
   },
   "legal": {
     "backHome": "Tillbaka till startsidan",

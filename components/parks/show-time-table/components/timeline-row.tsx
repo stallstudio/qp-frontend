@@ -9,6 +9,8 @@ import {
   LANE_HEIGHT,
   MIN_WIDTH_FOR_TEXT_24H,
   MIN_WIDTH_FOR_TEXT_12H,
+  MIN_WIDTH_FOR_RANGE_24H,
+  MIN_WIDTH_FOR_RANGE_12H,
 } from "../types";
 
 type TimelineRowProps = {
@@ -19,6 +21,9 @@ type TimelineRowProps = {
   timezone: string;
   currentHourPosition: number;
   is12Hour: boolean;
+  // Créneau = plage d'ouverture : on écrit « début – fin » quand la place le
+  // permet, et la bulle des créneaux étroits donne la plage entière.
+  showRange?: boolean;
   // Trait plus franc en haut : marque la 1re ligne classique après les favoris.
   dividerTop?: boolean;
   rowRef: (el: HTMLDivElement | null) => void;
@@ -38,6 +43,7 @@ export function TimelineRow({
   timezone,
   currentHourPosition,
   is12Hour,
+  showRange = false,
   dividerTop = false,
   rowRef,
   highlighted = false,
@@ -97,11 +103,21 @@ export function TimelineRow({
           ? MIN_WIDTH_FOR_TEXT_12H
           : MIN_WIDTH_FOR_TEXT_24H;
         const showTimeText = widthPx >= minWidth;
+        const fitsRange =
+          showRange &&
+          widthPx >=
+            (is12Hour ? MIN_WIDTH_FOR_RANGE_12H : MIN_WIDTH_FOR_RANGE_24H);
 
         const top = verticalPadding + scheduleItem.lane * LANE_HEIGHT + 2;
         const height = LANE_HEIGHT - 4;
 
-        const timeText = startTime.toFormat(getLuxonFormat(is12Hour));
+        const timeFormat = getLuxonFormat(is12Hour);
+        const startText = startTime.toFormat(timeFormat);
+        const rangeText = `${startText} – ${startTime
+          .plus({ minutes: scheduleItem.duration })
+          .toFormat(timeFormat)}`;
+        const timeText = fitsRange ? rangeText : startText;
+        const tooltipText = showRange ? rangeText : startText;
 
         const getBadgeClasses = () => {
           if (isPast) {
@@ -132,7 +148,16 @@ export function TimelineRow({
               justifyContent: showTimeText ? "flex-start" : "center",
             }}
           >
-            {showTimeText && <span>{timeText}</span>}
+            {/* `sticky` : quand le début de la barre sort à gauche de la
+                zone visible, l'heure la suit et reste collée au bord, au lieu
+                de partir avec lui. Une ouverture 11:30 – 21:30 regardée à
+                16 h se lit sans revenir en arrière. Le texte ne quitte jamais
+                sa barre : un élément collant reste borné par son parent. */}
+            {showTimeText && (
+              <span className="sticky left-1 whitespace-nowrap">
+                {timeText}
+              </span>
+            )}
           </div>
         );
 
@@ -142,7 +167,7 @@ export function TimelineRow({
             // clic (tactile) : ce clic-là ne doit pas AUSSI ouvrir le popup,
             // d'où l'arrêt de la propagation vers la ligne.
             <span key={schedIndex} onClick={(e) => e.stopPropagation()}>
-              <ClickableTooltip content={timeText}>
+              <ClickableTooltip content={tooltipText}>
                 {badgeContent}
               </ClickableTooltip>
             </span>
@@ -154,11 +179,20 @@ export function TimelineRow({
 
       {/* Repère « maintenant » : visible tant que la position tombe DANS la
           grille. Le test sur `now.hour` faisait disparaître le trait après
-          minuit alors que la journée du parc n'est pas finie. */}
+          minuit alors que la journée du parc n'est pas finie.
+
+          ⚠️ `-bottom-px` (et `-top-0.5` sous le séparateur des favoris) : un
+          enfant `absolute` se place dans la boîte INTÉRIEURE de la ligne, et
+          la bordure grise est dessinée à l'extérieur. Avec `top-0 bottom-0`,
+          le trait s'arrêtait juste avant chaque séparateur et laissait une
+          coupure d'un pixel à chaque ligne. */}
       {currentHourPosition >= 0 &&
         currentHourPosition <= parkHours.length * 60 && (
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-primary z-10 pointer-events-none"
+            className={cn(
+              "absolute -bottom-px w-0.5 bg-primary z-10 pointer-events-none",
+              dividerTop ? "-top-0.5" : "top-0",
+            )}
             style={{
               left: `${currentHourPosition * PIXEL_PER_MINUTE}px`,
             }}

@@ -28,14 +28,14 @@ import { createHmac, timingSafeEqual } from "crypto";
  * ne doit rien pouvoir prouver d'autre.
  *
  * ⚠️ **L'URL source voyage ENCODÉE, et ce n'est pas de la coquetterie** — voir
- * `encoderUrl` plus bas. Un nom de fichier en clair dans la query suffit à
+ * `encodeUrl` plus bas. Un nom de fichier en clair dans la query suffit à
  * faire annuler la requête par les bloqueurs de publicité du visiteur.
  */
 
-const ETIQUETTE = "image-proxy/v1";
-const TAILLE_SIGNATURE = 16; // 128 bits : de quoi rendre la forge sans espoir.
+const SIGNATURE_LABEL = "image-proxy/v1";
+const SIGNATURE_LENGTH = 16; // 128 bits : de quoi rendre la forge sans espoir.
 
-function cle(): Buffer {
+function signingKey(): Buffer {
   const secret = process.env.AUTH_SECRET;
   if (!secret) {
     // En développement `next-auth` tolère l'absence de secret ; ici, la refuser
@@ -44,14 +44,14 @@ function cle(): Buffer {
       "AUTH_SECRET est requis pour signer les images distantes (lib/image-proxy).",
     );
   }
-  return createHmac("sha256", secret).update(ETIQUETTE).digest();
+  return createHmac("sha256", secret).update(SIGNATURE_LABEL).digest();
 }
 
 function signature(url: string): string {
-  return createHmac("sha256", cle())
+  return createHmac("sha256", signingKey())
     .update(url)
     .digest()
-    .subarray(0, TAILLE_SIGNATURE)
+    .subarray(0, SIGNATURE_LENGTH)
     .toString("base64url");
 }
 
@@ -74,7 +74,7 @@ export function proxiedImageUrl(rawUrl: string): string | null {
   if (parsed.protocol !== "https:") return null;
 
   const url = parsed.toString();
-  return `/api/image?u=${encoderUrl(url)}&s=${signature(url)}`;
+  return `/api/image?u=${encodeUrl(url)}&s=${signature(url)}`;
 }
 
 /**
@@ -109,7 +109,7 @@ export function proxiedImageUrl(rawUrl: string): string | null {
  * main — et chaque parc ajouté peut en apporter d'autres (`728x90`, `160x600`,
  * `300x600`…).
  */
-function encoderUrl(url: string): string {
+function encodeUrl(url: string): string {
   return Buffer.from(url, "utf8").toString("base64url");
 }
 
@@ -125,12 +125,12 @@ function encoderUrl(url: string): string {
  * ni `:` ni `/` n'en font partie —, la distinction est donc exacte et non
  * heuristique. **Supprimable après le 2026-09-05.**
  */
-export function decoderUrl(parametre: string): string | null {
-  if (parametre.startsWith("https://")) return parametre;
+export function decodeUrl(param: string): string | null {
+  if (param.startsWith("https://")) return param;
 
   let decode: string;
   try {
-    decode = Buffer.from(parametre, "base64url").toString("utf8");
+    decode = Buffer.from(param, "base64url").toString("utf8");
   } catch {
     return null;
   }
@@ -141,13 +141,13 @@ export function decoderUrl(parametre: string): string | null {
 
 /** L'URL est-elle bien l'une des nôtres ? Comparaison à temps constant. */
 export function verifyImageSignature(url: string, sig: string): boolean {
-  let attendue: Buffer;
+  let expected: Buffer;
   try {
-    attendue = Buffer.from(signature(url), "base64url");
+    expected = Buffer.from(signature(url), "base64url");
   } catch {
     return false;
   }
-  const fournie = Buffer.from(sig, "base64url");
-  if (fournie.length !== attendue.length) return false;
-  return timingSafeEqual(fournie, attendue);
+  const provided = Buffer.from(sig, "base64url");
+  if (provided.length !== expected.length) return false;
+  return timingSafeEqual(provided, expected);
 }

@@ -111,9 +111,11 @@ model Park {
   waitTimes        WaitTime[]
   unmatchedAlerts  UnmatchedAlert[]
   showTimes        ShowTime[]
+  poiHours         PoiHours[]
   poiChanges       PoiChange[]
   dailyWeather     DailyWeather[]
   rideForecasts    RideForecast[]
+  queueForecasts   QueueForecast[]
   forecastAccuracy ForecastAccuracy[]
   events           ParkEvent[]
   silenceEpisode   ParkSilenceEpisode?
@@ -234,6 +236,24 @@ model RideForecast {
   // à +6 h n'est jamais confronté à l'observé depuis la prévision qui l'a émis.
   referenceForecast   Json?
   referenceComputedAt DateTime?
+
+  // ————— Trace des prévisions déjà écoulées —————
+  //
+  // Ce que la prévision annonçait pour une heure DONNÉE, figé au moment où cette
+  // heure est devenue du passé. Le graphique la retrace en pointillés gris sous
+  // la courbe réelle : la prévision cessait jusqu'ici d'exister dès qu'elle
+  // devenait vérifiable, si bien que l'utilisateur ne pouvait jamais comparer ce
+  // qu'on lui avait annoncé à ce qui s'est produit.
+  //
+  // ⚠️ Distincte de `referenceForecast`, et les deux sont nécessaires :
+  // celle-ci est la DERNIÈRE prévision connue avant l'échéance (ce qu'un
+  // visiteur lisait juste avant d'y aller), l'autre est la promesse du matin
+  // pour toute la journée. La première se compare au réel point par point, la
+  // seconde mesure le profil de base.
+  //
+  // ⚠️ Un point écrit ici n'est JAMAIS réécrit : le figer est tout l'intérêt.
+  // Remis à zéro au changement de jour logique.
+  forecastTrail       Json?
   // Marge d'erreur agrégée (MAE récente toutes fenêtres confondues), en minutes.
   // Redondante avec `margin` porté par chaque point de `forecast` — sert
   // l'affichage admin et le tri, pas le rendu du graphique.
@@ -260,6 +280,50 @@ model RideForecast {
   @@map("ride_forecast")
 }
 
+// Prévision d'une file SECONDAIRE (Single Rider), même moteur et mêmes colonnes
+// que `ride_forecast`, une ligne par (attraction, file).
+//
+// ⚠️ **Une table à part, et pas une colonne `queueType` sur `ride_forecast`.**
+// Le front de production lit `ride_forecast` par `poiId` seul (`findUnique`) :
+// une seconde ligne pour la même attraction lui aurait servi, au hasard de
+// l'index, la courbe du Single Rider sous le nom de la file standby. L'admin
+// (liste et détail des prévisions) aurait de même affiché chaque attraction en
+// double. Ici, aucun lecteur existant ne voit rien changer.
+//
+// ⚠️ Seules les files à attente « classique » y ont leur place : une file
+// virtuelle ou un créneau payant ne se prévoient pas (voir
+// `FORECAST_QUEUE_TYPES`). Pas de colonnes shadow : la variante n'est mesurée
+// que sur la file standby.
+model QueueForecast {
+  id                  Int       @id @default(autoincrement())
+  poiId               Int
+  poi                 Poi       @relation(fields: [poiId], references: [id], onDelete: Cascade)
+  parkId              Int
+  park                Park      @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  queueType           String    @db.VarChar(50)
+  date                String    @db.VarChar(10)
+  baseProfile         Json
+  forecast            Json
+  forecastTrail       Json?
+  scale               Float     @default(1)
+  confidence          Float     @default(0)
+  confidenceLevel     String    @default("low") @db.VarChar(10)
+  method              String    @db.VarChar(40)
+  preOpening          Boolean   @default(false)
+  openTime            DateTime?
+  closeTime           DateTime?
+  referenceForecast   Json?
+  referenceComputedAt DateTime?
+  marginMinutes       Float?
+  marginSamples       Int?      @default(0)
+  computedAt          DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([poiId, queueType])
+  @@index([parkId, queueType])
+  @@map("queue_forecast")
+}
+
 // Justesse mesurée de la prévision : agrégat QUOTIDIEN par attraction et par
 // fenêtre d'horizon. On n'archive PAS les prévisions point par point (à ~5 000
 // attractions × 40 points × 144 passages/jour, la table serait ingérable) : on
@@ -284,6 +348,15 @@ model ForecastAccuracy {
   sumActual      Float @default(0) // Σ observé (donne l'erreur RELATIVE)
 
   method    String   @db.VarChar(40) // version du moteur ayant produit ces points
+  // File mesurée : `standby` pour la quasi-totalité des lignes, `singlerider`
+  // pour celles de `queue_forecast`. Dans la CLÉ, pour la même raison que
+  // `method` : les deux files d'une attraction partagent `poiId`, et leurs
+  // sommes s'additionneraient sur la même ligne.
+  //
+  // ⚠️ Tout lecteur qui agrège doit filtrer dessus (marges du moteur, page
+  // Forecast Accuracy de l'admin) : sans filtre, la justesse du Single Rider se
+  // fond dans celle de l'attraction.
+  queueType String   @default("standby") @db.VarChar(50)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -293,7 +366,7 @@ model ForecastAccuracy {
   // s'additionnaient et `ON DUPLICATE KEY UPDATE ... method = VALUES(method)`
   // réétiquetait le tout au nom de la dernière arrivée. La table censée
   // départager les versions les aurait mélangées en silence.
-  @@unique([poiId, date, horizonBucket, method])
+  @@unique([poiId, date, horizonBucket, method, queueType])
   @@index([parkId, date])
   @@index([date])
   @@map("forecast_accuracy")
@@ -373,7 +446,9 @@ model Poi {
 
   waitTimes        WaitTime[]
   showTimes        ShowTime[]
+  hours            PoiHours[]
   forecast         RideForecast?
+  queueForecasts   QueueForecast[]
   forecastAccuracy ForecastAccuracy[]
 
   // Événement saisonnier auquel ce POI appartient (un maze de Peur sur le Parc,
@@ -429,23 +504,27 @@ enum WaitTimeStatus {
 }
 
 model WaitTime {
-  id         Int            @id @default(autoincrement())
-  poiId      Int?
-  poi        Poi?           @relation(fields: [poiId], references: [id], onDelete: SetNull)
-  parkId     Int
-  park       Park           @relation(fields: [parkId], references: [id], onDelete: Cascade)
-  externalId String         @db.VarChar(255)
-  type       String         @default("standby") @db.VarChar(50)
-  waitTime   Int
-  status     WaitTimeStatus
-  customText String?        @db.Text
-  timeSlot   Json?
-  startTime  DateTime
-  endTime    DateTime?
-  lastSeenAt DateTime       @default(now())
-  stateHash  String         @db.Char(32)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id          Int            @id @default(autoincrement())
+  poiId       Int?
+  poi         Poi?           @relation(fields: [poiId], references: [id], onDelete: SetNull)
+  parkId      Int
+  park        Park           @relation(fields: [parkId], references: [id], onDelete: Cascade)
+  externalId  String         @db.VarChar(255)
+  type        String         @default("standby") @db.VarChar(50)
+  waitTime    Int
+  // Fourchette publiée (« 10-20 min »), pour l'affichage : `waitTime` en
+  // est la borne haute. `waitTimeMax` seul à NULL : borne ouverte (« 90+ »).
+  waitTimeMin Int?
+  waitTimeMax Int?
+  status      WaitTimeStatus
+  customText  String?        @db.Text
+  timeSlot    Json?
+  startTime   DateTime
+  endTime     DateTime?
+  lastSeenAt  DateTime       @default(now())
+  stateHash   String         @db.Char(32)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   @@index([poiId, endTime])
   @@index([externalId, endTime])
@@ -823,6 +902,52 @@ model ShowTime {
   @@index([externalId, date])
   @@index([date])
   @@map("show_times")
+}
+
+// Créneaux d'ouverture d'un POI pour une journée : les heures d'un restaurant,
+// d'une boutique, d'une attraction, d'un hôtel ou d'un service.
+//
+// ⚠️ **Une table, et non `Poi.additionalData`** (arbitré le 2026-10-06). Une
+// ligne de `pois` décrit un POI, pas une journée : y ranger des horaires, c'est
+// n'en garder qu'une date et perdre l'historique. Et le fetcher POI réécrit
+// `additionalData` EN ENTIER à chaque passage : un second écrivain s'y ferait
+// effacer ses heures, ou effacerait la bannière.
+//
+// ⚠️ **Distincte de `show_times`, à dessein** : une représentation est un
+// INSTANT (début, fin facultative), une ouverture est une PLAGE dont les deux
+// bornes sont connues. Fusionner les deux obligeait à reprendre tous les
+// fetchers de spectacles pour un gain nul côté affichage, qui sait déjà tracer
+// l'un et l'autre sur la même grille.
+//
+// Plusieurs créneaux par jour sont possibles — un restaurant ouvert le midi
+// puis le soir —, d'où `openTime` dans la clé.
+//
+// ⚠️ **Le fetcher publie TOUS les créneaux des dates qu'il couvre**, passés
+// compris : c'est ce qui autorise `savePoiHours` (worker) à supprimer, pour ces
+// dates-là, les lignes qu'il ne mentionne plus. Un POI qui disparaît de la grille
+// du jour est un POI fermé aujourd'hui.
+model PoiHours {
+  id     Int  @id @default(autoincrement())
+  poiId  Int
+  poi    Poi  @relation(fields: [poiId], references: [id], onDelete: Cascade)
+  parkId Int
+  park   Park @relation(fields: [parkId], references: [id], onDelete: Cascade)
+
+  // Journée d'exploitation du parc, au format YYYY-MM-DD de son fuseau.
+  date      String   @db.VarChar(10)
+  openTime  DateTime
+  closeTime DateTime
+
+  // Nom du créneau tel que la source le publie (« dinner » chez Efteling),
+  // donc NON TRADUIT. Absent de la quasi-totalité des lignes.
+  label String? @db.VarChar(60)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([poiId, date, openTime])
+  @@index([parkId, date])
+  @@map("poi_hours")
 }
 
 //

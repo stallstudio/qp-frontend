@@ -1,13 +1,11 @@
 import { proxiedImageUrl } from "@/lib/image-proxy";
 
 // ————————————————————————————————————————————————————————————————————————
-// LES DEUX VRAIES IMAGES DE L'ANNONCE DE VERSION
+// LES VRAIES IMAGES DE L'ANNONCE DE VERSION
 //
-// Les scènes de `scenes.tsx` MIMENT l'interface réelle. Deux d'entre elles
-// portent une image : la fiche d'attraction (scène 5) et l'en-tête de parc de la
-// météo (scène 7). Sur `default_cover.webp` — la photo de repli de Queue Park —
-// elles montraient un écran que personne ne verra jamais : un en-tête de parc
-// affiche la photo DU parc, une fiche d'attraction la bannière DE l'attraction.
+// Les scènes de `scenes.tsx` rendent les vrais composants de la page d'un parc,
+// popups compris : un popup montre la bannière que la SOURCE publie pour son
+// POI. Ce sont donc ces bannières-là, et pas la photo de repli de Queue Park.
 //
 // ⚠️ **Ce module est SERVEUR, et il doit le rester** : `proxiedImageUrl` signe
 // avec une clé dérivée d'`AUTH_SECRET`, absente du navigateur. Les scènes, elles,
@@ -22,55 +20,40 @@ import { proxiedImageUrl } from "@/lib/image-proxy";
 // secret de l'environnement qui rend la page.
 // ————————————————————————————————————————————————————————————————————————
 
-/**
- * Taron, Phantasialand — telle que le parc la publie, et telle que la fiche de
- * l'attraction l'affiche dans l'application.
- *
- * ⚠️ Attraction choisie pour son QUARTIER autant que pour sa photo : la scène
- * montre « MYSTERY » sous le nom, et c'est exactement ce que la source publie
- * pour elle (`additionalData.zone`). Une démo ne doit pas montrer un écran que
- * l'application ne produit pas — voir le commentaire de `DetailScene`.
- */
-const RIDE_BANNER =
-  "https://live-phlsys.s3.amazonaws.com/0c354b6fcc62400c74c9b7ed98a5c089.jpg";
+// Les bannières telles que les sources les publient, relevées le 2026-10-10
+// dans `/api/park/{parc}` (voir `demo-data.ts`).
+const SOURCES = {
+  bigThunder:
+    "https://media.disneylandparis.com/d4th/en-gb/images/n017798_2050jan01_big-thunder-mountain_16-9_tcm752-159546.jpg?fit=max&w=1600",
+  hyperspace:
+    "https://media.disneylandparis.com/d4th/en-gb/images/hd13578_2022jun29_world_star-wars-hyperspace-mountain_16-9_tcm752-162410.jpg?fit=max&w=1600",
+  slaughterhouse:
+    "https://www.walibi.nl/content/dam/who/images/events/hfn/2025/HFN_Walibi_Slaughterhouse_1.jpg",
+} as const;
+
+export type WhatsNewBanners = Record<keyof typeof SOURCES, string | null>;
 
 /**
- * Cedar Point, telle que la page du parc l'affiche.
+ * Les images de l'annonce, prêtes à être rendues : chemins locaux signés.
  *
- * ⚠️ **Pas de proxy ici, à dessein** : les covers de parcs sont servies par
- * `cdn.queue-park.com`, qui est déclaré dans `IMAGE_ALLOWED_HOSTS`.
- * `next/image` l'optimise donc directement, comme sur la vraie page du parc
- * (`components/parks/cover-image.tsx`). La faire passer par `/api/image` la
- * ferait transiter deux fois par notre serveur pour rien.
- */
-const PARK_COVER =
-  "https://cdn.queue-park.com/images/parks/cedar-point/ab29d92351c7.webp";
-
-/** La photo de repli de Queue Park, quand la signature n'est pas possible. */
-const DEFAULT_COVER = "/default_cover.webp";
-
-export type WhatsNewBanners = {
-  /** Bannière d'attraction, chemin local signé. */
-  ride: string;
-  /** Cover de parc, URL du CDN. */
-  park: string;
-};
-
-/**
- * Les deux images de l'annonce, prêtes à être rendues.
- *
- * ⚠️ **Le repli sur `default_cover.webp` n'est pas de la prudence de façade** :
- * `proxiedImageUrl` LÈVE quand `AUTH_SECRET` manque, et ce module est appelé
- * depuis le layout — c'est-à-dire sur toutes les pages du site. Sans ce
- * garde-fou, un `.env` incomplet ne ferait pas disparaître une vignette
- * d'annonce : il ferait tomber le site entier.
+ * ⚠️ **`null` sur échec, et non une exception** : `proxiedImageUrl` LÈVE quand
+ * `AUTH_SECRET` manque, et ce module est appelé depuis le layout — c'est-à-dire
+ * sur toutes les pages du site. Sans ce garde-fou, un `.env` incomplet ne ferait
+ * pas disparaître une vignette d'annonce : il ferait tomber le site entier. Un
+ * `null` donne la photo de repli, exactement comme un popup sans bannière.
  */
 export function whatsNewBanners(): WhatsNewBanners {
-  let ride = DEFAULT_COVER;
-  try {
-    ride = proxiedImageUrl(RIDE_BANNER) ?? DEFAULT_COVER;
-  } catch {
-    // AUTH_SECRET absent : l'annonce garde la photo de repli, le site vit.
-  }
-  return { ride, park: PARK_COVER };
+  const sign = (url: string): string | null => {
+    try {
+      return proxiedImageUrl(url) ?? null;
+    } catch {
+      // AUTH_SECRET absent : l'annonce garde la photo de repli, le site vit.
+      return null;
+    }
+  };
+  return {
+    bigThunder: sign(SOURCES.bigThunder),
+    hyperspace: sign(SOURCES.hyperspace),
+    slaughterhouse: sign(SOURCES.slaughterhouse),
+  };
 }

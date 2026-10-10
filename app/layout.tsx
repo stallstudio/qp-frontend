@@ -32,8 +32,14 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      {/* ⚠️ `font-sans` est INDISPENSABLE. Tailwind pose la police sur
+          `<html>`, via `--font-sans` → `--font-geist-sans` ; or next/font ne
+          déclare cette variable que sur `<body>`. Sans cette classe, la
+          variable est vide au niveau de `<html>` et tout le site retombait sur
+          la police système (Segoe UI, San Francisco) — Geist était téléchargé
+          sans jamais s'afficher (corrigé le 2026-10-07). */}
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <GoogleAnalytics />
         <ThemeProvider

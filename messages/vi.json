@@ -48,7 +48,11 @@
     "hoursOther": "Giờ mở cửa",
     "cards": {
       "attractions": "Trò chơi",
-      "shows": "Chương trình"
+      "shows": "Chương trình",
+      "restaurants": "Nhà hàng",
+      "shops": "Cửa hàng",
+      "hotels": "Khách sạn",
+      "services": "Dịch vụ"
     }
   },
   "parkStatus": {
@@ -59,13 +63,15 @@
     "open": "Đang hoạt động",
     "closed": "Ngừng hoạt động",
     "down": "Hỏng hóc",
+    "downShort": "Hỏng hóc",
     "maintenance": "Bảo trì",
     "unavailable": "Không có dữ liệu",
     "unavailableShort": "Không có"
   },
   "tabs": {
     "live": "Trực tiếp",
-    "schedule": "Giờ hôm nay"
+    "schedule": "Giờ hôm nay",
+    "families": "Danh mục"
   },
   "shows": {
     "show": "Chương trình",
@@ -78,9 +84,6 @@
   },
   "showDetail": {
     "openFor": "Xem chi tiết {show}",
-    "notifTitle": "Nhắc nhở",
-    "duration": "Thời lượng: {duration}",
-    "continuousAccess": "Vào cửa liên tục · {range}",
     "signInIntro": "Đăng nhập để được nhắc trước khi một chương trình bắt đầu.",
     "reminderIntro": "Chọn một suất diễn, sau đó chọn muốn được nhắc trước bao lâu.",
     "leadLabel": "Bạn muốn được nhắc trước giờ diễn bao lâu?",
@@ -97,7 +100,28 @@
     "noUpcoming": "Hôm nay không còn suất diễn nào.",
     "leadTooLate": "Suất diễn này sắp bắt đầu, không kịp đặt nhắc nhở.",
     "reminderActivate": "Bật nhắc nhở",
-    "reminderModify": "Sửa nhắc nhở"
+    "reminderModify": "Sửa nhắc nhở",
+    "liveNext": "Suất tiếp theo",
+    "liveDuration": "Thời lượng",
+    "liveRemaining": "Còn lại",
+    "liveAccess": "Vào cửa",
+    "reminderRowTitle": "Nhắc tôi trước một suất diễn",
+    "reminderRowPick": "Chọn suất diễn",
+    "reminderRowEdit": "Sửa hoặc thêm",
+    "reminderRowCount": "{count, plural, other {Đã đặt # lời nhắc}}",
+    "reminderSlot": "Suất {time}",
+    "reminderPickHint": "Chạm vào một suất sắp tới khác để chọn.",
+    "noSchedule": "Công viên không công bố giờ cho điểm tham quan này.",
+    "unscheduledTitle": "Chưa công bố giờ"
+  },
+  "poiFacts": {
+    "fearLevel": "Mức độ đáng sợ",
+    "fearLevelValue": "{level} trên 5",
+    "price": "Giá",
+    "free": "Miễn phí",
+    "extendedPrice": "{price} vào ngày mở cửa kéo dài",
+    "extendedOnly": "Vào ngày mở cửa kéo dài",
+    "extendedToday": "Giá ngày mở cửa kéo dài"
   },
   "favorites": {
     "myFavorites": "Yêu thích của tôi",
@@ -142,7 +166,8 @@
     "lastUpdate": "Cập nhật lần cuối",
     "updatedAgo": "Cập nhật {age} trước",
     "liveConnected": "Trực tiếp",
-    "liveFallback": "Tự động làm mới"
+    "liveFallback": "Tự động làm mới",
+    "unlistedTitle": "Chưa công bố thời gian chờ"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Bảo lưu mọi quyền.",
@@ -224,7 +249,7 @@
       },
       "favorites": {
         "title": "Yêu thích",
-        "body": "Chạm vào ngôi sao để thêm một công viên, trò chơi hoặc chương trình vào mục yêu thích. Công viên yêu thích được ghim lên đầu trang chủ; các trò chơi và chương trình yêu thích được nhóm theo công viên trong một cửa sổ mở từ hồ sơ của bạn. Tất cả được lưu vào tài khoản và đồng bộ trên mọi thiết bị.",
+        "body": "Chạm vào ngôi sao để thêm một công viên, trò chơi, chương trình, nhà hàng hoặc cửa hàng vào mục yêu thích. Công viên yêu thích được ghim lên đầu trang chủ; phần còn lại lên đầu các danh sách của công viên và được nhóm theo công viên trong một cửa sổ mở từ hồ sơ của bạn. Tất cả được lưu vào tài khoản và đồng bộ trên mọi thiết bị.",
         "parksLabel": "Công viên yêu thích",
         "ridesLabel": "Trò chơi yêu thích (hồ sơ)",
         "hint": "Chạm vào ngôi sao: công viên yêu thích sẽ nhảy lên đầu trang chủ."
@@ -255,7 +280,7 @@
       },
       "alerts": {
         "title": "Nhắc nhở thời gian chờ",
-        "body": "Từ trang của một trò chơi, hãy chọn một ngưỡng: bạn sẽ nhận được thông báo ngay khi thời gian chờ xuống dưới mức đó. Sau khi được gửi, nhắc nhở đã hoàn thành nhiệm vụ: nó biến mất và chuyển vào lịch sử. Bạn chỉ cần tạo một nhắc nhở mới từ trang của trò chơi. Cần có tài khoản và quyền nhận thông báo."
+        "body": "Từ trang của một trò chơi — hoặc của một nhà hàng có công bố thời gian chờ —, hãy chọn một ngưỡng: bạn sẽ nhận được thông báo ngay khi thời gian chờ xuống dưới mức đó. Sau khi được gửi, nhắc nhở đã hoàn thành nhiệm vụ: nó biến mất và chuyển vào lịch sử. Bạn chỉ cần tạo một nhắc nhở mới từ trang. Nhắc nhở chỉ có ở những nơi công viên công bố thời gian chờ. Cần có tài khoản và quyền nhận thông báo."
       },
       "reminders": {
         "title": "Nhắc nhở chương trình",
@@ -292,12 +317,12 @@
     "temperatureUnit": "Đơn vị nhiệt độ"
   },
   "whatsNew": {
-    "srTitle": "Những điểm mới của Queue Park v3",
-    "srDescription": "Giới thiệu những điểm mới trong phiên bản 3 của Queue Park.",
+    "srTitle": "Điểm mới của Queue Park v4",
+    "srDescription": "Giới thiệu các điểm mới trong phiên bản 4 của Queue Park.",
     "hero": {
       "eyebrow": "{count} điểm mới",
-      "title": "Queue Park lên phiên bản 3",
-      "body": "Một tài khoản theo bạn từ thiết bị này sang thiết bị khác, nhắc nhở đúng lúc, dự báo thời gian chờ: đây là những gì thay đổi."
+      "title": "Queue Park lên phiên bản 4",
+      "body": "Nhà hàng và cửa hàng, giờ mở cửa của từng nơi, trang chi tiết được làm mới, dự báo mà bạn có thể kiểm chứng: giờ đây cả công viên nằm gọn trong một trang."
     },
     "nav": {
       "scrollHint": "Cuộn xuống",
@@ -308,55 +333,44 @@
       "beta": "Bản thử nghiệm"
     },
     "slides": {
-      "account": {
-        "title": "Tài khoản Queue Park của bạn",
-        "body": "Đăng nhập chỉ trong chốc lát, bằng Google hoặc một liên kết gửi qua e-mail — không cần mật khẩu. Mục yêu thích, nhắc nhở và tuỳ chọn của bạn sẽ theo bạn từ điện thoại trong công viên đến máy tính ở nhà."
-      },
-      "favorites": {
-        "title": "Mục yêu thích trên mọi thiết bị",
-        "body": "Ngôi sao giờ đây dùng được cho công viên, trò chơi và chương trình. Công viên yêu thích được ghim lên đầu trang chủ, trò chơi và chương trình yêu thích được đưa lên đầu bảng của công viên, và bạn tìm lại tất cả trong hồ sơ của mình — đồng bộ trên mọi thiết bị."
-      },
-      "notifications": {
-        "title": "Được báo đúng lúc",
-        "body": "Cài Queue Park như một ứng dụng và để nó trông chừng công viên thay bạn.",
-        "install": "Cài đặt ứng dụng",
+      "park": {
+        "title": "Cả công viên, không chỉ các trò chơi",
+        "body": "Trò chơi, chương trình, nhà hàng, cửa hàng: mỗi danh mục có nút riêng ở đầu danh sách, chỉ một chạm là chuyển sang danh mục khác. Ở những công viên công bố dữ liệu này, mỗi nhà hàng và cửa hàng đều hiển thị trạng thái trực tiếp và khu vực của mình.",
         "points": {
-          "threshold": "Thời gian chờ của một trò chơi xuống dưới ngưỡng bạn đã chọn.",
-          "reopened": "Một trò chơi mở lại sau khi hỏng hóc hoặc tạm ngừng.",
-          "show": "Một chương trình sắp bắt đầu, báo trước bao lâu là tuỳ bạn."
+          "menu": "Thực đơn của nhà hàng, và đặt món trực tuyến khi công viên hỗ trợ.",
+          "favorites": "Ngôi sao ở khắp nơi: bạn có thể thêm nhà hàng hay cửa hàng vào mục yêu thích như một trò chơi, và chúng sẽ lên đầu danh sách.",
+          "wait": "Thời gian chờ của những nhà hàng có công bố, kèm nhắc nhở khi thời gian chờ giảm."
         }
       },
-      "forecast": {
-        "title": "Dự báo thời gian chờ",
-        "body": "Đường liền vẽ lại thời gian chờ từ lúc mở cửa, đường đứt nét ước tính đến lúc đóng cửa. Vừa đủ để chọn đúng thời điểm nên đi."
+      "hours": {
+        "title": "Giờ mở cửa của từng nơi",
+        "body": "Thẻ «Giờ hôm nay» không còn chỉ có chương trình: ở những công viên có công bố, trò chơi, nhà hàng, cửa hàng và khách sạn đều hiện giờ mở cửa trên dòng thời gian của ngày. Nơi đóng cửa muộn nhất đứng đầu, để bạn biết ngay nơi nào vẫn còn mở tối nay."
       },
       "detail": {
-        "title": "Trang riêng cho từng trò chơi",
-        "body": "Chạm vào một trò chơi hoặc chương trình: ảnh, khu vực trong công viên, biểu đồ trong ngày kèm dự báo và phần cài đặt nhắc nhở, tất cả gom về một chỗ."
+        "title": "Trang chi tiết đi thẳng vào trọng tâm",
+        "body": "Bên dưới ảnh, một dải thông tin cho thấy điều cốt yếu: thời gian chờ, trạng thái và giờ đóng cửa. Một câu dựa trên dự báo cho bạn biết lúc này có phải thời điểm tốt không, và nhắc nhở chỉ cần đặt trên một dòng."
       },
-      "events": {
-        "title": "Sự kiện của công viên",
-        "body": "Vào dịp Halloween hay Giáng sinh, các trò chơi và chương trình riêng của sự kiện có thẻ riêng, mang màu sắc của mùa — kèm ghi chú «Vé riêng» khi vé vào cửa không bao gồm phần này."
+      "queues": {
+        "title": "Mỗi hàng chờ có trang riêng",
+        "body": "Single Rider, Disney Premier Access, hàng chờ ảo: chạm vào một hàng chờ để mở trang riêng của nó, với thời gian chờ hoặc khung giờ, trạng thái và nhắc nhở. Với hàng chờ theo khung giờ, nhắc nhở sẽ báo cho bạn ngay khi có khung giờ sớm hơn."
       },
-      "weather": {
-        "title": "Thời tiết công viên, theo thời gian thực",
-        "body": "Nhiệt độ và bầu trời của công viên hiển thị ngay ở phần đầu trang, cập nhật mỗi giờ. Tiện để đoán trước lượng khách — và để biết có nên mang áo mưa hay không."
+      "forecast": {
+        "title": "Dự báo bạn có thể kiểm chứng",
+        "body": "Màu xám là dự báo chúng tôi đưa ra trước đó một giờ, vẽ cạnh những gì thực sự đã diễn ra: bạn tự đánh giá. Và khi công viên công bố một khoảng thời gian, nó được hiển thị nguyên như vậy — «10–20 min» thay vì một con số duy nhất."
+      },
+      "halloween": {
+        "title": "Halloween, từng nhà ma một",
+        "body": "Các nhà ma hiển thị mức độ đáng sợ, từ một đến năm đầu lâu, và giá vé khi phải trả thêm. Thẻ sự kiện bám theo các suất của nó — ban ngày, rồi buổi tối — và có các nút riêng: nhà ma, chương trình, nhà hàng."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "Thời gian chờ đã giảm còn 15 phút",
-        "reopened": "Trò chơi vừa mở lại",
-        "show": "Bắt đầu sau 15 phút"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Giáng sinh"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Chúc bạn có chuyến đi vui vẻ!",
-      "body": "Mọi thứ đã sẵn sàng. Trang «Giới thiệu» mới kể về nguồn gốc của thời gian chờ và mô tả chi tiết từng tính năng, nếu bạn muốn tìm hiểu thêm.",
+      "body": "Mọi thứ đã sẵn sàng. Có góp ý, ý tưởng hay công viên muốn thêm? Hãy viết cho chúng tôi: địa chỉ có trên trang «Giới thiệu».",
       "aboutLink": "Khám phá trang Giới thiệu"
     }
   },
@@ -424,9 +438,17 @@
     "favoritesParksCount": "{count, plural, other {Công viên yêu thích}}",
     "favoritesRidesCount": "{count, plural, other {Trò chơi yêu thích}}",
     "favoritesShowsCount": "{count, plural, other {Chương trình yêu thích}}",
+    "favoritesRestaurantsCount": "{count, plural, other {Nhà hàng yêu thích}}",
+    "favoritesShopsCount": "{count, plural, other {Cửa hàng yêu thích}}",
+    "favoritesHotelsCount": "{count, plural, other {Khách sạn yêu thích}}",
+    "favoritesServicesCount": "{count, plural, other {Dịch vụ yêu thích}}",
     "favoritesParksTitle": "Công viên yêu thích",
     "favoritesRidesTitle": "Trò chơi yêu thích",
     "favoritesShowsTitle": "Chương trình yêu thích",
+    "favoritesRestaurantsTitle": "Nhà hàng yêu thích",
+    "favoritesShopsTitle": "Cửa hàng yêu thích",
+    "favoritesHotelsTitle": "Khách sạn yêu thích",
+    "favoritesServicesTitle": "Dịch vụ yêu thích",
     "favoritesListEmpty": "Chưa có mục yêu thích nào.",
     "favoritesRemove": "Bỏ {name} khỏi yêu thích",
     "activeAlertsCount": "{count, plural, other {Nhắc nhở đang bật}}",
@@ -470,8 +492,10 @@
     "historyShows": "Chương trình",
     "historyShowLine": "suất {time} · trước {lead} phút",
     "alertsEmptyRides": "Chưa thiết lập nhắc nhở nào. Hãy tạo từ trang của một trò chơi.",
+    "alertsEmptyOther": "Hiện chưa có nhắc nhở nào thuộc loại này.",
     "alertsEmptyShows": "Chưa thiết lập nhắc nhở nào. Hãy tạo từ trang của một chương trình.",
     "historyEmptyRides": "Chưa có thông báo nào về trò chơi được gửi.",
+    "historyEmptyOther": "Chưa có thông báo nào thuộc loại này được gửi.",
     "historyEmptyShows": "Chưa có thông báo nào về chương trình được gửi.",
     "edit": "Sửa ngưỡng",
     "subTabActive": "Đang bật",
@@ -484,7 +508,9 @@
     "editLead": "Sửa thời gian báo trước",
     "leadTooLate": "Chương trình sắp bắt đầu, không kịp đổi thời gian báo trước.",
     "reopenBadge": "Mở lại",
-    "historyReopenLine": "Đã mở lại"
+    "historyReopenLine": "Đã mở lại",
+    "slotBadge": "Trước {time}",
+    "historySlotLine": "Có khung giờ trước {time}"
   },
   "privacy": {
     "emailLabel": "Địa chỉ email",
@@ -527,11 +553,11 @@
   },
   "attractionDetail": {
     "openFor": "Xem chi tiết {ride}",
-    "alertsTitle": "Nhắc nhở",
-    "chartTitle": "Thời gian chờ hôm nay",
     "chartToday": "Hôm nay",
     "chartActual": "Thời gian chờ",
     "chartForecast": "Dự báo",
+    "chartForecastPast": "Dự báo",
+    "chartForecastLegend": "Dự báo sắp tới",
     "chartNow": "Bây giờ",
     "chartEmpty": "Chưa có dữ liệu cho hôm nay.",
     "chartUnavailable": "Trò chơi hiện không khả dụng.",
@@ -540,8 +566,7 @@
     "chartForecastNote": "Ước tính sơ bộ cho phần còn lại của ngày.",
     "chartForecastPreOpeningNote": "Ước tính dựa trên những ngày trước — sẽ được cập nhật khi công viên mở cửa.",
     "estimateTooltip": "Ước tính từ những ngày quá khứ tương đồng. Thực tế có thể khác.",
-    "marginNote": "Vài ngày qua, dự báo của chúng tôi lệch trung bình <v>{minutes} phút</v>.",
-    "marginNoteTooltip": "Chênh lệch trung bình giữa dự báo của chúng tôi và thời gian chờ thực tế trong 14 ngày gần nhất.",
+    "marginNoteTooltip": "Chênh lệch trung bình giữa dự báo đưa ra trước 1 giờ và thời gian chờ thực tế trong 14 ngày gần nhất.",
     "installTitle": "Cài đặt Queue Park",
     "installIntro": "Nhắc nhở yêu cầu ứng dụng được cài trên thiết bị của bạn.",
     "installButton": "Cài đặt ứng dụng",
@@ -561,11 +586,49 @@
     "pushDenied": "Thông báo của trang này đang bị chặn. Hãy cho phép trong cài đặt trình duyệt để nhận nhắc nhở trên thiết bị này.",
     "pushUnsupported": "Trình duyệt này không hỗ trợ thông báo đẩy. Nhắc nhở vẫn sẽ xuất hiện trong hồ sơ và lịch sử của bạn.",
     "reopenLabel": "Trò chơi này đang tạm dừng. Chúng tôi sẽ báo cho bạn ngay khi mở lại.",
+    "poiReopenLabel": "Hiện đang đóng cửa. Chúng tôi sẽ báo cho bạn ngay khi mở lại.",
     "reopenSave": "Báo cho tôi khi mở lại",
     "reopenActive": "Cảnh báo mở lại đang bật",
     "reopenSaved": "Đã lưu cảnh báo mở lại",
     "reopenTooLate": "Công viên đã đóng cửa, cảnh báo không khả dụng. Hãy quay lại vào lần mở cửa tới.",
-    "statusChanged": "Trạng thái của trò chơi vừa thay đổi. Hãy mở lại trang để tạo đúng loại cảnh báo."
+    "statusChanged": "Trạng thái của trò chơi vừa thay đổi. Hãy mở lại trang để tạo đúng loại cảnh báo.",
+    "poiStatusChanged": "Trạng thái vừa thay đổi. Hãy mở lại trang để tạo đúng loại cảnh báo.",
+    "liveWait": "Thời gian chờ",
+    "liveSlot": "Khung giờ",
+    "liveStatus": "Trạng thái",
+    "liveOpensAt": "Mở lúc",
+    "liveClosesAt": "Đóng lúc",
+    "liveClosedAt": "Đóng cửa",
+    "chartLegendActual": "Thực tế",
+    "marginShort": "Sai số trung bình: <v>{minutes} phút</v>.",
+    "insightRise": "Đúng lúc để đi: thời gian chờ dự kiến tăng lên <b>~{minutes} phút vào khoảng {time}</b>",
+    "insightDrop": "Nên chờ thêm: thời gian chờ dự kiến giảm còn <b>~{minutes} phút vào khoảng {time}</b>",
+    "alertRowTitle": "Báo tôi khi thời gian chờ giảm",
+    "alertRowSignIn": "Cần đăng nhập",
+    "alertRowPick": "Chọn ngưỡng",
+    "alertActiveRow": "Cảnh báo đang bật · dưới {minutes} phút",
+    "alertThresholdHint": "Ngưỡng hiển thị màu xanh lá trên biểu đồ.",
+    "alertActivate": "Bật cảnh báo",
+    "alertEdit": "Sửa",
+    "alertThresholdLine": "Cảnh báo dưới {minutes} phút",
+    "close": "Đóng",
+    "pushDeniedShort": "Thông báo bị chặn trên thiết bị này",
+    "insightBest": "Thời điểm tốt nhất dự kiến: <b>~{minutes} phút vào khoảng {time}</b>",
+    "slotRowTitle": "Báo khi có khung giờ sớm hơn",
+    "slotRowPick": "Chọn giờ",
+    "slotOption": "Trước {time}",
+    "slotActiveRow": "Cảnh báo đang bật · khung giờ trước {time}",
+    "slotHint": "Chúng tôi sẽ báo cho bạn ngay khi có khung giờ bắt đầu muộn nhất vào giờ này.",
+    "slotNothingEarlier": "Hiện chưa có khung giờ sớm hơn để theo dõi.",
+    "queueReopenLabel": "Hàng chờ này đang đóng. Chúng tôi sẽ báo cho bạn ngay khi mở lại.",
+    "queueNothingToWatch": "Hàng chờ này không công bố thời gian chờ hay khung giờ: hiện chưa có gì để theo dõi.",
+    "queueSeeRide": "Xem trò chơi"
+  },
+  "poiDetail": {
+    "openFor": "Xem chi tiết {poi}",
+    "menuTitle": "Thực đơn",
+    "menuAction": "Xem thực đơn",
+    "orderAction": "Xem thực đơn và đặt món"
   },
   "legal": {
     "backHome": "Về trang chủ",

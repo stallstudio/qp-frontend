@@ -6,10 +6,12 @@ import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { AnimatePresence, motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
-import { Bell, BellRing, Drama, RollerCoaster, Loader2 } from "lucide-react";
+import { Bell, BellRing, Loader2 } from "lucide-react";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
+import { POI_KIND_ICONS, type PoiKind } from "@/lib/poi-kinds";
 import type { AlertDTO, ShowReminderDTO } from "@/types/user";
 import AlertHistoryFeed from "./alert-history-section";
+import FeedAvatar from "./feed-avatar";
 
 // Onglet « Alertes » du profil — DIRECTION « fil unifié » :
 //   • un seul fil sur toute la largeur (plus de colonnes qui ne s'alignent pas) ;
@@ -18,7 +20,9 @@ import AlertHistoryFeed from "./alert-history-section";
 //   • filtres Tout · Attractions · Spectacles — le type est un attribut de ligne
 //     (pastille + accent : orange pour les attractions, violet pour les
 //     spectacles), et les deux types sont mélangés puis triés par ordre
-//     alphabétique.
+//     alphabétique. Une pastille « Restaurants » s'y ajoute dès qu'une alerte
+//     de restaurant existe, active ou passée (2026-10-09) : les autres n'en
+//     auront jamais.
 //
 // Cet onglet est en LECTURE SEULE : ni création, ni modification, ni suppression.
 // Tout se règle depuis le popup de l'attraction ou du spectacle concerné, seul
@@ -26,14 +30,26 @@ import AlertHistoryFeed from "./alert-history-section";
 // représentations). Le profil ne fait que RÉCAPITULER ce qui est armé — un
 // second jeu de contrôles ici n'aurait été qu'un doublon à maintenir.
 
-type TypeFilter = "all" | "rides" | "shows";
+// Une famille de POI : `show` filtre les rappels de spectacles, toutes les
+// autres les alertes posées sur un POI de cette famille.
+export type TypeFilter = "all" | PoiKind;
 type SubTab = "active" | "history";
 
-// Élément actif normalisé (attraction OU spectacle), pour un fil mélangé trié
-// par titre.
+// Élément actif normalisé (alerte OU rappel de spectacle), pour un fil mélangé
+// trié par titre.
 type ActiveItem =
-  | { kind: "ride"; id: string; sortKey: string; alert: AlertDTO }
+  | { kind: "alert"; id: string; sortKey: string; alert: AlertDTO }
   | { kind: "show"; id: string; sortKey: string; reminder: ShowReminderDTO };
+
+// Les familles qui ont leur pastille de filtre, dans l'ordre : les attractions
+// et les spectacles toujours, les autres quand elles ont une alerte.
+const ALWAYS_FILTERED: readonly PoiKind[] = ["ride", "show"];
+
+/** Les pastilles de filtre, d'après les familles présentes dans les alertes. */
+export function filterKinds(present: ReadonlySet<PoiKind>): PoiKind[] {
+  const extra = [...present].filter((kind) => !ALWAYS_FILTERED.includes(kind));
+  return ["ride", ...extra, "show"];
+}
 
 // Sous-onglets Actives / Historique : segment compact avec pastille coulissante
 // (même glissement que le tri de l'accueil / les onglets du profil). Deux
@@ -86,37 +102,54 @@ function SubTabs({
 
 // Puces de filtre par type (Tout · Attractions · Spectacles) : pastille de
 // couleur du type, accent propre à l'état actif (neutre / orange / violet).
+//
+// Couleurs en classes ENTIÈRES, comme `FeedAvatar`.
+const CHIP_STYLES: Record<TypeFilter, { active: string; icon?: string }> = {
+  all: { active: "border-foreground bg-foreground text-background" },
+  ride: {
+    active: "border-primary bg-primary text-primary-foreground",
+    icon: "text-primary",
+  },
+  show: {
+    active: "border-show bg-show text-show-foreground",
+    icon: "text-show",
+  },
+  restaurant: {
+    active: "border-restaurant bg-restaurant text-restaurant-foreground",
+    icon: "text-restaurant",
+  },
+  shop: {
+    active: "border-shop bg-shop text-shop-foreground",
+    icon: "text-shop",
+  },
+  hotel: {
+    active: "border-hotel bg-hotel text-hotel-foreground",
+    icon: "text-hotel",
+  },
+  service: {
+    active: "border-service bg-service text-service-foreground",
+    icon: "text-service",
+  },
+};
+
 function TypeChips({
   value,
   onChange,
+  kinds,
   labels,
 }: {
   value: TypeFilter;
   onChange: (v: TypeFilter) => void;
+  kinds: readonly PoiKind[];
   labels: Record<TypeFilter, string>;
 }) {
-  const items: {
-    key: TypeFilter;
-    icon?: React.ReactNode;
-    iconColor?: string;
-  }[] = [
-    { key: "all" },
-    {
-      key: "rides",
-      icon: <RollerCoaster className="size-3.5" />,
-      iconColor: "text-primary",
-    },
-    { key: "shows", icon: <Drama className="size-3.5" />, iconColor: "text-show" },
-  ];
-  const activeClass: Record<TypeFilter, string> = {
-    all: "border-foreground bg-foreground text-background",
-    rides: "border-primary bg-primary text-primary-foreground",
-    shows: "border-show bg-show text-show-foreground",
-  };
+  const items: TypeFilter[] = ["all", ...kinds];
   return (
     <div className="flex flex-wrap gap-2">
-      {items.map(({ key, icon, iconColor }) => {
+      {items.map((key) => {
         const active = value === key;
+        const Icon = key === "all" ? null : POI_KIND_ICONS[key];
+        const iconColor = CHIP_STYLES[key].icon;
         return (
           <button
             key={key}
@@ -124,14 +157,16 @@ function TypeChips({
             onClick={() => onChange(key)}
             className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
               active
-                ? activeClass[key]
+                ? CHIP_STYLES[key].active
                 : "bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
             }`}
           >
             {/* Icône du type : teintée (orange / violet) au repos, elle suit la
                 couleur du texte quand la puce est active. */}
-            {icon && (
-              <span className={active ? "" : iconColor}>{icon}</span>
+            {Icon && (
+              <span className={active ? "" : iconColor}>
+                <Icon className="size-3.5" />
+              </span>
             )}
             {labels[key]}
           </button>
@@ -141,41 +176,12 @@ function TypeChips({
   );
 }
 
-// Marqueur de type de la ligne, teinté (orange attraction / violet spectacle).
-// Sur MOBILE, la pastille 36 px mangeait une largeur qui manque au nom : on la
-// remplace par un simple point de couleur, qui porte la même information de type.
-function Avatar({
-  kind,
-  children,
-}: {
-  kind: "ride" | "show";
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <span
-        aria-hidden
-        className={`size-2.5 shrink-0 rounded-full sm:hidden ${
-          kind === "show" ? "bg-show" : "bg-primary"
-        }`}
-      />
-      <div
-        className={`hidden size-9 shrink-0 items-center justify-center rounded-xl sm:flex ${
-          kind === "show" ? "bg-show/10 text-show" : "bg-primary/10 text-primary"
-        }`}
-      >
-        {children}
-      </div>
-    </>
-  );
-}
-
 // Badge de valeur (seuil ≤ X / délai X min), en pilule monospace.
 function ValueBadge({
   kind,
   children,
 }: {
-  kind: "ride" | "show";
+  kind: PoiKind;
   children: React.ReactNode;
 }) {
   return (
@@ -189,13 +195,11 @@ function ValueBadge({
 // Ligne unifiée : pastille + intitulé + valeur/contrôles.
 function FeedRow({
   kind,
-  icon,
   title,
   subtitle,
   trailing,
 }: {
-  kind: "ride" | "show";
-  icon: React.ReactNode;
+  kind: PoiKind;
   title: string;
   subtitle: React.ReactNode;
   trailing: React.ReactNode;
@@ -214,7 +218,7 @@ function FeedRow({
       }}
       className="flex items-center gap-3 rounded-xl border px-3 py-2"
     >
-      <Avatar kind={kind}>{icon}</Avatar>
+      <FeedAvatar kind={kind} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{title}</p>
         <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
@@ -227,6 +231,8 @@ function FeedRow({
 export default function AlertsSection() {
   const t = useTranslations("profile");
   const tAlert = useTranslations("alerts");
+  // Les noms des familles, ceux des pastilles de la page d'un parc.
+  const tCards = useTranslations("parkPage.cards");
   const locale = useLocale();
   const { is12Hour } = useTimeFormat();
 
@@ -237,6 +243,11 @@ export default function AlertsSection() {
   // Rappels de spectacle ACTIFS (programmés, pas encore envoyés).
   const [reminders, setReminders] = useState<ShowReminderDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  // Familles des alertes passées, remontées par le fil d'historique : une
+  // pastille de filtre ne doit pas disparaître quand on change de sous-onglet.
+  const [historyKinds, setHistoryKinds] = useState<ReadonlySet<PoiKind>>(
+    new Set(),
+  );
 
   useEffect(() => {
     Promise.all([
@@ -261,6 +272,16 @@ export default function AlertsSection() {
   // de 23:35 à Disneyland California doit se lire « 23:35 », pas l'heure qu'il
   // est alors chez le lecteur. Fuseau absent (parc introuvable) = repli sur le
   // navigateur, comme avant.
+  // Heure limite d'une alerte de créneau : « HH:mm » en heure du PARC, telle
+  // que la source la publie — affichée telle quelle, au format choisi.
+  const formatSlot = (hhmm: string) =>
+    DateTime.fromFormat(hhmm, "HH:mm")
+      .setLocale(locale)
+      .toLocaleString({
+        ...DateTime.TIME_SIMPLE,
+        hourCycle: is12Hour ? "h12" : "h23",
+      });
+
   const formatTime = (iso: string, timezone: string | null) =>
     DateTime.fromISO(iso, { zone: timezone ?? undefined })
       .setLocale(locale)
@@ -269,20 +290,19 @@ export default function AlertsSection() {
         hourCycle: is12Hour ? "h12" : "h23",
       });
 
-  // Fusion attractions + spectacles → un seul fil, filtré par type puis trié
-  // par ordre alphabétique du nom.
+  // Fusion alertes + rappels de spectacles → un seul fil, filtré par type puis
+  // trié par ordre alphabétique du nom.
   const activeItems = useMemo<ActiveItem[]>(() => {
-    const rideItems: ActiveItem[] =
-      filter === "shows"
-        ? []
-        : alerts.map((a) => ({
-            kind: "ride",
-            id: a.id,
-            sortKey: a.rideName,
-            alert: a,
-          }));
+    const alertItems: ActiveItem[] = alerts
+      .filter((a) => filter === "all" || a.poiKind === filter)
+      .map((a) => ({
+        kind: "alert",
+        id: a.id,
+        sortKey: a.rideName,
+        alert: a,
+      }));
     const showItems: ActiveItem[] =
-      filter === "rides"
+      filter !== "all" && filter !== "show"
         ? []
         : reminders.map((r) => ({
             kind: "show",
@@ -290,22 +310,32 @@ export default function AlertsSection() {
             sortKey: r.showName,
             reminder: r,
           }));
-    return [...rideItems, ...showItems].sort((a, b) =>
+    return [...alertItems, ...showItems].sort((a, b) =>
       a.sortKey.localeCompare(b.sortKey, locale),
     );
   }, [alerts, reminders, filter, locale]);
 
   const activeEmptyLabel =
-    filter === "rides"
-      ? t("alertsEmptyRides")
-      : filter === "shows"
+    filter === "all"
+      ? t("activeEmptyAll")
+      : filter === "show"
         ? t("alertsEmptyShows")
-        : t("activeEmptyAll");
+        : filter === "ride"
+          ? t("alertsEmptyRides")
+          : t("alertsEmptyOther");
+
+  const chipKinds = filterKinds(
+    new Set([...alerts.map((a) => a.poiKind), ...historyKinds]),
+  );
 
   const filterLabels: Record<TypeFilter, string> = {
     all: t("filterAll"),
-    rides: t("historyAttractions"),
-    shows: t("historyShows"),
+    ride: t("historyAttractions"),
+    show: t("historyShows"),
+    restaurant: tCards("restaurants"),
+    shop: tCards("shops"),
+    hotel: tCards("hotels"),
+    service: tCards("services"),
   };
 
   const heading = (
@@ -333,7 +363,12 @@ export default function AlertsSection() {
       {/* Barre d'outils : filtres par type à gauche, sous-onglets Actives /
           Historique poussés à droite (`ml-auto`). Se replient si étroit. */}
       <div className="flex flex-wrap items-center gap-3">
-        <TypeChips value={filter} onChange={setFilter} labels={filterLabels} />
+        <TypeChips
+          value={filter}
+          onChange={setFilter}
+          kinds={chipKinds}
+          labels={filterLabels}
+        />
         <div className="ml-auto">
           <SubTabs
             value={subTab}
@@ -358,23 +393,33 @@ export default function AlertsSection() {
             <ul className="flex flex-col gap-2">
               <AnimatePresence initial={false} mode="popLayout">
                 {activeItems.map((item) =>
-                  item.kind === "ride" ? (
+                  item.kind === "alert" ? (
                   <FeedRow
                     key={item.id}
-                    kind="ride"
-                    icon={<RollerCoaster className="size-4" />}
-                    title={item.alert.rideName}
+                    kind={item.alert.poiKind}
+                    // Alerte d'une FILE : son nom suit celui de l'attraction.
+                    title={
+                      item.alert.queueLabel
+                        ? `${item.alert.rideName} · ${item.alert.queueLabel}`
+                        : item.alert.rideName
+                    }
                     subtitle={item.alert.parkName}
                     trailing={
                       // Une alerte de réouverture n'a pas de seuil : la pastille
                       // annonce l'événement attendu au lieu d'une valeur.
-                      item.alert.type === "reopen" ||
-                      item.alert.threshold == null ? (
-                        <ValueBadge kind="ride">
+                      item.alert.type === "slot" && item.alert.slotBefore ? (
+                        <ValueBadge kind={item.alert.poiKind}>
+                          {t("slotBadge", {
+                            time: formatSlot(item.alert.slotBefore),
+                          })}
+                        </ValueBadge>
+                      ) : item.alert.type === "reopen" ||
+                        item.alert.threshold == null ? (
+                        <ValueBadge kind={item.alert.poiKind}>
                           {t("reopenBadge")}
                         </ValueBadge>
                       ) : (
-                        <ValueBadge kind="ride">
+                        <ValueBadge kind={item.alert.poiKind}>
                           <span className="relative top-px text-[0.8em] leading-none text-muted-foreground">
                             ≤
                           </span>{" "}
@@ -389,7 +434,6 @@ export default function AlertsSection() {
                   <FeedRow
                     key={item.id}
                     kind="show"
-                    icon={<Drama className="size-4" />}
                     title={item.reminder.showName}
                     subtitle={`${item.reminder.parkName} · ${formatTime(
                       item.reminder.startTime,
@@ -409,7 +453,7 @@ export default function AlertsSection() {
         </div>
       ) : (
         <div className="mt-3">
-          <AlertHistoryFeed filter={filter} />
+          <AlertHistoryFeed filter={filter} onKinds={setHistoryKinds} />
         </div>
       )}
     </>

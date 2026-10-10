@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import type { RideHistoryResponse } from "@/types/rideHistory";
+import { STANDBY_QUEUE } from "@/lib/queue-types";
 
 // Historique du jour + prévision d'une attraction, rafraîchis toutes les 60 s.
 //
@@ -10,11 +11,17 @@ import type { RideHistoryResponse } from "@/types/rideHistory";
 // (`/park/{parc}/ride/{slug}`) : les deux affichent le même graphique et ont
 // besoin du même `chronicallyUnavailable` pour décider si une alerte a un sens.
 //
-// `rideId` à `null` (popup fermé) = aucune requête.
+// `rideId` à `null` (popup fermé) = aucune requête. `queueType` : la file
+// tracée, `standby` par défaut (le popup d'une file Single Rider trace la
+// sienne).
 
 const REFRESH_MS = 60_000;
 
-export function useRideHistory(parkIdentifier: string, rideId: number | null) {
+export function useRideHistory(
+  parkIdentifier: string,
+  rideId: number | null,
+  queueType: string = STANDBY_QUEUE,
+) {
   const [history, setHistory] = useState<RideHistoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +34,12 @@ export function useRideHistory(parkIdentifier: string, rideId: number | null) {
       axios
         .get<{ data: RideHistoryResponse }>(
           `/api/park/${parkIdentifier}/ride/${rideId}/history`,
-          { signal: controller.signal },
+          {
+            signal: controller.signal,
+            // Pas de paramètre pour la file standby : l'URL reste celle que
+            // les caches et les journaux connaissent.
+            params: queueType === STANDBY_QUEUE ? undefined : { queue: queueType },
+          },
         )
         .then((res) => {
           if (!cancelled) setHistory(res.data.data);
@@ -48,7 +60,7 @@ export function useRideHistory(parkIdentifier: string, rideId: number | null) {
       clearInterval(interval);
       controller.abort();
     };
-  }, [rideId, parkIdentifier]);
+  }, [rideId, parkIdentifier, queueType]);
 
   return {
     history,

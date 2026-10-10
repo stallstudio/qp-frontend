@@ -39,6 +39,11 @@ type EventCardProps = {
    * d'accord, pour un seul motif visuel.
    */
   children: React.ReactNode;
+  /**
+   * Ce que l'en-tête porte à droite du titre, carte DÉPLIÉE seulement — le
+   * sélecteur de familles (`main-card`). Sous le titre sur téléphone.
+   */
+  headerAside?: React.ReactNode;
   /** Rien à montrer : on le dit, au lieu d'un encadré vide. */
   isEmpty?: boolean;
   emptyLabel?: string;
@@ -55,6 +60,7 @@ export default function EventCard({
   view,
   timezone,
   children,
+  headerAside,
   isEmpty = false,
   emptyLabel,
   className,
@@ -80,6 +86,7 @@ export default function EventCard({
   // une fois qu'on a cliqué, l'horloge ne referme plus la carte sous les doigts.
   const [manual, setManual] = useState<boolean | null>(null);
   const open = manual ?? state === "running";
+  const showAside = open && headerAside != null;
 
   // Le calcul de `state` dépend de l'heure courante : il n'a lieu qu'après
   // montage côté appelant. On synchronise donc l'ouverture par défaut lorsque
@@ -122,34 +129,72 @@ export default function EventCard({
       {/* En-tête cliquable. UN SEUL CONTENANT qui s'ouvre : replié on ne voit
           que cette ligne, déplié le contenu apparaît dessous, dans le
           même encadré. Une seule chose à comprendre, et seul le chevron change
-          entre les deux états. */}
-      <button
-        type="button"
-        onClick={() => setManual(!open)}
-        aria-expanded={open}
-        className="flex w-full items-center gap-2.5 py-3 text-left"
+          entre les deux états.
+
+          ⚠️ **Ce n'est plus UN bouton, mais une ligne qu'un bouton recouvre**
+          (2026-10-08) : l'en-tête porte le sélecteur de familles une fois la
+          carte dépliée, et un bouton ne peut pas en contenir d'autres. Le
+          bouton de repli ne tient que l'icône et le titre, mais son `::after`
+          s'étend sur toute la ligne — chevron compris, qui n'est qu'un dessin
+          (`pointer-events-none`) — et les pastilles passent AU-DESSUS
+          (`z-10`). La ligne entière reste donc la cible du repli, sauf là où
+          l'on vise une pastille.
+
+          ⚠️ Sur téléphone, les pastilles ne tiennent pas à côté du titre :
+          elles passent sur une seconde ligne de la même grille, sous lui.
+          UN SEUL sélecteur pour les deux mises en page, placé par la grille —
+          deux exemplaires masqués tour à tour dupliqueraient les `id` dont
+          les pastilles et leur panneau se servent l'un l'autre. */}
+      <div
+        className={cn(
+          "relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-2 py-3",
+          showAside && "sm:grid-cols-[minmax(8rem,1fr)_minmax(0,auto)_auto]",
+        )}
       >
-        <Icon className={cn("size-5 shrink-0", iconClass)} />
-        <span className="min-w-0 flex-1">
-          {/* Non traduit : le nom vient de la source, comme un nom d'attraction. */}
-          <span className="block truncate font-semibold">{event.name}</span>
-          <span className="block truncate text-sm text-muted-foreground">
-            {subtitle}
-            {event.separateTicket && (
-              <>
-                {" · "}
-                {t("separateTicket")}
-              </>
-            )}
+        <button
+          type="button"
+          onClick={() => setManual(!open)}
+          aria-expanded={open}
+          className="col-start-1 row-start-1 flex min-w-0 items-center gap-2.5 text-left outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:ring-[3px] focus-visible:after:ring-ring/50"
+        >
+          <Icon className={cn("size-5 shrink-0", iconClass)} />
+          <span className="min-w-0 flex-1">
+            {/* Non traduit : le nom vient de la source, comme un nom d'attraction. */}
+            <span className="block truncate font-semibold">{event.name}</span>
+            <span className="block truncate text-sm text-muted-foreground">
+              {subtitle}
+              {event.separateTicket && (
+                <>
+                  {" · "}
+                  {t("separateTicket")}
+                </>
+              )}
+            </span>
           </span>
-        </span>
+        </button>
+        {/* Seulement DÉPLIÉE : replié, l'événement reste une ligne d'en-tête,
+            sans pastilles qui commanderaient un contenu qu'on ne voit pas. */}
+        <AnimatePresence initial={false}>
+          {showAside && (
+            <motion.div
+              key="aside"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: contentIn }}
+              exit={{ opacity: 0, transition: contentOut }}
+              className="relative z-10 col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-1"
+            >
+              {headerAside}
+            </motion.div>
+          )}
+        </AnimatePresence>
         <ChevronDown
           className={cn(
-            "size-5 shrink-0 text-muted-foreground transition-transform duration-200",
+            "pointer-events-none col-start-2 row-start-1 size-5 shrink-0 text-muted-foreground transition-transform duration-200",
+            showAside && "sm:col-start-3",
             open && "rotate-180",
           )}
         />
-      </button>
+      </div>
 
       {/* `initial={false}` : une carte rendue DÉJÀ ouverte (événement en cours
           au chargement de la page) ne doit pas se déplier toute seule sous les
@@ -165,15 +210,14 @@ export default function EventCard({
             // lignes débordent hors de la carte pendant toute l'ouverture.
             className="overflow-hidden"
           >
-            {/* Le trait de séparation vit ICI, sur le bloc qui s'estompe, et
-                non sur le rideau : posé dessus, il resterait affiché en carte
-                fermée — 1 px de trait flottant sous l'en-tête. Il apparaît donc
-                avec les lignes, en douceur. */}
+            {/* Plus de trait sous l'en-tête (2026-10-08) : il coupait la carte
+                en deux entre le sélecteur et la liste qu'il commande. L'espace
+                de l'en-tête suffit à les séparer. */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: contentIn }}
               exit={{ opacity: 0, transition: contentOut }}
-              className="border-t pb-2"
+              className="pb-2"
             >
               {isEmpty ? (
                 // Un événement confirmé dont rien ne remonte encore : ça arrive

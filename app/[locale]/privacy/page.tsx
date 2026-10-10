@@ -15,7 +15,7 @@ export async function generateMetadata({
 
 // Politique de confidentialité (RGPD art. 13). Contenu traduit via le namespace
 // i18n `legal.privacy` (fr + en ; repli EN pour les autres langues).
-export default async function ConfidentialitePage({
+export default async function PrivacyPage({
   params,
 }: {
   params: Promise<{ locale: string }>;

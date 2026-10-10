@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { getPrisma } from "@/lib/prisma";
+import { ALERT_KINDS } from "@/lib/poi-kinds";
 
 // Résolution d'UNE attraction, pour le lien profond `/park/{parc}/ride/{slug}`.
 //
@@ -32,8 +33,12 @@ export const getRideIdentity = cache(
     try {
       // `kind` explicite : la page d'une attraction ne doit pas pouvoir
       // s'ouvrir sur un spectacle qui porterait le même identifiant.
+      //
+      // ⚠️ Les familles qui portent des alertes, et pas seulement les
+      // attractions (2026-10-09) : la notification d'une alerte de restaurant
+      // pointe ici comme les autres, et tombait sur une 404.
       const ride = await getPrisma().poi.findFirst({
-        where: { kind: "ride", id: rideId, parkId, active: true },
+        where: { kind: { in: [...ALERT_KINDS] }, id: rideId, parkId, active: true },
         select: { id: true, name: true, thrillsId: true },
       });
       return ride ?? null;

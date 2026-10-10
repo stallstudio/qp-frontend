@@ -2,17 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import {
-  Bell,
-  SlidersHorizontal,
-  FerrisWheel,
-  RollerCoaster,
-  Lock,
-  Drama,
-} from "lucide-react";
+import { Bell, SlidersHorizontal, FerrisWheel, Lock } from "lucide-react";
 import { useRouter } from "@/i18n/routing";
-import { useFavorites } from "@/hooks/useFavorites";
-import { PARK_FAVORITES_LIMIT } from "@/lib/favorites-storage";
+import { useFavoritesContext } from "@/components/providers/favorites-provider";
+import {
+  PARK_FAVORITES_LIMIT,
+  type FavNamespace,
+  type PoiFavNamespace,
+} from "@/lib/favorites-storage";
+import { POI_KIND_ICONS, type PoiKind } from "@/lib/poi-kinds";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Footer from "@/components/ui/footer";
@@ -34,6 +33,7 @@ function Stat({
   max,
   accent = "bg-primary/10 text-primary",
   onClick,
+  className,
 }: {
   icon: React.ReactNode;
   value: number;
@@ -43,6 +43,7 @@ function Stat({
   // Teinte de la pastille d'icône (une couleur par tuile pour égayer l'en-tête).
   accent?: string;
   onClick?: () => void;
+  className?: string;
 }) {
   const inner = (
     <>
@@ -68,8 +69,10 @@ function Stat({
   );
 
   // Empilé (icône au-dessus) sur mobile pour tenir à 3 colonnes ; en ligne dès sm.
-  const base =
-    "flex flex-col items-center gap-2 rounded-2xl border px-2 py-3 sm:flex-row sm:gap-3 sm:px-4";
+  const base = cn(
+    "flex flex-col items-center gap-2 rounded-2xl border px-2 py-3 sm:flex-row sm:gap-3 sm:px-4",
+    className,
+  );
 
   if (onClick) {
     return (
@@ -104,6 +107,65 @@ function SectionHeading({
   );
 }
 
+// Les vignettes de favoris des familles de POI, dans l'ordre de la page d'un
+// parc.
+//
+// ⚠️ **Attractions et spectacles toujours, les autres seulement quand elles ont
+// au moins un favori.** Une vignette « 0 hôtel favori » ne dirait rien à
+// personne, et quatre de plus repousseraient les alertes sous la ligne de
+// flottaison du téléphone. Celles qu'on n'a jamais utilisées n'ont rien à
+// rappeler ; celle qu'on vient de remplir apparaît.
+const POI_STATS: {
+  namespace: PoiFavNamespace;
+  kind: PoiKind;
+  always: boolean;
+  countKey: string;
+  accent: string;
+}[] = [
+  {
+    namespace: "rides",
+    kind: "ride",
+    always: true,
+    countKey: "favoritesRidesCount",
+    accent: "bg-primary/10 text-primary",
+  },
+  {
+    namespace: "shows",
+    kind: "show",
+    always: true,
+    countKey: "favoritesShowsCount",
+    accent: "bg-show/10 text-show",
+  },
+  {
+    namespace: "restaurants",
+    kind: "restaurant",
+    always: false,
+    countKey: "favoritesRestaurantsCount",
+    accent: "bg-restaurant/10 text-restaurant",
+  },
+  {
+    namespace: "shops",
+    kind: "shop",
+    always: false,
+    countKey: "favoritesShopsCount",
+    accent: "bg-shop/10 text-shop",
+  },
+  {
+    namespace: "hotels",
+    kind: "hotel",
+    always: false,
+    countKey: "favoritesHotelsCount",
+    accent: "bg-hotel/10 text-hotel",
+  },
+  {
+    namespace: "services",
+    kind: "service",
+    always: false,
+    countKey: "favoritesServicesCount",
+    accent: "bg-service/10 text-service",
+  },
+];
+
 // Page profil, calquée sur la page « À propos » : header scroll-shrink partagé +
 // carte à onglets (rounded-4xl, pastille coulissante). Deux onglets : Préférences
 // et Notifications.
@@ -112,15 +174,25 @@ export default function ProfilePageClient() {
   const { status, profile } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("alerts");
-  const [parksOpen, setParksOpen] = useState(false);
-  const [ridesOpen, setRidesOpen] = useState(false);
-  const [showsOpen, setShowsOpen] = useState(false);
-  // Compteurs des vignettes en direct depuis localStorage (source de travail des
-  // favoris) : le nombre se met à jour immédiatement quand on retire un favori
-  // depuis le popup, sans attendre un refresh du profil.
-  const { favorites: parkFavorites } = useFavorites("parks");
-  const { favorites: rideFavorites } = useFavorites("rides");
-  const { favorites: showFavorites } = useFavorites("shows");
+  // Le popup de favoris ouvert, et sur quel namespace. Retenu à part de
+  // l'ouverture : il garde son contenu le temps de son animation de sortie.
+  const [popupScope, setPopupScope] = useState<FavNamespace>("parks");
+  const [popupOpen, setPopupOpen] = useState(false);
+  const openPopup = (scope: FavNamespace) => {
+    setPopupScope(scope);
+    setPopupOpen(true);
+  };
+  // Compteurs des vignettes en direct depuis le provider des favoris : le nombre
+  // se met à jour immédiatement quand on retire un favori depuis le popup, sans
+  // attendre un refresh du profil.
+  const { favorites } = useFavoritesContext();
+  const poiStats = POI_STATS.filter(
+    (stat) => stat.always || favorites[stat.namespace].size > 0,
+  );
+  // Parcs + familles + alertes. Sur deux colonnes, un nombre impair laisserait
+  // la vignette des alertes seule sur sa ligne, à moitié vide : elle prend
+  // alors toute la largeur.
+  const statCount = poiStats.length + 2;
 
   // Garde côté client : si l'utilisateur se déconnecte depuis cette page, retour
   // à l'accueil (la garde serveur couvre l'accès direct sans session).
@@ -151,31 +223,34 @@ export default function ProfilePageClient() {
         />
 
         <Card className="w-full gap-0 rounded-4xl p-2.5 sm:p-4">
-          {/* Statistiques en tête de carte : parcs / attractions / spectacles
-              favoris (cliquables -> popup avec retrait), alertes actives. */}
-          <div className="grid grid-cols-2 gap-2 p-1 pb-3 sm:grid-cols-4 sm:gap-4">
+          {/* Statistiques en tête de carte : parcs puis favoris de chaque
+              famille (cliquables -> popup avec retrait), alertes actives.
+
+              Les colonnes s'adaptent au nombre de vignettes dès `sm` : quatre
+              d'ordinaire, jusqu'à huit avec toutes les familles. */}
+          <div className="grid grid-cols-2 gap-2 p-1 pb-3 sm:grid-cols-[repeat(auto-fit,minmax(9.5rem,1fr))] sm:gap-4">
             <Stat
               icon={<FerrisWheel className="size-5" />}
-              value={parkFavorites.size}
+              value={favorites.parks.size}
               max={PARK_FAVORITES_LIMIT}
-              label={t("favoritesParksCount", { count: parkFavorites.size })}
+              label={t("favoritesParksCount", { count: favorites.parks.size })}
               accent="bg-amber-500/10 text-amber-600 dark:text-amber-400"
-              onClick={() => setParksOpen(true)}
+              onClick={() => openPopup("parks")}
             />
-            <Stat
-              icon={<RollerCoaster className="size-5" />}
-              value={rideFavorites.size}
-              label={t("favoritesRidesCount", { count: rideFavorites.size })}
-              accent="bg-primary/10 text-primary"
-              onClick={() => setRidesOpen(true)}
-            />
-            <Stat
-              icon={<Drama className="size-5" />}
-              value={showFavorites.size}
-              label={t("favoritesShowsCount", { count: showFavorites.size })}
-              accent="bg-show/10 text-show"
-              onClick={() => setShowsOpen(true)}
-            />
+            {poiStats.map((stat) => {
+              const Icon = POI_KIND_ICONS[stat.kind];
+              const count = favorites[stat.namespace].size;
+              return (
+                <Stat
+                  key={stat.namespace}
+                  icon={<Icon className="size-5" />}
+                  value={count}
+                  label={t(stat.countKey, { count })}
+                  accent={stat.accent}
+                  onClick={() => openPopup(stat.namespace)}
+                />
+              );
+            })}
             <Stat
               icon={<Bell className="size-5" />}
               value={profile?.counts.activeAlerts ?? 0}
@@ -185,6 +260,7 @@ export default function ProfilePageClient() {
               // « Blanc » : pastille neutre (fond très léger, icône couleur du
               // texte) — lisible en clair comme en sombre.
               accent="bg-foreground/5 text-foreground"
+              className={cn(statCount % 2 === 1 && "col-span-2 sm:col-span-1")}
             />
           </div>
 
@@ -259,9 +335,11 @@ export default function ProfilePageClient() {
 
       <Footer />
 
-      <FavoritesPopup scope="parks" open={parksOpen} onOpenChange={setParksOpen} />
-      <FavoritesPopup scope="rides" open={ridesOpen} onOpenChange={setRidesOpen} />
-      <FavoritesPopup scope="shows" open={showsOpen} onOpenChange={setShowsOpen} />
+      <FavoritesPopup
+        scope={popupScope}
+        open={popupOpen}
+        onOpenChange={setPopupOpen}
+      />
     </div>
   );
 }

@@ -18,11 +18,15 @@ import AuthDialog from "@/components/auth/auth-dialog";
 export default function NotificationGate({
   children,
   signInIntro,
+  plain = false,
 }: {
   children: React.ReactNode;
   // Intro affichée dans l'écran « se connecter » (contexte : alerte vs rappel).
   // Repli sur le texte des alertes d'attraction.
   signInIntro?: string;
+  // Sans cadre ni pastille d'icône : le garde est posé DANS une carte qui porte
+  // déjà les deux (la carte d'alerte dépliée du popup attraction).
+  plain?: boolean;
 }) {
   const { isStandalone, platform, canPrompt, promptInstall, hydrated } =
     usePwaInstall();
@@ -44,16 +48,21 @@ export default function NotificationGate({
         canPrompt={canPrompt}
         promptInstall={promptInstall}
         showAccountNote={!isAuthenticated}
+        plain={plain}
       />
     );
   }
 
   if (!isAuthenticated) {
-    return <SignInPrompt intro={signInIntro} />;
+    return <SignInPrompt intro={signInIntro} plain={plain} />;
   }
 
   return <>{children}</>;
 }
+
+const GATE_FRAMED =
+  "flex flex-col items-center gap-3 rounded-lg border border-dashed p-4 text-center";
+const GATE_PLAIN = "flex flex-col gap-3";
 
 // —————————————————————— Navigateur : installer la PWA ——————————————————————
 
@@ -62,11 +71,13 @@ function InstallPrompt({
   canPrompt,
   promptInstall,
   showAccountNote,
+  plain,
 }: {
   platform: PwaPlatform;
   canPrompt: boolean;
   promptInstall: PromptInstall;
   showAccountNote: boolean;
+  plain: boolean;
 }) {
   const t = useTranslations("attractionDetail");
   const [installing, setInstalling] = useState(false);
@@ -87,10 +98,12 @@ function InstallPrompt({
   const Icon = platform === "ios" ? Share : Download;
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-4 text-center">
-      <div className="flex size-11 items-center justify-center rounded-full bg-primary/10">
-        <Icon className="size-5 text-primary" />
-      </div>
+    <div className={plain ? GATE_PLAIN : GATE_FRAMED}>
+      {!plain && (
+        <div className="flex size-11 items-center justify-center rounded-full bg-primary/10">
+          <Icon className="size-5 text-primary" />
+        </div>
+      )}
       <div className="space-y-1">
         <p className="font-medium">{t("installTitle")}</p>
         <p className="text-sm text-muted-foreground">{t("installIntro")}</p>
@@ -118,18 +131,21 @@ function InstallPrompt({
 
 // —————————————————————— PWA mais non connecté ——————————————————————
 
-function SignInPrompt({ intro }: { intro?: string }) {
+function SignInPrompt({ intro, plain }: { intro?: string; plain: boolean }) {
   const t = useTranslations("attractionDetail");
   const tUser = useTranslations("userBlock");
   const [authOpen, setAuthOpen] = useState(false);
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-4 text-center">
-      <div className="flex size-11 items-center justify-center rounded-full bg-primary/10">
-        <Bell className="size-5 text-primary" />
-      </div>
+    <div className={plain ? GATE_PLAIN : GATE_FRAMED}>
+      {!plain && (
+        <div className="flex size-11 items-center justify-center rounded-full bg-primary/10">
+          <Bell className="size-5 text-primary" />
+        </div>
+      )}
       <div className="space-y-1">
-        <p className="font-medium">{t("signInTitle")}</p>
+        {/* En carte, le titre de la carte dit déjà de quoi il s'agit. */}
+        {!plain && <p className="font-medium">{t("signInTitle")}</p>}
         <p className="text-sm text-muted-foreground">
           {intro ?? t("signInIntro")}
         </p>

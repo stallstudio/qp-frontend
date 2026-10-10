@@ -1,4 +1,5 @@
 import type { PoiKind } from "@/lib/poi-kinds";
+import type { PoiPrice } from "@/lib/poi-facts";
 
 export type WaitTimeStatus = "open" | "closed" | "down" | "maintenance";
 
@@ -7,9 +8,20 @@ export type TimeSlot = {
   end: string;   // "HH:mm" (24h, heure locale du parc)
 };
 
+/**
+ * Fourchette publiée par la source (« 10-20 min »), pour l'affichage.
+ * `max: null` = borne ouverte (« 90+ »).
+ */
+export type WaitRange = { min: number; max: number | null };
+
 export type QueueTime = {
   type: string;
+  /**
+   * La valeur de CALCUL : couleur, tri, alertes. Pour une fourchette, sa borne
+   * haute — le chiffre qui ne promet jamais moins que ce que le parc annonce.
+   */
   waitTime: number;
+  waitRange?: WaitRange | null;
   status: WaitTimeStatus;
   timeSlot: TimeSlot | null;
 };
@@ -71,4 +83,24 @@ export type WaitTime = {
    * fait déjà `include: { poi: true }`.
    */
   zone: string | null;
+  /**
+   * Carte du restaurant publiée par la source, en URL ABSOLUE — souvent un PDF
+   * sur le site du parc.
+   *
+   * ⚠️ **`null` sur toute attraction, à dessein**, et pas seulement parce que
+   * leur popup ne l'afficherait pas : un gros parc en aligne deux cents, et
+   * cette charge utile repart à chaque rafraîchissement de 60 s.
+   *
+   * ⚠️ **Ce n'est PAS une image** : contrairement à `banner`, elle ne passe pas
+   * par `proxiedImageUrl`. Le proxy sert à faire traverser `next/image` sans
+   * déclarer l'hôte de chaque parc ; un PDF n'y a rien à faire.
+   */
+  menu: string | null;
+  /**
+   * Niveau de peur d'une maison hantée, de 1 à 5, et son prix d'accès en plus
+   * de l'entrée — `null` quand la source n'en publie pas, c'est-à-dire presque
+   * partout. Voir `lib/poi-facts.ts`.
+   */
+  fearLevel: number | null;
+  price: PoiPrice | null;
 };

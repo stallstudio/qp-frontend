@@ -48,7 +48,11 @@
     "hoursOther": "Horario",
     "cards": {
       "attractions": "Atracciones",
-      "shows": "Espectáculos"
+      "shows": "Espectáculos",
+      "restaurants": "Restaurantes",
+      "shops": "Tiendas",
+      "hotels": "Hoteles",
+      "services": "Servicios"
     }
   },
   "parkStatus": {
@@ -59,13 +63,15 @@
     "open": "Abierta",
     "closed": "Cerrada",
     "down": "Averiada",
+    "downShort": "Avería",
     "maintenance": "Mantenimiento",
     "unavailable": "No disponible",
     "unavailableShort": "N/D"
   },
   "tabs": {
     "live": "En directo",
-    "schedule": "Horario de hoy"
+    "schedule": "Horario de hoy",
+    "families": "Categorías"
   },
   "shows": {
     "show": "Espectáculo",
@@ -78,9 +84,6 @@
   },
   "showDetail": {
     "openFor": "Ver los detalles de {show}",
-    "notifTitle": "Avisos",
-    "duration": "Duración: {duration}",
-    "continuousAccess": "Acceso continuo · {range}",
     "signInIntro": "Inicia sesión para recibir un aviso antes de que empiece un espectáculo.",
     "reminderIntro": "Elige un pase y después con cuánta antelación quieres el aviso.",
     "leadLabel": "¿Con cuánta antelación quieres el aviso?",
@@ -97,7 +100,28 @@
     "noUpcoming": "No queda ningún espectáculo hoy.",
     "leadTooLate": "Este pase empieza demasiado pronto para programar un aviso.",
     "reminderActivate": "Activar aviso",
-    "reminderModify": "Editar aviso"
+    "reminderModify": "Editar aviso",
+    "liveNext": "Próxima sesión",
+    "liveDuration": "Duración",
+    "liveRemaining": "Restantes",
+    "liveAccess": "Acceso",
+    "reminderRowTitle": "Avisarme antes de una sesión",
+    "reminderRowPick": "Elegir una sesión",
+    "reminderRowEdit": "Modificar o añadir",
+    "reminderRowCount": "{count, plural, one {# recordatorio programado} other {# recordatorios programados}}",
+    "reminderSlot": "Sesión de las {time}",
+    "reminderPickHint": "Toca otra sesión próxima para elegirla.",
+    "noSchedule": "El parque no publica horarios para esta atracción.",
+    "unscheduledTitle": "Horarios no publicados"
+  },
+  "poiFacts": {
+    "fearLevel": "Nivel de miedo",
+    "fearLevelValue": "{level} de 5",
+    "price": "Precio",
+    "free": "Gratis",
+    "extendedPrice": "{price} en días de horario ampliado",
+    "extendedOnly": "En días de horario ampliado",
+    "extendedToday": "Tarifa de horario ampliado"
   },
   "favorites": {
     "myFavorites": "Mis favoritos",
@@ -142,7 +166,8 @@
     "lastUpdate": "Última actualización",
     "updatedAgo": "Actualizado hace {age}",
     "liveConnected": "En directo",
-    "liveFallback": "Actualización automática"
+    "liveFallback": "Actualización automática",
+    "unlistedTitle": "Tiempos de espera no publicados"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Todos los derechos reservados.",
@@ -224,7 +249,7 @@
       },
       "favorites": {
         "title": "Favoritos",
-        "body": "Toca la estrella para añadir un parque, una atracción o un espectáculo a tus favoritos. Los parques favoritos se fijan arriba en la página de inicio; tus atracciones y espectáculos favoritos se agrupan por parque en una ventana desde tu perfil. Se guardan en tu cuenta y se sincronizan en todos tus dispositivos.",
+        "body": "Toca la estrella para añadir a tus favoritos un parque, una atracción, un espectáculo, un restaurante o una tienda. Los parques favoritos se fijan arriba en la página de inicio; el resto sube al principio de las listas del parque y se agrupa por parque en una ventana desde tu perfil. Se guardan en tu cuenta y se sincronizan en todos tus dispositivos.",
         "parksLabel": "Parques favoritos",
         "ridesLabel": "Atracciones favoritas (perfil)",
         "hint": "Toca una estrella: el parque favorito sube arriba del todo en la página de inicio."
@@ -255,7 +280,7 @@
       },
       "alerts": {
         "title": "Avisos de espera",
-        "body": "Desde la página de una atracción, elige un umbral: recibirás una notificación en cuanto la espera baje por debajo. Una vez enviado, el aviso ha cumplido su función: desaparece y pasa a tu historial. Solo tienes que crear otro desde la página de la atracción. Requiere cuenta y permiso de notificaciones."
+        "body": "Desde la página de una atracción —o de un restaurante que publica su espera—, elige un umbral: recibirás una notificación en cuanto la espera baje por debajo. Una vez enviado, el aviso ha cumplido su función: desaparece y pasa a tu historial. Solo tienes que crear otro desde la página. Los avisos solo se ofrecen donde el parque publica sus tiempos de espera. Requiere cuenta y permiso de notificaciones."
       },
       "reminders": {
         "title": "Avisos de espectáculos",
@@ -292,12 +317,12 @@
     "temperatureUnit": "Unidad de temperatura"
   },
   "whatsNew": {
-    "srTitle": "Las novedades de Queue Park v3",
-    "srDescription": "Una presentación de las novedades de la versión 3 de Queue Park.",
+    "srTitle": "Novedades de Queue Park v4",
+    "srDescription": "Presentación de las novedades de la versión 4 de Queue Park.",
     "hero": {
       "eyebrow": "{count} novedades",
-      "title": "Queue Park pasa a la v3",
-      "body": "Una cuenta que te acompaña de un dispositivo a otro, avisos en el momento justo, previsiones de espera: esto es lo que cambia."
+      "title": "Queue Park pasa a la v4",
+      "body": "Restaurantes y tiendas, el horario de cada lugar, una ficha rediseñada, previsiones que puedes comprobar: todo el parque cabe ahora en una página."
     },
     "nav": {
       "scrollHint": "Desliza",
@@ -308,55 +333,44 @@
       "beta": "Beta"
     },
     "slides": {
-      "account": {
-        "title": "Tu cuenta de Queue Park",
-        "body": "Inicia sesión en un instante, con Google o con un simple enlace recibido por correo — sin contraseña. Tus favoritos, tus avisos y tus preferencias te acompañan entonces del móvil en el parque al ordenador en casa."
-      },
-      "favorites": {
-        "title": "Tus favoritos, en todos tus dispositivos",
-        "body": "La estrella ya funciona en parques, atracciones y espectáculos. Tus parques favoritos se fijan arriba en la página de inicio, tus atracciones y espectáculos suben al principio de las tablas del parque, y los encuentras todos en tu perfil — sincronizados en todos tus dispositivos."
-      },
-      "notifications": {
-        "title": "Avisado en el momento justo",
-        "body": "Instala Queue Park como aplicación y deja que vigile el parque por ti.",
-        "install": "Instalar la aplicación",
+      "park": {
+        "title": "Todo el parque, no solo sus atracciones",
+        "body": "Atracciones, espectáculos, restaurantes, tiendas: cada categoría tiene su botón al principio de la lista, y pasas de una a otra con un toque. En los parques que publican estos datos, cada restaurante y cada tienda muestra su estado en directo y su zona.",
         "points": {
-          "threshold": "La espera de una atracción baja del umbral que has elegido.",
-          "reopened": "Una atracción vuelve a abrir tras una avería o un cierre.",
-          "show": "Un espectáculo está a punto de empezar, con la antelación que prefieras."
+          "menu": "La carta del restaurante, y el pedido en línea cuando el parque lo ofrece.",
+          "favorites": "La estrella en todas partes: un restaurante o una tienda se marca como favorito igual que una atracción, y sube al principio de su lista.",
+          "wait": "La espera de los restaurantes que la publican, con un aviso cuando baja."
         }
       },
-      "forecast": {
-        "title": "Previsiones de espera",
-        "body": "La línea continua traza la espera desde la apertura, la discontinua la estima hasta el cierre. Justo lo necesario para dar con el mejor momento para ir."
+      "hours": {
+        "title": "El horario de cada lugar",
+        "body": "La pestaña «Horario de hoy» ya no se limita a los espectáculos: en los parques que los publican, atracciones, restaurantes, tiendas y hoteles muestran ahí su horario de apertura, en una línea del tiempo del día. Lo que cierra más tarde va primero, para ver de un vistazo qué seguirá abierto esta noche."
       },
       "detail": {
-        "title": "La ficha de cada atracción",
-        "body": "Toca una atracción o un espectáculo: su foto, su zona del parque, la curva del día con su previsión y el ajuste de tus avisos, todo reunido en el mismo sitio."
+        "title": "Una ficha que va al grano",
+        "body": "Bajo la foto, una banda muestra lo esencial: la espera, el estado y la hora de cierre. Una frase basada en la previsión te dice si es buen momento, y el aviso se configura en una sola línea."
       },
-      "events": {
-        "title": "Los eventos del parque",
-        "body": "Durante Halloween o Navidad, las atracciones y espectáculos propios del evento tienen su propia tarjeta, con los colores de la temporada — y la mención «Entrada aparte» cuando el acceso no está incluido en la entrada."
+      "queues": {
+        "title": "Cada fila tiene su ficha",
+        "body": "Single Rider, Disney Premier Access, fila virtual: toca una fila para abrir su propia ficha, con su espera o su franja horaria, su estado y su aviso. En una fila con franjas horarias, el aviso te alerta en cuanto se libera una franja más temprana."
       },
-      "weather": {
-        "title": "La meteorología del parque, en directo",
-        "body": "La temperatura y el cielo del parque aparecen en su cabecera, actualizados cada hora. Práctico para anticipar la afluencia — y para saber si hace falta chubasquero."
+      "forecast": {
+        "title": "Previsiones que puedes comprobar",
+        "body": "En gris, lo que habíamos previsto una hora antes, trazado junto a lo que pasó de verdad: juzga por ti mismo. Y cuando un parque anuncia un intervalo, se muestra tal cual — «10–20 min» en lugar de una sola cifra."
+      },
+      "halloween": {
+        "title": "Halloween, casa por casa",
+        "body": "Las casas del terror muestran su nivel de miedo, de una a cinco calaveras, y su precio cuando la entrada es de pago. La tarjeta del evento sigue sus sesiones — el día y luego la noche — y tiene sus propios botones: casas, espectáculos, restaurantes."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "La espera ha bajado a 15 min",
-        "reopened": "La atracción acaba de reabrir",
-        "show": "Empieza en 15 minutos"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Navidad"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "¡Buena visita!",
-      "body": "Todo está listo. Una nueva página «Acerca de» cuenta de dónde vienen los tiempos de espera y detalla cada función, por si quieres profundizar.",
+      "body": "Todo está listo. ¿Un comentario, una idea, un parque que añadir? Escríbenos: la dirección está en la página «Acerca de».",
       "aboutLink": "Descubrir la página Acerca de"
     }
   },
@@ -424,9 +438,17 @@
     "favoritesParksCount": "{count, plural, one {Parque favorito} other {Parques favoritos}}",
     "favoritesRidesCount": "{count, plural, one {Atracción favorita} other {Atracciones favoritas}}",
     "favoritesShowsCount": "{count, plural, one {Espectáculo favorito} other {Espectáculos favoritos}}",
+    "favoritesRestaurantsCount": "{count, plural, one {Restaurante favorito} other {Restaurantes favoritos}}",
+    "favoritesShopsCount": "{count, plural, one {Tienda favorita} other {Tiendas favoritas}}",
+    "favoritesHotelsCount": "{count, plural, one {Hotel favorito} other {Hoteles favoritos}}",
+    "favoritesServicesCount": "{count, plural, one {Servicio favorito} other {Servicios favoritos}}",
     "favoritesParksTitle": "Parques favoritos",
     "favoritesRidesTitle": "Atracciones favoritas",
     "favoritesShowsTitle": "Espectáculos favoritos",
+    "favoritesRestaurantsTitle": "Restaurantes favoritos",
+    "favoritesShopsTitle": "Tiendas favoritas",
+    "favoritesHotelsTitle": "Hoteles favoritos",
+    "favoritesServicesTitle": "Servicios favoritos",
     "favoritesListEmpty": "Aún no hay favoritos.",
     "favoritesRemove": "Quitar {name} de favoritos",
     "activeAlertsCount": "{count, plural, one {Aviso activo} other {Avisos activos}}",
@@ -470,8 +492,10 @@
     "historyShows": "Espectáculos",
     "historyShowLine": "pase de las {time} · {lead} min antes",
     "alertsEmptyRides": "No hay ningún aviso configurado. Crea uno desde una atracción.",
+    "alertsEmptyOther": "Ningún aviso de este tipo por ahora.",
     "alertsEmptyShows": "No hay ningún recordatorio configurado. Crea uno desde un espectáculo.",
     "historyEmptyRides": "Todavía no se ha enviado ninguna notificación de atracción.",
+    "historyEmptyOther": "Todavía no se ha enviado ninguna notificación de este tipo.",
     "historyEmptyShows": "Todavía no se ha enviado ninguna notificación de espectáculo.",
     "edit": "Editar umbral",
     "subTabActive": "Activos",
@@ -484,7 +508,9 @@
     "editLead": "Editar antelación",
     "leadTooLate": "El espectáculo empieza demasiado pronto para cambiar la antelación.",
     "reopenBadge": "Reapertura",
-    "historyReopenLine": "Ha reabierto"
+    "historyReopenLine": "Ha reabierto",
+    "slotBadge": "Antes de las {time}",
+    "historySlotLine": "Turno antes de las {time} disponible"
   },
   "privacy": {
     "emailLabel": "Dirección de correo",
@@ -527,11 +553,11 @@
   },
   "attractionDetail": {
     "openFor": "Ver los detalles de {ride}",
-    "alertsTitle": "Avisos",
-    "chartTitle": "Espera de hoy",
     "chartToday": "Hoy",
     "chartActual": "Espera",
     "chartForecast": "Previsión",
+    "chartForecastPast": "Previsión",
+    "chartForecastLegend": "Previsión futura",
     "chartNow": "Ahora",
     "chartEmpty": "Todavía no hay datos de hoy.",
     "chartUnavailable": "Atracción no disponible por el momento.",
@@ -540,8 +566,7 @@
     "chartForecastNote": "Estimación aproximada para el resto del día.",
     "chartForecastPreOpeningNote": "Estimación basada en días anteriores; se actualizará cuando el parque abra.",
     "estimateTooltip": "Estimado a partir de días pasados comparables. La realidad puede diferir.",
-    "marginNote": "En los últimos días, nuestras previsiones se han equivocado de media en <v>{minutes} min</v>.",
-    "marginNoteTooltip": "Diferencia media entre nuestras previsiones y la espera realmente observada durante los últimos 14 días.",
+    "marginNoteTooltip": "Diferencia media entre lo que anunciábamos con una hora de antelación y la espera realmente observada durante los últimos 14 días.",
     "installTitle": "Instalar Queue Park",
     "installIntro": "Los avisos requieren la aplicación instalada en tu dispositivo.",
     "installButton": "Instalar la aplicación",
@@ -561,11 +586,49 @@
     "pushDenied": "Las notificaciones están bloqueadas para este sitio. Permítelas en los ajustes de tu navegador para recibir avisos en este dispositivo.",
     "pushUnsupported": "Este navegador no admite notificaciones push. El aviso aparecerá igualmente en tu perfil y en el historial.",
     "reopenLabel": "Esta atracción está parada. Te avisamos en cuanto vuelva a abrir.",
+    "poiReopenLabel": "Cerrado por ahora. Te avisamos en cuanto vuelva a abrir.",
     "reopenSave": "Avisarme cuando reabra",
     "reopenActive": "Alerta de reapertura activa",
     "reopenSaved": "Alerta de reapertura guardada",
     "reopenTooLate": "El parque está cerrado, las alertas no están disponibles. Vuelve en la próxima apertura del parque.",
-    "statusChanged": "El estado de la atracción acaba de cambiar. Vuelve a abrir la ficha para crear la alerta adecuada."
+    "statusChanged": "El estado de la atracción acaba de cambiar. Vuelve a abrir la ficha para crear la alerta adecuada.",
+    "poiStatusChanged": "El estado acaba de cambiar. Vuelve a abrir la ficha para crear el aviso adecuado.",
+    "liveWait": "Espera",
+    "liveSlot": "Turno",
+    "liveStatus": "Estado",
+    "liveOpensAt": "Abre a las",
+    "liveClosesAt": "Cierra a las",
+    "liveClosedAt": "Cierre",
+    "chartLegendActual": "Registrado",
+    "marginShort": "Desviación media observada: <v>{minutes} min</v>.",
+    "insightRise": "Buen momento: la espera debería subir a <b>~{minutes} min hacia las {time}</b>",
+    "insightDrop": "Mejor esperar: la espera debería bajar a <b>~{minutes} min hacia las {time}</b>",
+    "alertRowTitle": "Avisarme cuando baje la espera",
+    "alertRowSignIn": "Requiere iniciar sesión",
+    "alertRowPick": "Elegir un umbral",
+    "alertActiveRow": "Alerta activa · menos de {minutes} min",
+    "alertThresholdHint": "El umbral aparece en verde en el gráfico.",
+    "alertActivate": "Activar la alerta",
+    "alertEdit": "Editar",
+    "alertThresholdLine": "Alerta por debajo de {minutes} min",
+    "close": "Cerrar",
+    "pushDeniedShort": "Notificaciones bloqueadas en este dispositivo",
+    "insightBest": "Mejor momento previsto: <b>~{minutes} min hacia las {time}</b>",
+    "slotRowTitle": "Avisar de un turno antes",
+    "slotRowPick": "Elegir la hora",
+    "slotOption": "Antes de las {time}",
+    "slotActiveRow": "Alerta activa · turno antes de las {time}",
+    "slotHint": "Te avisamos en cuanto haya un turno que empiece a esta hora o antes.",
+    "slotNothingEarlier": "Ahora mismo no hay un turno más temprano que vigilar.",
+    "queueReopenLabel": "Esta fila está cerrada. Te avisamos en cuanto vuelva a abrir.",
+    "queueNothingToWatch": "Esta fila no publica ni tiempo de espera ni turno: no hay nada que vigilar por ahora.",
+    "queueSeeRide": "Ver la atracción"
+  },
+  "poiDetail": {
+    "openFor": "Ver la ficha de {poi}",
+    "menuTitle": "Carta",
+    "menuAction": "Ver la carta",
+    "orderAction": "Ver la carta y pedir"
   },
   "legal": {
     "backHome": "Volver al inicio",

@@ -11,6 +11,24 @@ import { buildRideHistory } from "@/lib/wait-times-history";
 import { isAdminViewer } from "@/lib/auth-helpers";
 import { sampleDaySeries, type TimedPoint } from "@/lib/wait-times-series";
 import type { ConfidenceLevel, RideHistoryResponse } from "@/types/rideHistory";
+import { waitCapFor } from "@/lib/wait-time-cap";
+import { mergeValueRanges } from "@/lib/wait-range";
+import { CHARTED_QUEUE_TYPES, STANDBY_QUEUE } from "@/lib/queue-types";
+
+// Colonnes lues sur la ligne de prévision, identiques dans les deux tables.
+const FORECAST_SELECT = {
+  date: true,
+  forecast: true,
+  forecastTrail: true,
+  scale: true,
+  confidence: true,
+  confidenceLevel: true,
+  preOpening: true,
+  method: true,
+  baseProfile: true,
+  marginMinutes: true,
+  marginSamples: true,
+} as const;
 
 // Cadence d'échantillonnage (min) de la courbe du jour ET de la prévision.
 const CHART_STEP_MINUTES = 15;
@@ -25,7 +43,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * Historique du jour + prévision de fin de journée pour UNE attraction (file
- * standby). Fetché à la demande à l'ouverture du popup d'une attraction — donc
+ * standby, ou `?queue=singlerider` pour sa file Single Rider — voir
+ * `CHARTED_QUEUE_TYPES`). Fetché à la demande à l'ouverture du popup d'une attraction — donc
  * indépendant de l'historique global (suspendu). Reconstruit une série
  * horodatée depuis le modèle temporel `wait_times` et applique la stratégie de
  * prévision active.
@@ -45,6 +64,7 @@ export async function GET(
     now: new Date().toISOString(),
     today: [],
     forecast: [],
+    forecastTrail: [],
     meta: {
       scale: 1,
       confidence: 0,
@@ -55,6 +75,8 @@ export async function GET(
       chronicallyUnavailable: false,
       marginMinutes: null,
       marginSamples: 0,
+      waitCap: null,
+      valueRanges: [],
     },
   });
 
@@ -105,12 +127,12 @@ export async function GET(
     // chemin nominal, appelé à chaque ouverture de popup, n'y perd rien.
     let park = await prisma.park.findUnique({
       where: { identifier: parkId, display: true },
-      select: { id: true, timezone: true },
+      select: { id: true, timezone: true, provider: true },
     });
     if (!park && (await isAdminViewer())) {
       park = await prisma.park.findUnique({
         where: { identifier: parkId },
-        select: { id: true, timezone: true },
+        select: { id: true, timezone: true, provider: true },
       });
     }
     if (!park) {
@@ -120,6 +142,14 @@ export async function GET(
     const rideIdNum = Number(rideId);
     if (!Number.isInteger(rideIdNum)) {
       return NextResponse.json({ error: "Invalid ride id" }, { status: 400 });
+    }
+
+    // ⚠️ Liste FERMÉE : une file virtuelle ou un créneau n'a pas de courbe à
+    // tracer, et le paramètre finit dans une requête SQL.
+    const queueType =
+      new URL(request.url).searchParams.get("queue") ?? STANDBY_QUEUE;
+    if (!CHARTED_QUEUE_TYPES.has(queueType)) {
+      return NextResponse.json({ error: "Invalid queue" }, { status: 400 });
     }
 
     // Vérifie l'appartenance de l'attraction au parc (anti-fuite cross-parc).
@@ -144,6 +174,7 @@ export async function GET(
     const rideHistory = await buildRideHistory(park.id, park.timezone, rideIdNum, {
       historyDays: 0,
       eventId: ride.eventId,
+      queueType,
     });
 
     if (!rideHistory.today) {
@@ -158,26 +189,57 @@ export async function GET(
 
     // Prévision stockée : on ne l'utilise que si elle vise bien le jour logique
     // courant (sinon elle est périmée -> on n'affiche pas de prévision).
-    const forecastRow = await prisma.rideForecast.findUnique({
-      where: { poiId: rideIdNum },
-      select: {
-        date: true,
-        forecast: true,
-        scale: true,
-        confidence: true,
-        confidenceLevel: true,
-        preOpening: true,
-        method: true,
-        baseProfile: true,
-        marginMinutes: true,
-        marginSamples: true,
-      },
-    });
+    //
+    // File secondaire : table `queue_forecast` (voir le modèle `QueueForecast`
+    // pour la raison d'une table à part). Son échec ne coûte que la prévision :
+    // la courbe observée reste servie.
+    const forecastRow =
+      queueType === STANDBY_QUEUE
+        ? await prisma.rideForecast.findUnique({
+            where: { poiId: rideIdNum },
+            select: FORECAST_SELECT,
+          })
+        : await prisma.queueForecast
+            .findUnique({
+              where: { poiId_queueType: { poiId: rideIdNum, queueType } },
+              select: FORECAST_SELECT,
+            })
+            .catch((error: unknown) => {
+              console.error(
+                `Queue forecast unavailable for ride ${rideId} (${queueType})`,
+                error,
+              );
+              return null;
+            });
 
     const fresh = forecastRow && forecastRow.date === rideHistory.date;
     const forecast: TimedPoint[] = fresh
       ? ((forecastRow.forecast as unknown as TimedPoint[]) ?? [])
       : [];
+    // Trace des prévisions écoulées. Comme la prévision elle-même, elle n'a de
+    // sens que si la ligne vise bien le jour logique courant : celle de la
+    // veille décrirait des heures qui ne sont plus à l'écran.
+    //
+    // ⚠️ La trace stockée va jusqu'à une heure DEVANT « maintenant » : le worker
+    // fige chaque point une heure avant son échéance (`buildForecastTrail`).
+    // On ne sert que les points échus — au-delà, la prévision en cours fait
+    // foi, et deux courbes concurrentes sur l'avenir ne se liraient pas.
+    //
+    // ⚠️ PLUS LE PREMIER point à venir, que le graphique ne trace pas : la
+    // courbe observée va jusqu'à « maintenant » (10:27), entre deux points de
+    // la trace (10:15, 10:30). Sans celui de 10:30, le survol de « maintenant »
+    // ne pouvait pas dire ce qui était prévu pour cet instant.
+    const nowMs = rideHistory.now.getTime();
+    const storedTrail = fresh
+      ? ((forecastRow.forecastTrail as unknown as TimedPoint[]) ?? [])
+      : [];
+    const nextTrail = storedTrail
+      .filter((p) => Date.parse(p.t) > nowMs)
+      .sort((a, b) => Date.parse(a.t) - Date.parse(b.t))[0];
+    const forecastTrail: TimedPoint[] = [
+      ...storedTrail.filter((p) => Date.parse(p.t) <= nowMs),
+      ...(nextTrail ? [nextTrail] : []),
+    ];
     const baseProfile =
       fresh &&
       forecastRow.baseProfile &&
@@ -186,6 +248,7 @@ export async function GET(
             historyDays?: number;
             observedDays?: number;
             availabilityRatio?: number;
+            valueRanges?: unknown;
           })
         : null;
     const historyDays = baseProfile ? Number(baseProfile.historyDays ?? 0) : 0;
@@ -220,6 +283,7 @@ export async function GET(
       now: rideHistory.now.toISOString(),
       today,
       forecast,
+      forecastTrail,
       meta: {
         scale: fresh ? forecastRow.scale : 1,
         confidence: fresh ? forecastRow.confidence : 0,
@@ -236,6 +300,13 @@ export async function GET(
         // d'historique sans jamais confronter la prévision au réel.
         marginMinutes: fresh ? forecastRow.marginMinutes : null,
         marginSamples: fresh ? (forecastRow.marginSamples ?? 0) : 0,
+        // Le plafond tient au FLUX, pas au parc : tout parc servi par la même
+        // source en hérite, sans liste à tenir à jour.
+        waitCap: waitCapFor(park.provider),
+        valueRanges: mergeValueRanges(
+          baseProfile?.valueRanges,
+          rideHistory.today.intervals,
+        ),
       },
     };
 

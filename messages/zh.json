@@ -48,7 +48,11 @@
     "hoursOther": "开放时间",
     "cards": {
       "attractions": "项目",
-      "shows": "演出"
+      "shows": "演出",
+      "restaurants": "餐厅",
+      "shops": "商店",
+      "hotels": "酒店",
+      "services": "服务设施"
     }
   },
   "parkStatus": {
@@ -59,13 +63,15 @@
     "open": "开放",
     "closed": "关闭",
     "down": "故障",
+    "downShort": "故障",
     "maintenance": "维护中",
     "unavailable": "暂无数据",
     "unavailableShort": "暂无"
   },
   "tabs": {
     "live": "实时",
-    "schedule": "今日营业时间"
+    "schedule": "今日营业时间",
+    "families": "类别"
   },
   "shows": {
     "show": "演出",
@@ -78,9 +84,6 @@
   },
   "showDetail": {
     "openFor": "查看 {show} 的详情",
-    "notifTitle": "提醒",
-    "duration": "时长：{duration}",
-    "continuousAccess": "全时段开放 · {range}",
     "signInIntro": "登录后可在演出开始前收到提醒。",
     "reminderIntro": "先选择场次，再选择提前多久提醒你。",
     "leadLabel": "希望在演出开始前多久收到提醒？",
@@ -97,7 +100,28 @@
     "noUpcoming": "今天没有更多演出了。",
     "leadTooLate": "该场次即将开始，来不及设置提醒了。",
     "reminderActivate": "开启提醒",
-    "reminderModify": "修改提醒"
+    "reminderModify": "修改提醒",
+    "liveNext": "下一场",
+    "liveDuration": "时长",
+    "liveRemaining": "剩余",
+    "liveAccess": "入场",
+    "reminderRowTitle": "演出前提醒我",
+    "reminderRowPick": "选择场次",
+    "reminderRowEdit": "修改或添加",
+    "reminderRowCount": "{count, plural, other {已设置 # 个提醒}}",
+    "reminderSlot": "{time} 场",
+    "reminderPickHint": "点击其他即将开始的场次即可选择。",
+    "noSchedule": "乐园未公布此项目的时间。",
+    "unscheduledTitle": "时间未公布"
+  },
+  "poiFacts": {
+    "fearLevel": "恐怖等级",
+    "fearLevelValue": "{level}/5",
+    "price": "价格",
+    "free": "免费",
+    "extendedPrice": "延长开放日 {price}",
+    "extendedOnly": "延长开放日",
+    "extendedToday": "延长开放日价格"
   },
   "favorites": {
     "myFavorites": "我的收藏",
@@ -142,7 +166,8 @@
     "lastUpdate": "最后更新",
     "updatedAgo": "{age}前更新",
     "liveConnected": "实时",
-    "liveFallback": "自动刷新"
+    "liveFallback": "自动刷新",
+    "unlistedTitle": "等候时间未公布"
   },
   "footer": {
     "copyright": "© {year} Queue Park. 保留所有权利。",
@@ -224,7 +249,7 @@
       },
       "favorites": {
         "title": "收藏",
-        "body": "点击星标即可把乐园、项目或演出加入收藏。收藏的乐园会置顶显示在首页；收藏的项目和演出会在个人资料打开的窗口里按乐园分组。收藏保存在账号中，并在所有设备间同步。",
+        "body": "点击星标即可把乐园、项目、演出、餐厅或商店加入收藏。收藏的乐园会置顶显示在首页；其余收藏会排在乐园列表的最前面，并在个人资料打开的窗口里按乐园分组。收藏保存在账号中，并在所有设备间同步。",
         "parksLabel": "收藏的乐园",
         "ridesLabel": "收藏的项目（个人资料）",
         "hint": "点击星标，该乐园会跳到首页最上方。"
@@ -255,7 +280,7 @@
       },
       "alerts": {
         "title": "排队时间提醒",
-        "body": "在项目页面选择一个阈值：排队时间一旦低于该值，你就会收到通知。通知发出后，这条提醒就完成了使命：它会消失并进入历史记录。需要的话再从项目页面新建一条即可。需要账号并允许通知。"
+        "body": "在项目页面（或公开排队时间的餐厅页面）选择一个阈值：排队时间一旦低于该值，你就会收到通知。通知发出后，这条提醒就完成了使命：它会消失并进入历史记录。需要的话再从页面新建一条即可。只有乐园公开排队时间的地方才提供提醒。需要账号并允许通知。"
       },
       "reminders": {
         "title": "演出提醒",
@@ -292,12 +317,12 @@
     "temperatureUnit": "温度单位"
   },
   "whatsNew": {
-    "srTitle": "Queue Park v3 新功能",
-    "srDescription": "介绍 Queue Park 第 3 版的新功能。",
+    "srTitle": "Queue Park v4 新功能",
+    "srDescription": "介绍 Queue Park 第 4 版的新功能。",
     "hero": {
       "eyebrow": "{count} 项新功能",
-      "title": "Queue Park 升级到 v3",
-      "body": "跨设备同步的账号、恰到好处的提醒、排队时间预测：这些就是新的变化。"
+      "title": "Queue Park 升级到 v4",
+      "body": "餐厅和商店、每个地点的营业时间、全新设计的详情页、可以核对的预测：整个乐园如今都在一页之中。"
     },
     "nav": {
       "scrollHint": "向下滚动",
@@ -308,55 +333,44 @@
       "beta": "测试版"
     },
     "slides": {
-      "account": {
-        "title": "你的 Queue Park 账号",
-        "body": "用 Google 或邮箱收到的链接即可登录，无需密码。收藏、提醒和偏好设置会随你同步，从园内的手机到家里的电脑都一样。"
-      },
-      "favorites": {
-        "title": "收藏内容，所有设备通用",
-        "body": "星标现在支持乐园、项目和演出。收藏的乐园会置顶显示在首页，收藏的项目和演出会排在乐园列表的最前面，在个人资料里也能一并查看，并在所有设备间同步。"
-      },
-      "notifications": {
-        "title": "在合适的时刻提醒你",
-        "body": "把 Queue Park 安装成应用，让它替你盯着乐园。",
-        "install": "安装应用",
+      "park": {
+        "title": "整个乐园，不只是项目",
+        "body": "项目、演出、餐厅、商店：每个类别在列表顶部都有自己的按钮，轻点即可切换。在公开这些数据的乐园，每家餐厅和商店都会显示实时营业状态和所在区域。",
         "points": {
-          "threshold": "某个项目的排队时间降到你设定的阈值以下。",
-          "reopened": "某个项目在故障或关闭后重新开放。",
-          "show": "演出即将开始，提前多久通知由你决定。"
+          "menu": "餐厅菜单，乐园支持时还能在线点餐。",
+          "favorites": "随处收藏：餐厅或商店也能像项目一样收藏，并排到所在列表的最前面。",
+          "wait": "公开排队时间的餐厅，可查看排队时间，并在时间缩短时收到提醒。"
         }
       },
-      "forecast": {
-        "title": "排队时间预测",
-        "body": "实线显示开园以来的排队时间，虚线预测到闭园为止的走势，方便你找准出发的时机。"
+      "hours": {
+        "title": "每个地点的营业时间",
+        "body": "「今日营业时间」标签页不再只有演出：在公开营业时间的乐园，项目、餐厅、商店和酒店的营业时间都会排在一天的时间轴上。最晚关门的排在最前，今晚哪里还开着一目了然。"
       },
       "detail": {
-        "title": "每个项目的详情页",
-        "body": "点击项目或演出，照片、所在园区、当天带预测的曲线以及提醒设置，全都集中在同一个页面。"
+        "title": "直奔重点的详情页",
+        "body": "照片下方的信息条展示要点：排队时间、运营状态和关门时间。一句基于预测的提示告诉你现在是不是好时机，提醒只需一行即可设置。"
       },
-      "events": {
-        "title": "乐园活动",
-        "body": "万圣节或圣诞节期间，活动专属的项目和演出会有独立的卡片，配上当季配色；若门票不含该项目，会标注「需另购门票」。"
+      "queues": {
+        "title": "每条队列都有详情页",
+        "body": "Single Rider、Disney Premier Access、虚拟排队：点一下队列即可打开它专属的页面，查看排队时间或时段、运营状态和提醒。对于按时段预约的队列，一旦有更早的时段空出，提醒就会通知你。"
       },
-      "weather": {
-        "title": "乐园天气，实时更新",
-        "body": "乐园的气温和天况显示在页头，每小时更新一次。既方便预判客流，也能决定要不要带雨衣。"
+      "forecast": {
+        "title": "可以核对的预测",
+        "body": "灰色线是我们提前一小时给出的预测，与实际情况并排显示：准不准，你自己判断。乐园公布的是时间区间时，也会原样显示——「10–20 min」，而不是单一数字。"
+      },
+      "halloween": {
+        "title": "万圣节，一屋一屋看",
+        "body": "鬼屋会显示恐怖等级（一到五个骷髅），收费时还会显示价格。活动卡片会跟随各个场次——白天场，然后夜场——并配有自己的按钮：鬼屋、演出、餐厅。"
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "排队时间已降至 15 分钟",
-        "reopened": "该项目刚刚重新开放",
-        "show": "15 分钟后开始"
-      },
-      "events": {
-        "halloween": "万圣节",
-        "christmas": "圣诞节"
+      "halloween": {
+        "title": "万圣节"
       }
     },
     "finale": {
       "title": "祝你玩得开心！",
-      "body": "一切就绪。新增的「关于」页面介绍了排队时间的来源，并详细说明每项功能，想深入了解可以看看。",
+      "body": "一切就绪。有意见、想法，或想加入的乐园？欢迎来信：邮箱地址在「关于」页面。",
       "aboutLink": "查看「关于」页面"
     }
   },
@@ -424,9 +438,17 @@
     "favoritesParksCount": "{count, plural, other {收藏的乐园}}",
     "favoritesRidesCount": "{count, plural, other {收藏的项目}}",
     "favoritesShowsCount": "{count, plural, other {收藏的演出}}",
+    "favoritesRestaurantsCount": "{count, plural, other {收藏的餐厅}}",
+    "favoritesShopsCount": "{count, plural, other {收藏的商店}}",
+    "favoritesHotelsCount": "{count, plural, other {收藏的酒店}}",
+    "favoritesServicesCount": "{count, plural, other {收藏的服务设施}}",
     "favoritesParksTitle": "收藏的乐园",
     "favoritesRidesTitle": "收藏的项目",
     "favoritesShowsTitle": "收藏的演出",
+    "favoritesRestaurantsTitle": "收藏的餐厅",
+    "favoritesShopsTitle": "收藏的商店",
+    "favoritesHotelsTitle": "收藏的酒店",
+    "favoritesServicesTitle": "收藏的服务设施",
     "favoritesListEmpty": "暂无收藏。",
     "favoritesRemove": "把 {name} 移出收藏",
     "activeAlertsCount": "{count, plural, other {生效中的提醒}}",
@@ -470,8 +492,10 @@
     "historyShows": "演出",
     "historyShowLine": "{time} 的场次 · 提前 {lead} 分钟",
     "alertsEmptyRides": "尚未设置提醒，可从项目页面创建。",
+    "alertsEmptyOther": "暂时没有这类提醒。",
     "alertsEmptyShows": "尚未设置提醒，可从演出页面创建。",
     "historyEmptyRides": "还没有发送过项目通知。",
+    "historyEmptyOther": "还没有发送过这类通知。",
     "historyEmptyShows": "还没有发送过演出通知。",
     "edit": "修改阈值",
     "subTabActive": "生效中",
@@ -484,7 +508,9 @@
     "editLead": "修改提前时间",
     "leadTooLate": "演出即将开始，来不及修改提前时间了。",
     "reopenBadge": "重新开放",
-    "historyReopenLine": "已恢复运营"
+    "historyReopenLine": "已恢复运营",
+    "slotBadge": "{time} 之前",
+    "historySlotLine": "{time} 之前的时段可用"
   },
   "privacy": {
     "emailLabel": "邮箱地址",
@@ -527,11 +553,11 @@
   },
   "attractionDetail": {
     "openFor": "查看 {ride} 的详情",
-    "alertsTitle": "提醒",
-    "chartTitle": "今日排队时间",
     "chartToday": "今天",
     "chartActual": "排队时间",
     "chartForecast": "预测",
+    "chartForecastPast": "预测",
+    "chartForecastLegend": "后续预测",
     "chartNow": "现在",
     "chartEmpty": "今天还没有数据。",
     "chartUnavailable": "该项目暂时无法使用。",
@@ -540,8 +566,7 @@
     "chartForecastNote": "对今天剩余时段的粗略估计。",
     "chartForecastPreOpeningNote": "基于往日数据的估计，开园后会更新。",
     "estimateTooltip": "根据条件相近的过往日期估算，实际情况可能有出入。",
-    "marginNote": "最近几天，我们的预测平均偏差 <v>{minutes} 分钟</v>。",
-    "marginNoteTooltip": "过去 14 天内，预测值与实测排队时间之间的平均差距。",
+    "marginNoteTooltip": "过去 14 天内，提前 1 小时的预测值与实测排队时间之间的平均差距。",
     "installTitle": "安装 Queue Park",
     "installIntro": "使用提醒功能需要先在设备上安装应用。",
     "installButton": "安装应用",
@@ -561,11 +586,49 @@
     "pushDenied": "本站的通知已被阻止。请在浏览器设置中允许通知，才能在此设备上收到提醒。",
     "pushUnsupported": "此浏览器不支持推送通知。提醒仍会显示在你的个人资料和历史记录中。",
     "reopenLabel": "该项目目前暂停运营。恢复运营后我们会立即通知你。",
+    "poiReopenLabel": "目前暂停营业。重新开放后我们会立即通知你。",
     "reopenSave": "恢复运营时通知我",
     "reopenActive": "重开提醒已启用",
     "reopenSaved": "重开提醒已保存",
     "reopenTooLate": "乐园已闭园，提醒功能不可用。请在下次开园时再来。",
-    "statusChanged": "该项目的状态刚刚发生变化。请重新打开页面以创建合适的提醒。"
+    "statusChanged": "该项目的状态刚刚发生变化。请重新打开页面以创建合适的提醒。",
+    "poiStatusChanged": "状态刚刚发生变化。请重新打开页面以创建合适的提醒。",
+    "liveWait": "排队",
+    "liveSlot": "时段",
+    "liveStatus": "状态",
+    "liveOpensAt": "开放于",
+    "liveClosesAt": "关闭于",
+    "liveClosedAt": "已关闭于",
+    "chartLegendActual": "实测",
+    "marginShort": "平均误差：<v>{minutes} 分钟</v>",
+    "insightRise": "现在正是时候：预计<b>{time}左右升至约 {minutes} 分钟</b>",
+    "insightDrop": "不妨稍等：预计<b>{time}左右降至约 {minutes} 分钟</b>",
+    "alertRowTitle": "排队时间下降时提醒我",
+    "alertRowSignIn": "需要登录",
+    "alertRowPick": "选择阈值",
+    "alertActiveRow": "提醒已开启 · 低于 {minutes} 分钟",
+    "alertThresholdHint": "阈值会在图表中以绿色显示。",
+    "alertActivate": "开启提醒",
+    "alertEdit": "修改",
+    "alertThresholdLine": "低于 {minutes} 分钟提醒",
+    "close": "关闭",
+    "pushDeniedShort": "此设备已屏蔽通知",
+    "insightBest": "预计最佳时间：<b>{time}左右，约 {minutes} 分钟</b>",
+    "slotRowTitle": "有更早时段时提醒我",
+    "slotRowPick": "选择时间",
+    "slotOption": "{time} 之前",
+    "slotActiveRow": "提醒已开启 · {time} 之前的时段",
+    "slotHint": "一旦有不晚于此时间开始的时段，我们会立即通知你。",
+    "slotNothingEarlier": "目前没有更早的时段可以等待。",
+    "queueReopenLabel": "该队列目前已关闭。重新开放后我们会立即通知你。",
+    "queueNothingToWatch": "该队列既不公布等待时间也不公布时段：目前没有可提醒的内容。",
+    "queueSeeRide": "查看项目"
+  },
+  "poiDetail": {
+    "openFor": "查看 {poi} 的详情",
+    "menuTitle": "菜单",
+    "menuAction": "查看菜单",
+    "orderAction": "查看菜单并点餐"
   },
   "legal": {
     "backHome": "返回首页",

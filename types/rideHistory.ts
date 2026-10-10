@@ -1,4 +1,6 @@
 import type { TimedPoint } from "@/lib/wait-times-series";
+import type { WaitCap } from "@/lib/wait-time-cap";
+import type { ValueRange } from "@/lib/wait-range";
 
 export type { TimedPoint };
 
@@ -15,6 +17,15 @@ export interface RideHistoryResponse {
   // Chaque point porte sa propre `margin` (± minutes) : l'erreur croît avec
   // l'horizon, une marge unique pour toute la courbe serait trompeuse.
   forecast: TimedPoint[];
+  /**
+   * Ce qui avait été ANNONCÉ pour les heures déjà écoulées, figé au moment où
+   * chacune est passée. Tracé en pointillés gris sous la courbe réelle, pour
+   * que la prévision reste confrontable à ce qui s'est produit au lieu de
+   * disparaître à l'instant où elle devient vérifiable.
+   *
+   * Vide tant que le worker n'a pas fait de passage sur la journée.
+   */
+  forecastTrail: TimedPoint[];
   meta: {
     scale: number;
     confidence: number;
@@ -34,6 +45,19 @@ export interface RideHistoryResponse {
     // la marge propre à chaque point. null = pas encore mesuré.
     marginMinutes: number | null;
     marginSamples: number;
+    /**
+     * Plafond de publication de la source, quand elle en a un : `value` est la
+     * valeur brute qui fait office de sentinelle, `display` le seuil qu'elle
+     * signifie réellement (91 -> « 90+ » sur le flux Mack). `null` = la source
+     * publie des durées jusqu'au bout. Voir `lib/wait-time-cap.ts`.
+     */
+    waitCap: WaitCap | null;
+    /**
+     * La fourchette derrière chaque valeur, pour les attractions qui en
+     * publient (« 10-20 min ») : la prévision et la trace se disent alors en
+     * fourchette. Vide ailleurs. Voir `lib/wait-range.ts`.
+     */
+    valueRanges: ValueRange[];
   };
 }
 

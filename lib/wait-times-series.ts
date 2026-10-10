@@ -7,6 +7,8 @@
 // frontend se contente de LIRE la prévision stockée — il ne reste donc ici que
 // l'échantillonnage de l'observé.
 
+import type { WaitRange } from "@/types/waitTime";
+
 // Un point horodaté d'une courbe. `waitTime = null` = attraction indisponible
 // (fermée / en panne / valeur -1) à cet instant : le front trace une coupure.
 // `status` (renseigné seulement quand indispo) porte la RAISON (closed / down /
@@ -29,6 +31,9 @@ export type WaitInterval = {
   start: Date;
   end: Date | null;
   waitTime: number;
+  // Fourchette publiée derrière `waitTime`, quand la source en publie une.
+  // Jamais tracée : elle alimente `meta.valueRanges` (voir `lib/wait-range.ts`).
+  waitRange?: WaitRange | null;
   // Statut brut (`open` | `closed` | `down` | `maintenance`) conservé pour
   // colorer l'indispo côté front.
   status: string;
@@ -142,6 +147,16 @@ export function sampleDaySeries(
     : null;
   if (limit === day.close.getTime() && lastMs !== null && lastMs < limit) {
     pushPoint(day.close, true);
+  }
+
+  // Point « MAINTENANT », en cours de journée. Sans lui, la courbe s'arrêtait au
+  // dernier pas ÉCHU (10:15 à 10:22) avec la valeur de ce pas-là, et la
+  // prévision partait de ce point : un temps passé à 55 min s'affichait encore
+  // 50 jusqu'au pas suivant, alors que le direct, juste au-dessus du graphique,
+  // disait 55. Le dernier segment est donc plus court que les autres — c'est
+  // voulu, comme pour la fermeture.
+  if (limit === upTo.getTime() && lastMs !== null && lastMs < limit) {
+    pushPoint(upTo);
   }
 
   return points;

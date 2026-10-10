@@ -48,7 +48,11 @@
     "hoursOther": "Openingstijden",
     "cards": {
       "attractions": "Attracties",
-      "shows": "Shows"
+      "shows": "Shows",
+      "restaurants": "Restaurants",
+      "shops": "Winkels",
+      "hotels": "Hotels",
+      "services": "Voorzieningen"
     }
   },
   "parkStatus": {
@@ -59,13 +63,15 @@
     "open": "Open",
     "closed": "Gesloten",
     "down": "Storing",
+    "downShort": "Storing",
     "maintenance": "Onderhoud",
     "unavailable": "Niet beschikbaar",
     "unavailableShort": "N.b."
   },
   "tabs": {
     "live": "Live",
-    "schedule": "Openingstijden"
+    "schedule": "Openingstijden",
+    "families": "Categorieën"
   },
   "shows": {
     "show": "Show",
@@ -78,9 +84,6 @@
   },
   "showDetail": {
     "openFor": "Details van {show} bekijken",
-    "notifTitle": "Meldingen",
-    "duration": "Duur: {duration}",
-    "continuousAccess": "Doorlopend · {range}",
     "signInIntro": "Meld je aan om een herinnering te krijgen voordat een show begint.",
     "reminderIntro": "Kies een voorstelling en daarna hoelang van tevoren je een herinnering wilt.",
     "leadLabel": "Hoelang voor de show wil je een herinnering?",
@@ -97,7 +100,28 @@
     "noUpcoming": "Er staan vandaag geen shows meer op het programma.",
     "leadTooLate": "Deze voorstelling begint te snel om nog een herinnering in te stellen.",
     "reminderActivate": "Herinnering inschakelen",
-    "reminderModify": "Herinnering bewerken"
+    "reminderModify": "Herinnering bewerken",
+    "liveNext": "Volgende show",
+    "liveDuration": "Duur",
+    "liveRemaining": "Resterend",
+    "liveAccess": "Toegang",
+    "reminderRowTitle": "Herinner me vóór een show",
+    "reminderRowPick": "Kies een tijdstip",
+    "reminderRowEdit": "Wijzigen of toevoegen",
+    "reminderRowCount": "{count, plural, one {# herinnering ingesteld} other {# herinneringen ingesteld}}",
+    "reminderSlot": "Show van {time}",
+    "reminderPickHint": "Tik op een ander komend tijdstip om het te kiezen.",
+    "noSchedule": "Het park publiceert geen tijden voor deze attractie.",
+    "unscheduledTitle": "Tijden niet gepubliceerd"
+  },
+  "poiFacts": {
+    "fearLevel": "Schrikniveau",
+    "fearLevelValue": "{level} van 5",
+    "price": "Prijs",
+    "free": "Gratis",
+    "extendedPrice": "{price} op dagen met avondopening",
+    "extendedOnly": "Op dagen met avondopening",
+    "extendedToday": "Tarief avondopening"
   },
   "favorites": {
     "myFavorites": "Mijn favorieten",
@@ -142,7 +166,8 @@
     "lastUpdate": "Laatste update",
     "updatedAgo": "{age} geleden bijgewerkt",
     "liveConnected": "Live",
-    "liveFallback": "Automatisch vernieuwen"
+    "liveFallback": "Automatisch vernieuwen",
+    "unlistedTitle": "Wachttijden niet gepubliceerd"
   },
   "footer": {
     "copyright": "© {year} Queue Park. Alle rechten voorbehouden.",
@@ -224,7 +249,7 @@
       },
       "favorites": {
         "title": "Favorieten",
-        "body": "Tik op de ster om een park, attractie of show aan je favorieten toe te voegen. Favoriete parken staan bovenaan de startpagina; je favoriete attracties en shows staan per park gegroepeerd in een venster vanuit je profiel. Opgeslagen in je account en gesynchroniseerd op al je apparaten.",
+        "body": "Tik op de ster om een park, attractie, show, restaurant of winkel aan je favorieten toe te voegen. Favoriete parken staan bovenaan de startpagina; de rest komt bovenaan de lijsten van het park en staat per park gegroepeerd in een venster vanuit je profiel. Opgeslagen in je account en gesynchroniseerd op al je apparaten.",
         "parksLabel": "Favoriete parken",
         "ridesLabel": "Favoriete attracties (profiel)",
         "hint": "Tik op een ster: het favoriete park springt naar boven op de startpagina."
@@ -255,7 +280,7 @@
       },
       "alerts": {
         "title": "Wachttijdmeldingen",
-        "body": "Kies op de pagina van een attractie een drempel: je krijgt een melding zodra de wachttijd daaronder zakt. Eenmaal verstuurd heeft de melding haar werk gedaan: ze verdwijnt en verhuist naar je geschiedenis. Stel gewoon een nieuwe in vanaf de pagina van de attractie. Vereist een account en toestemming voor meldingen."
+        "body": "Kies op de pagina van een attractie — of van een restaurant dat zijn wachttijd publiceert — een drempel: je krijgt een melding zodra de wachttijd daaronder zakt. Eenmaal verstuurd heeft de melding haar werk gedaan: ze verdwijnt en verhuist naar je geschiedenis. Stel gewoon een nieuwe in vanaf de pagina. Meldingen zijn alleen beschikbaar waar het park zijn wachttijden publiceert. Vereist een account en toestemming voor meldingen."
       },
       "reminders": {
         "title": "Showherinneringen",
@@ -292,12 +317,12 @@
     "temperatureUnit": "Temperatuureenheid"
   },
   "whatsNew": {
-    "srTitle": "Wat er nieuw is in Queue Park v3",
-    "srDescription": "Een overzicht van wat er nieuw is in versie 3 van Queue Park.",
+    "srTitle": "Wat is er nieuw in Queue Park v4",
+    "srDescription": "Overzicht van wat er nieuw is in versie 4 van Queue Park.",
     "hero": {
       "eyebrow": "{count} nieuwe functies",
-      "title": "Queue Park gaat naar v3",
-      "body": "Een account dat met je meegaat van het ene apparaat naar het andere, meldingen op het juiste moment, wachttijdvoorspellingen: dit verandert er."
+      "title": "Queue Park gaat naar v4",
+      "body": "Restaurants en winkels, de openingstijden van elke plek, een vernieuwde attractiepagina, voorspellingen die je kunt controleren: het hele park past nu op één pagina."
     },
     "nav": {
       "scrollHint": "Scroll",
@@ -308,55 +333,44 @@
       "beta": "Bèta"
     },
     "slides": {
-      "account": {
-        "title": "Je Queue Park-account",
-        "body": "Meld je in een oogwenk aan, met Google of met een simpele link per e-mail — zonder wachtwoord. Je favorieten, je meldingen en je voorkeuren gaan dan met je mee, van je telefoon in het park tot je computer thuis."
-      },
-      "favorites": {
-        "title": "Je favorieten, op al je apparaten",
-        "body": "De ster werkt nu op parken, attracties en shows. Je favoriete parken staan bovenaan de startpagina, je favoriete attracties en shows komen boven aan de tabellen van het park, en je vindt ze allemaal terug in je profiel — gesynchroniseerd op al je apparaten."
-      },
-      "notifications": {
-        "title": "Op het juiste moment gewaarschuwd",
-        "body": "Installeer Queue Park als app en laat die het park voor je in de gaten houden.",
-        "install": "De app installeren",
+      "park": {
+        "title": "Het hele park, niet alleen de attracties",
+        "body": "Attracties, shows, restaurants, winkels: elke categorie heeft een eigen knop bovenaan de lijst, en je wisselt met één tik. In parken die deze gegevens publiceren, toont elk restaurant en elke winkel zijn live status en zijn themagebied.",
         "points": {
-          "threshold": "De wachttijd van een attractie zakt onder de drempel die je hebt gekozen.",
-          "reopened": "Een attractie gaat weer open na een storing of een sluiting.",
-          "show": "Een show begint zo, met zoveel voorsprong als jou uitkomt."
+          "menu": "De menukaart van het restaurant, en online bestellen als het park dat aanbiedt.",
+          "favorites": "Sterren overal: een restaurant of winkel zet je net als een attractie bij je favorieten, en die komt bovenaan zijn lijst.",
+          "wait": "De wachttijd van restaurants die die publiceren, met een melding als die daalt."
         }
       },
-      "forecast": {
-        "title": "Wachttijdvoorspellingen",
-        "body": "De doorlopende lijn toont de wachttijd sinds de opening, de stippellijn schat die tot de sluiting. Precies genoeg om het juiste moment te vinden."
+      "hours": {
+        "title": "De openingstijden van elke plek",
+        "body": "Het tabblad «Openingstijden» toont niet langer alleen shows: in parken die ze publiceren, staan attracties, restaurants, winkels en hotels er met hun openingstijden op een tijdlijn van de dag. Wat het laatst sluit staat bovenaan, zodat je in één oogopslag ziet wat vanavond nog open is."
       },
       "detail": {
-        "title": "De pagina van elke attractie",
-        "body": "Tik op een attractie of een show: de foto, het themagebied in het park, de curve van de dag met de voorspelling en de instelling van je meldingen — alles op één plek."
+        "title": "Een pagina die meteen ter zake komt",
+        "body": "Onder de foto toont een balk het belangrijkste: de wachttijd, de status en de sluitingstijd. Een zin uit de voorspelling vertelt of dit het goede moment is, en de melding stel je in op één regel."
       },
-      "events": {
-        "title": "De evenementen van het park",
-        "body": "Tijdens Halloween of Kerst krijgen de attracties en shows van het evenement een eigen kaart, in de kleuren van het seizoen — met de vermelding «Apart ticket» wanneer de toegang niet bij het entreebewijs zit."
+      "queues": {
+        "title": "Elke wachtrij heeft zijn eigen pagina",
+        "body": "Single Rider, Disney Premier Access, virtuele wachtrij: tik op een wachtrij om zijn eigen pagina te openen, met de wachttijd of het tijdslot, de status en de melding. Bij een wachtrij met tijdsloten waarschuwt de melding je zodra er een vroeger tijdslot vrijkomt."
       },
-      "weather": {
-        "title": "Het weer in het park, live",
-        "body": "De temperatuur en de lucht boven het park staan in de koptekst, elk uur bijgewerkt. Handig om de drukte in te schatten — en om te weten of je een regenjas meeneemt."
+      "forecast": {
+        "title": "Voorspellingen die je kunt controleren",
+        "body": "In grijs wat we een uur eerder voorspeld hadden, naast wat er echt gebeurde: oordeel zelf. En als een park een bereik opgeeft, wordt het zo getoond — «10–20 min» in plaats van één getal."
+      },
+      "halloween": {
+        "title": "Halloween, huis voor huis",
+        "body": "Spookhuizen tonen hun schrikniveau, van één tot vijf doodshoofden, en hun prijs als de toegang betalend is. De evenementkaart volgt zijn sessies — overdag, daarna 's avonds — en heeft eigen knoppen: huizen, shows, restaurants."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "De wachttijd is gezakt naar 15 min",
-        "reopened": "De attractie is net weer open",
-        "show": "Begint over 15 minuten"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Kerst"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Veel plezier!",
-      "body": "Alles staat klaar. Een nieuwe pagina «Over ons» vertelt waar de wachttijden vandaan komen en licht elke functie toe, als je verder wilt kijken.",
+      "body": "Alles staat klaar. Een opmerking, een idee, een park dat erbij moet? Schrijf ons: het adres staat op de pagina «Over ons».",
       "aboutLink": "Ontdek de pagina Over ons"
     }
   },
@@ -424,9 +438,17 @@
     "favoritesParksCount": "{count, plural, one {Favoriet park} other {Favoriete parken}}",
     "favoritesRidesCount": "{count, plural, one {Favoriete attractie} other {Favoriete attracties}}",
     "favoritesShowsCount": "{count, plural, one {Favoriete show} other {Favoriete shows}}",
+    "favoritesRestaurantsCount": "{count, plural, one {Favoriet restaurant} other {Favoriete restaurants}}",
+    "favoritesShopsCount": "{count, plural, one {Favoriete winkel} other {Favoriete winkels}}",
+    "favoritesHotelsCount": "{count, plural, one {Favoriet hotel} other {Favoriete hotels}}",
+    "favoritesServicesCount": "{count, plural, one {Favoriete voorziening} other {Favoriete voorzieningen}}",
     "favoritesParksTitle": "Favoriete parken",
     "favoritesRidesTitle": "Favoriete attracties",
     "favoritesShowsTitle": "Favoriete shows",
+    "favoritesRestaurantsTitle": "Favoriete restaurants",
+    "favoritesShopsTitle": "Favoriete winkels",
+    "favoritesHotelsTitle": "Favoriete hotels",
+    "favoritesServicesTitle": "Favoriete voorzieningen",
     "favoritesListEmpty": "Nog geen favorieten.",
     "favoritesRemove": "{name} uit favorieten verwijderen",
     "activeAlertsCount": "{count, plural, one {Actieve melding} other {Actieve meldingen}}",
@@ -470,8 +492,10 @@
     "historyShows": "Shows",
     "historyShowLine": "voorstelling van {time} · {lead} min van tevoren",
     "alertsEmptyRides": "Geen melding ingesteld. Maak er een aan vanaf een attractie.",
+    "alertsEmptyOther": "Momenteel geen melding van dit type.",
     "alertsEmptyShows": "Geen herinnering ingesteld. Maak er een aan vanaf een show.",
     "historyEmptyRides": "Er is nog geen attractiemelding verstuurd.",
+    "historyEmptyOther": "Er is nog geen melding van dit type verstuurd.",
     "historyEmptyShows": "Er is nog geen showmelding verstuurd.",
     "edit": "Drempel bewerken",
     "subTabActive": "Actief",
@@ -484,7 +508,9 @@
     "editLead": "Voorlooptijd bewerken",
     "leadTooLate": "De show begint te snel om de voorlooptijd nog te wijzigen.",
     "reopenBadge": "Heropening",
-    "historyReopenLine": "Weer open"
+    "historyReopenLine": "Weer open",
+    "slotBadge": "Voor {time}",
+    "historySlotLine": "Tijdslot voor {time} beschikbaar"
   },
   "privacy": {
     "emailLabel": "E-mailadres",
@@ -527,11 +553,11 @@
   },
   "attractionDetail": {
     "openFor": "Details van {ride} bekijken",
-    "alertsTitle": "Meldingen",
-    "chartTitle": "Wachttijd vandaag",
     "chartToday": "Vandaag",
     "chartActual": "Wachttijd",
     "chartForecast": "Voorspelling",
+    "chartForecastPast": "Voorspelling",
+    "chartForecastLegend": "Toekomstige voorspelling",
     "chartNow": "Nu",
     "chartEmpty": "Nog geen gegevens voor vandaag.",
     "chartUnavailable": "Attractie momenteel niet beschikbaar.",
@@ -540,8 +566,7 @@
     "chartForecastNote": "Ruwe schatting voor de rest van de dag.",
     "chartForecastPreOpeningNote": "Schatting op basis van eerdere dagen — wordt bijgewerkt zodra het park opent.",
     "estimateTooltip": "Geschat op basis van vergelijkbare dagen uit het verleden. De werkelijkheid kan afwijken.",
-    "marginNote": "De afgelopen dagen zaten onze voorspellingen er gemiddeld <v>{minutes} min</v> naast.",
-    "marginNoteTooltip": "Gemiddeld verschil tussen onze voorspellingen en de werkelijk gemeten wachttijd over de laatste 14 dagen.",
+    "marginNoteTooltip": "Gemiddeld verschil tussen wat we een uur van tevoren voorspelden en de werkelijk gemeten wachttijd over de laatste 14 dagen.",
     "installTitle": "Queue Park installeren",
     "installIntro": "Voor meldingen moet de app op je apparaat geïnstalleerd zijn.",
     "installButton": "De app installeren",
@@ -561,11 +586,49 @@
     "pushDenied": "Meldingen zijn geblokkeerd voor deze site. Sta ze toe in je browserinstellingen om meldingen op dit apparaat te ontvangen.",
     "pushUnsupported": "Deze browser ondersteunt geen pushmeldingen. De melding verschijnt wel in je profiel en in de geschiedenis.",
     "reopenLabel": "Deze attractie ligt stil. Laat je waarschuwen zodra ze weer opengaat.",
+    "poiReopenLabel": "Momenteel gesloten. Laat je waarschuwen zodra het weer opengaat.",
     "reopenSave": "Waarschuw me bij heropening",
     "reopenActive": "Heropeningsmelding actief",
     "reopenSaved": "Heropeningsmelding opgeslagen",
     "reopenTooLate": "Het park is gesloten, meldingen zijn niet beschikbaar. Kom terug bij de volgende opening van het park.",
-    "statusChanged": "De status van de attractie is zojuist gewijzigd. Open de pagina opnieuw om de juiste melding te maken."
+    "statusChanged": "De status van de attractie is zojuist gewijzigd. Open de pagina opnieuw om de juiste melding te maken.",
+    "poiStatusChanged": "De status is zojuist gewijzigd. Open de pagina opnieuw om de juiste melding te maken.",
+    "liveWait": "Wachttijd",
+    "liveSlot": "Tijdslot",
+    "liveStatus": "Status",
+    "liveOpensAt": "Opent om",
+    "liveClosesAt": "Sluit om",
+    "liveClosedAt": "Sluiting",
+    "chartLegendActual": "Gemeten",
+    "marginShort": "Gemiddelde afwijking: <v>{minutes} min</v>.",
+    "insightRise": "Goed moment: de wachttijd stijgt naar verwachting tot <b>~{minutes} min rond {time}</b>",
+    "insightDrop": "Even wachten loont: de wachttijd daalt naar verwachting tot <b>~{minutes} min rond {time}</b>",
+    "alertRowTitle": "Melding bij kortere wachttijd",
+    "alertRowSignIn": "Inloggen vereist",
+    "alertRowPick": "Kies een drempel",
+    "alertActiveRow": "Melding actief · onder {minutes} min",
+    "alertThresholdHint": "De drempel verschijnt in het groen op de grafiek.",
+    "alertActivate": "Melding inschakelen",
+    "alertEdit": "Wijzigen",
+    "alertThresholdLine": "Melding onder {minutes} min",
+    "close": "Sluiten",
+    "pushDeniedShort": "Meldingen geblokkeerd op dit apparaat",
+    "insightBest": "Beste moment volgens de verwachting: <b>~{minutes} min rond {time}</b>",
+    "slotRowTitle": "Melding bij eerder tijdslot",
+    "slotRowPick": "Kies een tijd",
+    "slotOption": "Voor {time}",
+    "slotActiveRow": "Melding actief · tijdslot voor {time}",
+    "slotHint": "Je krijgt een melding zodra een tijdslot uiterlijk op dit tijdstip begint.",
+    "slotNothingEarlier": "Er is nu geen eerder tijdslot om op te wachten.",
+    "queueReopenLabel": "Deze wachtrij is gesloten. Laat je waarschuwen zodra ze weer opengaat.",
+    "queueNothingToWatch": "Deze wachtrij publiceert geen wachttijd en geen tijdslot: er valt nu niets te volgen.",
+    "queueSeeRide": "Naar de attractie"
+  },
+  "poiDetail": {
+    "openFor": "Details van {poi} bekijken",
+    "menuTitle": "Menukaart",
+    "menuAction": "Menukaart bekijken",
+    "orderAction": "Menukaart bekijken en bestellen"
   },
   "legal": {
     "backHome": "Terug naar de startpagina",

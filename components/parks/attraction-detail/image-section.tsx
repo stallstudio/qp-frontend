@@ -6,6 +6,7 @@ import { ArrowRight, Loader2, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useFavorites } from "@/hooks/useFavorites";
 import FavoriteStar from "@/components/ui/favorite-star";
+import type { PoiFavNamespace } from "@/lib/favorites-storage";
 
 const DEFAULT_COVER = "/default_cover.webp";
 
@@ -15,17 +16,12 @@ const DEFAULT_COVER = "/default_cover.webp";
 // en bas : le titre (+ lieu, ou lien externe) à gauche et l'étoile favori à
 // droite.
 //
-// `favNamespace` isole la liste de favoris ("rides" | "shows"), `favKey` est la
-// clé (ex. "{parkIdentifier}:{rideId}" ou "{parkIdentifier}:{showName}").
+// `favNamespace` isole la liste de favoris de la famille du POI ("rides",
+// "shows", "restaurants"…), `favKey` est la clé — voir `poiFavorite`.
 //
-// ⚠️ **Les deux sont OPTIONNELS, et leur absence retire l'étoile.** Le popup des
-// POI qui ne sont ni attraction ni spectacle (restaurants, boutiques…) réutilise
-// cet en-tête, mais les favoris sont persistés PAR NAMESPACE sur le compte de
-// l'utilisateur (`FavNamespace`, plafonds compris) : leur en inventer un
-// troisième pour ce popup, ce serait ouvrir une liste que rien ne lit, ni
-// l'espace compte ni les rappels. Le jour où ces POI méritent d'être mis en
-// favori, c'est le namespace qu'il faudra créer — pas ce composant qu'il faudra
-// détourner.
+// ⚠️ **Les deux sont OPTIONNELS, et leur absence retire l'étoile.** Depuis le
+// 2026-10-09, tous les popups de POI en passent : chaque famille a son
+// namespace, lu par les listes du parc ET par le profil.
 export default function ImageSection({
   title,
   favNamespace,
@@ -35,14 +31,18 @@ export default function ImageSection({
   subtitle,
   banner,
   credit,
+  overlapped = false,
 }: {
   title: string;
-  favNamespace?: "rides" | "shows";
+  // Un bloc vient chevaucher le bas de l'image (bandeau de chiffres du popup
+  // attraction) : le titre et l'étoile remontent d'autant pour rester visibles.
+  overlapped?: boolean;
+  favNamespace?: PoiFavNamespace;
   favKey?: string;
   // ⚠️ **`place` et `link` s'excluent**, et ce n'est pas une contrainte
   // technique : ils occupent la même ligne sous le nom, celle qui répond à
-  // « et sinon ? ». Les popups attraction et spectacle y mettent le lieu ;
-  // celui des autres POI (restaurants, boutiques) y garde son lien sortant.
+  // « et sinon ? ». Les popups attraction, spectacle et POI (restaurants,
+  // boutiques…) y mettent tous le lieu depuis le 2026-10-06.
   // `place` l'emporte si les deux sont fournis.
   link?: { url: string; label: string };
   // Où se trouve la chose, dans la langue de la source : le quartier du parc
@@ -161,7 +161,9 @@ export default function ImageSection({
 
       {/* Étoile favori, en bas à droite de l'image (comme l'en-tête de parc). */}
       {showFavorite && (
-        <div className="absolute right-0 bottom-0 z-10 p-3">
+        <div
+          className={`absolute right-0 z-10 p-3 ${overlapped ? "bottom-10" : "bottom-0"}`}
+        >
           <FavoriteStar
             active={isFav}
             onToggle={() => toggle(favKey)}
@@ -178,9 +180,9 @@ export default function ImageSection({
           réserve la place de l'étoile — et seulement quand il y en a une, sinon
           le titre s'arrêterait à 64 px d'un bord vide. */}
       <div
-        className={`absolute inset-x-0 bottom-0 flex flex-col items-start gap-1 px-5 pb-4 text-left ${
+        className={`absolute inset-x-0 bottom-0 flex flex-col items-start gap-1 px-5 text-left ${
           showFavorite ? "pr-16" : "pr-5"
-        }`}
+        } ${overlapped ? "pb-14" : "pb-4"}`}
       >
         <p className="text-xl font-bold text-white line-clamp-2 drop-shadow-sm">
           {title}

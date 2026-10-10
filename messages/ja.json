@@ -48,7 +48,11 @@
     "hoursOther": "営業時間",
     "cards": {
       "attractions": "アトラクション",
-      "shows": "ショー"
+      "shows": "ショー",
+      "restaurants": "レストラン",
+      "shops": "ショップ",
+      "hotels": "ホテル",
+      "services": "サービス"
     }
   },
   "parkStatus": {
@@ -59,13 +63,15 @@
     "open": "運営中",
     "closed": "停止中",
     "down": "故障",
+    "downShort": "故障",
     "maintenance": "メンテナンス",
     "unavailable": "情報なし",
     "unavailableShort": "情報なし"
   },
   "tabs": {
     "live": "ライブ",
-    "schedule": "本日の営業時間"
+    "schedule": "本日の営業時間",
+    "families": "カテゴリー"
   },
   "shows": {
     "show": "ショー",
@@ -78,9 +84,6 @@
   },
   "showDetail": {
     "openFor": "{show} の詳細を見る",
-    "notifTitle": "通知",
-    "duration": "所要時間：{duration}",
-    "continuousAccess": "随時入場 · {range}",
     "signInIntro": "ログインすると、ショー開始前にお知らせを受け取れます。",
     "reminderIntro": "公演を選び、その何分前に知らせるかを選択してください。",
     "leadLabel": "ショーの何分前に知らせますか？",
@@ -97,7 +100,28 @@
     "noUpcoming": "本日はもう公演がありません。",
     "leadTooLate": "この公演は開始が近すぎるため、リマインダーを設定できません。",
     "reminderActivate": "リマインダーを有効にする",
-    "reminderModify": "リマインダーを編集"
+    "reminderModify": "リマインダーを編集",
+    "liveNext": "次の公演",
+    "liveDuration": "所要時間",
+    "liveRemaining": "残り",
+    "liveAccess": "入場",
+    "reminderRowTitle": "公演前に通知",
+    "reminderRowPick": "公演を選択",
+    "reminderRowEdit": "変更・追加",
+    "reminderRowCount": "{count, plural, other {#件の通知を設定済み}}",
+    "reminderSlot": "{time}の公演",
+    "reminderPickHint": "別の公演をタップして選択できます。",
+    "noSchedule": "パークはこのアトラクションの時間を公開していません。",
+    "unscheduledTitle": "時間未公開"
+  },
+  "poiFacts": {
+    "fearLevel": "怖さレベル",
+    "fearLevelValue": "5段階中{level}",
+    "price": "料金",
+    "free": "無料",
+    "extendedPrice": "延長営業日は{price}",
+    "extendedOnly": "延長営業日",
+    "extendedToday": "延長営業日の料金"
   },
   "favorites": {
     "myFavorites": "お気に入り",
@@ -142,7 +166,8 @@
     "lastUpdate": "最終更新",
     "updatedAgo": "{age}前に更新",
     "liveConnected": "ライブ",
-    "liveFallback": "自動更新"
+    "liveFallback": "自動更新",
+    "unlistedTitle": "待ち時間未公開"
   },
   "footer": {
     "copyright": "© {year} Queue Park. 無断転載を禁じます。",
@@ -224,7 +249,7 @@
       },
       "favorites": {
         "title": "お気に入り",
-        "body": "星をタップすると、パーク・アトラクション・ショーをお気に入りに追加できます。お気に入りのパークはホーム画面の先頭に固定表示。お気に入りのアトラクションとショーは、プロフィールから開くウィンドウにパークごとにまとめて表示されます。アカウントに保存され、すべての端末で同期されます。",
+        "body": "星をタップすると、パーク・アトラクション・ショー・レストラン・ショップをお気に入りに追加できます。お気に入りのパークはホーム画面の先頭に固定表示。それ以外はパークのリストの先頭に表示され、プロフィールから開くウィンドウにパークごとにまとめて表示されます。アカウントに保存され、すべての端末で同期されます。",
         "parksLabel": "お気に入りのパーク",
         "ridesLabel": "お気に入りのアトラクション（プロフィール）",
         "hint": "星をタップすると、そのパークがホーム画面の先頭に移動します。"
@@ -255,7 +280,7 @@
       },
       "alerts": {
         "title": "待ち時間の通知",
-        "body": "アトラクションのページでしきい値を選ぶと、待ち時間がそれを下回った時点で通知が届きます。送信された通知は役目を終え、消えて履歴に移ります。新しく設定したいときは、またアトラクションのページから作成してください。アカウントと通知の許可が必要です。"
+        "body": "アトラクション（または待ち時間を公開しているレストラン）のページでしきい値を選ぶと、待ち時間がそれを下回った時点で通知が届きます。送信された通知は役目を終え、消えて履歴に移ります。新しく設定したいときは、またページから作成してください。アラートは、パークが待ち時間を公開している場合にのみ利用できます。アカウントと通知の許可が必要です。"
       },
       "reminders": {
         "title": "ショーのリマインダー",
@@ -292,12 +317,12 @@
     "temperatureUnit": "温度の単位"
   },
   "whatsNew": {
-    "srTitle": "Queue Park v3 の新機能",
-    "srDescription": "Queue Park バージョン 3 の新機能のご紹介。",
+    "srTitle": "Queue Park v4 の新機能",
+    "srDescription": "Queue Park バージョン4の新機能をご紹介します。",
     "hero": {
       "eyebrow": "{count} 件の新機能",
-      "title": "Queue Park が v3 に",
-      "body": "端末をまたいで引き継がれるアカウント、ちょうどよいタイミングでの通知、待ち時間予測。変わったところをご紹介します。"
+      "title": "Queue Park が v4 に",
+      "body": "レストランとショップ、各スポットの営業時間、生まれ変わった詳細ページ、検証できる予測。パークのすべてが1ページにまとまりました。"
     },
     "nav": {
       "scrollHint": "スクロール",
@@ -308,55 +333,44 @@
       "beta": "ベータ"
     },
     "slides": {
-      "account": {
-        "title": "Queue Park のアカウント",
-        "body": "Google またはメールで届くリンクだけで、パスワードなしですぐにログインできます。お気に入り・通知・設定は、パークで使うスマホから自宅のパソコンまで、そのまま引き継がれます。"
-      },
-      "favorites": {
-        "title": "お気に入りを、すべての端末で",
-        "body": "星マークがパーク・アトラクション・ショーに対応しました。お気に入りのパークはホーム画面の先頭に固定表示され、お気に入りのアトラクションとショーはパークの一覧の上部に並びます。プロフィールからはそのすべてをまとめて確認でき、すべての端末で同期されます。"
-      },
-      "notifications": {
-        "title": "ちょうどよいタイミングでお知らせ",
-        "body": "Queue Park をアプリとしてインストールすれば、パークの様子を代わりに見張ってくれます。",
-        "install": "アプリをインストール",
+      "park": {
+        "title": "アトラクションだけでなく、パーク全体を",
+        "body": "アトラクション、ショー、レストラン、ショップ。カテゴリーごとのボタンがリストの上に並び、タップひとつで切り替えられます。データを公開しているパークでは、レストランやショップの営業状況とエリアもリアルタイムで表示されます。",
         "points": {
-          "threshold": "アトラクションの待ち時間が、設定したしきい値を下回ったとき。",
-          "reopened": "アトラクションが、停止や休止のあとに再開したとき。",
-          "show": "ショーの開始が近づいたとき。お好みの時間だけ前もってお知らせします。"
+          "menu": "レストランのメニュー。パークが対応していれば、オンライン注文も。",
+          "favorites": "どこでもお気に入り：レストランやショップもアトラクションと同じように登録でき、リストの先頭に表示されます。",
+          "wait": "待ち時間を公開しているレストランでは、その待ち時間と、短くなったときのアラートも。"
         }
       },
-      "forecast": {
-        "title": "待ち時間予測",
-        "body": "実線は開園からの待ち時間、点線は閉園までの予測です。出かけるのにちょうどよいタイミングが見つかります。"
+      "hours": {
+        "title": "各スポットの営業時間",
+        "body": "「本日の営業時間」タブはショーだけではなくなりました。公開しているパークでは、アトラクション、レストラン、ショップ、ホテルの営業時間が1日のタイムラインに並びます。閉まるのが遅い順に表示されるので、今夜まだ開いている場所がひと目でわかります。"
       },
       "detail": {
-        "title": "アトラクションごとの詳細ページ",
-        "body": "アトラクションやショーをタップすると、写真、パーク内のエリア、予測付きの当日のグラフ、通知の設定まで、すべてが一か所にまとまっています。"
+        "title": "要点がすぐわかる詳細ページ",
+        "body": "写真の下の帯に、待ち時間・営業状況・終了時刻をまとめて表示。予測にもとづくひとことで今が狙い目かがわかり、アラートも1行で設定できます。"
       },
-      "events": {
-        "title": "パークのイベント",
-        "body": "ハロウィーンやクリスマスの期間は、そのイベント限定のアトラクションとショーが、季節の色をまとった専用のカードに並びます。入園料に含まれない場合は「別途チケット」と表示されます。"
+      "queues": {
+        "title": "列ごとに詳細ページ",
+        "body": "Single Rider、Disney Premier Access、バーチャルキュー。列をタップすると専用のページが開き、待ち時間または時間枠、営業状況、アラートを確認できます。時間枠のある列では、もっと早い時間枠が空いたらアラートでお知らせします。"
       },
-      "weather": {
-        "title": "パークの天気を、リアルタイムで",
-        "body": "パークの気温と空模様がヘッダーに表示され、1 時間ごとに更新されます。混雑の予想にも、雨具が要るかの判断にも便利です。"
+      "forecast": {
+        "title": "検証できる予測",
+        "body": "グレーの線は1時間前の予測。実際の推移と並べて表示するので、精度をご自身で確かめられます。パークが幅で発表している待ち時間は、そのまま「10–20 min」のように表示します。"
+      },
+      "halloween": {
+        "title": "ハロウィーンをハウスごとに",
+        "body": "ホラーハウスには怖さレベル（ドクロ1〜5個）と、有料の場合はその料金を表示。イベントカードは昼の部・夜の部などのセッションに合わせて表示され、ハウス・ショー・レストランを切り替えるボタンも備えています。"
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "待ち時間が 15 分になりました",
-        "reopened": "アトラクションが再開しました",
-        "show": "15 分後に開演します"
-      },
-      "events": {
-        "halloween": "ハロウィーン",
-        "christmas": "クリスマス"
+      "halloween": {
+        "title": "ハロウィーン"
       }
     },
     "finale": {
       "title": "どうぞお楽しみください！",
-      "body": "準備は整いました。新しい「Queue Park について」のページでは、待ち時間の取得元や各機能の詳細をご紹介しています。",
+      "body": "準備は整いました。ご意見やアイデア、追加してほしいパークがあれば、ぜひお知らせください。連絡先は「Queue Park について」のページにあります。",
       "aboutLink": "「Queue Park について」を見る"
     }
   },
@@ -424,9 +438,17 @@
     "favoritesParksCount": "{count, plural, other {お気に入りのパーク}}",
     "favoritesRidesCount": "{count, plural, other {お気に入りのアトラクション}}",
     "favoritesShowsCount": "{count, plural, other {お気に入りのショー}}",
+    "favoritesRestaurantsCount": "{count, plural, other {お気に入りのレストラン}}",
+    "favoritesShopsCount": "{count, plural, other {お気に入りのショップ}}",
+    "favoritesHotelsCount": "{count, plural, other {お気に入りのホテル}}",
+    "favoritesServicesCount": "{count, plural, other {お気に入りのサービス}}",
     "favoritesParksTitle": "お気に入りのパーク",
     "favoritesRidesTitle": "お気に入りのアトラクション",
     "favoritesShowsTitle": "お気に入りのショー",
+    "favoritesRestaurantsTitle": "お気に入りのレストラン",
+    "favoritesShopsTitle": "お気に入りのショップ",
+    "favoritesHotelsTitle": "お気に入りのホテル",
+    "favoritesServicesTitle": "お気に入りのサービス",
     "favoritesListEmpty": "お気に入りはまだありません。",
     "favoritesRemove": "{name} をお気に入りから削除",
     "activeAlertsCount": "{count, plural, other {有効な通知}}",
@@ -470,8 +492,10 @@
     "historyShows": "ショー",
     "historyShowLine": "{time} の公演 · {lead} 分前",
     "alertsEmptyRides": "通知は設定されていません。アトラクションのページから作成できます。",
+    "alertsEmptyOther": "この種類のアラートは今のところありません。",
     "alertsEmptyShows": "リマインダーは設定されていません。ショーのページから作成できます。",
     "historyEmptyRides": "アトラクションの通知はまだ送信されていません。",
+    "historyEmptyOther": "この種類の通知はまだ送信されていません。",
     "historyEmptyShows": "ショーの通知はまだ送信されていません。",
     "edit": "しきい値を編集",
     "subTabActive": "有効",
@@ -484,7 +508,9 @@
     "editLead": "通知タイミングを編集",
     "leadTooLate": "公演の開始が近すぎるため、通知タイミングを変更できません。",
     "reopenBadge": "再開",
-    "historyReopenLine": "再開しました"
+    "historyReopenLine": "再開しました",
+    "slotBadge": "{time}より前",
+    "historySlotLine": "{time}より前の枠が空きました"
   },
   "privacy": {
     "emailLabel": "メールアドレス",
@@ -527,11 +553,11 @@
   },
   "attractionDetail": {
     "openFor": "{ride} の詳細を見る",
-    "alertsTitle": "通知",
-    "chartTitle": "本日の待ち時間",
     "chartToday": "今日",
     "chartActual": "待ち時間",
     "chartForecast": "予測",
+    "chartForecastPast": "予測",
+    "chartForecastLegend": "今後の予測",
     "chartNow": "現在",
     "chartEmpty": "本日のデータはまだありません。",
     "chartUnavailable": "アトラクションは現在利用できません。",
@@ -540,8 +566,7 @@
     "chartForecastNote": "本日の残り時間のおおよその見込みです。",
     "chartForecastPreOpeningNote": "過去の日をもとにした推定です。開園後に更新されます。",
     "estimateTooltip": "条件の近い過去の日から推定しています。実際とは異なる場合があります。",
-    "marginNote": "ここ数日、予測の誤差は平均 <v>{minutes} 分</v> でした。",
-    "marginNoteTooltip": "直近14日間における、予測と実測の待ち時間の平均的な差です。",
+    "marginNoteTooltip": "直近14日間における、1時間前の予測と実測の待ち時間の平均的な差です。",
     "installTitle": "Queue Park をインストール",
     "installIntro": "通知を使うには、端末にアプリをインストールする必要があります。",
     "installButton": "アプリをインストール",
@@ -561,11 +586,49 @@
     "pushDenied": "このサイトの通知はブロックされています。この端末で受け取るには、ブラウザの設定で許可してください。",
     "pushUnsupported": "このブラウザはプッシュ通知に対応していません。通知はプロフィールと履歴には表示されます。",
     "reopenLabel": "このアトラクションは停止中です。再開したらすぐにお知らせします。",
+    "poiReopenLabel": "現在は営業していません。再開したらすぐにお知らせします。",
     "reopenSave": "再開したら通知する",
     "reopenActive": "再開アラート有効",
     "reopenSaved": "再開アラートを保存しました",
     "reopenTooLate": "パークは閉園中のため、アラートはご利用いただけません。次の開園時にお越しください。",
-    "statusChanged": "アトラクションの状態が変わりました。ページを開き直して、適切なアラートを作成してください。"
+    "statusChanged": "アトラクションの状態が変わりました。ページを開き直して、適切なアラートを作成してください。",
+    "poiStatusChanged": "状態が変わりました。ページを開き直して、適切なアラートを作成してください。",
+    "liveWait": "待ち時間",
+    "liveSlot": "枠",
+    "liveStatus": "状態",
+    "liveOpensAt": "オープン",
+    "liveClosesAt": "クローズ",
+    "liveClosedAt": "クローズ済み",
+    "chartLegendActual": "実績",
+    "marginShort": "平均誤差：<v>{minutes}分</v>",
+    "insightRise": "今が狙い目：<b>{time}ごろに約{minutes}分</b>まで増える見込みです",
+    "insightDrop": "少し待つのがおすすめ：<b>{time}ごろに約{minutes}分</b>まで減る見込みです",
+    "alertRowTitle": "待ち時間が減ったら通知",
+    "alertRowSignIn": "ログインが必要です",
+    "alertRowPick": "しきい値を選択",
+    "alertActiveRow": "通知オン・{minutes}分未満",
+    "alertThresholdHint": "しきい値はグラフに緑で表示されます。",
+    "alertActivate": "通知をオンにする",
+    "alertEdit": "編集",
+    "alertThresholdLine": "{minutes}分未満で通知",
+    "close": "閉じる",
+    "pushDeniedShort": "この端末では通知がブロックされています",
+    "insightBest": "おすすめの時間帯：<b>{time}ごろ・約{minutes}分</b>",
+    "slotRowTitle": "早い枠が空いたら通知",
+    "slotRowPick": "時刻を選択",
+    "slotOption": "{time}より前",
+    "slotActiveRow": "通知オン・{time}より前の枠",
+    "slotHint": "この時刻までに始まる枠が出たらすぐにお知らせします。",
+    "slotNothingEarlier": "今のところ、待つべき早い枠はありません。",
+    "queueReopenLabel": "この列は現在閉じています。再開したらすぐにお知らせします。",
+    "queueNothingToWatch": "この列は待ち時間も枠も公開していないため、今は通知できる内容がありません。",
+    "queueSeeRide": "アトラクションを見る"
+  },
+  "poiDetail": {
+    "openFor": "{poi} の詳細を見る",
+    "menuTitle": "メニュー",
+    "menuAction": "メニューを見る",
+    "orderAction": "メニューを見て注文"
   },
   "legal": {
     "backHome": "ホームに戻る",

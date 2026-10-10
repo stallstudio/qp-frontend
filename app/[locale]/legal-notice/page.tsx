@@ -14,7 +14,7 @@ export async function generateMetadata({
 }
 
 // Mentions légales (LCEN art. 6). Contenu traduit via `legal.legalNotice`.
-export default async function MentionsLegalesPage({
+export default async function LegalNoticePage({
   params,
 }: {
   params: Promise<{ locale: string }>;

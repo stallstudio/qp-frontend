@@ -2,6 +2,8 @@ import { Group } from "./group";
 import { OpeningHour } from "./openingHour";
 import { ParkEventDto } from "./parkEvent";
 import { ShowTime } from "./show";
+import type { PoiHours } from "./poiHours";
+import type { PoiKind } from "@/lib/poi-kinds";
 import { WaitTime } from "./waitTime";
 
 export type CoverImage = {
@@ -28,6 +30,28 @@ export type ParkLiveData = {
   openingHours: OpeningHour[];
   waitTimes: WaitTime[];
   shows: ShowTime[];
+  /**
+   * Spectacles d'un événement affiché qui n'ont AUCUNE séance aujourd'hui —
+   * `schedules` vide. Rangés dans la carte de leur événement, sous la grille.
+   * Vide hors événement. Voir `lib/event-pois.ts`.
+   */
+  unscheduledShows: ShowTime[];
+  /**
+   * Attractions d'un événement affiché SANS temps d'attente vivant — `queues`
+   * vide : des mazes que la source tague sans les mesurer, ou plus. Rangées dans
+   * la carte de leur événement, sous la table. Voir `lib/event-pois.ts`.
+   */
+  unlistedRides: WaitTime[];
+  /**
+   * Heures d'ouverture du jour des POI (restaurants, boutiques, attractions…),
+   * pour l'onglet « Horaires du jour ». Vide pour la quasi-totalité des parcs.
+   */
+  poiHours: PoiHours[];
+  /**
+   * Familles de POI dont le parc communique les temps d'attente — et donc les
+   * seules sur lesquelles une alerte est proposée. Voir `lib/timed-kinds.ts`.
+   */
+  timedKinds: PoiKind[];
   weather: ParkWeather | null;
   /**
    * Événements saisonniers du parc (Halloween, Noël). Tableau VIDE onze mois par

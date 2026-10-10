@@ -6,6 +6,9 @@ import {
 } from "@/lib/opening-hours";
 import { getLatestWaitTimesByPark } from "@/lib/wait-times";
 import { getShowTimesByParkAndDates } from "@/lib/show-times";
+import { getPoiHoursByParkAndDate } from "@/lib/poi-hours";
+import { getTimedKinds } from "@/lib/timed-kinds";
+import { getEventPoisWithoutData } from "@/lib/event-pois";
 import { limitShowsToSessions } from "@/lib/show-window";
 import { getWeatherByParkAndDate } from "@/lib/weather";
 import { getParkEventsByDate } from "@/lib/park-events-db";
@@ -180,17 +183,43 @@ async function buildParkLiveSnapshot(
   // dépasse minuit range ses dernières représentations sous le lendemain (voir
   // `getShowTimesByParkAndDates`). Elles sont retriées juste après sur les
   // horaires, jamais sur la date.
-  const [waitTimes, showTimes, openingHours, daily] = await Promise.all([
-    getLatestWaitTimesByPark(park.id, park.lastUpdatedAt),
-    getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
-    getOpeningHoursByParkAndDate(park.id, today),
-    getWeatherByParkAndDate(park.id, today),
-  ]);
+  //
+  // ⚠️ Les heures des POI ATTENDENT les temps d'attente, et seulement elles : un
+  // POI désactivé dans l'admin mais affiché en direct doit garder ses heures
+  // (voir `getPoiHoursByParkAndDate`).
+  const waitTimesQuery = getLatestWaitTimesByPark(park.id, park.lastUpdatedAt);
+  const [waitTimes, showTimes, openingHours, daily, poiHours, timedKinds] =
+    await Promise.all([
+      waitTimesQuery,
+      getShowTimesByParkAndDates(park.id, [today, nextDay(today)]),
+      getOpeningHoursByParkAndDate(park.id, today),
+      getWeatherByParkAndDate(park.id, today),
+      waitTimesQuery.then((live) =>
+        getPoiHoursByParkAndDate(
+          park.id,
+          today,
+          new Set(live.map((wt) => wt.rideId)),
+        ),
+      ),
+      waitTimesQuery.then((live) =>
+        getTimedKinds(park.id, park.identifier, live),
+      ),
+    ]);
 
   // ⚠️ EN SÉRIE, à dessein : les horaires portent l'`eventId` de chaque
   // session, donc la fenêtre du jour de chaque événement. Les charger d'abord
   // évite une seconde requête sur `opening_hours`.
   const events = await getParkEventsByDate(park.id, today, openingHours ?? []);
+
+  // Après les événements, et pour la même raison : seuls ceux qui s'affichent
+  // ont une carte où ranger leurs spectacles sans séance et leurs attractions
+  // sans temps d'attente.
+  const { unscheduledShows, unlistedRides } = await getEventPoisWithoutData(
+    park.id,
+    events.map((event) => event.id),
+    new Set((showTimes ?? []).map((show) => show.poiId)),
+    new Set(waitTimes.map((wt) => wt.rideId)),
+  );
 
   // Chaque créneau est rendu à la SÉANCE qui le contient — un spectacle
   // d'événement à celles de son événement, les autres à l'exploitation de
@@ -224,6 +253,10 @@ async function buildParkLiveSnapshot(
       openingHours: openingHours ?? [],
       waitTimes,
       shows,
+      unscheduledShows,
+      unlistedRides,
+      poiHours,
+      timedKinds,
       weather,
       events,
       lastUpdate:

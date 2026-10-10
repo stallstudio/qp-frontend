@@ -28,13 +28,17 @@ export type ParkEventDto = {
   separateTicket: boolean;
 
   /**
-   * Session du JOUR, en instants absolus (ISO UTC), telle que les horaires du
-   * parc la décrivent. `null` quand l'événement ne tourne pas aujourd'hui — ou
-   * quand le parc n'en publie pas les horaires, cas où seule la période
-   * ci-dessous est connue.
+   * Sessions du JOUR, en instants absolus (ISO UTC), triées par ouverture,
+   * telles que les horaires du parc les décrivent. Vide quand l'événement ne
+   * tourne pas aujourd'hui — ou quand le parc n'en publie pas les horaires, cas
+   * où seule la période ci-dessous est connue.
+   *
+   * ⚠️ **Une LISTE, pas une session.** Peur sur le Parc tourne deux fois certains
+   * jours : en journée (9 h – 18 h, billet normal) puis en nocturne (19 h – 1 h,
+   * billet à part), les maisons hantées ouvertes aux deux. Réduite à sa première
+   * session, la carte restait repliée toute la soirée.
    */
-  startsAt: string | null;
-  endsAt: string | null;
+  sessions: { startsAt: string; endsAt: string }[];
 
   /**
    * Période de l'événement, en dates LOCALES du parc (YYYY-MM-DD). Sert quand la

@@ -5,15 +5,12 @@ import axios from "axios";
 import { DateTime } from "luxon";
 import { AnimatePresence, motion, type TargetAndTransition } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
-import {
-  ChevronDown,
-  ChevronUp,
-  Drama,
-  Loader2,
-  RollerCoaster,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
+import type { PoiKind } from "@/lib/poi-kinds";
 import type { AlertHistoryDTO, ShowReminderHistoryDTO } from "@/types/user";
+import FeedAvatar from "./feed-avatar";
+import type { TypeFilter } from "./alerts-section";
 
 // Rafraîchissement tant que la page est ouverte : une notification peut arriver
 // pendant qu'on regarde (le moteur tourne toutes les 1-2 min). Les nouvelles
@@ -25,49 +22,28 @@ const PER_PAGE = 10;
 
 const EASE = [0.32, 0.72, 0, 1] as const;
 
-type TypeFilter = "all" | "rides" | "shows";
-
-// Ligne d'historique normalisée (attraction OU spectacle), pour un fil unique
-// trié par date d'envoi décroissante.
+// Ligne d'historique normalisée (alerte OU rappel de spectacle), pour un fil
+// unique trié par date d'envoi décroissante. `kind` : la famille du POI, `show`
+// pour un rappel.
 type HistoryItem = {
   id: string;
-  kind: "ride" | "show";
+  kind: PoiKind;
   sentAt: string;
   title: string;
   subtitle: string;
 };
 
-// Marqueur de type (orange attraction / violet spectacle) — cohérent avec le fil
-// des alertes actives : point de couleur sur mobile (la pastille prenait trop de
-// largeur), pastille à icône dès `sm`.
-function HistoryAvatar({ kind }: { kind: "ride" | "show" }) {
-  return (
-    <>
-      <span
-        aria-hidden
-        className={`size-2.5 shrink-0 rounded-full sm:hidden ${
-          kind === "show" ? "bg-show" : "bg-primary"
-        }`}
-      />
-      <div
-        className={`hidden size-9 shrink-0 items-center justify-center rounded-xl sm:flex ${
-          kind === "show" ? "bg-show/10 text-show" : "bg-primary/10 text-primary"
-        }`}
-      >
-        {kind === "ride" ? (
-          <RollerCoaster className="size-4" />
-        ) : (
-          <Drama className="size-4" />
-        )}
-      </div>
-    </>
-  );
-}
-
 // Fil d'historique unifié (lecture seule) : une seule liste sur toute la largeur,
 // filtrée par type (Tout · Attractions · Spectacles) via la prop `filter`. Pas
 // d'en-tête propre (le parent — AlertsSection — porte l'onglet et le filtre).
-export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
+// `onKinds` lui remonte les familles des alertes passées, pour ses pastilles.
+export default function AlertHistoryFeed({
+  filter,
+  onKinds,
+}: {
+  filter: TypeFilter;
+  onKinds?: (kinds: ReadonlySet<PoiKind>) => void;
+}) {
   const t = useTranslations("profile");
   const tFav = useTranslations("favorites");
   const locale = useLocale();
@@ -94,6 +70,7 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
       knownIdsRef.current = new Set(allIds);
       setRides(ridesRes.data);
       setShows(showsRes.data);
+      onKinds?.(new Set(ridesRes.data.map((h) => h.poiKind)));
       if (incomingNew.length > 0 && !loading) {
         setFreshIds(new Set(incomingNew));
       }
@@ -102,7 +79,7 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
     } finally {
       setLoading(false);
     }
-  }, [loading]);
+  }, [loading, onKinds]);
 
   useEffect(() => {
     load();
@@ -133,6 +110,15 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
   // l'historique doit rejouer l'horaire tel qu'il était sur place. `formatDate`
   // au-dessus, lui, date la RÉCEPTION de la notification — c'est un moment vécu
   // par le lecteur, il reste donc dans son fuseau.
+  // Heure limite d'une alerte de créneau, « HH:mm » en heure du parc.
+  const formatSlot = (hhmm: string) =>
+    DateTime.fromFormat(hhmm, "HH:mm")
+      .setLocale(locale)
+      .toLocaleString({
+        ...DateTime.TIME_SIMPLE,
+        hourCycle: is12Hour ? "h12" : "h23",
+      });
+
   const formatTime = (iso: string, timezone: string | null) =>
     DateTime.fromISO(iso, { zone: timezone ?? undefined })
       .setLocale(locale)
@@ -143,27 +129,28 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
 
   // Fusion des deux historiques en un fil unique, filtré, trié par date d'envoi.
   const items = useMemo<HistoryItem[]>(() => {
-    const rideItems: HistoryItem[] =
-      filter === "shows"
-        ? []
-        : rides.map((h) => ({
-            id: h.id,
-            kind: "ride",
-            sentAt: h.sentAt,
-            title: h.rideName,
-            // Une notification de réouverture n'a ni seuil ni temps franchi :
-            // la ligne dit l'événement, pas une valeur qui n'existe pas.
-            subtitle: `${h.parkName} · ${
-              h.type === "reopen" || h.threshold == null
-                ? t("historyReopenLine")
-                : t("historyLine", {
-                    actual: h.actualWaitTime,
-                    threshold: h.threshold,
-                  })
-            }`,
-          }));
+    const rideItems: HistoryItem[] = rides
+      .filter((h) => filter === "all" || h.poiKind === filter)
+      .map((h) => ({
+        id: h.id,
+        kind: h.poiKind,
+        sentAt: h.sentAt,
+        title: h.queueLabel ? `${h.rideName} · ${h.queueLabel}` : h.rideName,
+        // Une notification de réouverture n'a ni seuil ni temps franchi :
+        // la ligne dit l'événement, pas une valeur qui n'existe pas.
+        subtitle: `${h.parkName} · ${
+          h.type === "slot" && h.slotBefore
+            ? t("historySlotLine", { time: formatSlot(h.slotBefore) })
+            : h.type === "reopen" || h.threshold == null
+            ? t("historyReopenLine")
+            : t("historyLine", {
+                actual: h.actualWaitTime,
+                threshold: h.threshold,
+              })
+        }`,
+      }));
     const showItems: HistoryItem[] =
-      filter === "rides"
+      filter !== "all" && filter !== "show"
         ? []
         : shows.map((h) => ({
             id: h.id,
@@ -183,11 +170,13 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
   }, [rides, shows, filter, locale, is12Hour, t]);
 
   const emptyLabel =
-    filter === "rides"
-      ? t("historyEmptyRides")
-      : filter === "shows"
+    filter === "all"
+      ? t("historyEmpty")
+      : filter === "show"
         ? t("historyEmptyShows")
-        : t("historyEmpty");
+        : filter === "ride"
+          ? t("historyEmptyRides")
+          : t("historyEmptyOther");
 
   if (loading) {
     return (
@@ -218,7 +207,7 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
       transition={{ type: "spring", stiffness: 320, damping: 36 }}
       className="flex items-center gap-3 overflow-hidden rounded-xl border px-3 py-2"
     >
-      <HistoryAvatar kind={item.kind} />
+      <FeedAvatar kind={item.kind} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{item.title}</p>
         <p className="truncate text-xs text-muted-foreground">
@@ -270,7 +259,7 @@ export default function AlertHistoryFeed({ filter }: { filter: TypeFilter }) {
                 }}
                 className="flex items-center gap-3 overflow-hidden rounded-xl border px-3 py-2"
               >
-                <HistoryAvatar kind={item.kind} />
+                <FeedAvatar kind={item.kind} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{item.title}</p>
                   <p className="truncate text-xs text-muted-foreground">

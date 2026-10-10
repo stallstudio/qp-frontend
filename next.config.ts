@@ -43,6 +43,24 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
   /**
+   * ⚠️ **Métadonnées BLOQUANTES pour tout le monde, pas seulement les robots.**
+   *
+   * Par défaut, Next ne fait attendre `generateMetadata` qu'aux robots qu'il
+   * reconnaît ; pour les autres, il diffuse les métadonnées en streaming, dans
+   * le corps, une fois résolues. Sur les pages `/park/{parc}/ride/{slug}`, dont
+   * les métadonnées attendent la base (parc + attraction), le rendu serveur et
+   * l'hydratation ne voyaient alors pas le même arbre : TOUS les `useId` de la
+   * page divergeaient (pastilles de famille, déclencheurs Radix, menu de
+   * langue) — « A tree hydrated but some attributes… » à chaque lien profond,
+   * et des `aria-controls` qui pointaient dans le vide. Mesuré le 2026-10-08 :
+   * 4 hydratations ratées sur 4 sans ce réglage, 0 sur 4 avec.
+   *
+   * Ça ne coûte rien : `generateMetadata` et la page lisent la même résolution
+   * mémoïsée (`cache()`), que la page attend de toute façon avant de rendre.
+   */
+  htmlLimitedBots: /.*/,
+
+  /**
    * ⚠️ **Sharp ne survit pas au build `standalone` sans ça.**
    *
    * Le tracing de Next suit les `require` et copie bien le binaire

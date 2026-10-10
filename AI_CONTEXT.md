@@ -105,38 +105,119 @@ décalés (+1 000 000), et rien ici ne référence un spectacle par identifiant 
 `ShowReminder` passe par `(parkIdentifier, showName, startTime)` et les favoris
 de spectacle par `{parkIdentifier}:{showName}`.
 
-## Les POI non-attraction : rattachés, filtrés, pas affichés (V4)
+## Les familles de POI et leur sélecteur (V4, 2026-10-06)
 
-Certaines sources publient l'état de leurs **restaurants, boutiques, hôtels ou
-services** dans le flux des temps d'attente, sous le même espace d'identifiants
-que les attractions — à Bellewaerde, quatorze restaurants sur quinze. Le worker
-les rattache et `getLatestWaitTimesByPark` les sert : **elle ne filtre pas sur le
-type de POI**, elle prend tout `wait_times` dont le `poiId` n'est pas nul.
+L'onglet « En direct » d'un parc n'affiche plus seulement les attractions : les
+sources qui publient l'état de leurs **restaurants, boutiques ou hôtels** dans le
+flux des temps d'attente ont chacune leur liste. Une famille à la fois, choisie
+au **sélecteur de pastilles** façon Mail sur iOS (`family-switcher.tsx`) qui
+prend la tête de la carte de la liste : la pastille active se teinte de la
+couleur de sa famille (`--primary`, `--show`, `--restaurant`, `--shop`,
+`--hotel` dans `globals.css`) et dévoile son libellé.
 
-⚠️ **Le frontend ne les affiche pas** : les cartes par famille dans l'onglet
-« En direct » ont été écrites le 2026-08-28 puis **retirées de la V3 le
-2026-09-03**, et sont reportées en V4. La branche `dev` en garde la version
-vivante ; `lib/poi-kinds.ts` porte la note de retrait, et le revert du commit de
-retrait les ramène en entier.
+- Chaque onglet propose SES familles (`LIVE_FAMILIES`, `SCHEDULE_FAMILIES`).
+  « En direct » : attractions, spectacles (aucune source n'y écrit encore),
+  restaurants, boutiques — PAS les hôtels ni les services. « Horaires du
+  jour » : les six, chacune seulement si elle a des horaires. Une famille
+  proposée par les deux onglets reste sélectionnée de l'un à l'autre
+  (`pickFamily`, `main-card.tsx`).
+- **Le sélecteur s'affiche TOUJOURS** (2026-10-06), même pour une seule
+  famille : sa pastille unique sert de titre à la carte. La carte titrée de la
+  v3 (`SectionCard`) n'est plus rendue par `main-card`. **Mais sans AUCUNE
+  famille hors événement, la carte de la liste n'existe pas** (2026-10-08) :
+  Walibi Belgium en pleine nocturne affichait une carte « Spectacles » vide
+  sous une carte de Halloween qui avait tous les spectacles.
+- **Chaque carte d'événement a SON sélecteur** (2026-10-08, `eventCard`,
+  `main-card.tsx`), dont les pastilles sont les familles qu'ELLE contient — à
+  Walibi Belgium, « Attractions » (maisons, zones) et « Spectacles » (Bill).
+  Elle suivait auparavant la pastille de la carte de la liste, qui devait donc
+  exister pour qu'on atteigne l'événement. Les horaires s'y ouvrent sur les
+  spectacles, comme la liste.
+- **Ce sélecteur vit dans l'EN-TÊTE de la carte, déplié seulement**
+  (`headerAside`, `event-card.tsx`) : à droite du titre, sous lui sur
+  téléphone, et plus de trait entre l'en-tête et la liste. L'en-tête n'est donc
+  plus UN bouton (il ne peut pas en contenir d'autres) : le bouton de repli
+  couvre la ligne par son `::after`, les pastilles passent au-dessus (`z-10`).
+- **Les pastilles d'une carte d'événement suivent la palette de l'événement** :
+  `family-switcher.tsx` lit `--tint-<famille>`, `--tint-fg`, `--tint-idle` et
+  `--tint-idle-fg` avant les couleurs franches, et seules les cartes
+  d'événement les définissent (`event-accents.tsx`). Choisies sur maquette le
+  2026-10-08 : « Brume » pour Halloween (rouille, prune, mousse, ardoise, rose
+  fané, bronze), son pendant givré pour Noël (pain d'épice, améthyste, sapin,
+  bleu nuit, canneberge, or). Chaque famille garde sa couleur ; des tons
+  sourds (L ≈ 0,5) à texte CLAIR dans les deux thèmes.
+- **Horaires d'ouverture des POI = table `poi_hours`** (2026-10-06, migration
+  `2026-10-06-poi-hours` du worker), lue par `lib/poi-hours.ts` (liste vide
+  sur toute erreur, table absente comprise) et transportée dans
+  `ParkLiveData.poiHours`. Les spectacles gardent `show_times`.
+- **Une seule grille pour les deux** : `show-time-table/schedule-grid.tsx`
+  (axe, glisser, repère « maintenant », légende). L'ordre vient de l'appelant :
+  `show-time-table/index.tsx` trie les spectacles sur la PROCHAINE
+  représentation (`showSortKey`, horloge `useMinuteClock` — `null` à
+  l'hydratation), `poi-hours-table.tsx` trie les POI sur la fermeture la plus
+  tardive. Favoris épinglés en tête dans les deux.
+- Les popups d'attraction et de POI affichent « Horaires du jour » via
+  `PoiHoursProvider` (`poi-hours-context.tsx`), posé par `main-card` ; hors
+  page de parc, pas de section.
+- Toutes les cartes de la colonne ont le même arrondi de 2 rem, écartées de
+  12 px ; la carte des onglets est une pill. L'ancienne colonne « en ticket »
+  (jointures de 10 px) a disparu avec le sélecteur.
 
-⚠️ **Ce qui reste est le REMPART, et il ne faut pas y toucher** :
-`WaitTime.kind` (`types/waitTime.ts`), rempli par `parsePoiKind` sans requête
-supplémentaire, et le filtre `kind === "ride"` de `main-card.tsx`. Sans lui, ces
-POI retombent dans la carte « Attractions » — c'est exactement ce qui s'est
-produit le jour où le worker s'est mis à rattacher les restaurants : ils sont
-arrivés au milieu des coasters sans qu'une ligne de frontend ait changé.
+- `lib/poi-kinds.ts` — la liste des kinds (jumelle de celles du worker et de
+  l'admin), les familles de chaque onglet, et la **liste blanche des temps**.
+- `WaitTime.kind` / `WaitTime.menu` (`types/waitTime.ts`), remplis par
+  `getLatestWaitTimesByPark` sans requête supplémentaire — `menu` seulement hors
+  attraction, pour ne pas alourdir la charge utile des 200 POI d'un gros parc.
+- `components/parks/poi-status-table.tsx` — la liste, et
+  `poi-detail/poi-detail-dialog.tsx` — le popup.
 
-⚠️ **Ce que ces sources publient est un TÉMOIN, pas une file**, et c'est pour ça
-qu'un affichage naïf est faux. Chez Compagnie des Alpes, un restaurant ouvert
-annonce une constante — 5 min à Bellewaerde, 1 min à Walibi Rhône-Alpes — et
-« indisponible » fermé : deux valeurs distinctes sur tout l'historique. Les
-trier par temps d'attente afficherait « 5 min » en permanence sur quatorze
-restaurants, indiscernable d'un vrai chiffre.
+⚠️ **Sans `kind`, ces POI tombaient dans la carte « Attractions ».**
+`getLatestWaitTimesByPark` ne filtre pas sur le type de POI : elle prend tout
+`wait_times` dont le `poiId` n'est pas nul. Le jour où le worker s'est mis à
+rattacher les restaurants, ils sont donc arrivés dans la liste des attractions
+sans qu'une ligne de frontend ait changé.
 
-⚠️ **`lib/poi-list.ts` reste un module à part** (`STATUS_ORDER`,
-`splitGluedTail`, `getPrimaryQueue`) même s'il n'a plus qu'un appelant : il avait
-été extrait de `wait-time-table.tsx` précisément pour être partagé avec la liste
-d'état des autres familles, que la V4 rebranchera. Ne pas le réintégrer.
+⚠️ **Ce que ces sources publient est un TÉMOIN, pas une file.** Chez Compagnie
+des Alpes, un restaurant ouvert annonce une constante — 5 min à Bellewaerde,
+1 min à Walibi Rhône-Alpes — et « indisponible » fermé : deux valeurs distinctes
+sur tout l'historique. La colonne « temps » ne s'ouvre donc que pour les parcs
+déclarés dans `REAL_WAIT_TIMES` (`lib/poi-kinds.ts`) — au 2026-10-06, Nagashima
+Spa Land seul ; les parcs CDA n'écrivent plus que `-1`, l'état passe mais plus
+la constante. Critère pour en ajouter un : plus de deux valeurs distinctes de
+`waitTime` dans son historique pour ce kind.
+
+⚠️ **`poi-status-table.tsx` est un composant à part, pas un mode de
+`wait-time-table.tsx`.** Ce dernier porte les favoris, les alertes, le dépliage
+des files secondaires, le lien profond `/ride/{slug}` et l'épinglage des favoris
+en tête : six mécanismes dont aucun n'a de sens sur un ouvert/fermé. Ce qui est
+réellement partagé vit dans `lib/poi-list.ts` (`STATUS_ORDER`, `splitGluedTail`,
+`getPrimaryQueue`) — deux listes du même onglet ne peuvent pas trier les états
+différemment.
+
+⚠️ **Le popup réutilise `ImageSection` mais SANS étoile** : `favNamespace` et
+`favKey` y sont devenus optionnels. Les favoris sont persistés par namespace sur
+le compte (`FavNamespace`, plafonds compris) ; en inventer un troisième aurait
+ouvert une liste que ni l'espace compte ni les rappels ne lisent.
+
+⚠️ **Le popup se limite à sa bannière, sa zone, l'état et ses horaires du
+jour**, plus une ligne « Voir la carte » (sans sous-titre) quand
+la source publie un menu — « Voir la carte et commander » quand l'adresse est une page de
+commande reconnue (`isOrderPage` : pej.se des parcs PRS, `/streamlinedmenu/` de
+Miral, Kolmården), une page web n'en étant pas une par défaut — ce qu'aucun parc CDA ne fait
+aujourd'hui, alors que le champ existe dans leur CMS (Disney Japon, Miral, Parc
+Astérix, Paultons, Tibidabo et Dreamworld en publient). Un bloc
+« Informations » reprenant zone, catégorie et étiquettes a été écrit puis
+RETIRÉ le 2026-08-28 : ces valeurs arrivent dans la langue du flux du parc
+(« Zoetigheden » chez Bellewaerde, qui publie en néerlandais), et elles ne sont
+donc plus transportées du tout. Seule la ZONE est revenue (2026-10-06), sous le
+nom comme pour une attraction, à la place de l'ancien lien « Voir sur Thrills ».
+
+⚠️ **`service` n'est PAS affiché en direct**, bien que le worker le rattache
+comme les autres (absent de `LIVE_FAMILIES`) — seulement dans « Horaires du
+jour », s'il a des horaires. Ce que les sources y rangent, ce sont des toilettes,
+des casiers, des zones fumeurs et des guichets, par dizaines — 41 chez Thorpe
+Park contre 36 restaurants. Le rattachement sert à fermer les alertes non
+matchées de l'admin, pas à peupler la page.
 
 ## Flux de données
 
@@ -314,9 +395,16 @@ Conséquences assumées, à ne pas « corriger » :
 - L'attraction est résolue depuis la table `pois` (`kind: "ride"`), pas depuis
   les temps d'attente du moment : une attraction fermée pour la saison ne doit pas
   transformer un lien en 404. Si elle est absente du flux, la page du parc
-  s'affiche sans popup.
+  s'affiche sans popup — SAUF une attraction d'événement sans temps vivant
+  (`unlisted`, les maisons d'IBILAW) : listée sous sa carte d'événement, elle
+  ouvre son popup comme au clic (2026-10-08 ; l'effet ne cherchait que dans le
+  direct).
 - L'ouverture du popup est gardée par un `useRef` : sans lui, le
   rafraîchissement 60 s rouvrirait le popup après chaque fermeture.
+- ⚠️ **`htmlLimitedBots: /.*/` dans `next.config.ts`** : sans lui, Next diffuse
+  les métadonnées de cette route en streaming (elles attendent la base), et
+  CHAQUE lien profond ratait son hydratation — tous les `useId` de la page
+  divergeaient entre serveur et client. Voir le commentaire du réglage.
 
 **⚠️ Deux pièges à connaître avant de remettre un `<a>` au clic annulé dans une
 liste.** La liste n'en contient plus (l'œil, seul lien de ce genre, a été retiré
@@ -615,6 +703,51 @@ ligne GRISE au milieu d'une carte Halloween rouge, comme la colonne de noms des
 spectacles avant `--table-surface`. Les redéfinitions se mélangent à
 `transparent` (et non au fond) : c'est un voile de PLUS sur celui de la carte.
 
+⚠️ **Les POI d'un événement SANS la donnée de leur liste ont la leur**
+(2026-10-07, `lib/event-pois.ts`, `unscheduledShows` et `unlistedRides`). Le
+front ne connaissait un spectacle que par ses séances, une attraction que par
+ses temps d'attente : les cinq maisons de Bellewaerde, publiées avec prix et
+niveau de peur mais sans aucun horaire, n'apparaissaient nulle part. Spectacles
+sans séance et attractions sans temps vivant sont listés sous la grille ou la
+table, dans la carte de leur événement (`EventExtrasList`), et ouvrent le même
+popup — celui d'un spectacle sans panneau de séances ni de rappel, qui diraient
+« plus de représentation aujourd'hui » quand on n'en sait rien.
+
+- ⚠️ L'exclusion des spectacles porte sur les séances AVANT
+  `limitShowsToSessions` : un spectacle dont toutes les séances sont tombées
+  hors des sessions du jour a bien un horaire.
+- ⚠️ **Rien ne revient l'année suivante** : seuls les événements AFFICHÉS sont
+  lus, et une édition est une LIGNE par saison. Le worker ne migre vers la
+  nouvelle que les POI que la source déclare encore ; une maison retirée du
+  catalogue reste attachée à l'édition passée. Pendant une même édition, en
+  revanche, une maison retirée en cours de route reste listée.
+
+### Peur et prix des maisons hantées (`lib/poi-facts.ts`, `attraction-detail/poi-facts.tsx`)
+
+`additionalData.fearLevel` (1 à 5) et `additionalData.price`, écrits par le
+worker pour les parcs CDA, portés par `WaitTime`, `ShowTime` et `PoiHours` et
+affichés dans les TROIS popups — une maison est un spectacle chez CDA, une
+attraction ailleurs. Rien quand la source ne publie rien.
+
+⚠️ **Dans le bandeau s'ils y tiennent, dans le corps sinon** (arbitré le
+2026-10-08, `factsFitInStrip`) : le bandeau est plafonné à trois cases
+(`STAT_STRIP_MAX_CELLS`). Une maison connue par ses seuls horaires n'y a que
+« Fermeture » : la peur et le prix montent à côté (`poiFactStats`), au lieu d'un
+second bloc d'une valeur sous le premier. Une attraction suivie en direct
+remplit le bandeau (attente, état, horaires) : ils restent dessous
+(`PoiFacts`). Toujours ENSEMBLE, jamais l'un en haut et l'autre en bas. Le
+bandeau compte ses enfants directs : les cases passent en tableau, pas en
+fragment, et `liveStatCount` dit d'avance combien `LiveStats` en rendra.
+
+⚠️ **Le prix du jour est DÉDUIT de la fermeture du parc** (`priceForToday`) :
+le worker joint au prix la fermeture la plus tardive d'une journée classique et
+la plus précoce d'une prolongée (18:00 et 22:00 à Walibi Belgium) ; le contexte
+des popups porte la fermeture du jour (`parkCloseMinutes`, lignes de la
+JOURNÉE seulement). Entre les deux, sans bornes ou sans horaires : les deux
+prix, ce qui n'est jamais faux. ⚠️ L'heure de fermeture se lit sur l'HORLOGE :
+mesurée en durée depuis minuit, une journée prolongée du 25/10 (25 h, passage à
+l'heure d'hiver) se lisait 23:00.
+
 ### Historique & tendances — SUPPRIMÉS (2026-07-27)
 
 Les flèches de tendance et l'historique global du jour, suspendus depuis
@@ -638,7 +771,7 @@ coexistent sur la même page.
 - **Pas de cache localStorage**, contrairement aux favoris : une alerte ne vaut
   que pour la journée et peut être supprimée par le moteur — un cache périmé
   afficherait des cloches fantômes.
-- `refresh()` est appelé par `alert-section.tsx` / `reminder-section.tsx` après
+- `refresh()` est appelé par `alert-section.tsx` / `show-schedule-panel.tsx` après
   création ou suppression, et par la remise à zéro du profil.
 - Resynchronisation au **retour d'onglet** (`visibilitychange`) : une alerte qui
   notifie est supprimée côté serveur, la cloche resterait sinon allumée jusqu'au
@@ -685,10 +818,68 @@ groupe des favoris est encadré de deux séparateurs ondulés ambrés
 ### Popup « détail attraction » (`components/parks/attraction-detail/`)
 
 **Un clic n'importe où sur la ligne** ouvre `attraction-detail-dialog.tsx` — plus
-d'icône œil (2026-07-28), plus d'étoile/cloche cliquable dans la liste. Le popup
-empile des sections : image (`image-section.tsx` — bannière de la source, nom,
-quartier et étoile favori en surimpression), alertes (`alert-section.tsx`),
-graphique du jour + prévision (`chart-section.tsx` → `wait-time-chart.tsx`).
+d'icône œil (2026-07-28), plus d'étoile/cloche cliquable dans la liste. Depuis
+la refonte du 2026-10-07, plus de titres de section ni de séparateurs : image
+(`image-section.tsx` — bannière, nom, quartier, étoile), puis À CHEVAL sur son
+bas le bandeau de chiffres (`live-stats.tsx` : attente, état, « Ferme à »),
+graphique du jour + prévision avec une phrase de conseil quand le pic ou le
+creux prévu s'écarte d'au moins 10 min de l'attente actuelle
+(`chart-section.tsx` → `wait-time-chart.tsx`), et l'alerte réduite à UNE LIGNE
+qui se déplie en carte de réglage (`alert-section.tsx`).
+
+⚠️ **L'alerte est AU-DESSUS du graphique**, pas dessous : sur un iPhone, elle
+tombait sous la ligne de flottaison et rien ne disait qu'elle existait. Dans la
+case « État », « En panne » prend sa forme courte (`attractionStatus.downShort`,
+« Panne ») ; « Maintenance » reste tronquée.
+
+⚠️ **Chaque FILE a son popup (2026-10-07)** : une ligne Single Rider, Disney
+Premier Access, VirtualLine… ouvre `AttractionDetailDialog` avec `queueType`
+(titre = la file, sous-titre = l'attraction, ligne « Voir l'attraction » en
+bas). Tout s'y lit sur la file : attente ou créneau (case « Créneau »), état,
+alerte. **Graphique et prévision seulement pour `CHARTED_QUEUE_TYPES`**
+(`lib/queue-types.ts` : standby + singlerider) — un créneau ou une file
+virtuelle ne se prévoient pas. La route d'historique prend `?queue=singlerider`
+(liste fermée) et lit la prévision dans `queue_forecast`, table à part (voir le
+modèle `QueueForecast`). Lien profond : `/ride/{slug}?queue=…`.
+
+⚠️ **Les alertes visent une FILE** (`alerts.queueType`, `standby` par défaut,
+unicité userId+rideId+queueType) et gagnent la nature `slot` : « un créneau
+commençant au plus tard à `slotBefore` (HH:mm, heure du parc) est proposé ».
+Le moteur (`/api/cron/alerts`) juge chaque alerte sur SA file. Migration :
+`prisma/user/manual/2026-10-07-queue-alerts.sql`. ⚠️ **`main` (prod) filtre
+partout `queueType = "standby"`** (correctif du 2026-10-07) : sans ça, son moteur
+aurait jugé une alerte Single Rider sur le temps standby de l'attraction. Tant
+que `dev` n'est pas fusionnée, une alerte de file n'est évaluée que par un
+moteur `dev`.
+
+⚠️ **Le bandeau est dans l'en-tête ÉPINGLÉE, pas dans le corps défilant** : il
+chevauche la photo par une marge négative, que `overflow-y-auto` rognerait.
+
+⚠️ **Une attraction SANS AUCUNE FILE n'a ni alerte, ni graphique, ni requête
+d'historique** (2026-10-08). La grille des horaires (`poi-hours-table.tsx`) et
+la carte d'un événement (`unlistedRides`) ouvrent ce popup avec `queues: []`
+pour une attraction connue par ses seuls horaires, sa peur ou son prix (les
+maisons d'IBILAW, que le flux de Walibi Belgium ne mesure pas). Le verdict de
+l'historique ne l'écartait pas : jamais observée, elle a `observedDays = 0`,
+comme une attraction d'un parc fraîchement ajouté — le popup proposait « M'alerter
+si l'attente baisse », une alerte qui ne serait jamais partie, au-dessus d'un
+« Attraction indisponible pour le moment » faux (la route d'historique rend une
+série du jour vide, pas une absence). Le critère est donc le DIRECT
+(`target.queues.length > 0`), pas l'historique.
+
+⚠️ **Le seuil d'alerte est tracé sur le graphique** (ligne verte) pendant le
+réglage et tant que l'alerte est active : `AlertSection` le remonte au popup
+(`onThresholdPreview`), qui le passe à `WaitTimeChart` (`threshold`). L'alerte
+existante est donc chargée dès l'ouverture du popup, plus au dépliage — c'est
+elle qui décide si la ligne repliée affiche « Alerte active ».
+
+⚠️ **Les popups SPECTACLE et POI ont suivi le 2026-10-07**, même grammaire :
+`StatStrip` / `Stat` (`live-stats.tsx`) pour le bandeau — prochaine séance,
+durée, séances restantes pour un spectacle ; état et « Ferme à » pour un accès
+continu ou un POI, sans colonne « Attente » hors `showsWaitTime`. Côté
+spectacle, `show-schedule-panel.tsx` remplace `reminder-section.tsx` : les
+séances du jour sont TOUJOURS visibles (elles l'étaient derrière la
+connexion), et le rappel est une ligne qui se déplie sur la séance touchée.
 
 ⚠️ **Le QUARTIER a remplacé le lien Thrills le 2026-09-02**, dans les popups
 attraction ET spectacle : `Poi.additionalData.zone`, lu par `readPoiZone`
@@ -818,6 +1009,13 @@ n'indiqueraient jamais où aller.
   une ligne déjà présente vient de la courbe observée, sa prévision y est donc
   nulle — la rupture existe, et en ajouter une couperait la courbe observée en
   deux.
+- ⚠️ **En cours de journée, la courbe observée va jusqu'à « MAINTENANT »**
+  (2026-10-07) : `sampleDaySeries` ajoute un point à `upTo`. Elle s'arrêtait
+  au dernier pas échu (10:15 à 10:22), dont la prévision partait : un temps
+  passé de 50 à 55 min s'affichait 50 jusqu'au pas suivant, sous un bandeau qui
+  disait 55. Corollaires : le graphique ignore les points de prévision
+  antérieurs à ce point, et la route envoie le PREMIER point de trace à venir
+  (non tracé) pour que le survol de « maintenant » ait sa valeur « Prévu ».
 - ⚠️ **La courbe observée doit atteindre la FERMETURE.** La grille de buckets
   s'arrête *avant* `close` : une journée terminée voyait donc sa courbe s'arrêter
   jusqu'à un pas complet trop tôt (fermeture 19:30 → dernier point 19:15) alors
@@ -884,6 +1082,17 @@ n'indiqueraient jamais où aller.
     `margin` dans la réponse de l'API — le graphique l'ignore, simplement.
   - ⚠️ Les marges ne regardent que les journées **passées** : le jour de la mise
     en service, aucune attraction n'affiche de chiffre (ce n'est pas une panne).
+  - **Depuis le 2026-10-05, ce chiffre est l'erreur à 1 h d'horizon**, la même
+    chose que la courbe grise (`forecastTrail`, légende « Prédiction ») :
+    le worker fige chaque point une heure avant son échéance. La trace stockée
+    va donc jusqu'à une heure DEVANT maintenant — la route `history` ne sert que
+    les points échus, et le graphique ne la raccorde PAS à la prévision en cours.
+    Avant, la trace figeait la dernière prévision avant l'échéance (< 15 min) :
+    elle reproduisait la courbe réelle décalée d'un quart d'heure.
+  - Tooltip : sur un instant passé, « Prévu » s'affiche sous le temps observé
+    (`expected`, interpolé dans la trace) ET sous le statut d'une plage
+    fermée/en panne/maintenance — le statut ne doit jamais disparaître parce
+    qu'une autre valeur est présente.
     Elles sont un **multiple du pas de l'attraction** (worker, `valueStepOf` /
     `snapMargin`) : pas de « ± 7 min » sur une attraction qui n'affiche que des
     multiples de 5.
@@ -997,7 +1206,7 @@ c'est délibéré, la corriger demanderait de séparer « horaires pour l'état 
   (tous Sunway, tous `300x250`), mais le symptôme est MUET — pas d'erreur
   serveur, la même URL s'ouvre à la main — et chaque parc ajouté peut en apporter
   d'autres. La signature porte toujours sur l'URL DÉCODÉE : c'est un transport,
-  pas un secret. `decoderUrl` accepte encore la forme en clair le temps que les
+  pas un secret. `decodeUrl` accepte encore la forme en clair le temps que les
   caches tournent (**supprimable après le 2026-09-05**).
 - **Liens profonds push** : alerte sur UNE attraction →
   `/{locale}/park/{parc}/ride/{slug}` (parc + popup ouvert) ; plusieurs → page du
@@ -1289,28 +1498,20 @@ ce trafic en bloc.
 - `cn()` (`lib/utils`) = clsx + tailwind-merge ; passer des classes qui écrasent
   les défauts (ex. `Card` a `py-6 gap-6 rounded-xl`, surchargeable).
 - `components/parks/main-card.tsx` **n'est pas une carte malgré son nom** :
-  c'est la COLONNE de cartes de la page parc (onglets, événement, attractions,
-  demain restaurants et files virtuelles). Elle se lit comme UN BLOC TRANCHÉ :
-  `stackRadius(isFirst, isLast)` pose `rounded-lg` sur les jointures et
-  `rounded-t-4xl`/`rounded-b-4xl` aux deux bouts — la carte des onglets en est
-  le premier maillon, et `EventCard`/`SectionCard` reçoivent leurs angles par
-  `className` (elles ignorent leur place dans la pile).
-  ⚠️ **L'INTÉRIEUR du sélecteur SUIT sa carte, angle par angle** (2026-08-25),
-  au lieu du `rounded-3xl` uniforme d'avant qui gardait le même coin partout —
-  y compris en bas, où la carte n'a que sa jointure de pile. La géométrie vit
-  dans `TAB_GEOMETRY` / `TAB_LIST_RADIUS` / `TAB_PILL_RADIUS` (variables CSS +
-  `calc()`), pour que les rayons se DÉDUISENT du padding au lieu d'être figés à
-  côté de lui — deux couches (carte → liste → pastille) et deux tailles d'écran.
-  - **En haut, concentrique** : `rayon extérieur − épaisseur traversée`, soit
-    32 px moins le padding de la carte, puis moins les 3 px de la `TabsList`.
-  - **En bas, la même règle mais avec un PLANCHER** (`--tab-r-floor`, 4 px).
-    La carte n'y a que 10 px de jointure, plus fin que les 8 + 3 px de padding
-    cumulés : la soustraction tombe à −1 px, un rayon négatif invalide la
-    déclaration CSS, et le coin finit droit dans un angle arrondi. Reprendre
-    tel quel le rayon extérieur ne marche pas davantage — à rayon égal, l'arc
-    intérieur, plus petit, se lit plus GRAS que celui du bord. Aucune valeur
-    n'est idéale : le plancher est l'arbitrage, et il s'efface dès que le
-    calcul repasse au-dessus.
+  c'est la COLONNE de cartes de la page parc (onglets, événement, liste de la
+  famille choisie, demain files virtuelles). Depuis le 2026-10-06, **toutes ses
+  cartes ont le même arrondi** (`CARD_RADIUS`, `rounded-4xl`, celui de
+  l'en-tête), écartées de 12 px (`CARD_STACK`, `gap-3`) : l'ancienne lecture
+  « bloc tranché » (`stackRadius`, jointures `rounded-lg`, gros angles aux deux
+  bouts seulement) a disparu avec le sélecteur de familles. `EventCard` /
+  `SectionCard` reçoivent toujours leur arrondi par `className`.
+  - **La carte des onglets est une pill** qui contient une pill : carte, piste,
+    curseur et onglets en `rounded-full`, concentriques gratuitement à
+    `--tab-pad` de distance (`TAB_GEOMETRY`).
+  - **Le sélecteur de familles vit en tête de la carte de la liste**, à la
+    place de son titre, et c'est le CONTENU de cette carte qui glisse d'une
+    famille à l'autre — la carte et ses pastilles restent montées, sans quoi
+    la pastille active ne pourrait pas s'animer. Voir `renderColumn`.
 
   ⚠️ Les classes sont écrites EN TOUTES LETTRES, jamais assemblées par template
   literal : Tailwind scanne les sources comme du texte, et une classe construite

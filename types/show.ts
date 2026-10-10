@@ -1,9 +1,17 @@
+import type { PoiPrice } from "@/lib/poi-facts";
+
 export interface ShowSchedule {
   startTime: string;
   endTime?: string | null;
 }
 
 export interface ShowTime {
+  /**
+   * Le POI du spectacle. Sert à reconnaître, parmi les spectacles d'un
+   * événement, ceux qui n'ont AUCUNE séance aujourd'hui (voir
+   * `lib/event-pois.ts`).
+   */
+  poiId: number;
   showName: string;
   duration: number;
   schedules: ShowSchedule[];
@@ -50,4 +58,11 @@ export interface ShowTime {
    * Park Germany et Flamingo Land nomment la salle et rien d'autre.
    */
   venue: string | null;
+  /**
+   * Niveau de peur d'une maison hantée, de 1 à 5, et son prix d'accès en plus
+   * de l'entrée — `null` quand la source n'en publie pas, c'est-à-dire presque
+   * partout. Voir `lib/poi-facts.ts`.
+   */
+  fearLevel: number | null;
+  price: PoiPrice | null;
 }

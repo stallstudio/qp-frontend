@@ -3,6 +3,7 @@ import { requireUserId } from "@/lib/auth-helpers";
 import { getUserPrisma } from "@/lib/user-prisma";
 import { getPrisma } from "@/lib/prisma";
 import { toAlertHistoryDTO } from "@/lib/user-account";
+import { poiKindResolver, queueLabelResolver } from "@/lib/queue-labels-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,8 +22,7 @@ export async function GET() {
     Date.now() - HISTORY_MAX_AGE_DAYS * 24 * 60 * 60 * 1000,
   );
   const rows = await getUserPrisma().alertHistory.findMany({
-    // La file standby seule : voir le filtre du moteur (/api/cron/alerts).
-    where: { userId, queueType: "standby", sentAt: { gte: cutoff } },
+    where: { userId, sentAt: { gte: cutoff } },
     orderBy: { sentAt: "desc" },
     take: 100,
   });
@@ -37,8 +37,19 @@ export async function GET() {
       })
     : [];
   const parkNameByIdentifier = new Map(parks.map((p) => [p.identifier, p.name]));
+  const [labelOf, kindOf] = await Promise.all([
+    queueLabelResolver(rows),
+    poiKindResolver(rows),
+  ]);
 
   return NextResponse.json(
-    rows.map((r) => toAlertHistoryDTO(r, parkNameByIdentifier.get(r.parkIdentifier))),
+    rows.map((r) =>
+      toAlertHistoryDTO(
+        r,
+        parkNameByIdentifier.get(r.parkIdentifier),
+        labelOf(r),
+        kindOf(r),
+      ),
+    ),
   );
 }

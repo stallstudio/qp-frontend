@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUserId } from "@/lib/auth-helpers";
 import { getUserPrisma } from "@/lib/user-prisma";
 import { toAlertDTO } from "@/lib/user-account";
+import { poiKindResolver, queueLabelResolver } from "@/lib/queue-labels-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,7 +74,12 @@ export async function PATCH(
   const alert = await getUserPrisma().alert.findUnique({
     where: { id },
   });
-  return NextResponse.json(alert ? toAlertDTO(alert) : null);
+  if (!alert) return NextResponse.json(null);
+  const [labelOf, kindOf] = await Promise.all([
+    queueLabelResolver([alert]),
+    poiKindResolver([alert]),
+  ]);
+  return NextResponse.json(toAlertDTO(alert, labelOf(alert), kindOf(alert)));
 }
 
 // DELETE : supprime définitivement une alerte. L'historique déjà envoyé est

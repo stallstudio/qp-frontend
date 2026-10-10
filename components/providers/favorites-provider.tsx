@@ -57,23 +57,22 @@ const FavoritesContext = createContext<FavoritesContextValue | undefined>(
   undefined,
 );
 
-const emptyState = (): FavoritesState => ({
-  parks: new Set(),
-  rides: new Set(),
-  shows: new Set(),
-});
+// ⚠️ `?? []` : une réponse d'un serveur plus ancien, ou un cache écrit avant
+// l'ajout d'un namespace, n'en porte pas toutes les clés.
+const payloadToState = (payload: Partial<FavoritesPayload>): FavoritesState =>
+  Object.fromEntries(
+    FAV_NAMESPACES.map((namespace) => [
+      namespace,
+      new Set(payload[namespace] ?? []),
+    ]),
+  ) as FavoritesState;
 
-const payloadToState = (payload: FavoritesPayload): FavoritesState => ({
-  parks: new Set(payload.parks ?? []),
-  rides: new Set(payload.rides ?? []),
-  shows: new Set(payload.shows ?? []),
-});
+const emptyState = (): FavoritesState => payloadToState({});
 
-const stateToPayload = (state: FavoritesState): FavoritesPayload => ({
-  parks: [...state.parks],
-  rides: [...state.rides],
-  shows: [...state.shows],
-});
+const stateToPayload = (state: FavoritesState): FavoritesPayload =>
+  Object.fromEntries(
+    FAV_NAMESPACES.map((namespace) => [namespace, [...state[namespace]]]),
+  ) as FavoritesPayload;
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
@@ -181,6 +180,33 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     [favorites, isReady, setFavorite],
   );
 
+  return (
+    <FavoritesContext.Provider value={value}>
+      {children}
+    </FavoritesContext.Provider>
+  );
+}
+
+/**
+ * Des favoris FIGÉS, pour les démonstrations (les scènes de l'annonce de
+ * version) : elles montrent une étoile précise, quel que soit le compte de
+ * celui qui regarde. Rien n'y est jamais écrit.
+ */
+export function FavoritesDemoProvider({
+  favorites,
+  children,
+}: {
+  favorites: Partial<FavoritesPayload>;
+  children: React.ReactNode;
+}) {
+  const value = useMemo(
+    () => ({
+      favorites: payloadToState(favorites),
+      isReady: true,
+      setFavorite: async () => false,
+    }),
+    [favorites],
+  );
   return (
     <FavoritesContext.Provider value={value}>
       {children}

@@ -48,7 +48,11 @@
     "hoursOther": "Opening hours",
     "cards": {
       "attractions": "Attractions",
-      "shows": "Shows"
+      "shows": "Shows",
+      "restaurants": "Restaurants",
+      "shops": "Shops",
+      "hotels": "Hotels",
+      "services": "Services"
     }
   },
   "parkStatus": {
@@ -59,13 +63,15 @@
     "open": "Open",
     "closed": "Closed",
     "down": "Down",
+    "downShort": "Down",
     "maintenance": "Maintenance",
     "unavailable": "Unavailable",
     "unavailableShort": "Unavail"
   },
   "tabs": {
     "live": "Live",
-    "schedule": "Today's hours"
+    "schedule": "Today's hours",
+    "families": "Categories"
   },
   "shows": {
     "show": "Show",
@@ -78,9 +84,6 @@
   },
   "showDetail": {
     "openFor": "View details for {show}",
-    "notifTitle": "Alerts",
-    "duration": "Duration: {duration}",
-    "continuousAccess": "Continuous · {range}",
     "signInIntro": "Sign in to be reminded before a show starts.",
     "reminderIntro": "Pick a time, then how long before it you want to be reminded.",
     "leadLabel": "How long before the show do you want to be reminded?",
@@ -97,7 +100,28 @@
     "noUpcoming": "No more shows left today.",
     "leadTooLate": "This slot is too soon to set a reminder.",
     "reminderActivate": "Enable reminder",
-    "reminderModify": "Edit reminder"
+    "reminderModify": "Edit reminder",
+    "liveNext": "Next show",
+    "liveDuration": "Duration",
+    "liveRemaining": "Remaining",
+    "liveAccess": "Access",
+    "reminderRowTitle": "Remind me before a show",
+    "reminderRowPick": "Choose a showtime",
+    "reminderRowEdit": "Edit or add",
+    "reminderRowCount": "{count, plural, one {# reminder set} other {# reminders set}}",
+    "reminderSlot": "{time} show",
+    "reminderPickHint": "Tap another upcoming showtime to pick it.",
+    "noSchedule": "The park doesn't publish times for this attraction.",
+    "unscheduledTitle": "Times not published"
+  },
+  "poiFacts": {
+    "fearLevel": "Scare level",
+    "fearLevelValue": "{level} out of 5",
+    "price": "Price",
+    "free": "Free",
+    "extendedPrice": "{price} on extended days",
+    "extendedOnly": "On extended days",
+    "extendedToday": "Extended-day price"
   },
   "favorites": {
     "myFavorites": "My favorites",
@@ -142,7 +166,8 @@
     "lastUpdate": "Last Update",
     "updatedAgo": "Updated {age} ago",
     "liveConnected": "Live",
-    "liveFallback": "Automatic refresh"
+    "liveFallback": "Automatic refresh",
+    "unlistedTitle": "Wait times not published"
   },
   "footer": {
     "copyright": "© {year} Queue Park. All rights reserved.",
@@ -224,7 +249,7 @@
       },
       "favorites": {
         "title": "Favorites",
-        "body": "Tap the star to add a park, ride or show to your favorites. Favorite parks are pinned to the top of the home page; your favorite rides and shows are grouped by park in a window from your profile. Saved to your account and synced across all your devices.",
+        "body": "Tap the star to add a park, ride, show, restaurant or shop to your favorites. Favorite parks are pinned to the top of the home page; everything else rises to the top of the park's lists and is grouped by park in a window from your profile. Saved to your account and synced across all your devices.",
         "parksLabel": "Favorite parks",
         "ridesLabel": "Favorite attractions (profile)",
         "hint": "Tap a star: the favorite park jumps to the top of the home page."
@@ -255,7 +280,7 @@
       },
       "alerts": {
         "title": "Wait-time alerts",
-        "body": "From a ride's page, pick a threshold: you get a notification as soon as the wait drops below it. Once sent, the alert has done its job: it disappears and moves to your history. Just set a new one from the ride's page. Requires an account and notification permission."
+        "body": "From a ride's page — or the page of a restaurant that publishes its wait — pick a threshold: you get a notification as soon as the wait drops below it. Once sent, the alert has done its job: it disappears and moves to your history. Just set a new one from the page. Alerts are only offered where the park publishes its wait times. Requires an account and notification permission."
       },
       "reminders": {
         "title": "Show reminders",
@@ -292,12 +317,12 @@
     "temperatureUnit": "Temperature unit"
   },
   "whatsNew": {
-    "srTitle": "What's new in Queue Park v3",
-    "srDescription": "An overview of what's new in version 3 of Queue Park.",
+    "srTitle": "What's new in Queue Park v4",
+    "srDescription": "An overview of what's new in version 4 of Queue Park.",
     "hero": {
       "eyebrow": "{count} new features",
-      "title": "Queue Park goes v3",
-      "body": "An account that follows you from one device to the next, notifications at the right moment, wait-time forecasts: here's what's changing."
+      "title": "Queue Park goes v4",
+      "body": "Restaurants and shops, opening hours for every spot, a redesigned ride page, forecasts you can check: the whole park now fits on one page."
     },
     "nav": {
       "scrollHint": "Scroll",
@@ -308,55 +333,44 @@
       "beta": "Beta"
     },
     "slides": {
-      "account": {
-        "title": "Your Queue Park account",
-        "body": "Sign in in seconds, with Google or a simple link sent to your inbox — no password. Your favorites, your alerts and your preferences then follow you from your phone at the park to your computer at home."
-      },
-      "favorites": {
-        "title": "Your favorites, on all your devices",
-        "body": "The star now works on parks, rides and shows. Your favorite parks are pinned to the top of the home page, your favorite rides and shows move to the top of the park's tables, and you'll find them all again in your profile — synced across all your devices."
-      },
-      "notifications": {
-        "title": "Notified at the right moment",
-        "body": "Install Queue Park as an app, and let it keep an eye on the park for you.",
-        "install": "Install the app",
+      "park": {
+        "title": "The whole park, not just its rides",
+        "body": "Rides, shows, restaurants, shops: each category has its own button at the top of the list, and you switch from one to the next with a tap. At parks that publish this data, every restaurant and shop shows its live status and its area.",
         "points": {
-          "threshold": "A ride's wait drops below the threshold you chose.",
-          "reopened": "A ride reopens after a breakdown or a closure.",
-          "show": "A show is about to start, with as much notice as suits you."
+          "menu": "The restaurant's menu, and online ordering when the park offers it.",
+          "favorites": "Stars everywhere: favorite a restaurant or a shop just like a ride, and it rises to the top of its list.",
+          "wait": "Wait times at restaurants that publish them, with an alert when they drop."
         }
       },
-      "forecast": {
-        "title": "Wait-time forecasts",
-        "body": "The solid line traces the wait since opening, the dotted one estimates it through to closing. Just what you need to spot the right moment to go."
+      "hours": {
+        "title": "Opening hours for every spot",
+        "body": "The “Today's hours” tab no longer stops at shows: at parks that publish them, rides, restaurants, shops and hotels show their opening hours on a timeline of the day. Whatever closes latest comes first, so you can see at a glance what will still be open tonight."
       },
       "detail": {
-        "title": "A page for every ride",
-        "body": "Tap a ride or a show: its photo, its land in the park, the day's curve with its forecast and the settings for your alerts — it's all gathered in one place."
+        "title": "A page that gets straight to the point",
+        "body": "Under the photo, a strip gives you the essentials: the wait, the status and the closing time. A sentence drawn from the forecast tells you whether now is a good time, and the alert is set on a single line."
       },
-      "events": {
-        "title": "The park's events",
-        "body": "During Halloween or Christmas, the rides and shows specific to the event get their own card, in the colors of the season — with a “Separate ticket” note when access isn't included with admission."
+      "queues": {
+        "title": "Every queue has its own page",
+        "body": "Single Rider, Disney Premier Access, virtual queue: tap a queue to open its own page, with its wait or its time slot, its status and its alert. On a time-slot queue, the alert lets you know as soon as an earlier slot opens up."
       },
-      "weather": {
-        "title": "Park weather, live",
-        "body": "The park's temperature and sky appear in its header, updated every hour. Handy for anticipating the crowds — and for knowing whether to pack a raincoat."
+      "forecast": {
+        "title": "Forecasts you can check",
+        "body": "In grey, what we forecast an hour earlier, drawn next to what actually happened: judge for yourself. And when a park announces a range, it's shown as is — “10–20 min” rather than a single number."
+      },
+      "halloween": {
+        "title": "Halloween, house by house",
+        "body": "Haunted houses show their scare level, from one to five skulls, and their price when entry costs extra. The event card follows its sessions — the day, then the night — and has its own buttons: houses, shows, restaurants."
       }
     },
     "scenes": {
-      "notifications": {
-        "threshold": "The wait is down to 15 min",
-        "reopened": "The ride has just reopened",
-        "show": "Starts in 15 minutes"
-      },
-      "events": {
-        "halloween": "Halloween",
-        "christmas": "Christmas"
+      "halloween": {
+        "title": "Halloween"
       }
     },
     "finale": {
       "title": "Enjoy your visit!",
-      "body": "Everything is in place. A new “About” page explains where the wait times come from and details every feature, if you want to dig deeper.",
+      "body": "Everything is in place. A comment, an idea, a park to add? Write to us: the address is on the “About” page.",
       "aboutLink": "Explore the About page"
     }
   },
@@ -424,9 +438,17 @@
     "favoritesParksCount": "{count, plural, one {Favorite park} other {Favorite parks}}",
     "favoritesRidesCount": "{count, plural, one {Favorite attraction} other {Favorite attractions}}",
     "favoritesShowsCount": "{count, plural, one {Favorite show} other {Favorite shows}}",
+    "favoritesRestaurantsCount": "{count, plural, one {Favorite restaurant} other {Favorite restaurants}}",
+    "favoritesShopsCount": "{count, plural, one {Favorite shop} other {Favorite shops}}",
+    "favoritesHotelsCount": "{count, plural, one {Favorite hotel} other {Favorite hotels}}",
+    "favoritesServicesCount": "{count, plural, one {Favorite service} other {Favorite services}}",
     "favoritesParksTitle": "Favorite parks",
     "favoritesRidesTitle": "Favorite attractions",
     "favoritesShowsTitle": "Favorite shows",
+    "favoritesRestaurantsTitle": "Favorite restaurants",
+    "favoritesShopsTitle": "Favorite shops",
+    "favoritesHotelsTitle": "Favorite hotels",
+    "favoritesServicesTitle": "Favorite services",
     "favoritesListEmpty": "No favorites yet.",
     "favoritesRemove": "Remove {name} from favorites",
     "activeAlertsCount": "{count, plural, one {Active alert} other {Active alerts}}",
@@ -470,8 +492,10 @@
     "historyShows": "Shows",
     "historyShowLine": "show at {time} · {lead} min before",
     "alertsEmptyRides": "No alert set up. Create one from a ride.",
+    "alertsEmptyOther": "No alert of this type for now.",
     "alertsEmptyShows": "No reminder set up. Create one from a show.",
     "historyEmptyRides": "No ride notification sent yet.",
+    "historyEmptyOther": "No notification of this type sent yet.",
     "historyEmptyShows": "No show notification sent yet.",
     "edit": "Edit threshold",
     "subTabActive": "Active",
@@ -484,7 +508,9 @@
     "editLead": "Edit lead time",
     "leadTooLate": "The show is too soon to change the lead time.",
     "reopenBadge": "Reopening",
-    "historyReopenLine": "Reopened"
+    "historyReopenLine": "Reopened",
+    "slotBadge": "Before {time}",
+    "historySlotLine": "Slot before {time} available"
   },
   "privacy": {
     "emailLabel": "Email address",
@@ -527,11 +553,11 @@
   },
   "attractionDetail": {
     "openFor": "View details for {ride}",
-    "alertsTitle": "Alerts",
-    "chartTitle": "Wait time today",
     "chartToday": "Today",
     "chartActual": "Wait time",
     "chartForecast": "Forecast",
+    "chartForecastPast": "Forecast",
+    "chartForecastLegend": "Future forecast",
     "chartNow": "Now",
     "chartEmpty": "No data yet for today.",
     "chartUnavailable": "Attraction currently unavailable.",
@@ -540,8 +566,7 @@
     "chartForecastNote": "Rough estimate for the rest of the day.",
     "chartForecastPreOpeningNote": "Estimate based on past days — will update once the park opens.",
     "estimateTooltip": "Estimated from comparable past days. Reality may differ.",
-    "marginNote": "Over the past few days, our forecasts were off by <v>{minutes} min</v> on average.",
-    "marginNoteTooltip": "Average gap between our forecasts and the wait actually observed, over the last 14 days.",
+    "marginNoteTooltip": "Average gap between what we predicted an hour ahead and the wait actually observed, over the last 14 days.",
     "installTitle": "Install Queue Park",
     "installIntro": "Alerts require the app installed on your device.",
     "installButton": "Install the app",
@@ -561,11 +586,49 @@
     "pushDenied": "Notifications are blocked for this site. Allow them in your browser settings to receive alerts on this device.",
     "pushUnsupported": "This browser doesn't support push notifications. The alert will still appear in your profile and history.",
     "reopenLabel": "This ride is currently stopped. Get notified as soon as it reopens.",
+    "poiReopenLabel": "Closed for now. Get notified as soon as it reopens.",
     "reopenSave": "Notify me when it reopens",
     "reopenActive": "Reopening alert active",
     "reopenSaved": "Reopening alert saved",
     "reopenTooLate": "The park is closed, alerts are unavailable. Come back when the park next opens.",
-    "statusChanged": "The ride's status just changed. Reopen the page to create the right alert."
+    "statusChanged": "The ride's status just changed. Reopen the page to create the right alert.",
+    "poiStatusChanged": "The status just changed. Reopen the page to create the right alert.",
+    "liveWait": "Wait",
+    "liveSlot": "Slot",
+    "liveStatus": "Status",
+    "liveOpensAt": "Opens at",
+    "liveClosesAt": "Closes at",
+    "liveClosedAt": "Closing",
+    "chartLegendActual": "Recorded",
+    "marginShort": "Average error observed: <v>{minutes} min</v>.",
+    "insightRise": "Good time to go: the wait should rise to <b>~{minutes} min around {time}</b>",
+    "insightDrop": "Worth waiting: the wait should drop to <b>~{minutes} min around {time}</b>",
+    "alertRowTitle": "Notify me when the wait drops",
+    "alertRowSignIn": "Sign-in required",
+    "alertRowPick": "Choose a threshold",
+    "alertActiveRow": "Alert on · below {minutes} min",
+    "alertThresholdHint": "The threshold shows in green on the chart.",
+    "alertActivate": "Turn on alert",
+    "alertEdit": "Edit",
+    "alertThresholdLine": "Alert below {minutes} min",
+    "close": "Close",
+    "pushDeniedShort": "Notifications blocked on this device",
+    "insightBest": "Best time expected: <b>~{minutes} min around {time}</b>",
+    "slotRowTitle": "Watch for an earlier slot",
+    "slotRowPick": "Pick a time",
+    "slotOption": "Before {time}",
+    "slotActiveRow": "Alert on · slot before {time}",
+    "slotHint": "You'll be notified as soon as a slot starts at or before this time.",
+    "slotNothingEarlier": "No earlier slot to watch for right now.",
+    "queueReopenLabel": "This queue is closed. Get notified as soon as it reopens.",
+    "queueNothingToWatch": "This queue publishes neither a wait time nor a slot: nothing to watch for now.",
+    "queueSeeRide": "See the ride"
+  },
+  "poiDetail": {
+    "openFor": "View details for {poi}",
+    "menuTitle": "Menu",
+    "menuAction": "View menu",
+    "orderAction": "View menu and order"
   },
   "legal": {
     "backHome": "Back to home",
