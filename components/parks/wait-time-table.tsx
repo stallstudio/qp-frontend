@@ -64,6 +64,12 @@ type WaitTimeTableProps = {
    * d'événement.
    */
   unlisted?: WaitTime[];
+  /**
+   * Attractions dont les files sont DÉPLIÉES au premier rendu. Pour les
+   * démonstrations (l'annonce de version) : sur la page d'un parc, c'est le
+   * visiteur qui déplie.
+   */
+  defaultExpandedRideIds?: number[];
 };
 
 // Grille partagée par l'en-tête et chaque ligne pour aligner les colonnes.
@@ -93,6 +99,7 @@ export default function ParkWaitTimeTable({
   reopenAllowed = true,
   initialRideId = null,
   unlisted = [],
+  defaultExpandedRideIds,
 }: WaitTimeTableProps) {
   const t = useTranslations("waitTimeTable");
   const tStatus = useTranslations("attractionStatus");
@@ -118,7 +125,9 @@ export default function ParkWaitTimeTable({
   const detailRideId = detail?.rideId ?? null;
   const openDetail = (rideId: number, queueType: string = STANDBY_QUEUE) =>
     setDetail({ rideId, queueType });
-  const [expandedRides, setExpandedRides] = useState<Set<number>>(new Set());
+  const [expandedRides, setExpandedRides] = useState<Set<number>>(
+    () => new Set(defaultExpandedRideIds),
+  );
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 

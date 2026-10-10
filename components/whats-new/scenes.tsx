@@ -1,61 +1,114 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
-  Bell,
   BellRing,
   CalendarClock,
   ChevronRight,
-  CornerDownRight,
+  FerrisWheel,
   Ghost,
   LayoutGrid,
   LineChart,
-  MapPin,
-  Skull,
+  Radio,
   TicketCheck,
-  User,
+  Trash2,
   UtensilsCrossed,
+  X,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { WHATS_NEW_VERSION } from "@/lib/whats-new";
-import { POI_KIND_ICONS, type PoiKind } from "@/lib/poi-kinds";
+import { POI_KIND_ICONS, type ParkFamily } from "@/lib/poi-kinds";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FavoritesDemoProvider } from "@/components/providers/favorites-provider";
+import { NotificationsDemoProvider } from "@/components/providers/notifications-provider";
+import FamilySwitcher from "@/components/parks/family-switcher";
+import ParkWaitTimeTable from "@/components/parks/wait-time-table";
+import PoiStatusTable from "@/components/parks/poi-status-table";
+import PoiHoursTable from "@/components/parks/poi-hours-table";
+import EventCard from "@/components/parks/event-card";
+import ImageSection from "@/components/parks/attraction-detail/image-section";
+import LiveStats, {
+  Stat,
+  StatTime,
+} from "@/components/parks/attraction-detail/live-stats";
+import {
+  poiFactStats,
+  usePoiFacts,
+} from "@/components/parks/attraction-detail/poi-facts";
+import ChartSection from "@/components/parks/attraction-detail/chart-section";
+import { PIXEL_PER_MINUTE } from "@/components/parks/show-time-table/types";
+import {
+  ALERT_ICON_TILE,
+  ALERT_ROW,
+} from "@/components/parks/attraction-detail/alert-section";
+import {
+  CARD_TITLE_KEYS,
+  FAMILY_FADE,
+  FAMILY_SLIDE,
+  TAB_GEOMETRY,
+} from "@/components/parks/main-card";
+import type { FavoritesPayload } from "@/types/user";
 import SceneFrame, {
   SceneActivity,
   useSceneBanners,
   useSceneContext,
 } from "./scene-frame";
+import {
+  BIG_THUNDER_ID,
+  DLP,
+  DLP_FAVORITES,
+  DLP_GRID_START_HOUR,
+  DLP_RESTAURANTS,
+  DLP_RIDES,
+  DLP_SHOPS,
+  FRIGHT_NIGHTS_FAVORITES,
+  FRIGHT_NIGHTS_HOUSES,
+  HYPERSPACE,
+  HYPERSPACE_ID,
+  SLAUGHTERHOUSE_ID,
+  WALIBI_HOLLAND,
+  dlpHours,
+  frightNights,
+  parkToday,
+  rangedRideHistory,
+} from "./demo-data";
 
 export { SceneActivity };
 
 // ————————————————————————————————————————————————————————————————————————
 // LES SCÈNES DE L'ANNONCE DE VERSION
 //
-// Une par nouveauté. Chacune MIME l'interface réelle plutôt que d'illustrer une
-// idée : on reconnaît la pastille de famille, la frise des horaires, le bandeau
-// de la fiche, la carte d'événement. C'est ce qui fait qu'une annonce se lit
-// comme une démonstration et pas comme une publicité.
+// Une par nouveauté. Chacune montre l'interface RÉELLE, en plus petit et
+// animée : ce sont les composants mêmes de la page d'un parc — sélecteur de
+// familles, listes, grille des horaires, en-tête et bandeau du popup,
+// graphique, carte d'événement —, rendus avec les données de `demo-data.ts`.
 //
-// ⚠️ **Purement décoratives.** Le cadre commun (`SceneFrame`) les rend sous
-// `aria-hidden` : les libellés qu'on y voit ne sont jamais la seule source d'une
-// information, elle est toujours dite en toutes lettres dans le corps du dialog.
-// Les rares textes affichés sont donc soit des noms propres, soit des clés déjà
-// traduites ailleurs — celles de l'interface que la scène imite.
+// ⚠️ **Les vrais composants, pas des imitations** (arbitré le 2026-10-10). Une
+// première version les redessinait à la main : couleurs, proportions et
+// libellés dérivaient aussitôt de ce qu'on trouve sur le site, et une démo qui
+// montre un écran que l'application ne produit pas est une promesse qu'elle ne
+// tiendra pas. Ici, ce que la scène montre EST ce que le site affiche — et le
+// restera quand le site changera.
 //
-// ⚠️ **Aucune donnée réelle.** Tout est en dur et STABLE d'un rendu à l'autre :
-// pas de `Math.random()` ni de `Date.now()` dans un rendu, ce qui garderait la
-// scène différente entre serveur et client.
+// ⚠️ **Inertes et muettes** : `Miniature` les rend sous `inert` et
+// `aria-hidden`. Rien ne s'y clique, rien n'y prend le focus, et ce qu'on y
+// voit est toujours dit en toutes lettres dans le corps du dialog.
 //
-// ⚠️ **Ce qui est nommé DOIT exister tel quel dans le catalogue** — l'attraction,
-// son parc, jusqu'au quartier affiché sur la fiche. Une démo qui montre un écran
-// que l'application ne produit pas est une promesse qu'elle ne tiendra pas.
-// D'où les BARRES NEUTRES à la place des noms partout où l'exemple n'a pas pu
-// être vérifié en base (restaurants, files, maisons hantées) : la v3 faisait
-// déjà ainsi pour les lignes de sa carte d'événement. Seule la fiche nomme une
-// attraction, Taron, reprise de la v3 où elle avait été vérifiée.
+// ⚠️ **Indépendantes du compte de celui qui regarde** : les favoris et les
+// alertes y sont FIGÉS (`FavoritesDemoProvider`, `NotificationsDemoProvider`).
+// Sans eux, les étoiles d'un visiteur réel s'y seraient mêlées — et aucune
+// étoile ne serait apparue pour un visiteur sans compte.
+//
+// ⚠️ **Chargées à l'ouverture seulement** : ce module tire les listes et le
+// graphique de la page d'un parc. L'annonce étant montée dans le layout, il
+// passerait sinon dans le JavaScript de TOUTES les pages (voir
+// `whats-new-dialog.tsx`).
 // ————————————————————————————————————————————————————————————————————————
 
 /**
@@ -82,125 +135,232 @@ function useLoop(length: number, intervalMs: number, enabled = true) {
   return index;
 }
 
-/* ————— Les briques imitées de l'interface —————
-   Mêmes couleurs que les vraies pastilles (`lib/badge.tsx`) et les vraies
-   familles (`family-switcher.tsx`), en classes ENTIÈRES : Tailwind ne voit pas
-   les classes fabriquées. */
+/* ————— La miniature ————— */
 
-/** Un nom de ligne qu'on ne cite pas : une barre, de la largeur donnée. */
-function NameBar({ width }: { width: string }) {
-  return (
-    <span
-      className={cn("h-1.5 shrink-0 rounded-full bg-foreground/15", width)}
-    />
-  );
-}
+// Largeur de rendu des composants, avant réduction.
+//
+// ⚠️ **Deux largeurs, selon l'écran de celui qui regarde, et c'est forcé** :
+// les composants suivent les variantes `sm:` de Tailwind, qui lisent la largeur
+// de la FENÊTRE, pas celle de la miniature. Sur un ordinateur, une liste rendue
+// à la largeur d'un téléphone prenait les colonnes du bureau dans 420 pixels —
+// une mise en page qui n'existe nulle part sur le site, état coupé à droite
+// compris. Chacun voit donc la page telle que SON écran l'affiche : celle d'un
+// téléphone en dessous de 640 px, celle d'un ordinateur au-delà.
+type DesignWidth = { base: number; sm: number };
+const LIST_WIDTH: DesignWidth = { base: 380, sm: 600 };
+// Le popup : `max-w-[calc(100%-2rem)]` au téléphone, `sm:max-w-md` au-delà.
+const POPUP_WIDTH: DesignWidth = { base: 360, sm: 448 };
 
-function waitBadgeTone(minutes: number): string {
-  if (minutes <= 20) return "bg-green-100 text-green-700";
-  if (minutes <= 40) return "bg-orange-100 text-orange-700";
-  return "bg-red-100 text-red-700";
-}
+const SM_QUERY = "(min-width: 640px)";
 
-function WaitBadge({ label, minutes }: { label: string; minutes: number }) {
-  return (
-    <span
-      className={cn(
-        "rounded-full px-1.5 py-0.5 text-[10px] font-medium tabular-nums whitespace-nowrap",
-        waitBadgeTone(minutes),
-      )}
-    >
-      {label}
-    </span>
-  );
-}
-
-type SceneStatus = "open" | "closed" | "down";
-
-const STATUS_BADGE: Record<SceneStatus, { pill: string; dot: string }> = {
-  open: { pill: "bg-green-100 text-green-700", dot: "bg-green-400" },
-  closed: { pill: "bg-red-100 text-red-700", dot: "bg-red-400" },
-  down: { pill: "bg-orange-100 text-orange-700", dot: "bg-orange-300" },
-};
-
-function StatusBadge({ status }: { status: SceneStatus }) {
-  const tStatus = useTranslations("attractionStatus");
-  const tone = STATUS_BADGE[status];
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap",
-        tone.pill,
-      )}
-    >
-      <span className={cn("size-1.5 rounded-full", tone.dot)} />
-      {tStatus(status === "down" ? "downShort" : status)}
-    </span>
-  );
-}
-
-const FAMILY_PILL: Record<PoiKind, string> = {
-  ride: "bg-primary text-primary-foreground",
-  show: "bg-show text-show-foreground",
-  restaurant: "bg-restaurant text-restaurant-foreground",
-  shop: "bg-shop text-shop-foreground",
-  hotel: "bg-hotel text-hotel-foreground",
-  service: "bg-service text-service-foreground",
-};
-
-// Le titre de chaque famille, dans `parkPage.cards` (voir `main-card.tsx`).
-const FAMILY_LABEL_KEYS: Record<PoiKind, string> = {
-  ride: "attractions",
-  show: "shows",
-  restaurant: "restaurants",
-  shop: "shops",
-  hotel: "hotels",
-  service: "services",
-};
+// Jamais plus grand que ça, même si la place le permet : c'est une vignette.
+const MAX_SCALE = 0.78;
 
 /**
- * La rangée de pastilles de famille : l'active se teinte et dévoile son nom,
- * les autres restent des pictogrammes gris — comme `FamilySwitcher`.
+ * Rend ses enfants à `width` pixels, réduits pour tenir dans la largeur de la
+ * scène, centrés et calés en haut. Le bas déborde volontairement : le fondu du
+ * décor (`SceneFrame`) le fait disparaître, comme une page qui continue.
  */
-function FamilyPills({
-  families,
-  active,
+function Miniature({
+  width: widths,
+  top = 14,
+  maxScale = MAX_SCALE,
+  children,
 }: {
-  families: readonly PoiKind[];
-  active: PoiKind;
+  width: DesignWidth;
+  top?: number;
+  /**
+   * Plus petit que d'ordinaire, quand ce qu'il faut voir est plus haut : la
+   * ligne d'alerte sous la photo d'un popup, par exemple.
+   */
+  maxScale?: number;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState<number | null>(null);
+  const [width, setWidth] = useState(widths.sm);
+
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const media = window.matchMedia(SM_QUERY);
+    const measure = () => {
+      const design = media.matches ? widths.sm : widths.base;
+      setWidth(design);
+      setScale(Math.min(maxScale, element.clientWidth / design));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    media.addEventListener("change", measure);
+    return () => {
+      observer.disconnect();
+      media.removeEventListener("change", measure);
+    };
+  }, [widths, maxScale]);
+
+  return (
+    <div ref={ref} className="absolute inset-0 overflow-hidden">
+      <div
+        inert
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 origin-top select-none"
+        style={{
+          top,
+          width,
+          transform: `translateX(-50%) scale(${scale ?? maxScale})`,
+          // Avant la première mesure, rien : sinon la vignette apparaîtrait à
+          // la mauvaise taille, puis sauterait.
+          visibility: scale === null ? "hidden" : undefined,
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** Les favoris et alertes figés d'une scène. */
+function DemoState({
+  favorites = {},
+  alertQueues = [],
+  children,
+}: {
+  favorites?: Partial<FavoritesPayload>;
+  alertQueues?: [number, string][];
+  children: React.ReactNode;
+}) {
+  return (
+    <FavoritesDemoProvider favorites={favorites}>
+      <NotificationsDemoProvider alertQueues={alertQueues}>
+        {children}
+      </NotificationsDemoProvider>
+    </FavoritesDemoProvider>
+  );
+}
+
+/**
+ * La carte de la liste de la page d'un parc : le sélecteur de familles en
+ * tête, et la liste de la famille choisie qui glisse vers sa pastille.
+ *
+ * ⚠️ Recopie de `renderColumn` (`main-card.tsx`) : mêmes classes, mêmes
+ * variantes de glissement. La carte de la page n'est pas un composant à part —
+ * c'est le seul morceau de la scène qui ne soit pas le composant lui-même.
+ */
+function FamilyListCard({
+  families,
+  family,
+  direction,
+  children,
+}: {
+  families: readonly ParkFamily[];
+  family: ParkFamily;
+  direction: number;
+  children: React.ReactNode;
 }) {
   const tCards = useTranslations("parkPage.cards");
+  const tTabs = useTranslations("tabs");
+  const reduceMotion = useReducedMotion();
+  const idPrefix = `whats-new-${families.join("-")}`;
   return (
-    <div className="flex items-center gap-1">
-      {families.map((family) => {
-        const Icon = POI_KIND_ICONS[family];
-        const isActive = family === active;
-        return (
-          <motion.span
+    <Card className="w-full gap-0 rounded-4xl p-2.5 py-0 sm:p-4 sm:py-0">
+      <div className="pt-2.5 pb-1 sm:pt-4">
+        <FamilySwitcher
+          options={families.map((option) => ({
+            family: option,
+            label: tCards(CARD_TITLE_KEYS[option]),
+            icon: POI_KIND_ICONS[option],
+          }))}
+          value={family}
+          onChange={() => {}}
+          ariaLabel={tTabs("families")}
+          idPrefix={idPrefix}
+          panelId={`${idPrefix}-panel`}
+        />
+      </div>
+      <div className="overflow-x-clip pb-2">
+        <AnimatePresence mode="wait" initial={false} custom={direction}>
+          <motion.div
             key={family}
-            layout
-            transition={{ type: "spring", bounce: 0.22, duration: 0.5 }}
-            className={cn(
-              "inline-flex h-6 shrink-0 items-center rounded-full text-[11px] font-semibold transition-colors duration-300",
-              isActive
-                ? cn("px-2.5", FAMILY_PILL[family])
-                : "bg-muted px-2 text-muted-foreground",
-            )}
+            custom={direction}
+            variants={reduceMotion ? FAMILY_FADE : FAMILY_SLIDE}
+            initial="enter"
+            animate="center"
+            exit="exit"
           >
-            <Icon className="size-3.5" />
-            {isActive && (
-              <motion.span
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                className="ms-1 overflow-hidden whitespace-nowrap"
-              >
-                {tCards(FAMILY_LABEL_KEYS[family])}
-              </motion.span>
-            )}
-          </motion.span>
-        );
-      })}
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </Card>
+  );
+}
+
+/** Le sens du glissement : vers la droite quand la boucle avance. */
+function useSlideDirection(index: number): number {
+  const previous = useRef(index);
+  const direction = index >= previous.current ? 1 : -1;
+  useEffect(() => {
+    previous.current = index;
+  }, [index]);
+  return direction;
+}
+
+/**
+ * La coquille d'un popup de détail : celle du `DialogContent` des popups
+ * d'attraction et de POI, avec sa croix — sans le dialog, qui ouvrirait une
+ * vraie fenêtre par-dessus l'annonce.
+ */
+function PopupFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative flex flex-col overflow-hidden rounded-4xl bg-background shadow-lg">
+      {children}
+      <span className="absolute top-4 right-4 z-10 opacity-70">
+        <X className="size-4 text-white" />
+      </span>
     </div>
+  );
+}
+
+/**
+ * La page assombrie et le popup posé dessus, comme un vrai dialog. Rendu
+ * par-dessus la liste de la scène, qui reste en place dessous.
+ *
+ * ⚠️ **Toujours monté, seulement caché** : remonté à chaque boucle, le popup
+ * rechargeait sa bannière, et la scène montrait un squelette gris une fois sur
+ * deux.
+ *
+ * ⚠️ Le voile descend aussi bas que le popup (`min-h-full`) : un popup est
+ * plus haut que la liste qu'il recouvre, et un voile arrêté au bas de la liste
+ * laissait ses lignes du bas sur fond clair.
+ */
+function PopupOverlay({
+  open,
+  children,
+}: {
+  open: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <motion.div
+      // `z-20` : au-dessus des pastilles d'une carte d'événement, posées en
+      // `z-10` dans son en-tête.
+      className="absolute inset-x-0 top-0 z-20 min-h-full rounded-4xl bg-black/50 pb-6"
+      initial={false}
+      animate={{ opacity: open ? 1 : 0 }}
+      transition={{ duration: 0.25 }}
+    >
+      {/* La largeur d'un vrai popup : `sm:max-w-md`, et 2 rem de marge au
+          téléphone. */}
+      <motion.div
+        className="mx-auto mt-6 w-[min(28rem,calc(100%-2rem))]"
+        initial={false}
+        animate={{ scale: open ? 1 : 0.95 }}
+        transition={{ duration: 0.25 }}
+      >
+        <PopupFrame>{children}</PopupFrame>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -310,624 +470,487 @@ export function HeroScene() {
 }
 
 /* ========================================================================== */
-/* 1. Tout le parc — les pastilles de famille, la liste qui glisse             */
+/* 1. Tout le parc — Disneyland Paris, d'une famille à l'autre                 */
 /* ========================================================================== */
 
-type ParkRow = {
-  name: string;
-  wait?: { label: string; minutes: number };
-  status: SceneStatus;
-};
-
-// Trois familles, et ce que chacune montre vraiment : des attentes pour les
-// attractions, une attente ou un état pour les restaurants (les parcs PRS en
-// publient une), un état seulement pour les boutiques.
-const PARK_FAMILIES: { family: PoiKind; rows: ParkRow[] }[] = [
-  {
-    family: "ride",
-    rows: [
-      { name: "w-28", wait: { label: "35 min", minutes: 35 }, status: "open" },
-      { name: "w-20", wait: { label: "10 min", minutes: 10 }, status: "open" },
-      { name: "w-24", status: "down" },
-    ],
-  },
-  {
-    family: "restaurant",
-    rows: [
-      { name: "w-24", wait: { label: "10 min", minutes: 10 }, status: "open" },
-      { name: "w-32", wait: { label: "20 min", minutes: 20 }, status: "open" },
-      { name: "w-20", status: "closed" },
-    ],
-  },
-  {
-    family: "shop",
-    rows: [
-      { name: "w-28", status: "open" },
-      { name: "w-20", status: "open" },
-      { name: "w-24", status: "closed" },
-    ],
-  },
-];
-
-// Les pastilles affichées : les spectacles en plus, jamais choisis ici — la
-// rangée dit qu'il y a d'autres familles, sans que la scène les parcoure.
-const PARK_PILLS: readonly PoiKind[] = ["ride", "show", "restaurant", "shop"];
+// Les familles de Disneyland Paris en direct, dans l'ordre de leurs pastilles.
+const PARK_FAMILIES = ["ride", "restaurant", "shop"] as const;
 
 export function ParkScene() {
   const still = useStillness();
-  // Immobile, la scène s'arrête sur les restaurants : c'est la nouveauté.
-  const index = useLoop(PARK_FAMILIES.length, 2400, !still);
-  const current = PARK_FAMILIES[still ? 1 : index];
+  const loop = useLoop(PARK_FAMILIES.length, 2800, !still);
+  // Immobile, la scène s'arrête sur les restaurants : c'est la nouveauté, et
+  // Casey’s Corner y est épinglé en favori.
+  const index = still ? 1 : loop;
+  const family = PARK_FAMILIES[index];
+  const direction = useSlideDirection(index);
 
   return (
-    <SceneFrame
-      tint={["bg-restaurant/25", "bg-primary/20", "bg-shop/25"]}
-    >
-      <div className="w-full max-w-[19rem] rounded-2xl border border-border/60 bg-card/85 p-2.5 shadow-sm backdrop-blur-sm">
-        <FamilyPills families={PARK_PILLS} active={current.family} />
-
-        <div className="mt-2 overflow-hidden">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={current.family}
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="divide-y divide-border/60"
-            >
-              {current.rows.map((row, position) => (
-                <div
-                  key={position}
-                  className="flex h-7 items-center gap-2 px-1"
-                >
-                  <NameBar width={row.name} />
-                  <span className="flex-1" />
-                  {row.wait && (
-                    <WaitBadge label={row.wait.label} minutes={row.wait.minutes} />
-                  )}
-                  <StatusBadge status={row.status} />
-                </div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
+    <SceneFrame tint={["bg-restaurant/25", "bg-primary/20", "bg-shop/25"]}>
+      <Miniature width={LIST_WIDTH}>
+        <DemoState favorites={DLP_FAVORITES}>
+          <FamilyListCard
+            families={PARK_FAMILIES}
+            family={family}
+            direction={direction}
+          >
+            {family === "ride" ? (
+              <ParkWaitTimeTable
+                waitTimes={DLP_RIDES}
+                queueTypeLabels={DLP.queueTypeLabels}
+                parkIdentifier={DLP.identifier}
+                parkName={DLP.name}
+              />
+            ) : (
+              <PoiStatusTable
+                pois={family === "restaurant" ? DLP_RESTAURANTS : DLP_SHOPS}
+                kind={family}
+                parkIdentifier={DLP.identifier}
+                parkName={DLP.name}
+              />
+            )}
+          </FamilyListCard>
+        </DemoState>
+      </Miniature>
     </SceneFrame>
   );
 }
 
 /* ========================================================================== */
-/* 2. Les horaires — la frise du jour, la ligne « maintenant » qui avance      */
+/* 2. Les horaires — l'onglet « Horaires du jour » de Disneyland Paris         */
 /* ========================================================================== */
 
-// L'axe de la frise : de 9 h à minuit.
-const AXIS_START = 9;
-const AXIS_END = 24;
-const AXIS_TICKS = [10, 14, 18, 22];
+// Les familles de l'onglet chez Disneyland Paris, dans l'ordre des pastilles :
+// les spectacles aussi, qu'on ne parcourt pas — la scène parle des horaires
+// d'ouverture.
+const HOURS_PILLS = ["ride", "show", "restaurant", "shop"] as const;
+const HOURS_CYCLE = ["restaurant", "shop", "ride"] as const;
 
-const at = (hour: number) =>
-  `${((hour - AXIS_START) / (AXIS_END - AXIS_START)) * 100}%`;
-const span = (from: number, to: number) =>
-  `${((to - from) / (AXIS_END - AXIS_START)) * 100}%`;
+// La grille balaie la journée entre ces deux heures (heure du parc) : sans ça,
+// elle se cale sur « maintenant », et la nuit, sur le début de matinée, où il
+// n'y a presque rien à voir. Le balayage montre au passage l'heure d'une barre
+// qui suit le défilement.
+const PAN_FROM = 10;
+const PAN_TO = 15;
+const PAN_STILL = 11;
+const PAN_PERIOD_MS = 9000;
 
-const hhmm = (hour: number) =>
-  `${String(Math.floor(hour)).padStart(2, "0")}:${hour % 1 ? "30" : "00"}`;
-
-// Des restaurants, triés comme la vraie liste : la fermeture la plus tardive
-// en tête. Le troisième ferme entre le déjeuner et le dîner — deux barres sur
-// la même ligne, comme le service coupé qu'un parc publie.
-const HOURS_ROWS: { name: string; slots: [number, number][] }[] = [
-  { name: "w-14", slots: [[11, 23]] },
-  { name: "w-10", slots: [[11.5, 22]] },
-  { name: "w-12", slots: [[12, 14.5], [18.5, 21.5]] },
-  { name: "w-9", slots: [[10, 18]] },
-];
+/**
+ * Fait défiler la grille des horaires rendue sous `ref`, comme un doigt qui la
+ * ferait glisser. La grille garde son propre défilement : on n'en pilote que la
+ * position.
+ */
+function useGridPan(
+  ref: React.RefObject<HTMLDivElement | null>,
+  gridStartHour: number,
+  still: boolean,
+) {
+  useEffect(() => {
+    const scrollTo = (hour: number) => {
+      // `cursor-grab` : la rangée de pastilles défile aussi (`overflow-x-auto`),
+      // seule la grille se fait glisser à la main.
+      const grid = ref.current?.querySelector<HTMLElement>(
+        ".overflow-x-auto.cursor-grab",
+      );
+      if (grid) {
+        grid.scrollLeft = (hour - gridStartHour) * 60 * PIXEL_PER_MINUTE;
+      }
+    };
+    if (still) {
+      // Deux fois : la grille, en pleine journée, défile d'elle-même jusqu'à
+      // « maintenant » juste après son montage.
+      scrollTo(PAN_STILL);
+      const id = setTimeout(() => scrollTo(PAN_STILL), 900);
+      return () => clearTimeout(id);
+    }
+    let frame = 0;
+    const start = performance.now();
+    const step = (now: number) => {
+      const phase = ((now - start) / PAN_PERIOD_MS) * 2 * Math.PI;
+      const middle = (PAN_FROM + PAN_TO) / 2;
+      scrollTo(middle - ((PAN_TO - PAN_FROM) / 2) * Math.cos(phase));
+      frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [ref, gridStartHour, still]);
+}
 
 export function HoursScene() {
   const tTabs = useTranslations("tabs");
   const still = useStillness();
+  const loop = useLoop(HOURS_CYCLE.length, 3200, !still);
+  const family = HOURS_CYCLE[still ? 0 : loop];
+  const direction = useSlideDirection(HOURS_PILLS.indexOf(family));
+  // Rebâties une fois, sur la date du jour : voir `demo-data.ts`.
+  const hours = useMemo(() => dlpHours(), []);
+  const parkDate = useMemo(() => parkToday(DLP.timezone).toISODate(), []);
+  const panRef = useRef<HTMLDivElement>(null);
+  useGridPan(panRef, DLP_GRID_START_HOUR, still);
 
   return (
     <SceneFrame tint={["bg-restaurant/25", "bg-sky-400/20", "bg-primary/20"]}>
-      <div className="w-full max-w-[20rem] rounded-2xl border border-border/60 bg-card/85 p-2.5 shadow-sm backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground">
-            <CalendarClock className="size-3.5" />
-            {tTabs("schedule")}
-          </span>
-          <FamilyPills families={["restaurant"]} active="restaurant" />
-        </div>
-
-        <div className="mt-2 flex gap-2">
-          {/* La colonne des noms. */}
-          <div className="flex flex-col pt-3.5">
-            {HOURS_ROWS.map((row, position) => (
-              <div key={position} className="flex h-5 items-center">
-                <NameBar width={row.name} />
-              </div>
-            ))}
-          </div>
-
-          {/* La frise. */}
-          <div className="relative flex-1">
-            <div className="relative h-3.5 text-[8px] text-muted-foreground tabular-nums">
-              {AXIS_TICKS.map((hour) => (
-                <span
-                  key={hour}
-                  className="absolute -translate-x-1/2"
-                  style={{ left: at(hour) }}
-                >
-                  {hour}h
-                </span>
-              ))}
-            </div>
-            {HOURS_ROWS.map((row, position) => (
-              <div key={position} className="relative h-5">
-                {row.slots.map(([from, to]) => (
-                  <motion.span
-                    key={from}
-                    className="absolute top-1 flex h-3 items-center justify-center overflow-hidden rounded-full bg-restaurant/80 text-[7.5px] font-semibold whitespace-nowrap text-restaurant-foreground"
-                    style={{ left: at(from), width: span(from, to) }}
-                    initial={still ? false : { scaleX: 0, opacity: 0 }}
-                    animate={{ scaleX: 1, opacity: 1 }}
-                    transition={{
-                      delay: 0.15 + position * 0.12,
-                      duration: 0.45,
-                      ease: "easeOut",
-                    }}
+      <Miniature width={LIST_WIDTH}>
+        <DemoState favorites={DLP_FAVORITES}>
+          <div className="flex w-full flex-col gap-3">
+            {/* La carte des onglets (`main-card.tsx`), sur « Horaires du
+                jour ». */}
+            <Tabs value="show-times">
+              <Card
+                className={cn(
+                  "w-full gap-0 rounded-full p-(--tab-pad)",
+                  TAB_GEOMETRY,
+                )}
+              >
+                <TabsList className="relative w-full overflow-hidden rounded-full">
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute top-[3px] bottom-[3px] left-[3px] w-[calc(50%-3px)] translate-x-full rounded-full bg-background shadow-sm dark:border dark:border-input dark:bg-input/30"
+                  />
+                  <TabsTrigger
+                    value="wait-times"
+                    className="relative z-10 rounded-full data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
                   >
-                    {to - from >= 4 && `${hhmm(from)} – ${hhmm(to)}`}
-                  </motion.span>
-                ))}
-              </div>
-            ))}
+                    <Radio />
+                    {tTabs("live")}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="show-times"
+                    className="relative z-10 rounded-full data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+                  >
+                    <CalendarClock />
+                    {tTabs("schedule")}
+                  </TabsTrigger>
+                </TabsList>
+              </Card>
+            </Tabs>
 
-            {/* « Maintenant » : la ligne avance dans la journée. Atténuée, pour
-                ne pas barrer les horaires écrits dans les barres. */}
-            <motion.span
-              className="absolute top-3.5 bottom-0 w-px bg-primary/50"
-              initial={{ left: at(13) }}
-              animate={
-                still ? { left: at(16) } : { left: [at(13), at(20), at(13)] }
-              }
-              transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <span className="absolute -top-1 -left-[3px] size-[7px] rounded-full bg-primary" />
-            </motion.span>
+            <div ref={panRef}>
+              <FamilyListCard
+                families={HOURS_PILLS}
+                family={family}
+                direction={direction}
+              >
+                <PoiHoursTable
+                  items={hours[family]}
+                  timezone={DLP.timezone}
+                  parkDate={parkDate}
+                  parkIdentifier={DLP.identifier}
+                  parkName={DLP.name}
+                  waitTimes={[]}
+                />
+              </FamilyListCard>
+            </div>
           </div>
-        </div>
-      </div>
+        </DemoState>
+      </Miniature>
     </SceneFrame>
   );
 }
 
 /* ========================================================================== */
-/* 3. La fiche — la photo, le bandeau de chiffres, l'alerte en une ligne       */
+/* 3. La fiche — le popup de Big Thunder Mountain                              */
 /* ========================================================================== */
+
+/**
+ * La ligne d'alerte du popup, repliée ou armée.
+ *
+ * ⚠️ Recopie des deux états de la ligne de `alert-section.tsx` (mêmes
+ * `ALERT_ROW` et `ALERT_ICON_TILE`, mêmes boutons) : le vrai composant charge
+ * les alertes du compte et demande la permission des notifications, ce qu'une
+ * démonstration ne doit pas faire.
+ */
+function AlertRowDemo({
+  armed,
+  title,
+  activeLabel,
+  subtitle,
+}: {
+  armed: boolean;
+  title: string;
+  activeLabel: string;
+  subtitle: string;
+}) {
+  const t = useTranslations("attractionDetail");
+  return armed ? (
+    <div className={cn(ALERT_ROW, "border-primary/35 bg-primary/10 py-2 pr-1.5")}>
+      <span className={cn(ALERT_ICON_TILE, "bg-primary text-primary-foreground")}>
+        <BellRing className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold">
+          {activeLabel}
+        </span>
+      </span>
+      <Button variant="ghost" size="sm">
+        {t("alertEdit")}
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label={t("delete")}
+        className="text-destructive hover:text-destructive"
+      >
+        <Trash2 className="size-4" />
+      </Button>
+    </div>
+  ) : (
+    <div className={cn(ALERT_ROW, "bg-muted/40")}>
+      <span className={cn(ALERT_ICON_TILE, "bg-primary/15 text-primary")}>
+        <BellRing className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold">{title}</span>
+        <span className="block text-xs text-muted-foreground">{subtitle}</span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+    </div>
+  );
+}
 
 export function DetailScene() {
   const t = useTranslations("attractionDetail");
-  const tStatus = useTranslations("attractionStatus");
   const still = useStillness();
   const banners = useSceneBanners();
-  // La ligne d'alerte s'arme puis se repose : c'est la seule action de la fiche.
-  const armed = useLoop(2, 2600, !still) === 1;
+  // L'alerte se pose puis se retire : c'est la seule action du popup.
+  // Immobile, la ligne reste au repos : « Alerte active » se tronque sur un
+  // téléphone, l'invitation se lit en entier.
+  const loop = useLoop(2, 2600, !still);
+  const armed = !still && loop === 1;
 
   return (
     <SceneFrame tint={["bg-violet-400/25", "bg-primary/25", "bg-sky-400/20"]}>
-      <div className="w-full max-w-[17.5rem]">
-        {/* ⚠️ Recopie du VRAI en-tête de popup (`image-section.tsx`) : la photo
-            que Phantasialand publie pour Taron, et « MYSTERY », le quartier que
-            la SOURCE publie pour elle — vérifiés pour la v3. */}
-        <div className="relative h-24 overflow-hidden rounded-xl border border-border/60 shadow-sm">
-          <Image
-            src={banners.ride}
-            alt=""
-            fill
-            sizes="280px"
-            className="object-cover"
-          />
-          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-0.5 px-3 pb-6">
-            <p className="text-sm font-bold text-white drop-shadow-sm">Taron</p>
-            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-white/90 drop-shadow-sm">
-              <MapPin className="size-3" />
-              MYSTERY
-            </span>
-          </div>
-        </div>
-
-        {/* Le bandeau à cheval sur la photo (`live-stats.tsx`). */}
-        <div className="relative z-10 mx-2 -mt-5 grid grid-cols-3 divide-x divide-border rounded-2xl border bg-card/90 shadow-md backdrop-blur-md">
-          <div className="flex min-w-0 flex-col px-2 py-1.5">
-            <span className="truncate text-[9px] text-muted-foreground">
-              {t("liveWait")}
-            </span>
-            <span className="text-base leading-5 font-bold tabular-nums text-orange-600 dark:text-orange-400">
-              35<span className="ml-0.5 text-[10px] font-semibold">min</span>
-            </span>
-          </div>
-          <div className="flex min-w-0 flex-col px-2 py-1.5">
-            <span className="truncate text-[9px] text-muted-foreground">
-              {t("liveStatus")}
-            </span>
-            <span className="flex h-5 items-center gap-1.5 text-xs font-semibold text-green-700 dark:text-green-100">
-              <span className="relative size-1.5 shrink-0">
-                <span className="absolute inset-0 rounded-full bg-green-400" />
-                {!still && (
-                  <span className="absolute inset-0 animate-ping rounded-full bg-green-400" />
-                )}
-              </span>
-              {tStatus("open")}
-            </span>
-          </div>
-          <div className="flex min-w-0 flex-col px-2 py-1.5">
-            <span className="truncate text-[9px] text-muted-foreground">
-              {t("liveClosesAt")}
-            </span>
-            <span className="text-base leading-5 font-bold tabular-nums">
-              18:00
-            </span>
-          </div>
-        </div>
-
-        {/* La ligne d'alerte (`alert-section.tsx`), qui passe d'« à régler » à
-            « active ». */}
-        <div className="mt-2 flex items-center gap-2 rounded-xl border bg-card/85 px-2 py-1.5 backdrop-blur-sm">
-          <span
-            className={cn(
-              "grid size-6 shrink-0 place-items-center rounded-md transition-colors duration-300",
-              armed ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary",
-            )}
-          >
-            <motion.span
-              key={String(armed)}
-              initial={still || !armed ? false : { rotate: 0 }}
-              animate={armed && !still ? { rotate: [0, -18, 14, -8, 0] } : undefined}
-              transition={{ duration: 0.7 }}
-            >
-              {armed ? (
-                <BellRing className="size-3.5" />
-              ) : (
-                <Bell className="size-3.5" />
-              )}
-            </motion.span>
-          </span>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.span
-              key={String(armed)}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="truncate text-[11px] font-semibold"
-            >
-              {armed
-                ? t("alertActiveRow", { minutes: 20 })
-                : t("alertRowTitle")}
-            </motion.span>
-          </AnimatePresence>
-        </div>
-      </div>
+      <Miniature width={POPUP_WIDTH} maxScale={0.66}>
+        <DemoState favorites={DLP_FAVORITES}>
+          <PopupFrame>
+            <div className="shrink-0">
+              <ImageSection
+                title="Big Thunder Mountain"
+                favNamespace="rides"
+                favKey={`${DLP.identifier}:${BIG_THUNDER_ID}`}
+                place="Frontierland"
+                banner={banners.bigThunder}
+                credit={DLP.name}
+                overlapped
+              />
+              <div className="relative z-10 -mt-10 px-4">
+                <LiveStats
+                  queue={DLP_RIDES[0].queues[0]}
+                  hours={null}
+                  waitCap={null}
+                >
+                  <Stat label={t("liveClosesAt")}>
+                    <StatTime>22:00</StatTime>
+                  </Stat>
+                </LiveStats>
+              </div>
+            </div>
+            <div className="flex flex-col gap-5 px-5 pt-5 pb-5">
+              <AlertRowDemo
+                armed={armed}
+                title={t("alertRowTitle")}
+                activeLabel={t("alertActiveRow", { minutes: 30 })}
+                subtitle={t("alertRowPick")}
+              />
+            </div>
+          </PopupFrame>
+        </DemoState>
+      </Miniature>
     </SceneFrame>
   );
 }
 
 /* ========================================================================== */
-/* 4. Les files — la ligne se déplie, le créneau avance                        */
+/* 4. Les files — la ligne se déplie, la file Disney Premier Access s'ouvre    */
 /* ========================================================================== */
 
 export function QueuesScene() {
+  const t = useTranslations("attractionDetail");
   const still = useStillness();
-  // 0 : repliée · 1 : dépliée · 2 : un créneau plus tôt vient de s'ouvrir.
-  const step = useLoop(3, 1700, !still);
+  const banners = useSceneBanners();
+  // 0 : repliée · 1 : dépliée · 2 : le popup de la file Disney Premier Access.
+  const step = useLoop(3, 2200, !still);
   const expanded = still || step > 0;
-  const earlier = still || step === 2;
+  const popup = !still && step === 2;
 
   return (
     <SceneFrame tint={["bg-sky-400/25", "bg-primary/25", "bg-violet-400/20"]}>
-      <div className="w-full max-w-[19rem] rounded-2xl border border-border/60 bg-card/85 px-2.5 py-1 shadow-sm backdrop-blur-sm">
-        {/* La ligne de l'attraction, son chevron, sa file classique. */}
-        <div className="flex h-8 items-center gap-1.5">
-          <NameBar width="w-24" />
-          <motion.span
-            animate={{ rotate: expanded ? 90 : 0 }}
-            transition={{ duration: 0.2 }}
-            className="text-muted-foreground"
-          >
-            <ChevronRight className="size-3.5" />
-          </motion.span>
-          <span className="flex-1" />
-          <WaitBadge label="45 min" minutes={45} />
-          <StatusBadge status="open" />
-        </div>
+      <Miniature width={LIST_WIDTH} maxScale={0.64}>
+        <DemoState
+          favorites={DLP_FAVORITES}
+          alertQueues={[[HYPERSPACE_ID, "virtualqueue"]]}
+        >
+          <div className="relative">
+            <FamilyListCard families={PARK_FAMILIES} family="ride" direction={1}>
+              {/* `key` : déplier une ligne n'est pas animé sur le site non
+                  plus — on remonte simplement la liste dépliée. */}
+              <ParkWaitTimeTable
+                key={expanded ? "open" : "closed"}
+                waitTimes={[HYPERSPACE, DLP_RIDES[0], DLP_RIDES[2]]}
+                queueTypeLabels={DLP.queueTypeLabels}
+                parkIdentifier={DLP.identifier}
+                parkName={DLP.name}
+                defaultExpandedRideIds={expanded ? [HYPERSPACE_ID] : []}
+              />
+            </FamilyListCard>
 
-        <AnimatePresence initial={false}>
-          {expanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 32 }}
-              className="overflow-hidden"
-            >
-              {/* Les files secondaires (`wait-time-table.tsx`) : leur nom, que
-                  le parc leur donne, et leur pictogramme. */}
-              <div className="flex h-7 items-center gap-1 border-t text-[10px] font-medium text-muted-foreground">
-                <CornerDownRight className="size-3" />
-                Single Rider
-                <User className="size-3" />
-                <span className="flex-1" />
-                <WaitBadge label="15 min" minutes={15} />
-              </div>
-              <div className="flex h-7 items-center gap-1 border-t text-[10px] font-medium text-muted-foreground">
-                <CornerDownRight className="size-3" />
-                <span className="truncate">Disney Premier Access</span>
-                {/* L'alerte de créneau posée sur CETTE file. */}
-                <motion.span
-                  key={String(earlier)}
-                  initial={false}
-                  animate={
-                    earlier && !still ? { rotate: [0, -18, 14, -8, 0] } : undefined
-                  }
-                  transition={{ duration: 0.7 }}
-                  className="text-primary"
-                >
-                  <BellRing className="size-3" />
-                </motion.span>
-                <span className="flex-1" />
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.span
-                    key={String(earlier)}
-                    initial={{ opacity: 0, y: -6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    transition={{ duration: 0.25 }}
-                    className={cn(
-                      "rounded-full px-1.5 py-0.5 text-[10px] font-medium tabular-nums whitespace-nowrap",
-                      earlier
-                        ? "bg-green-100 text-green-700"
-                        : "bg-sky-100 text-sky-700",
-                    )}
+            {/* Le popup de la file (`attraction-detail-dialog.tsx`) : son nom
+                en titre, l'attraction dessous, son créneau dans le bandeau. */}
+            <PopupOverlay open={popup}>
+              <div className="shrink-0">
+                <ImageSection
+                  title="Disney Premier Access"
+                  subtitle={HYPERSPACE.rideName}
+                  favNamespace="rides"
+                  favKey={`${DLP.identifier}:${HYPERSPACE_ID}`}
+                  place={HYPERSPACE.zone}
+                  banner={banners.hyperspace}
+                  credit={DLP.name}
+                  overlapped
+                />
+                <div className="relative z-10 -mt-10 px-4">
+                  <LiveStats
+                    queue={HYPERSPACE.queues[2]}
+                    hours={null}
+                    waitCap={null}
                   >
-                    {earlier ? "13:45–14:00" : "14:30–14:45"}
-                  </motion.span>
-                </AnimatePresence>
+                    <Stat label={t("liveClosesAt")}>
+                      <StatTime>22:00</StatTime>
+                    </Stat>
+                  </LiveStats>
+                </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              <div className="flex flex-col gap-5 px-5 pt-5 pb-5">
+                <AlertRowDemo
+                  armed
+                  title={t("slotRowTitle")}
+                  activeLabel={t("slotActiveRow", { time: "14:00" })}
+                  subtitle={t("slotRowPick")}
+                />
+                {/* Le retour à l'attraction, recopié du popup. */}
+                <div className="flex w-full items-center gap-3 rounded-2xl border bg-muted/40 px-3 py-2.5 text-left">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary">
+                    <FerrisWheel className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">
+                      {t("queueSeeRide")}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {HYPERSPACE.rideName}
+                    </span>
+                  </span>
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                </div>
+              </div>
+            </PopupOverlay>
+          </div>
+        </DemoState>
+      </Miniature>
     </SceneFrame>
   );
 }
 
 /* ========================================================================== */
-/* 5. Les prévisions — ce qui était prévu, ce qui s'est passé, ce qui vient    */
+/* 5. Les prévisions — le graphique du popup, trace grise et fourchettes       */
 /* ========================================================================== */
 
-// Trois tracés dans un viewBox de 260 × 90 : l'observé (plein), ce qui avait
-// été prévu une heure avant pour la même période (gris fin, dessous), et la
-// prévision à venir (pointillé), qui part de `NOW_X`.
-const OBSERVED_PATH = "M8 72 L38 66 L68 52 L98 40 L128 30 L150 34";
-const TRAIL_PATH = "M8 70 L38 62 L68 56 L98 46 L128 34 L150 30";
-const FORECAST_PATH = "M150 34 L178 22 L206 30 L232 46 L252 62";
-const NOW_X = 150;
-
 export function ForecastScene() {
-  const t = useTranslations("attractionDetail");
-  const still = useStillness();
+  // Une fois : le graphique ne doit pas se retracer à chaque rendu.
+  const history = useMemo(() => rangedRideHistory(), []);
 
   return (
     <SceneFrame tint={["bg-primary/25", "bg-sky-400/20", "bg-emerald-400/20"]}>
-      <div className="relative w-full max-w-[19rem] rounded-2xl border border-border/60 bg-card/85 p-3 shadow-sm backdrop-blur-sm">
-        {/* La fourchette telle que le parc l'annonce. */}
-        <motion.span
-          className="absolute top-2 right-2 rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-green-700"
-          initial={still ? false : { opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.4, duration: 0.4 }}
-        >
-          10–20 min
-        </motion.span>
-
-        <svg viewBox="0 0 260 90" className="w-full" role="presentation">
-          {[24, 48, 72].map((y) => (
-            <line
-              key={y}
-              x1="8"
-              x2="252"
-              y1={y}
-              y2={y}
-              className="stroke-border"
-              strokeWidth="1"
-              strokeDasharray="2 6"
-            />
-          ))}
-
-          {/* La trace grise, DESSOUS : une comparaison, pas une troisième
-              courbe à lire (voir `wait-time-chart.tsx`). */}
-          <motion.path
-            d={TRAIL_PATH}
-            fill="none"
-            className="stroke-muted-foreground/60"
-            strokeWidth="1.5"
-            strokeDasharray="3 3"
-            strokeLinecap="round"
-            initial={still ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9, duration: 0.6 }}
+      <Miniature width={POPUP_WIDTH}>
+        {/* Le corps du popup d'une attraction, sous la ligne d'alerte. */}
+        <div className="rounded-4xl bg-background px-5 py-5 shadow-lg">
+          <ChartSection
+            data={history}
+            loading={false}
+            currentWaitTime={20}
+            currentStatus="open"
           />
-
-          <motion.path
-            d={`${OBSERVED_PATH} L150 82 L8 82 Z`}
-            className="fill-primary/15"
-            initial={still ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-          />
-
-          <motion.path
-            d={OBSERVED_PATH}
-            fill="none"
-            className="stroke-primary"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={still ? false : { pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1.1, ease: "easeInOut" }}
-          />
-
-          {/* ⚠️ PAS de `pathLength` animé ici : motion piloterait
-              `strokeDasharray` et écraserait le pointillé, qui est justement
-              ce qui distingue l'estimation de l'observé. */}
-          <motion.path
-            d={FORECAST_PATH}
-            fill="none"
-            className="stroke-primary/60"
-            strokeWidth="2.5"
-            strokeDasharray="5 5"
-            strokeLinecap="round"
-            initial={still ? false : { opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1, duration: 0.7, ease: "easeOut" }}
-          />
-
-          <line
-            x1={NOW_X}
-            x2={NOW_X}
-            y1="6"
-            y2="82"
-            className="stroke-foreground/25"
-            strokeWidth="1.5"
-            strokeDasharray="3 4"
-          />
-          <motion.circle
-            cx={NOW_X}
-            cy="34"
-            r="4"
-            className="fill-primary"
-            animate={still ? undefined : { scale: [1, 1.35, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            style={{ transformOrigin: `${NOW_X}px 34px` }}
-          />
-        </svg>
-
-        <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <span className="h-0.5 w-3.5 rounded bg-primary" />
-            {t("chartLegendActual")}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3.5 border-t-[1.5px] border-dashed border-muted-foreground/70" />
-            {t("chartForecastPast")}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3.5 border-t-2 border-dashed border-primary/60" />
-            {t("chartForecastLegend")}
-          </span>
         </div>
-      </div>
+      </Miniature>
     </SceneFrame>
   );
 }
 
 /* ========================================================================== */
-/* 6. Halloween — la carte de l'événement, la peur maison par maison           */
+/* 6. Halloween — la carte de Halloween Fright Nights, puis Slaughterhouse     */
 /* ========================================================================== */
 
-// Les maisons de la carte : leur niveau de peur, et leur prix. Des valeurs
-// d'exemple — en euros, parce que les seuls parcs qui publient un prix
-// (Compagnie des Alpes) sont tous en zone euro.
-const HOUSES: { name: string; fear: number; price: "free" | string }[] = [
-  { name: "w-20", fear: 5, price: "8 €" },
-  { name: "w-16", fear: 3, price: "8 €" },
-  { name: "w-24", fear: 2, price: "free" },
-];
-
-// Mêmes chutes que la v3 : déterministes, à pas irrégulier.
-const PARTICLES = Array.from({ length: 9 }, (_, index) => ({
-  left: `${6 + index * 10.5}%`,
-  delay: (index % 5) * 0.55,
-  duration: 4 + (index % 3),
-}));
-
 export function HalloweenScene() {
-  const t = useTranslations("whatsNew.scenes.halloween");
-  const tEvents = useTranslations("events");
-  const tFacts = useTranslations("poiFacts");
+  const t = useTranslations("attractionDetail");
+  const tCards = useTranslations("parkPage.cards");
+  const tTabs = useTranslations("tabs");
   const still = useStillness();
-  // Les crânes se remplissent un à un, puis tout repart.
-  const filled = useLoop(6, 700, !still);
-  const shown = still ? 5 : filled;
+  const banners = useSceneBanners();
+  // 0 : la carte de l'événement · 1 : le popup de la maison.
+  const loop = useLoop(2, 3000, !still);
+  const popup = !still && loop === 1;
+  const { event, closesAt } = useMemo(() => frightNights(), []);
+  const facts = usePoiFacts(5, null);
 
   return (
     <SceneFrame tint={["bg-red-400/25", "bg-orange-400/20", "bg-violet-400/20"]}>
-      {!still && (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          {PARTICLES.map((particle, position) => (
-            <motion.span
-              key={position}
-              className="absolute -top-2 size-1.5 rounded-full bg-red-400/60"
-              style={{ left: particle.left }}
-              animate={{ y: [0, 230], opacity: [0, 1, 0] }}
-              transition={{
-                duration: particle.duration,
-                delay: particle.delay,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-            />
-          ))}
-        </div>
-      )}
+      <Miniature width={LIST_WIDTH}>
+        <DemoState favorites={FRIGHT_NIGHTS_FAVORITES}>
+          {/* `bg-background` : la carte d'événement n'est qu'un voile teinté
+              (`event-accents.tsx`), posé sur le FOND DE LA PAGE. Sur le décor
+              de la scène, elle prenait ses couleurs. */}
+          <div className="relative rounded-4xl bg-background">
+            <EventCard
+              view={{ event, state: "running", boundary: closesAt }}
+              timezone={WALIBI_HOLLAND.timezone}
+              className="rounded-4xl"
+              headerAside={
+                <FamilySwitcher
+                  options={(["ride", "show"] as const).map((family) => ({
+                    family,
+                    label: tCards(CARD_TITLE_KEYS[family]),
+                    icon: POI_KIND_ICONS[family],
+                  }))}
+                  value="ride"
+                  onChange={() => {}}
+                  ariaLabel={tTabs("families")}
+                  idPrefix="whats-new-halloween"
+                  panelId="whats-new-halloween-panel"
+                />
+              }
+            >
+              <ParkWaitTimeTable
+                waitTimes={[]}
+                unlisted={FRIGHT_NIGHTS_HOUSES}
+                parkIdentifier={WALIBI_HOLLAND.identifier}
+                parkName={WALIBI_HOLLAND.name}
+              />
+            </EventCard>
 
-      {/* Mêmes couleurs que la vraie carte d'Halloween (`event-accents.tsx`),
-          comme la v3. */}
-      <div className="w-full max-w-[19rem] rounded-2xl border border-red-300/60 bg-red-50/80 p-2.5 shadow-sm backdrop-blur-sm dark:border-red-400/40 dark:bg-red-400/15">
-        <div className="flex items-center gap-2">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-background/70 text-red-700 dark:text-red-300">
-            <Ghost className="size-4" />
-          </span>
-          <span className="text-sm font-semibold text-red-700 dark:text-red-300">
-            {t("title")}
-          </span>
-          <span className="ms-auto rounded-full bg-background/70 px-2 py-0.5 text-[9px] font-medium text-muted-foreground">
-            {tEvents("closesAt", { time: "01:00" })}
-          </span>
-        </div>
-
-        <div className="mt-2">
-          <FamilyPills families={["ride", "show", "restaurant"]} active="ride" />
-        </div>
-
-        <div className="mt-1.5 divide-y divide-red-300/40 dark:divide-red-400/20">
-          {HOUSES.map((house, position) => (
-            <div key={position} className="flex h-6 items-center gap-2">
-              <NameBar width={house.name} />
-              <span className="flex-1" />
-              <span className="flex items-center gap-px">
-                {[1, 2, 3, 4, 5].map((step) => (
-                  <Skull
-                    key={step}
-                    className={cn(
-                      "size-3 transition-colors duration-300",
-                      step <= Math.min(house.fear, shown)
-                        ? "text-red-600 dark:text-red-400"
-                        : "text-muted-foreground/30",
-                    )}
-                  />
-                ))}
-              </span>
-              <span className="w-10 text-right text-[10px] font-semibold tabular-nums">
-                {house.price === "free" ? tFacts("free") : house.price}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+            {/* Le popup d'une maison : son heure de fermeture et sa peur dans
+                le bandeau, comme sur le site. */}
+            <PopupOverlay open={popup}>
+              <ImageSection
+                title="Slaughterhouse"
+                favNamespace="rides"
+                favKey={`${WALIBI_HOLLAND.identifier}:${SLAUGHTERHOUSE_ID}`}
+                place="Experience"
+                banner={banners.slaughterhouse}
+                credit={WALIBI_HOLLAND.name}
+                overlapped
+              />
+              <div className="relative z-10 -mt-10 px-4 pb-5">
+                <LiveStats queue={undefined} hours={null} waitCap={null}>
+                  <Stat label={t("liveClosesAt")}>
+                    <StatTime>23:00</StatTime>
+                  </Stat>
+                  {poiFactStats(facts)}
+                </LiveStats>
+              </div>
+            </PopupOverlay>
+          </div>
+        </DemoState>
+      </Miniature>
     </SceneFrame>
   );
 }

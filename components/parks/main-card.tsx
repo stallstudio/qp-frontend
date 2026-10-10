@@ -64,10 +64,14 @@ type MainCardProps = {
 
 // Le titre de la carte de chaque famille, dans `parkPage.cards`.
 //
+// Exportées, comme les variantes de glissement et la géométrie des onglets plus
+// bas : les scènes de l'annonce de version reproduisent cette colonne à
+// l'identique (`components/whats-new/scenes.tsx`).
+//
 // ⚠️ Une TABLE et non `tCards(kind + "s")` : `next-intl` exige des clés
 // littérales pour que l'outillage sache dire quelle traduction manque, et un
 // pluriel fabriqué par concaténation ne tient pas d'une langue à l'autre.
-const CARD_TITLE_KEYS: Record<ParkFamily, string> = {
+export const CARD_TITLE_KEYS: Record<ParkFamily, string> = {
   ride: "attractions",
   show: "shows",
   restaurant: "restaurants",
@@ -94,7 +98,7 @@ type ColumnTab = "wait-times" | "show-times";
 // des attractions d'un grand parc aligne cinquante lignes, et un `filter`
 // recalculé sur toute sa hauteur pendant l'animation saccade sur un téléphone
 // d'entrée de gamme.
-const FAMILY_SLIDE: Variants = {
+export const FAMILY_SLIDE: Variants = {
   enter: (direction: number) => ({ opacity: 0, x: direction * 28 }),
   center: {
     opacity: 1,
@@ -118,7 +122,7 @@ const FAMILY_SLIDE: Variants = {
 // `transform: none`. Sans `x` ici, le client de qui a demandé moins
 // d'animations rendait un style sans `transform`, et React signalait un écart
 // d'hydratation sur chaque liste de la page (relevé le 2026-10-09).
-const FAMILY_FADE: Variants = {
+export const FAMILY_FADE: Variants = {
   enter: { opacity: 0, x: 0 },
   center: { opacity: 1, x: 0, transition: { duration: 0.15 } },
   exit: { opacity: 0, x: 0, transition: { duration: 0.1 } },
@@ -151,7 +155,7 @@ const CARD_STACK = "flex w-full flex-col gap-3";
 // rayon de 18 px, la carte qui l'entoure à `--tab-pad` de distance un rayon de
 // 18 px + `--tab-pad`, et le curseur, inscrit 3 px plus petit de chaque côté,
 // exactement 15 px.
-const TAB_GEOMETRY = "[--tab-pad:0.375rem] sm:[--tab-pad:0.5rem]";
+export const TAB_GEOMETRY = "[--tab-pad:0.375rem] sm:[--tab-pad:0.5rem]";
 
 // Carte, piste, curseur, onglets : la même pill, à quatre échelles.
 const TAB_PILL_RADIUS = "rounded-full";

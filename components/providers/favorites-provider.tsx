@@ -187,6 +187,33 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Des favoris FIGÉS, pour les démonstrations (les scènes de l'annonce de
+ * version) : elles montrent une étoile précise, quel que soit le compte de
+ * celui qui regarde. Rien n'y est jamais écrit.
+ */
+export function FavoritesDemoProvider({
+  favorites,
+  children,
+}: {
+  favorites: Partial<FavoritesPayload>;
+  children: React.ReactNode;
+}) {
+  const value = useMemo(
+    () => ({
+      favorites: payloadToState(favorites),
+      isReady: true,
+      setFavorite: async () => false,
+    }),
+    [favorites],
+  );
+  return (
+    <FavoritesContext.Provider value={value}>
+      {children}
+    </FavoritesContext.Provider>
+  );
+}
+
 export function useFavoritesContext() {
   const context = useContext(FavoritesContext);
   if (context === undefined) {

@@ -124,9 +124,15 @@ function slotOptions(slot: TimeSlot, timezone?: string | null): number[] {
 
 // Mêmes dimensions pour la ligne repliée, la ligne « alerte active » et la
 // carte dépliée : elles se remplacent au même endroit.
-const ROW =
+//
+// Exportées pour les scènes de l'annonce de version, qui reproduisent ces
+// lignes sans le formulaire (et ses requêtes) derrière.
+export const ALERT_ROW =
   "flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left";
-const ICON_TILE = "grid size-8 shrink-0 place-items-center rounded-lg";
+export const ALERT_ICON_TILE =
+  "grid size-8 shrink-0 place-items-center rounded-lg";
+const ROW = ALERT_ROW;
+const ICON_TILE = ALERT_ICON_TILE;
 
 // Alertes de temps d'attente de l'attraction, en UNE LIGNE repliée sous le
 // graphique (refonte du 2026-10-07) : l'ancien encart « Connectez-vous » était

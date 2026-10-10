@@ -137,6 +137,37 @@ export function NotificationsProvider({
   );
 }
 
+/**
+ * Un état FIGÉ, pour les démonstrations (les scènes de l'annonce de version) :
+ * elles montrent une cloche sur une file précise, quel que soit le compte de
+ * celui qui regarde, et sans une requête.
+ */
+export function NotificationsDemoProvider({
+  alertQueues = [],
+  children,
+}: {
+  /** Les files sous alerte, `[rideId, queueType]`. */
+  alertQueues?: [number, string][];
+  children: React.ReactNode;
+}) {
+  const value = useMemo(
+    () => ({
+      alertRideIds: new Set(alertQueues.map(([rideId]) => rideId)),
+      alertQueueKeys: new Set(
+        alertQueues.map(([rideId, queueType]) => alertQueueKey(rideId, queueType)),
+      ),
+      reminderShowKeys: new Set<string>(),
+      refresh: async () => {},
+    }),
+    [alertQueues],
+  );
+  return (
+    <NotificationsContext.Provider value={value}>
+      {children}
+    </NotificationsContext.Provider>
+  );
+}
+
 export function useNotifications() {
   const context = useContext(NotificationsContext);
   if (context === undefined) {

@@ -4,6 +4,7 @@ import { createContext, useContext } from "react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { cn } from "@/lib/utils";
+import type { WhatsNewBanners } from "./banners";
 
 // ————————————————————————————————————————————————————————————————————————
 // LE CADRE COMMUN DES SCÈNES DE L'ANNONCE DE VERSION
@@ -48,22 +49,22 @@ export function useSceneContext(): SceneContextValue {
 }
 
 /**
- * La vraie photo que porte une scène (voir `banners.ts`).
+ * Les vraies bannières que portent les popups des scènes (voir `banners.ts`).
  *
  * ⚠️ **Un contexte, et non des props de scène** : la liste des nouveautés
- * (`FEATURES` dans `whats-new-dialog.tsx`) rend chaque scène comme un
- * `() => JSX.Element`, sans rien lui passer. Une seule scène a besoin d'une
- * image ; lui ouvrir un tuyau de props à travers toute la liste coûterait plus
- * cher que ce contexte.
+ * (`FEATURES`) rend chaque scène comme un `() => JSX.Element`, sans rien lui
+ * passer.
  *
  * ⚠️ Le repli n'est PAS décoratif : hors du dialog (un test, un rendu isolé),
- * les scènes doivent continuer à s'afficher — avec la photo de repli de Queue
- * Park, comme avant.
+ * les scènes doivent continuer à s'afficher — `null` donne la photo de repli de
+ * Queue Park, comme un popup dont la source ne publie pas d'image.
  */
-type SceneBannersValue = { ride: string };
+type SceneBannersValue = WhatsNewBanners;
 
 const DEFAULT_BANNERS: SceneBannersValue = {
-  ride: "/default_cover.webp",
+  bigThunder: null,
+  hyperspace: null,
+  slaughterhouse: null,
 };
 
 const BannersContext = createContext<SceneBannersValue>(DEFAULT_BANNERS);
