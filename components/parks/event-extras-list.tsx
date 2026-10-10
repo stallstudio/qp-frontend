@@ -41,10 +41,16 @@ export default function EventExtrasList({
   heading,
   ariaLabel,
   onActivate,
+  detached = true,
 }: {
   items: EventExtra[];
   /** Intertitre, seulement quand une liste « pleine » est juste au-dessus. */
   heading: string | null;
+  /**
+   * L'intertitre est-il détaché d'une liste juste au-dessus ? `false` quand il
+   * est seul : il sert alors d'en-tête de colonne, sans air au-dessus.
+   */
+  detached?: boolean;
   ariaLabel: (name: string) => string;
   onActivate: (id: number) => void;
 }) {
@@ -58,7 +64,7 @@ export default function EventExtrasList({
   const hasFavBoundary = favCount > 0 && favCount < sorted.length;
 
   return (
-    <div className={cn("text-sm", heading && "mt-5")}>
+    <div className={cn("text-sm", heading && detached && "mt-5")}>
       {heading && (
         <p className="flex h-10 items-center border-b font-medium text-muted-foreground">
           {heading}

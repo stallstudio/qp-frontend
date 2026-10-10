@@ -323,7 +323,7 @@ export default function MainCard({
     return byFamily;
   }, [mainWaitTimes]);
 
-  // Les restaurants à carte sans état, même règle pour les événements.
+  // Les restaurants sans état, même règle pour les événements.
   const mainUnlistedRestaurants = useMemo(
     () => (park.unlistedRestaurants ?? []).filter((wt) => wt.eventId == null),
     [park.unlistedRestaurants],
@@ -359,6 +359,17 @@ export default function MainCard({
     }
     return byFamily;
   }, [park.poiHours]);
+
+  // Les restaurants SANS heures du jour, tous parcs : ceux du direct comme
+  // ceux qui ne publient pas leur état. Listés sous la grille « Horaires non
+  // publiés », comme les spectacles sans séance d'un événement — un restaurant
+  // présent dans un onglet et absent de l'autre se lisait comme une erreur.
+  const restaurantsWithoutHours = useMemo(() => {
+    const withHours = new Set(hoursItems.restaurant.map((h) => h.poiId));
+    return [...liveItems.restaurant, ...mainUnlistedRestaurants]
+      .filter((wt) => !withHours.has(wt.rideId))
+      .sort((a, b) => a.rideName.localeCompare(b.rideName));
+  }, [hoursItems, liveItems, mainUnlistedRestaurants]);
 
   // Pour les popups, quelle que soit la liste qui les ouvre : voir
   // `PoiHoursProvider`.
@@ -554,7 +565,7 @@ export default function MainCard({
         />
       );
     }
-    // Les restaurants SANS état mais avec leur carte (Parc Astérix).
+    // Les restaurants SANS état (Parc Astérix).
     const unlistedPois =
       family === "restaurant"
         ? (park.unlistedRestaurants ?? []).filter((wt) => wt.eventId === eventId)
@@ -618,9 +629,13 @@ export default function MainCard({
       }
       if (!isScheduleFamily(family)) return null;
       const items = hoursItems[family];
-      return items.length > 0 ? (
+      // Les restaurants sans heures du jour, listés sous la grille.
+      const unlistedHours =
+        family === "restaurant" ? restaurantsWithoutHours : [];
+      return items.length > 0 || unlistedHours.length > 0 ? (
         <PoiHoursTable
           items={items}
+          unlisted={unlistedHours}
           timezone={park.timezone}
           parkDate={parkDate}
           parkIdentifier={park.identifier}
@@ -644,9 +659,9 @@ export default function MainCard({
         />
       ) : null;
     }
-    // ⚠️ Les restaurants qui publient leur carte sans leur état ont leur
-    // place sous la liste, et la famille existe même s'il n'y a qu'eux : au
-    // Parc Astérix, aucun restaurant ne publie d'état (voir `lib/menu-pois.ts`).
+    // ⚠️ Les restaurants qui ne publient pas leur état ont leur place sous la
+    // liste, et la famille existe même s'il n'y a qu'eux : au Parc Astérix,
+    // aucun restaurant ne publie d'état (voir `lib/menu-pois.ts`).
     const unlistedPois = family === "restaurant" ? mainUnlistedRestaurants : [];
     return liveItems[family].length > 0 || unlistedPois.length > 0 ? (
       <PoiStatusTable

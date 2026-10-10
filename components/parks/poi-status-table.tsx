@@ -337,7 +337,8 @@ export default function PoiStatusTable({
       )}
 
       {/* ⚠️ Pas de ligne dans la table : un état « – » se lirait comme
-          « fermé », alors qu'on ne sait simplement pas. */}
+          « fermé », alors qu'on ne sait simplement pas. Mêmes lignes que les
+          POI d'événement sans données. */}
       {unlisted.length > 0 && (
         <EventExtrasList
           items={unlisted.map((poi) => ({
@@ -345,7 +346,10 @@ export default function PoiStatusTable({
             name: poi.rideName,
             favorite: isFavorite(poi),
           }))}
-          heading={pois.length > 0 ? t("unlistedStatusTitle") : null}
+          // Toujours titrée, même seule : sans intertitre, rien ne disait
+          // pourquoi ces restaurants n'ont pas de pastille d'état.
+          heading={t("unlistedStatusTitle")}
+          detached={pois.length > 0}
           ariaLabel={(poi) => tDetail("openFor", { ride: poi })}
           onActivate={(id) => setDetailPoiId(id)}
         />
