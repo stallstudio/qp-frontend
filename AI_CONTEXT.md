@@ -1784,6 +1784,13 @@ namespace `welcome`, désormais supprimé de `fr.json`.
   web (`media` est ignoré sur `apple-touch-icon`, les variantes d'iOS 18 passent
   par l'`Assets.xcassets` d'une app native) : ce fond unique doit tenir sur les
   deux, d'où le choix d'un fond sombre.
+- ⚠️ **Popups dans l'app installée (iPhone)** (2026-10-12) : le verrou de scroll
+  de Radix (`overflow: hidden` + `position: relative` sur `body[data-scroll-locked]`)
+  décalait vers le haut tous les éléments `fixed` d'autant qu'on avait défilé :
+  voile limité au haut de l'écran, popup sorti par le haut. `app/globals.css`
+  lève ce verrou CSS sous `@media (display-mode: standalone)` (et la
+  `scrollbar-gutter`) ; le blocage du scroll tient par les écouteurs
+  `touchmove`/`wheel` de react-remove-scroll. Ne pas retirer cette règle.
 - **Préférences — concurrence** : `PATCH /api/user/preferences` fait un **seul
   `upsert`** avec **retry** sur l'erreur MariaDB « Record has changed since last
   read » (déclenchée par des changements de langue rapprochés qui enchaînent les
