@@ -241,6 +241,27 @@ html body[data-scroll-locked] {
   padding-right: 0 !important;
 }
 
+/* ⚠️ APP INSTALLÉE (PWA) : on lève le `overflow: hidden` / `position:
+   relative` que le verrou de Radix pose sur le body (2026-10-12). Sur iPhone
+   en mode installé, ce verrou décale tous les éléments `fixed` vers le haut
+   d'autant qu'on a défilé : ouvert en bas de la liste, le voile ne couvrait
+   plus que le haut de l'écran et le popup sortait par le haut. Dans Safari,
+   le bug n'apparaît pas. Le scroll reste bloqué : react-remove-scroll annule
+   aussi les `touchmove`/`wheel` hors du popup, c'est même ce qui bloque sur
+   iOS, où `overflow: hidden` sur le body n'a jamais suffi. La gouttière
+   réservée ne sert à rien sur mobile (scrollbar en surimpression) : retirée
+   aussi. */
+@media (display-mode: standalone) {
+  html {
+    scrollbar-gutter: auto;
+  }
+  html body[data-scroll-locked] {
+    overflow: visible !important;
+    position: static !important;
+    overscroll-behavior: auto;
+  }
+}
+
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;
