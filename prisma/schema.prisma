@@ -84,11 +84,26 @@ model Park {
   //
   // ⚠️ Ne pas les confondre avec `lastUpdatedAt`, qui vaut « le fetch des temps
   // d'attente a réussi » et reste écrit pour la compatibilité de l'existant.
-  // Les horaires n'en ont pas besoin : openingHoursService réécrit chaque ligne
-  // sans condition, donc `opening_hours.updatedAt` fait déjà foi.
+  //
+  // ⚠️ `openingHoursSeenAt` (2026-10-21) : `opening_hours.updatedAt` a fait
+  // office de réception tant que openingHoursService réécrivait chaque ligne
+  // sans condition. Depuis qu'une session inchangée n'est plus réécrite
+  // (68ad3e9, 2026-10-10), il s'arrête sur tout calendrier publié d'avance —
+  // 22 faux « en panne » sur la bande le 2026-10-21.
   waitTimesSeenAt       DateTime?
   showTimesSeenAt       DateTime?
   poisSeenAt            DateTime?
+  openingHoursSeenAt    DateTime?
+  // Sourdine des alertes de collecte (Discord), posée depuis le popup de santé
+  // du dashboard de l'admin. Tant qu'elle tient, checkParkFreshness n'envoie
+  // ni alerte ni rappel et checkMissingOpeningHours ne signale plus le parc.
+  // ⚠️ Elle tombe d'elle-même dès qu'une réception est plus récente que
+  // `alertsMutedAt` (« dès que la collecte répond ») : une sourdine oubliée ne
+  // peut donc jamais taire la panne SUIVANTE. Le parc reste compté « en panne »
+  // sur la bande — la sourdine coupe le bruit, pas le constat.
+  alertsMutedAt         DateTime?
+  alertsMuteReason      String?   @db.VarChar(500)
+  alertsMutedBy         String?   @db.VarChar(255)
   wait_times_fetcher    Boolean   @default(false)
   opening_hours_fetcher Boolean   @default(false)
   pois_fetcher          Boolean   @default(false)
