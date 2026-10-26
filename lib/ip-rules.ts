@@ -1,7 +1,8 @@
 import { getPrisma } from "@/lib/prisma";
 import { isCloudflareIp } from "@/lib/cloudflare-ips";
 
-// Règles d'accès aux routes de données publiques. DEUX familles, indépendantes
+// Règles d'accès aux routes de données publiques, et aux pages par
+// `middleware.ts` (elles servent les mêmes données). DEUX familles, indépendantes
 // et cumulatives : par ADRESSE (`ip_rules`) et par USER AGENT
 // (`user_agent_rules`). Une requête est refusée si son IP est blacklistée OU si
 // son user agent l'est.
@@ -108,9 +109,10 @@ export function getClientIp(source: Request | HeaderReader): string {
 
 const globalForAccessRules = globalThis as unknown as {
   accessRulesCache: AccessRulesCache | undefined;
+  accessRulesRefresh: Promise<AccessRulesCache> | undefined;
 };
 
-async function refreshCache(): Promise<AccessRulesCache> {
+async function fetchAccessRules(): Promise<AccessRulesCache> {
   const prisma = getPrisma();
 
   // Les deux tables partent ENSEMBLE : elles ont le même TTL et sont lues sur
@@ -125,9 +127,9 @@ async function refreshCache(): Promise<AccessRulesCache> {
     // le site entier en 500 parce qu'un anti-abus n'a pas trouvé sa table. Le
     // repli est de ne plus filtrer par user agent, jamais de tomber.
     //
-    // Le `ipRule.findMany` juste au-dessus, lui, garde son comportement : sa
-    // table est là depuis toujours, et son absence signalerait une base
-    // inaccessible — qu'aucun repli ne sauverait.
+    // Le `ipRule.findMany` juste au-dessus, lui, fait échouer la lecture
+    // entière : sa table est là depuis toujours, et son échec signale une base
+    // inaccessible. C'est `refreshCache` qui décide alors quoi servir.
     prisma.userAgentRule
       .findMany({ select: { pattern: true, type: true } })
       .catch((error) => {
@@ -161,23 +163,55 @@ async function refreshCache(): Promise<AccessRulesCache> {
     userAgents.push({ pattern, type: rule.type });
   }
 
-  const cache: AccessRulesCache = {
+  return {
     ips,
     userAgents,
     lastFetchedAt: Date.now(),
   };
-  globalForAccessRules.accessRulesCache = cache;
-  return cache;
+}
+
+/**
+ * Relit les règles, une seule lecture à la fois.
+ *
+ * ⚠️ **Un échec ne rejette pas : il garde les règles précédentes (ou aucune,
+ * au démarrage) pendant un TTL.** Depuis que `middleware.ts` contrôle chaque
+ * page, une lecture qui échoue sans rien mettre en cache serait relancée par
+ * CHAQUE requête, et chacune attendrait le délai du pool Prisma. Mesuré le
+ * 2026-10-27 sur une base figée : 10 s pour `/about`, une page qui ne lit
+ * pourtant rien en base. On laisse passer une IP blacklistée pendant une
+ * panne. C'est mieux que de faire attendre tout le monde.
+ */
+function refreshCache(): Promise<AccessRulesCache> {
+  globalForAccessRules.accessRulesRefresh ??= fetchAccessRules()
+    .catch((error): AccessRulesCache => {
+      console.error("Failed to load access rules", error);
+      const previous = globalForAccessRules.accessRulesCache;
+      return {
+        ips: previous?.ips ?? new Map(),
+        userAgents: previous?.userAgents ?? [],
+        lastFetchedAt: Date.now(),
+      };
+    })
+    .then((cache) => {
+      globalForAccessRules.accessRulesCache = cache;
+      return cache;
+    })
+    .finally(() => {
+      globalForAccessRules.accessRulesRefresh = undefined;
+    });
+  return globalForAccessRules.accessRulesRefresh;
 }
 
 async function getAccessRules(): Promise<AccessRulesCache> {
   const cache = globalForAccessRules.accessRulesCache;
 
-  if (cache && Date.now() - cache.lastFetchedAt < CACHE_TTL_MS) {
-    return cache;
-  }
-
-  return refreshCache();
+  // Seul le tout premier appel attend la base. Une fois le cache expiré, on
+  // sert encore les règles en cache et on les relit en arrière-plan : une
+  // règle posée dans l'admin prend effet un TTL plus tard, comme avant, mais
+  // aucune requête ne paie plus la lecture.
+  if (!cache) return refreshCache();
+  if (Date.now() - cache.lastFetchedAt >= CACHE_TTL_MS) void refreshCache();
+  return cache;
 }
 
 export async function getIpRules(): Promise<Map<string, IpRuleType>> {
