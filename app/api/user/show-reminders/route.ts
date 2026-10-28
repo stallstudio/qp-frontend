@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUserId } from "@/lib/auth-helpers";
 import { getUserPrisma } from "@/lib/user-prisma";
-import { getPrisma } from "@/lib/prisma";
+import { lookupParks } from "@/lib/dispatch";
 import { toShowReminderDTO } from "@/lib/user-account";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Fuseaux des parcs cités, en UNE requête sur la base principale (la base
-// utilisateurs ne stocke que l'identifiant du parc). Sert à afficher l'heure des
-// représentations à l'heure DU PARC, pas à celle du lecteur.
+// Fuseaux des parcs cités, en UN appel à l'API (la base utilisateurs ne stocke
+// que l'identifiant du parc). Sert à afficher l'heure des représentations à
+// l'heure DU PARC, pas à celle du lecteur.
 async function timezonesByIdentifier(
   identifiers: string[],
 ): Promise<Map<string, string>> {
-  if (identifiers.length === 0) return new Map();
-  const parks = await getPrisma().park.findMany({
-    where: { identifier: { in: identifiers } },
-    select: { identifier: true, timezone: true },
-  });
+  const parks = await lookupParks(identifiers);
   return new Map(parks.map((p) => [p.identifier, p.timezone]));
 }
 

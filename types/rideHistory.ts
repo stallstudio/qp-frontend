@@ -1,8 +1,20 @@
-import type { TimedPoint } from "@/lib/wait-times-series";
 import type { WaitCap } from "@/lib/wait-time-cap";
 import type { ValueRange } from "@/lib/wait-range";
 
-export type { TimedPoint };
+// Un point horodaté d'une courbe. `waitTime = null` = attraction indisponible
+// (fermée / en panne / valeur -1) à cet instant : le front trace une coupure.
+// `status` (renseigné seulement quand indispo) porte la RAISON (closed / down /
+// maintenance / open-mais--1) pour colorer la barre basse et le tooltip.
+export type TimedPoint = {
+  t: string;
+  waitTime: number | null;
+  status?: string | null;
+  // Points de PRÉVISION uniquement : marge d'erreur (± minutes) attendue à cet
+  // horizon, calculée par le worker à partir de la justesse réellement mesurée
+  // les jours précédents (table `forecast_accuracy`). `null`/absent = pas assez
+  // de mesures -> le graphique n'affiche pas de bande d'incertitude.
+  margin?: number | null;
+};
 
 // Réponse de GET /api/park/[parkId]/ride/[rideId]/history (enveloppée dans
 // `{ data }` comme les autres routes park). Partagée par le front (graphique).

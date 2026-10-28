@@ -233,23 +233,6 @@ export const PROBLEM_CATEGORIES: ProblemCategory[] = [
   },
 ];
 
-export function getCategoryLabel(categoryId: string, locale = "en"): string {
-  const category = PROBLEM_CATEGORIES.find((cat) => cat.id === categoryId);
-  return category?.label[locale] || category?.label.en || categoryId;
-}
-
-export function getSubcategoryLabel(
-  categoryId: string,
-  subcategoryId: string,
-  locale = "en",
-): string {
-  const category = PROBLEM_CATEGORIES.find((cat) => cat.id === categoryId);
-  const subcategory = category?.subcategories.find(
-    (sub) => sub.id === subcategoryId,
-  );
-  return subcategory?.label[locale] || subcategory?.label.en || subcategoryId;
-}
-
 export function getCategoryColor(categoryId: string): string {
   const category = PROBLEM_CATEGORIES.find((cat) => cat.id === categoryId);
   return (

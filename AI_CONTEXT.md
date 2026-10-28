@@ -2,14 +2,51 @@
 
 > Fiche de contexte pour l'assistant IA. But : comprendre le projet sans relire
 > tout le code. À maintenir à jour quand l'architecture change.
-> Dernière mise à jour : 2026-09-01.
+> Dernière mise à jour : 2026-10-28.
 
 ## En un mot
 
 Frontend **Queue Park** (https://queue-park.com) : site public affichant les
 **temps d'attente en direct** de +100 parcs d'attractions, leurs **spectacles**,
-**horaires** et **statuts**. Consomme les données produites par le worker
-`tw-waittimes-worker` (même base MySQL, lue via Prisma).
+**horaires** et **statuts**. Consomme les données des parcs par l'**API
+Dispatch** ; il n'a plus accès à leur base depuis le 2026-10-28.
+
+## ⚠️ Les données des parcs viennent de l'API Dispatch (2026-10-28)
+
+Queue Park n'a plus qu'**une base, la sienne** (comptes, favoris, alertes,
+rappels, sessions : `USER_DATABASE_URL`). Tout ce qui touche aux parcs — liste,
+données live, flux, historiques, liens profonds, signalements, journal des
+consultations, règles d'accès — passe par l'API Dispatch, jointe par le réseau
+Docker de Dokploy (`DISPATCH_API_URL`, sans domaine public) avec la clé de
+Queue Park (`DISPATCH_API_KEY`). Le client unique est **`lib/dispatch.ts`**.
+
+- ⚠️ **Les modules de la couche métier cités plus bas pour la donnée des parcs
+  vivent désormais dans le dépôt Dispatch**, sous le même nom, dans
+  `apps/api/src/queue-park/lib/` : `park-live-data`, `parks-list`,
+  `wait-times`, `show-times`, `opening-hours`, `event-pois`, `menu-pois`,
+  `poi-hours`, `poi-banner`, `park-updates`, `api-request-log`, `timed-kinds`,
+  `collection-cycle`, `wait-times-history`, `wait-times-series`, `weather`,
+  `rate-limit`, `raw-capture`, `show-window`. Les règles décrites ici tiennent
+  toujours ; c'est LÀ-BAS qu'on les change, et toute évolution de la forme des
+  données se fait dans l'API, jamais dans une route de Queue Park.
+- **Queue Park appelle pour le compte de son visiteur**, décrit par des
+  en-têtes `X-Viewer-*` : son IP (`getClientIp`, qui reste ici), son user
+  agent, sa session admin, l'e-mail de son compte. L'API applique la blacklist
+  des routes de données et le plafond des signalements à partir d'eux ; les
+  pages restent filtrées par `middleware.ts`, avec les règles de
+  `/v1/access-rules` en cache 60 s (`lib/ip-rules.ts`).
+- **La session n'est lue qu'après un 404** (`dispatchFetchForViewer`) : appel en
+  simple visiteur d'abord, puis, pour un admin seulement, rappel avec l'aperçu
+  des parcs masqués.
+- **Le journal des consultations est décidé ICI** : l'API n'écrit que ce que
+  Queue Park lui envoie (`logParkRequest`, jamais attendu), parce que lui seul
+  sait si un appel sert la route `/api/park/{parc}`, une page ou une vignette.
+- Les routes `/api/parks`, `/api/park/[parkId]` (+ `/stream`, `/ride/…/history`),
+  `/api/report` et `/api/user/favorites/resolve` RELAIENT la réponse de l'API
+  telle quelle (`relay`). Les comptes (alertes, rappels, cron) lisent ce qu'il
+  leur faut des parcs par `/v1/parks/lookup`, `/v1/pois/lookup`,
+  `/v1/queues/current`, `/v1/parks/opening-periods` et
+  `/v1/parks/{parc}/timed-kinds`, par lots de mille.
 
 ## Stack
 
@@ -17,8 +54,8 @@ Frontend **Queue Park** (https://queue-park.com) : site public affichant les
 - **Tailwind CSS v4** (config dans `app/globals.css`, pas de `tailwind.config`).
 - **next-intl v4** pour l'i18n (14 langues, defaultLocale `fr`, préfixe d'URL
   toujours présent).
-- **Prisma 7** + **MariaDB/MySQL** (adapter `@prisma/adapter-mariadb`) — le
-  frontend **lit** la base partagée avec le worker.
+- **Prisma 7** + **MariaDB/MySQL** (adapter `@prisma/adapter-mariadb`) — pour la
+  base UTILISATEURS seulement.
 - **radix-ui** + composants maison type shadcn dans `components/ui/`.
 - `lucide-react` (icônes), `luxon` (dates/timezones), `axios`, `sonner` (toasts),
   `next-themes` (dark mode), `motion`, `react-hook-form` + `zod`-like resolvers.
@@ -38,7 +75,7 @@ app/
   api/
     parks/route.ts              # GET liste des parcs + populaires (refresh client)
     park/[parkId]/route.ts      # GET données live d'un parc (refresh client)
-    report/route.ts             # POST signalement de problème (rate-limité + honeypot)
+    report/route.ts             # POST signalement de problème (relayé à l'API : plafond + honeypot)
   globals.css        # Thème Tailwind v4, animations (shine, border-beam, etc.)
 components/
   home/              # header (hero scroll-shrink), popular-parks, favorite-parks, parks-list, search
@@ -53,14 +90,12 @@ hooks/               # useFavorites, useAutoRefresh (cadence dictée par le serv
                      # useParkStream (direct SSE, devance le décompte),
                      # usePageVisibility, useTimeFormat, useWaitTimeChanges
 i18n/                # routing.ts (locales), request.ts (chargement messages + fallback EN)
-lib/                 # badge.tsx (pastilles temps/statut), prisma.ts, wait-times.ts,
-                     # show-times.ts, opening-hours.ts, ip-rules.ts, utils.ts, report-config.ts
-                     # collection-cycle.ts (+ -db) : quand le worker écrira, donc
-                     # quand le client doit revenir ; process-cache.ts : cache
-                     # mémoire court, partagé entre visiteurs d'une instance ;
-                     # park-updates.ts : qui écoute quel parc, une requête pour tous
+lib/                 # dispatch.ts (client de l'API Dispatch : TOUTES les données des
+                     # parcs), user-prisma.ts (base utilisateurs), badge.tsx
+                     # (pastilles temps/statut), ip-rules.ts (IP réelle + règles des
+                     # pages), park-closing.ts, alert-lookups.ts, utils.ts, report-config.ts
                      # ⚠️ report-config.ts ne décrit QUE les catégories du
-                     # formulaire de signalement (+ libellés Discord). Les
+                     # formulaire de signalement. Les
                      # RÉPONSES de résolution en ont été retirées le 2026-08-18 :
                      # elles vivent dans l'admin (table `report_templates`), le
                      # frontend n'en lisait aucune et sa copie ne pouvait que
@@ -238,25 +273,26 @@ matchées de l'admin, pas à peupler la page.
 
 1. Le **worker** remplit la base (parcs, pois, wait_times, show_times,
    opening_hours…).
-2. La **couche métier** lit cette base via Prisma (`lib/prisma.ts` →
-   `getPrisma()`), pas d'appel HTTP au worker :
-   - `lib/park-live-data.ts` → `getParkIdentity()` / `buildParkLiveData()`
-   - `lib/parks-list.ts` → `getParksWithHours()` / `getHomeData()`
+2. La **couche métier** (API Dispatch, voir plus haut) lit cette base ; Queue
+   Park l'appelle par `lib/dispatch.ts` :
+   - `getHomeData(locale)` → `/v1/home` ; `resolveParkForViewer()` →
+     `/v1/parks/{parc}` ; `buildParkLiveDataForViewer()` → `/v1/parks/{parc}/live`
 3. **Premier affichage = rendu serveur** (2026-07-27). `app/[locale]/page.tsx` et
    `park/[parkIdentifier]/page.tsx` sont des composants SERVEUR qui appellent
-   directement cette couche et passent les données en props. Le HTML servi
+   l'API et passent les données en props. Le HTML servi
    contient donc les temps d'attente — auparavant les deux pages étaient des
    composants clients qui affichaient un squelette puis appelaient leur propre
    API (invisible pour les moteurs de recherche, et un aller-retour réseau de
    plus avant le premier contenu).
-4. Les **routes API** (`/api/parks`, `/api/park/[parkId]`) partagent EXACTEMENT
-   la même couche métier et ne servent plus qu'au **rafraîchissement client**
-   (via `useAutoRefresh`). ⚠️ Toute évolution de la forme des données se fait
-   dans `lib/`, jamais dans une route seule.
+4. Les **routes API** (`/api/parks`, `/api/park/[parkId]`) relaient les mêmes
+   routes de l'API et ne servent plus qu'au **rafraîchissement client** (via
+   `useAutoRefresh`). ⚠️ Toute évolution de la forme des données se fait dans
+   l'API, jamais dans une route seule.
 
 > ⚠️ **Les deux pages sont en `dynamic = "force-dynamic"`** : les temps d'attente
 > et le classement des populaires sont vivants. La mise en cache se fait au
-> niveau de la couche métier (liste des parcs mémorisée 5 min), pas de la page.
+> niveau de la couche métier (liste des parcs mémorisée 5 min par l'API), pas de
+> la page.
 
 ### Cadence de rafraîchissement (`lib/collection-cycle.ts`)
 
@@ -297,10 +333,10 @@ retours au lieu de les faire converger. ⚠️ Le TTL du cache est BORNÉ par
 l'échéance : un cache qui enjamberait l'écriture du worker resservirait la donnée
 précédente à celui qui arrive au bon moment.
 
-`node scripts/check-collection-cycle.ts` vérifie la logique sans base ni
-framework (Node ≥ 22 sur le poste ; l'image de prod est en Node 20).
+`pnpm --filter @dispatch/api check:cycle` (dépôt Dispatch) vérifie la logique
+sans base ni framework.
 
-### Direct (`lib/park-updates.ts`, `/api/park/[parkId]/stream`)
+### Direct (`/api/park/[parkId]/stream`, relayé depuis l'API)
 
 Le décompte ci-dessus n'est plus le déclencheur principal, mais le **filet**.
 En marche normale, un flux SSE prévient le navigateur dès que le worker a écrit
@@ -344,7 +380,7 @@ d'erreur. Battement toutes les 20 s et `X-Accel-Buffering: no`, sans quoi un
 frontal tamponne le flux en silence. Fermé quand l'onglet est caché, comme le
 décompte — même raison de batterie.
 
-### Journal des consultations (`lib/api-request-log.ts`)
+### Journal des consultations (`logParkRequest`, écrit par l'API)
 
 `api_request_logs` alimente le classement des « parcs populaires » (agrégation
 sur 2 h). Deux règles, toutes deux corrigées le 2026-07-27 :
@@ -826,7 +862,7 @@ groupe des favoris est encadré de deux séparateurs ondulés ambrés
   (hauteur 0→auto via `motion`) et se replie vers le haut.
 - **Popup profil** (`components/profile/favorites-popup.tsx`, `scope` parcs|rides) :
   ouvert depuis les vignettes du profil. Les clés (identifiants) sont résolues en
-  noms via `POST /api/user/favorites/resolve` (base principale) — rond de
+  noms via `POST /api/user/favorites/resolve` (relayé à l'API) — rond de
   chargement pendant la résolution. Attractions **groupées par parc** (en-têtes de
   section), retrait au clic sur l'étoile (ligne qui « part », animation fluide).
 
@@ -1227,9 +1263,10 @@ c'est délibéré, la corriger demanderait de séparer « horaires pour l'état 
   `/{locale}/park/{parc}/ride/{slug}` (parc + popup ouvert) ; plusieurs → page du
   parc ; rappel de spectacle → page du parc avec `?tab=shows` (lu par
   `main-card.tsx` pour choisir l'onglet initial).
-- **`/api/report`** : plafond 5/h par IP (`lib/rate-limit.ts`, fenêtre glissante
+- **`/api/report`** : plafond 5/h par IP (appliqué par l'API, fenêtre glissante
   en mémoire) + champ honeypot `website` (réponse 200 silencieuse). L'e-mail d'un
-  utilisateur connecté vient de la **session**, jamais du corps de la requête.
+  utilisateur connecté vient de la **session** (Queue Park l'envoie en
+  `X-Viewer-Email`), jamais du corps de la requête.
 - **Cron alertes** : verrou en mémoire anti-chevauchement (`acquireRunLock`,
   abandon après 5 min). Sans lui, un passage lent chevauchait le suivant et la
   même alerte partait deux fois (on envoie AVANT de désarmer / supprimer).
@@ -1269,8 +1306,9 @@ une attraction qui s'arrête pour la nuit reste en `down` ou en `maintenance`,
 donc DANS la liste. Le statut ne peut pas trancher.
 
 C'est l'**horaire du parc** qui tranche. `lib/park-closing.ts` porte la règle
-(module PUR, donc importable côté client) ; `lib/park-closing-db.ts` charge les
-horaires quand l'appelant ne les a pas déjà. Trois états, et la distinction
+(module PUR, donc importable côté client) ; côté serveur, les horaires viennent
+de l'API (`loadParkHourPeriods`, `/v1/parks/opening-periods`) quand l'appelant
+ne les a pas déjà. Trois états, et la distinction
 compte : `unknown` (aucun horaire publié) **autorise**, il ne vaut surtout pas
 `closed` — beaucoup de parcs ne publient pas leurs horaires, les traiter comme
 fermés supprimerait la fonctionnalité chez eux sans qu'aucun signal ne l'indique.
@@ -1546,8 +1584,8 @@ ce trafic en bloc.
 
 Disponibles via `Documents/Windsurf/nodejs/node-v22.15.0-win-x64` (sur le PATH du
 shell bash au 2026-07-28 ; ça ne l'était pas auparavant). `npx tsc --noEmit` et
-`npx prisma generate` tournent donc ici — les utiliser plutôt que de se fier à la
-seule revue manuelle. `prisma generate` n'accède pas à la base ; **`db push` et
+`npm run user:generate` tournent donc ici — les utiliser plutôt que de se fier à
+la seule revue manuelle. La génération n'accède pas à la base ; **`db push` et
 `migrate` si**, ne pas les lancer sans demander.
 
 ## Page À propos (ajout 2026-07)
@@ -1583,8 +1621,8 @@ seule revue manuelle. `prisma generate` n'accède pas à la base ; **`db push` e
 
 Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
 
-- **2ᵉ base de données** dédiée aux comptes (`USER_DATABASE_URL`), séparée de la
-  base principale. Client Prisma isolé : schéma `prisma/user/schema.prisma` →
+- **La seule base de Queue Park**, dédiée aux comptes (`USER_DATABASE_URL`) ; les
+  parcs viennent de l'API Dispatch. Client Prisma : schéma `prisma/user/schema.prisma` →
   généré dans `lib/generated/user-client`, accédé via `lib/user-prisma.ts`
   (`getUserPrisma()`). Références aux attractions **par id**, pas de FK inter-bases.
 - **Auth.js v5** (`auth.ts`, route `app/api/auth/[...nextauth]`) : Google +
@@ -1648,8 +1686,8 @@ Détails complets : [`ACCOUNTS.md`](ACCOUNTS.md). En bref :
   `/api/user/show-reminders/history` bornent juste l'**affichage** à 30 jours.
 - ⚠️ **L'heure d'une représentation s'affiche dans le fuseau DU PARC.** La base
   utilisateurs ne stocke que `parkIdentifier` : les routes `show-reminders`
-  (+`/history`) résolvent le `timezone` depuis la base principale (une requête
-  pour tous les parcs cités, même motif que la résolution des noms de parcs) et
+  (+`/history`) résolvent le `timezone` auprès de l'API (`/v1/parks/lookup`, un
+  appel pour tous les parcs cités, même motif que la résolution des noms de parcs) et
   le posent sur le DTO (`timezone: string | null`, `null` = parc introuvable →
   repli navigateur). Sans ça, le profil affichait « 08:35 » pour un spectacle de
   23:35 à Disneyland California. ⚠️ En revanche `sentAt` (réception de la
@@ -1673,9 +1711,9 @@ retirer), sur un compte **déjà créé**, c'est-à-dire connecté au moins une 
 Sessions en base : le retrait prend effet sans reconnexion.
 
 - `resolveParkForViewer()` / `buildParkLiveDataForViewer()`
-  (`lib/park-live-data.ts`) sont un **repli**, pas un contournement : la version
-  filtrée est tentée d'abord, et **la session n'est lue que si le parc est
-  introuvable**. Un visiteur d'un parc publié — y compris à chacun de ses
+  (`lib/dispatch.ts`, `dispatchFetchForViewer`) sont un **repli**, pas un
+  contournement : la version filtrée est tentée d'abord, et **la session n'est
+  lue que si l'API répond 404**. Un visiteur d'un parc publié — y compris à chacun de ses
   rafraîchissements de 60 s — ne déclenche donc aucune requête de session. C'est
   la raison de la forme en deux temps plutôt qu'un `includeHidden` que chaque
   appelant calculerait.
@@ -1812,9 +1850,7 @@ namespace `welcome`, désormais supprimé de `fr.json`.
   ⚠️ Un client périmé se manifeste AUSSI par une erreur SQL trompeuse du genre
   « `The column show_reminders.sent does not exist` » : ce n'est pas la base qui
   est en retard, c'est le client qui sélectionne encore une colonne supprimée du
-  schéma. Réflexe : `npm run user:generate` (et `npx prisma generate` pour la base
-  principale) avant de chercher plus loin — ça règle du même coup les erreurs
-  `tsc` du type « Property 'rideForecast' does not exist ».
+  schéma. Réflexe : `npm run user:generate` avant de chercher plus loin.
 
 ## Alertes Web Push (moteur — ajout 2026-07)
 
@@ -1833,8 +1869,8 @@ livraison navigateur = **push/notification**.)
 - **Moteur** `app/api/cron/alerts/route.ts` (`GET`, protégé par
   `ALERTS_CRON_SECRET`) : déclenché ~toutes les 1-2 min par une **Dokploy
   Schedule** (comme le fetch des temps du worker). Il lit les alertes `active`
-  (base user), lit les temps standby courants par `rideId` (base principale,
-  `endTime: null`), et **alerte quand `waitTime ≤ threshold` sur une attraction
+  (base user), lit les temps standby courants par `rideId` (API Dispatch,
+  `/v1/queues/current`), et **alerte quand `waitTime ≤ threshold` sur une attraction
   ouverte**. Anti-spam par **déclenchement sur front** : drapeau `Alert.armed`
   (désarmé après envoi, réarmé quand le temps repasse au-dessus de
   `seuil + REARM_MARGIN=5`). Écrit `alert_history`, purge les endpoints morts (410/404).

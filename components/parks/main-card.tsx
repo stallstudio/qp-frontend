@@ -212,7 +212,7 @@ export default function MainCard({
   // calculée sur la cadence réelle du worker et sur la fraîcheur de la donnée
   // servie) : ni `park.lastUpdate` seul, qui peut se figer et arrêtait le cycle,
   // ni une minute en dur, qui tombait à côté de l'écriture une fois sur cinq.
-  // Voir `useAutoRefresh` et `lib/collection-cycle.ts`.
+  // Voir `useAutoRefresh` et `lib/collection-cycle.ts` de l'API Dispatch.
   const { tick, isRefreshing, handleRefresh } = useAutoRefresh(
     onRefresh,
     park.nextUpdateIn,
@@ -220,7 +220,7 @@ export default function MainCard({
 
   // Direct : le worker vient d'écrire, on va chercher les données sans attendre
   // la fin du décompte. Le flux ne porte que le signal, jamais les données (voir
-  // `lib/park-updates.ts`) — le rafraîchissement reste l'appel habituel, donc le
+  // `lib/park-updates.ts` de l'API Dispatch) — le rafraîchissement reste l'appel habituel, donc le
   // journal des consultations et le filtrage IP continuent de s'appliquer.
   // Quand le flux est coupé, il ne se passe rien de particulier : le décompte
   // fait le travail, comme avant son existence.
@@ -646,7 +646,7 @@ export default function MainCard({
     }
     // ⚠️ Les restaurants qui ne publient pas leur état ont leur place sous la
     // liste, et la famille existe même s'il n'y a qu'eux : au Parc Astérix,
-    // aucun restaurant ne publie d'état (voir `lib/menu-pois.ts`).
+    // aucun restaurant ne publie d'état (voir `lib/menu-pois.ts` de l'API Dispatch).
     const unlistedPois = family === "restaurant" ? mainUnlistedRestaurants : [];
     return liveItems[family].length > 0 || unlistedPois.length > 0 ? (
       <PoiStatusTable

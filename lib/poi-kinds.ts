@@ -105,7 +105,7 @@ export function isScheduleFamily(kind: PoiKind): kind is ScheduleFamily {
  * les LEGOLAND, les relevés de restaurants, boutiques ET services sont tous
  * `closed` avec un `lastSeenAt` figé au 27 avril 2026 — la source a cessé de les
  * émettre ce jour-là, alors que ces parcs sont collectés à la minute. C'est
- * `STALE_WAIT_TIME_MS` (`lib/wait-times.ts`, 3 jours) qui les écarte, pas cette
+ * `STALE_WAIT_TIME_MS` (`lib/wait-times.ts` de l'API Dispatch, 3 jours) qui les écarte, pas cette
  * liste : sur les 1 092 POI concernés en base, quinze seulement sont vivants
  * (douze restaurants à Bellewaerde, trois à Walibi Holland). Ne pas chercher à
  * dupliquer ce filtre ici.
@@ -192,7 +192,7 @@ export function showsWaitTime(parkIdentifier: string, kind: PoiKind): boolean {
 /**
  * Les familles de POI sur lesquelles une alerte PEUT exister, tous parcs
  * confondus : les attractions, et ce que `REAL_WAIT_TIMES` déclare. Pour un parc
- * donné, c'est `getTimedKinds` (`lib/timed-kinds.ts`) qui tranche.
+ * donné, c'est `getTimedKinds` (`lib/timed-kinds.ts` de l'API Dispatch) qui tranche.
  */
 export const ALERT_KINDS: readonly PoiKind[] = [
   ...new Set<PoiKind>(["ride", ...Object.values(REAL_WAIT_TIMES).flat()]),

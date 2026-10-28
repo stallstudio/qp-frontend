@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUserId } from "@/lib/auth-helpers";
 import { getUserPrisma } from "@/lib/user-prisma";
-import { getPrisma } from "@/lib/prisma";
 import { toAlertDTO } from "@/lib/user-account";
-import { poiKindResolver, queueLabelResolver } from "@/lib/queue-labels-db";
+import { poiKindResolver, queueLabelResolver } from "@/lib/alert-lookups";
 import {
   reopenAllowedForWindow,
+  rideOpenWindow,
   REOPEN_CREATE_CLOSING_MARGIN_MS,
 } from "@/lib/park-closing";
-import { loadParkHourPeriods, rideOpenWindow } from "@/lib/park-closing-db";
+import {
+  currentQueues,
+  getTimedKinds,
+  loadParkHourPeriods,
+  lookupPois,
+} from "@/lib/dispatch";
 import type { AlertType } from "@/types/user";
 import { STANDBY_QUEUE } from "@/lib/queue-types";
 import { parsePoiKind, showsWaitTime } from "@/lib/poi-kinds";
-import { getTimedKinds } from "@/lib/timed-kinds";
 import type { TimeSlot } from "@/types/waitTime";
 
 export const runtime = "nodejs";
@@ -142,23 +146,19 @@ export async function POST(request: NextRequest) {
   // réouverture qui ne se déclencherait jamais (le moteur exige une transition
   // vers `open`, or elle y est déjà). On refuse plutôt que d'enregistrer une
   // alerte silencieusement morte.
-  const [current, poi] = await Promise.all([
-    getPrisma().waitTime.findFirst({
-      where: { poiId: rideId, endTime: null, type: queueType },
-      select: { status: true, parkId: true, timeSlot: true, waitTime: true },
-    }),
-    getPrisma().poi.findUnique({
-      where: { id: rideId },
-      select: { kind: true, park: { select: { id: true, identifier: true } } },
-    }),
+  const [queues, pois] = await Promise.all([
+    currentQueues([rideId], [queueType]),
+    lookupPois([rideId]),
   ]);
-  const status = current ? String(current.status) : null;
+  const current = queues[0] ?? null;
+  const poi = pois[0] ?? null;
+  const status = current ? current.status : null;
 
   // Une alerte ne vaut que sur un POI dont le parc publie l'attente : pas sur
   // une attraction d'un parc qui ne donne que des états, ni sur un restaurant
-  // dont la source n'allume qu'un témoin. Même règle que les popups (voir
-  // `lib/timed-kinds.ts`), qui ne proposent alors aucune alerte : ce refus ne
-  // touche qu'un client qui l'aurait contournée.
+  // dont la source n'allume qu'un témoin. Même règle que les popups (le
+  // `timedKinds` des données live), qui ne proposent alors aucune alerte : ce
+  // refus ne touche qu'un client qui l'aurait contournée.
   const kind = poi ? parsePoiKind(poi.kind) : null;
   if (!poi || !kind) {
     return NextResponse.json({ error: "Unknown POI" }, { status: 404 });
@@ -166,8 +166,7 @@ export async function POST(request: NextRequest) {
   const timedNow = current?.status === "open" && current.waitTime >= 0;
   if (
     !showsWaitTime(poi.park.identifier, kind) ||
-    (!timedNow &&
-      !(await getTimedKinds(poi.park.id, poi.park.identifier)).includes(kind))
+    (!timedNow && !(await getTimedKinds(poi.park.identifier)).includes(kind))
   ) {
     return NextResponse.json(
       { error: "No wait times published", status },
@@ -194,7 +193,7 @@ export async function POST(request: NextRequest) {
   // muette, effacée en fin de journée.
   if (type === "reopen" && current) {
     const now = new Date();
-    const periodsByPark = await loadParkHourPeriods([current.parkId], now);
+    const periodsByPark = await loadParkHourPeriods([current.parkId]);
     if (
       !reopenAllowedForWindow(
         rideOpenWindow(periodsByPark.get(current.parkId), now, {

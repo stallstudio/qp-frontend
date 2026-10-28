@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * ————————————————————————————————————————————————————————————————————————
  * **C'EST LE SERVEUR QUI DIT QUAND REVENIR.** Ce hook ne calcule plus de
  * cadence, il obéit à celle qu'on lui annonce (`ParkLiveData.nextUpdateIn`,
- * mesurée sur les passages réels du worker — voir `lib/collection-cycle.ts`).
+ * mesurée sur les passages réels du worker — voir `lib/collection-cycle.ts` de l'API Dispatch).
  * ————————————————————————————————————————————————————————————————————————
  *
  * Deux versions ont échoué avant, l'une comme l'autre parce qu'elles

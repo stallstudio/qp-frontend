@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getTranslations } from "next-intl/server";
-import { buildParkLiveData } from "@/lib/park-live-data";
+import { buildParkLiveData } from "@/lib/dispatch";
 import type { QueueTime, WaitRange } from "@/types/waitTime";
 import { MACK_WAIT_CAP, formatWaitMinutes } from "@/lib/wait-time-cap";
 
@@ -77,7 +77,7 @@ export default async function Image({
       }
     }
   } catch {
-    // Base injoignable : on dégrade vers la vignette « marque » plutôt que de
+    // API injoignable : on dégrade vers la vignette « marque » plutôt que de
     // faire échouer le rendu de l'image (et donc l'aperçu du lien).
   }
 

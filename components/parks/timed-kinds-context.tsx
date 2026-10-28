@@ -5,7 +5,7 @@ import type { PoiKind } from "@/lib/poi-kinds";
 
 /**
  * Les familles de POI dont le parc communique les temps d'attente
- * (`ParkLiveData.timedKinds`, voir `lib/timed-kinds.ts`), pour les POPUPS : ce
+ * (`ParkLiveData.timedKinds`, voir `lib/timed-kinds.ts` de l'API Dispatch), pour les POPUPS : ce
  * sont les seules où une alerte est proposée.
  *
  * ⚠️ **Un contexte et non une prop**, pour la même raison que

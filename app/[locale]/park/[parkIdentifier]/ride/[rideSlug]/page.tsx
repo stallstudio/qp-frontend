@@ -8,13 +8,12 @@ import ParkJsonLd from "@/components/parks/park-json-ld";
 import HiddenParkNotice from "@/components/parks/hidden-park-notice";
 import {
   buildParkLiveDataForViewer,
-  resolveParkForViewer,
-  type ParkIdentity,
-} from "@/lib/park-live-data";
-import { getRideIdentity, type RideIdentity } from "@/lib/ride-detail";
-import { logParkRequest } from "@/lib/api-request-log";
+  logParkRequest,
+  resolveRideForViewer,
+} from "@/lib/dispatch";
 import { getClientIp } from "@/lib/ip-rules";
-import { parseRideSlug, rideSlug } from "@/lib/slug";
+import { rideSlug } from "@/lib/slug";
+import type { ParkIdentity, RideIdentity } from "@/types/api";
 
 // LIEN PROFOND vers une attraction, pas une page distincte.
 //
@@ -44,26 +43,18 @@ type Resolved =
   | { status: "error" };
 
 /**
- * Résout parc + attraction depuis les paramètres d'URL. Mémoïsé par `cache()` :
- * `generateMetadata`, la page et la vignette de partage passent ici sans
- * multiplier les requêtes.
+ * Résout parc + attraction depuis les paramètres d'URL. Mémoïsé par `cache()`
+ * (`resolveRideForViewer`) : `generateMetadata` et la page passent ici sans
+ * multiplier les appels.
  *
- * L'état `error` (base injoignable) est distingué de `not-found` : une panne
+ * L'état `error` (API injoignable) est distingué de `not-found` : une panne
  * passagère ne doit pas répondre 404.
  */
 async function resolve(parkIdentifier: string, slug: string): Promise<Resolved> {
-  const rideId = parseRideSlug(slug);
-  if (rideId === null) return { status: "not-found" };
-
-  const park = await resolveParkForViewer(parkIdentifier);
-  if (park === undefined) return { status: "error" };
-  if (park === null) return { status: "not-found" };
-
-  const ride = await getRideIdentity(park.id, rideId);
-  if (ride === undefined) return { status: "error" };
-  if (ride === null) return { status: "not-found" };
-
-  return { status: "ok", park, ride };
+  const resolved = await resolveRideForViewer(parkIdentifier, slug);
+  if (resolved === undefined) return { status: "error" };
+  if (resolved === null) return { status: "not-found" };
+  return { status: "ok", ...resolved };
 }
 
 export async function generateMetadata({
@@ -117,7 +108,7 @@ export default async function RideDeepLinkPage({ params }: PageParams) {
   ]);
 
   if (resolved.status === "not-found") notFound();
-  // Base injoignable : on laisse remonter vers `error.tsx` plutôt que d'annoncer
+  // API injoignable : on laisse remonter vers `error.tsx` plutôt que d'annoncer
   // une page disparue.
   if (resolved.status === "error") {
     throw new Error(`Ride deep link unavailable: ${parkIdentifier}/${slug}`);

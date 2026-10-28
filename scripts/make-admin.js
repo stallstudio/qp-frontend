@@ -4,8 +4,8 @@
  *   npm run make-admin -- personne@exemple.com          # accorde
  *   npm run make-admin -- personne@exemple.com --off    # retire
  *
- * Il n'y a pas d'interface pour ça : l'admin panel vit sur l'AUTRE base
- * (DATABASE_URL) et n'a aucune connexion vers celle-ci. Le compte doit déjà
+ * Il n'y a pas d'interface pour ça : l'admin (Dispatch) vit sur la base des
+ * parcs et n'a aucune connexion vers celle-ci. Le compte doit déjà
  * exister, c'est-à-dire s'être connecté au moins une fois sur le site — Auth.js
  * crée la ligne `users` à la première connexion, pas avant.
  *

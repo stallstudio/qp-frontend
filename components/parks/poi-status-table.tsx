@@ -26,7 +26,7 @@ type PoiStatusTableProps = {
   pois: WaitTime[];
   /**
    * POI SANS état publié mais avec quelque chose à montrer dans le popup — les
-   * restaurants à carte du Parc Astérix (`lib/menu-pois.ts`). Listés sous la
+   * restaurants à carte du Parc Astérix (`lib/menu-pois.ts` de l'API Dispatch). Listés sous la
    * table, comme les attractions sans temps d'une carte d'événement.
    */
   unlisted?: WaitTime[];

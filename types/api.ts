@@ -33,20 +33,20 @@ export type ParkLiveData = {
   /**
    * Spectacles d'un événement affiché qui n'ont AUCUNE séance aujourd'hui —
    * `schedules` vide. Rangés dans la carte de leur événement, sous la grille.
-   * Vide hors événement. Voir `lib/event-pois.ts`.
+   * Vide hors événement. Voir `lib/event-pois.ts` de l'API Dispatch.
    */
   unscheduledShows: ShowTime[];
   /**
    * Attractions d'un événement affiché SANS temps d'attente vivant — `queues`
    * vide : des mazes que la source tague sans les mesurer, ou plus. Rangées dans
-   * la carte de leur événement, sous la table. Voir `lib/event-pois.ts`.
+   * la carte de leur événement, sous la table. Voir `lib/event-pois.ts` de l'API Dispatch.
    */
   unlistedRides: WaitTime[];
   /**
    * Restaurants SANS état publié — `queues` vide —, rangés sous la liste
    * « Restaurants » du direct, ou dans la carte de leur événement. Vide sauf
    * quand la majorité des restaurants du parc publie sa carte. Voir
-   * `lib/menu-pois.ts`.
+   * `lib/menu-pois.ts` de l'API Dispatch.
    */
   unlistedRestaurants: WaitTime[];
   /**
@@ -56,7 +56,7 @@ export type ParkLiveData = {
   poiHours: PoiHours[];
   /**
    * Familles de POI dont le parc communique les temps d'attente — et donc les
-   * seules sur lesquelles une alerte est proposée. Voir `lib/timed-kinds.ts`.
+   * seules sur lesquelles une alerte est proposée. Voir `lib/timed-kinds.ts` de l'API Dispatch.
    */
   timedKinds: PoiKind[];
   weather: ParkWeather | null;
@@ -69,7 +69,7 @@ export type ParkLiveData = {
   /**
    * Horodatage de la DONNÉE : quand le worker a écrit ces temps d'attente.
    * Sert à dire « ces valeurs datent de… », jamais à prévoir la suite — c'est
-   * `nextUpdateIn` qui porte cette question (voir `lib/collection-cycle.ts`).
+   * `nextUpdateIn` qui porte cette question (voir `lib/collection-cycle.ts` de l'API Dispatch).
    */
   lastUpdate: string;
   /**
@@ -97,6 +97,37 @@ export type ParkLiveData = {
   dataAgeSeconds: number;
 };
 
+/**
+ * L'identité d'un parc (`GET /v1/parks/{parc}` de l'API Dispatch) : ce que lisent
+ * les métadonnées, le JSON-LD et le bandeau « parc masqué » des pages.
+ */
+export type ParkIdentity = {
+  id: number;
+  identifier: string;
+  name: string;
+  timezone: string;
+  city: string | null;
+  country: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  cover: CoverImage[] | null;
+  /** ISO 8601. */
+  lastUpdatedAt: string | null;
+  queueTypeLabels: Record<string, string> | null;
+  currentTemp: number | null;
+  currentWeatherCode: number | null;
+  // Faux = parc masqué du site, rendu ici parce qu'un admin le prévisualise.
+  // C'est ce qui permet à la page d'afficher son bandeau d'avertissement.
+  display: boolean;
+};
+
+/** L'attraction d'un lien profond (`/park/{parc}/ride/{slug}`). */
+export type RideIdentity = {
+  id: number;
+  name: string;
+  thrillsId: string | null;
+};
+
 export type ParkListData = {
   parks: ParkList[];
   popularParks: string[];
@@ -109,9 +140,11 @@ export interface ParkList {
   cover: CoverImage[];
   badge?: string;
   country: string;
-  // Nom ANGLAIS du pays, résolu CÔTÉ SERVEUR (`lib/parks-list.ts`). Ne pas le
-  // recalculer dans un composant client : `Intl.DisplayNames` ne donne pas le
-  // même résultat sous Node et dans le navigateur (voir `getCountryName`).
+  // Nom ANGLAIS du pays, résolu CÔTÉ SERVEUR par l'API Dispatch. Ne pas le
+  // recalculer dans un composant client : `Intl.DisplayNames` s'appuie sur les
+  // données ICU du runtime, et Node et les navigateurs n'embarquent pas le même
+  // CLDR — pour `HK`, Node renvoie « Hong Kong SAR China », Chrome « Hong Kong »,
+  // et React signale une erreur d'hydratation.
   //
   // ⚠️ **Ce n'est plus la clé du drapeau** (2026-09-03) : `getCountryFlagClass`
   // part désormais de `country`, le code ISO, parce que le nom anglais du CLDR
@@ -119,10 +152,9 @@ export interface ParkList {
   // `twa-flag-turkey`). Il ne sert plus que de repli d'AFFICHAGE quand
   // `countryLabel` est absent.
   countryName: string;
-  // Le même pays dans la LANGUE DU VISITEUR, posé par `localizeCountries` en
-  // dehors du cache de la liste (qui, lui, est partagé par les 14 langues).
-  // Optionnel : les charges utiles qui ne passent pas par là — `/api/parks`,
-  // servie derrière un cache commun — n'en portent pas.
+  // Le même pays dans la LANGUE DU VISITEUR (`/v1/home?locale=` de l'API),
+  // traduit en dehors du cache de la liste, qui est partagé par les 14 langues.
+  // Optionnel : `/api/parks`, servie derrière un cache commun, n'en porte pas.
   countryLabel?: string;
   group: Group;
   openingHours: OpeningHour[];
