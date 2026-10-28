@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUserId } from "@/lib/auth-helpers";
 import { getUserPrisma } from "@/lib/user-prisma";
 import { toAlertDTO } from "@/lib/user-account";
-import { poiKindResolver, queueLabelResolver } from "@/lib/queue-labels-db";
+import { poiKindResolver, queueLabelResolver } from "@/lib/alert-lookups";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

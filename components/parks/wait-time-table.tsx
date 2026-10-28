@@ -60,7 +60,7 @@ type WaitTimeTableProps = {
   initialRideId?: number | null;
   /**
    * Attractions de l'événement SANS temps d'attente vivant (voir
-   * `lib/event-pois.ts`), listées sous la table. Seulement dans une carte
+   * `lib/event-pois.ts` de l'API Dispatch), listées sous la table. Seulement dans une carte
    * d'événement.
    */
   unlisted?: WaitTime[];

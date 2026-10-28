@@ -4,30 +4,11 @@ import type { OpeningHour } from "@/types/openingHour";
 
 /**
  * Ce que la source dit d'une maison hantée en plus de son nom et de son état :
- * son niveau de peur et son prix d'accès. Lus dans `additionalData`, écrit par
- * le worker — aujourd'hui les seuls parcs Compagnie des Alpes (Walibi,
- * Bellewaerde) en publient.
- *
- * ⚠️ Sondés et non castés, comme `readBanner` : `additionalData` est un `Json`
- * libre, sa forme n'est garantie par aucun type.
+ * son niveau de peur et son prix d'accès. L'API Dispatch les lit dans
+ * `additionalData` (aujourd'hui seuls les parcs Compagnie des Alpes — Walibi,
+ * Bellewaerde — en publient) ; ce module décrit leur forme et choisit le prix
+ * du jour.
  */
-
-function record(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
-}
-
-/** Niveau de peur, de 1 à 5 — le « scare-o-meter » des parcs CDA. Hors 1-5 : rien. */
-export function readPoiFearLevel(value: unknown): number | null {
-  const level = record(value)?.fearLevel;
-  return typeof level === "number" &&
-    Number.isInteger(level) &&
-    level >= 1 &&
-    level <= 5
-    ? level
-    : null;
-}
 
 export type PoiPrice = {
   /** Journée classique. `0` : gratuit, DIT par la source. */
@@ -53,34 +34,6 @@ function clockMinutes(value: unknown): number | null {
   if (typeof value !== "string") return null;
   const match = CLOCK.exec(value);
   return match ? Number(match[1]) * 60 + Number(match[2]) : null;
-}
-
-/**
- * Prix d'accès en plus du billet d'entrée (maison hantée, atelier).
- *
- * ⚠️ `0` est un vrai prix — « Accès : gratuit » dans la source —, à ne pas
- * confondre avec une absence, qui rend `null`.
- */
-export function readPoiPrice(value: unknown): PoiPrice | null {
-  const raw = record(record(value)?.price);
-  if (!raw) return null;
-  const { currency } = raw;
-  if (typeof currency !== "string" || !/^[A-Z]{3}$/.test(currency)) return null;
-  const amount = (v: unknown) =>
-    typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null;
-  const standard = amount(raw.standard);
-  const extended = amount(raw.extended);
-  if (standard === null && extended === null) return null;
-  const classic = clockMinutes(raw.classicClosesBy);
-  const prolonged = clockMinutes(raw.extendedClosesFrom);
-  const bounded = classic !== null && prolonged !== null && classic < prolonged;
-  return {
-    standard,
-    extended,
-    currency,
-    classicClosesBy: bounded ? (raw.classicClosesBy as string) : null,
-    extendedClosesFrom: bounded ? (raw.extendedClosesFrom as string) : null,
-  };
 }
 
 /**

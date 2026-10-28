@@ -1,10 +1,9 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
-// Config Prisma DÉDIÉE à la base UTILISATEURS (Prisma 7 : l'URL de connexion CLI
-// vit ici, plus dans le schéma). Fichier NOMMÉ (pas prisma.config.ts) pour ne pas
-// interférer avec la génération du client de la base principale, qui utilise le
-// schéma par défaut prisma/schema.prisma.
+// Config Prisma de la base UTILISATEURS, la seule de Queue Park (Prisma 7 : l'URL
+// de connexion CLI vit ici, plus dans le schéma). Les données des parcs viennent
+// de l'API Dispatch.
 //
 // Usage via `--config prisma.user.config.ts` (voir scripts user:* du package.json).
 export default defineConfig({

@@ -13,9 +13,9 @@
 // le fait. À l'approche de la fermeture, on cesse de traiter un arrêt comme une
 // panne.
 //
-// ⚠️ Ce module est PUR (aucun accès base) pour rester importable depuis un
-// composant client. Le chargement des horaires depuis la base vit dans
-// `lib/park-closing-db.ts`, qui s'appuie sur les mêmes fonctions.
+// ⚠️ Ce module est PUR (aucun appel réseau) pour rester importable depuis un
+// composant client. Côté serveur, les horaires viennent de l'API Dispatch
+// (`loadParkHourPeriods`, `lib/dispatch.ts`).
 // ————————————————————————————————————————————————————————————————————————
 
 import { DateTime } from "luxon";
@@ -38,7 +38,7 @@ import { DateTime } from "luxon";
 export const REOPEN_CREATE_CLOSING_MARGIN_MS = 60 * 60_000;
 export const REOPEN_REARM_CLOSING_MARGIN_MS = 2 * 60 * 60_000;
 
-export type ParkOpenWindow =
+type ParkOpenWindow =
   // Aucun horaire connu pour la période : on ne conclut RIEN. Ne pas confondre
   // avec « fermé » — beaucoup de parcs ne publient pas leurs horaires, et les
   // traiter comme fermés supprimerait la fonctionnalité chez eux.
@@ -79,7 +79,7 @@ export type OpeningPeriod = {
 //     la seule journée du parc — sans quoi, chaque soir d'octobre, tout le parc
 //     s'endormant à 17:00 partirait une salve de « c'est de nouveau à l'arrêt »
 //     pendant que la nocturne tourne.
-export type ReopenScope = "create" | "rearm";
+type ReopenScope = "create" | "rearm";
 
 const EVENT_HOUR_TYPE = "event";
 
@@ -101,7 +101,7 @@ const EVENT_HOUR_TYPE = "event";
  * parc peut faire tourner ses mazes sans publier d'horaires de nocturne, et un
  * POI rattaché n'aurait alors plus jamais droit à un réarmement.
  */
-export function reopenPeriodsFor(
+function reopenPeriodsFor(
   periods: OpeningPeriod[],
   { eventId = null, scope }: { eventId?: number | null; scope: ReopenScope },
 ): OpeningPeriod[] {
@@ -141,6 +141,24 @@ export function parkOpenWindowFrom(
   }
 
   return closeAt ? { state: "open", closeAt } : { state: "closed" };
+}
+
+/**
+ * État d'ouverture applicable à UNE attraction : les périodes de son parc,
+ * filtrées par son rattachement événementiel et par l'usage (voir
+ * `reopenPeriodsFor`).
+ *
+ * ⚠️ Un parc sans aucune ligne reste « unknown », que `parkOpenWindowFrom`
+ * déduit d'une liste vide : on ne conclut RIEN d'une absence d'horaires, sous
+ * peine de supprimer la fonctionnalité chez tous les parcs qui n'en publient
+ * pas.
+ */
+export function rideOpenWindow(
+  periods: OpeningPeriod[] | undefined,
+  now: Date,
+  opts: { eventId?: number | null; scope: ReopenScope },
+): ParkOpenWindow {
+  return parkOpenWindowFrom(reopenPeriodsFor(periods ?? [], opts), now);
 }
 
 /**

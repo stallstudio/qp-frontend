@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DateTime } from "luxon";
-import { getPrisma } from "@/lib/prisma";
 import { getUserPrisma } from "@/lib/user-prisma";
-import { purgeOldRequestLogs } from "@/lib/api-request-log";
+import {
+  currentQueues,
+  loadParkHourPeriods,
+  lookupParks,
+  lookupPois,
+  purgeOldRequestLogs,
+} from "@/lib/dispatch";
 import { missingPushConfig, sendPush, type PushPayload } from "@/lib/web-push";
 import {
   buildAlertMessage,
@@ -18,10 +23,10 @@ import { rideSlug } from "@/lib/slug";
 import {
   localDayStillRunning,
   reopenAllowedForWindow,
+  rideOpenWindow,
   REOPEN_REARM_CLOSING_MARGIN_MS,
   type OpeningPeriod,
 } from "@/lib/park-closing";
-import { loadParkHourPeriods, rideOpenWindow } from "@/lib/park-closing-db";
 import {
   buildShowReminderMessage,
   type ReminderShow,
@@ -132,7 +137,6 @@ function readTimeSlot(json: unknown): TimeSlot | null {
 }
 
 type UserPrismaClient = ReturnType<typeof getUserPrisma>;
-type PrismaClient = ReturnType<typeof getPrisma>;
 
 type ShowReminderSummary = {
   remindersFired: number;
@@ -146,7 +150,6 @@ type ShowReminderSummary = {
 // alertes, le déclenchement est TEMPOREL (pas de seuil / réarmement).
 async function processShowReminders(
   userPrisma: UserPrismaClient,
-  prisma: PrismaClient,
 ): Promise<ShowReminderSummary> {
   const now = new Date();
 
@@ -170,10 +173,7 @@ async function processShowReminders(
     const parkIds = [...new Set(toSend.map((r) => r.parkIdentifier))];
     const userIds = [...new Set(toSend.map((r) => r.userId))];
     const [parks, subs, prefs] = await Promise.all([
-      prisma.park.findMany({
-        where: { identifier: { in: parkIds } },
-        select: { identifier: true, timezone: true },
-      }),
+      lookupParks(parkIds),
       userPrisma.pushSubscription.findMany({
         where: { userId: { in: userIds } },
       }),
@@ -309,7 +309,6 @@ export async function GET(request: NextRequest) {
 
 async function runAlertsPass(): Promise<NextResponse> {
   const userPrisma = getUserPrisma();
-  const prisma = getPrisma();
   const now = new Date();
 
   // Filet de sécurité : les alertes ACTIVES sont désormais supprimées dès que
@@ -327,16 +326,16 @@ async function runAlertsPass(): Promise<NextResponse> {
     where: { activeDate: { lt: alertPurgeCutoff } },
   });
 
-  // Entretien du journal de consultations (base principale) : la table
-  // grossissait sans limite alors que seules les 2 dernières heures servent au
-  // classement des parcs populaires. Ce cron tournant déjà en continu, il évite
-  // une planification dédiée. Par lots, pour ne pas verrouiller la table.
+  // Entretien du journal de consultations, par l'API : la table grossissait
+  // sans limite alors que seules les 2 dernières heures servent au classement
+  // des parcs populaires. Ce cron tournant déjà en continu, il évite une
+  // planification dédiée. Par lots, pour ne pas verrouiller la table.
   const purgedRequestLogs = await purgeOldRequestLogs();
 
   // Passe « rappels de spectacles » (temporelle), indépendante des alertes de
   // seuil ci-dessous. Traitée en premier pour être exécutée même si l'app n'a
   // aucune alerte active.
-  const reminderSummary = await processShowReminders(userPrisma, prisma);
+  const reminderSummary = await processShowReminders(userPrisma);
 
   // 1. Toutes les alertes, ACTIVES ET NON ACTIVES (tous utilisateurs confondus).
   //
@@ -356,57 +355,40 @@ async function runAlertsPass(): Promise<NextResponse> {
   }
 
   // 2. Temps d'attente RÉELS courants pour les FILES surveillées (enregistrement
-  //    encore actif = endTime null). Base principale.
+  //    encore actif = endTime null), lus par l'API.
   //
   // ⚠️ Une alerte vise une file depuis le 2026-10-07 (`queueType`) : son état
   // est celui de SA file, jamais celui de la file standby de l'attraction — un
   // Single Rider peut être fermé quand l'attraction tourne, et inversement.
   const rideIds = [...new Set(alerts.map((a) => a.rideId))];
   const queueTypes = [...new Set(alerts.map((a) => a.queueType))];
-  const [waitRows, rides] = await Promise.all([
-    prisma.waitTime.findMany({
-      where: { poiId: { in: rideIds }, endTime: null, type: { in: queueTypes } },
-      // `startTime` : la table est une table d'INTERVALLES et le statut fait
-      // partie de la signature d'un intervalle (stateHash côté worker). Le
-      // `startTime` de l'intervalle ouvert est donc l'instant EXACT où
-      // l'attraction est entrée dans son état courant — c'est ce qui permet de
-      // dater une panne sans conserver d'historique de notre côté.
-      select: {
-        poiId: true,
-        type: true,
-        waitTime: true,
-        waitTimeMin: true,
-        waitTimeMax: true,
-        status: true,
-        startTime: true,
-        timeSlot: true,
-      },
-    }),
+  const [waitRows, pois] = await Promise.all([
+    // `startTime` : la table est une table d'INTERVALLES et le statut fait
+    // partie de la signature d'un intervalle (stateHash côté worker). Le
+    // `startTime` de l'intervalle ouvert est donc l'instant EXACT où
+    // l'attraction est entrée dans son état courant — c'est ce qui permet de
+    // dater une panne sans conserver d'historique de notre côté.
+    currentQueues(rideIds, queueTypes),
     // Parc de chaque attraction : son FUSEAU sert à évaluer « aujourd'hui » pour
     // l'expiration quotidienne, et son IDENTIFIANT à retrouver son horaire de
     // fermeture (réarmement des alertes de réouverture).
-    // ⚠️ `alerts.rideId` vient de la base UTILISATEURS, qui n'a AUCUNE clé
-    // étrangère vers celle-ci. Ces identifiants ont survécu tels quels à la
-    // migration du 2026-08-21 — les attractions ont gardé les leurs, seuls les
-    // spectacles ont été décalés — mais rien ne le garantirait à l'exécution :
-    // le filtre sur `kind` est donc la seule chose qui empêche une alerte de
-    // pointer sur un POI d'un autre type si un identifiant venait à dériver.
-    // Depuis le 2026-10-09, il admet les familles qui peuvent porter une
-    // alerte (`ALERT_KINDS`, les restaurants des parcs PRS) : en dehors, une
-    // alerte de restaurant aurait été jugée sur le fuseau de Paris.
-    prisma.poi.findMany({
-      where: { kind: { in: [...ALERT_KINDS] }, id: { in: rideIds } },
-      // `eventId` : une attraction rattachée à un événement (un maze de
-      // Halloween Horror Nights) est jugée sur les horaires de SON événement —
-      // sans quoi elle n'aurait jamais droit à un réarmement au moment précis
-      // où elle tourne, le parc de jour étant fermé.
-      select: {
-        id: true,
-        eventId: true,
-        park: { select: { id: true, timezone: true } },
-      },
-    }),
+    // `eventId` : une attraction rattachée à un événement (un maze de
+    // Halloween Horror Nights) est jugée sur les horaires de SON événement —
+    // sans quoi elle n'aurait jamais droit à un réarmement au moment précis
+    // où elle tourne, le parc de jour étant fermé.
+    lookupPois(rideIds),
   ]);
+  // ⚠️ `alerts.rideId` vient de la base UTILISATEURS, qui n'a AUCUNE clé
+  // étrangère vers les POI. Ces identifiants ont survécu tels quels à la
+  // migration du 2026-08-21 — les attractions ont gardé les leurs, seuls les
+  // spectacles ont été décalés — mais rien ne le garantirait à l'exécution :
+  // le filtre sur `kind` est donc la seule chose qui empêche une alerte de
+  // pointer sur un POI d'un autre type si un identifiant venait à dériver.
+  // Depuis le 2026-10-09, il admet les familles qui peuvent porter une alerte
+  // (`ALERT_KINDS`, les restaurants des parcs PRS) : en dehors, une alerte de
+  // restaurant aurait été jugée sur le fuseau de Paris.
+  const alertKinds = new Set<string>(ALERT_KINDS);
+  const rides = pois.filter((poi) => alertKinds.has(poi.kind));
   const queueKey = (rideId: number, queueType: string) =>
     `${rideId}:${queueType}`;
   const waitByQueue = new Map<
@@ -424,8 +406,8 @@ async function runAlertsPass(): Promise<NextResponse> {
       waitByQueue.set(queueKey(row.poiId, row.type), {
         waitTime: row.waitTime,
         waitRange: readWaitRange(row.waitTimeMin, row.waitTimeMax),
-        status: String(row.status),
-        startTime: row.startTime,
+        status: row.status,
+        startTime: new Date(row.startTime),
         timeSlot: readTimeSlot(row.timeSlot),
       });
     }
@@ -436,13 +418,13 @@ async function runAlertsPass(): Promise<NextResponse> {
   const parkIdByRide = new Map<number, number>();
   const eventIdByRide = new Map<number, number>();
   for (const r of rides) {
-    tzByRide.set(r.id, r.park?.timezone ?? "Europe/Paris");
-    if (r.park) parkIdByRide.set(r.id, r.park.id);
+    tzByRide.set(r.id, r.park.timezone);
+    parkIdByRide.set(r.id, r.park.id);
     if (r.eventId != null) eventIdByRide.set(r.id, r.eventId);
   }
 
   // Horaires d'ouverture des parcs concernés, UNIQUEMENT si quelque chose en
-  // dépend à ce passage. Aucun candidat = aucune requête (le cas courant : ce
+  // dépend à ce passage. Aucun candidat = aucun appel (le cas courant : ce
   // cron tourne toutes les 1-2 min, pour rien la plupart du temps).
   //
   // Deux usages, et le second est ce qui l'élargit :
@@ -473,7 +455,7 @@ async function runAlertsPass(): Promise<NextResponse> {
   ];
   const periodsByPark =
     hourCandidateParkIds.length > 0
-      ? await loadParkHourPeriods(hourCandidateParkIds, now)
+      ? await loadParkHourPeriods(hourCandidateParkIds)
       : new Map<number, OpeningPeriod[]>();
 
   // 3. Décision par alerte : à expirer (jour passé), à envoyer, à réarmer.
@@ -654,7 +636,7 @@ async function runAlertsPass(): Promise<NextResponse> {
     ),
   ];
   // Libellés de file propres à chaque parc (« Disney Premier Access ») pour
-  // nommer une file secondaire dans la notification. Aucune requête quand seules
+  // nommer une file secondaire dans la notification. Aucun appel quand seules
   // des attractions sont concernées — le cas courant.
   const queueParkIds = [
     ...new Set(
@@ -664,17 +646,10 @@ async function runAlertsPass(): Promise<NextResponse> {
     ),
   ];
   const labelsByPark = new Map(
-    queueParkIds.length > 0
-      ? (
-          await prisma.park.findMany({
-            where: { identifier: { in: queueParkIds } },
-            select: { identifier: true, queueTypeLabels: true },
-          })
-        ).map((p) => [
-          p.identifier,
-          p.queueTypeLabels as Record<string, string> | null,
-        ])
-      : [],
+    (await lookupParks(queueParkIds)).map((p) => [
+      p.identifier,
+      p.queueTypeLabels,
+    ]),
   );
   // « Hyperspace Mountain » pour l'attraction, « Hyperspace Mountain (Single
   // Rider) » pour une de ses files.

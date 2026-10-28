@@ -20,39 +20,6 @@ export function readWaitRange(
   return min == null ? null : { min, max: max ?? null };
 }
 
-function isValueRange(v: unknown): v is ValueRange {
-  if (!v || typeof v !== "object") return false;
-  const o = v as Record<string, unknown>;
-  return (
-    typeof o.value === "number" &&
-    typeof o.min === "number" &&
-    (o.max === null || typeof o.max === "number")
-  );
-}
-
-/**
- * La table « valeur → fourchette » d'une attraction, pour dire une PRÉVISION en
- * fourchette : la prévision se cale sur les valeurs que l'attraction affiche,
- * chacune vient donc d'une fourchette.
- *
- * Celle que le worker a apprise sur l'historique (`baseProfile.valueRanges`),
- * complétée — et corrigée — par ce qui a été publié aujourd'hui : une
- * fourchette apparue ce matin n'est pas encore dans le profil.
- */
-export function mergeValueRanges(
-  stored: unknown,
-  observed: Iterable<{ waitTime: number; waitRange?: WaitRange | null }>,
-): ValueRange[] {
-  const byValue = new Map<number, ValueRange>();
-  if (Array.isArray(stored)) {
-    for (const v of stored) if (isValueRange(v)) byValue.set(v.value, v);
-  }
-  for (const { waitTime, waitRange } of observed) {
-    if (waitRange) byValue.set(waitTime, { value: waitTime, ...waitRange });
-  }
-  return [...byValue.values()].sort((a, b) => a.value - b.value);
-}
-
 /** La fourchette derrière une valeur, `null` si on n'en connaît pas. */
 export function rangeLookup(
   valueRanges: ValueRange[] | null | undefined,

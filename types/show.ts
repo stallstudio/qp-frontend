@@ -9,7 +9,7 @@ export interface ShowTime {
   /**
    * Le POI du spectacle. Sert à reconnaître, parmi les spectacles d'un
    * événement, ceux qui n'ont AUCUNE séance aujourd'hui (voir
-   * `lib/event-pois.ts`).
+   * `lib/event-pois.ts` de l'API Dispatch).
    */
   poiId: number;
   showName: string;
@@ -30,7 +30,7 @@ export interface ShowTime {
   eventId: number | null;
   /**
    * Bannière publiée par la source du parc pour ce spectacle, sous forme de
-   * chemin LOCAL signé (voir `lib/poi-banner.ts`), ou `null` quand la source
+   * chemin LOCAL signé (voir `lib/poi-banner.ts` de l'API Dispatch), ou `null` quand la source
    * n'en publie pas — le popup retombe alors sur l'image par défaut.
    */
   banner: string | null;

@@ -1,9 +1,9 @@
 // ————————————————————————————————————————————————————————————————————————
 // ÉVÉNEMENTS SAISONNIERS — état d'affichage
 //
-// Module PUR (aucun accès base), importable depuis un composant client — même
-// séparation que `lib/park-closing.ts`. Le chargement vit dans
-// `lib/park-live-data.ts`.
+// Module PUR (aucun appel réseau), importable depuis un composant client — même
+// séparation que `lib/park-closing.ts`. Les événements arrivent avec les données
+// live (`events`), construites par l'API Dispatch.
 //
 // Il répond à une seule question, et c'est le client qui la pose après montage :
 // **dans quel état la carte de cet événement doit-elle être, maintenant ?**

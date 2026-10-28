@@ -1,9 +1,9 @@
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "@/lib/generated/user-client";
 
-// Client Prisma de la base UTILISATEURS. Volontairement distinct de getPrisma()
-// (base principale) : deux bases, deux connexions, deux clients générés. Même
-// pattern que lib/prisma.ts (adapter MariaDB construit depuis une URL).
+// Client Prisma de la base UTILISATEURS, la seule base de Queue Park : les
+// données des parcs viennent de l'API Dispatch (`lib/dispatch.ts`). Adapter
+// MariaDB construit depuis une URL.
 
 const globalForUserPrisma = globalThis as unknown as {
   userPrisma: PrismaClient | undefined;

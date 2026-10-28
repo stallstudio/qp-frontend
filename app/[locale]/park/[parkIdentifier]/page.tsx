@@ -8,14 +8,14 @@ import ParkJsonLd from "@/components/parks/park-json-ld";
 import HiddenParkNotice from "@/components/parks/hidden-park-notice";
 import {
   buildParkLiveDataForViewer,
+  logParkRequest,
   resolveParkForViewer,
-} from "@/lib/park-live-data";
-import { logParkRequest } from "@/lib/api-request-log";
+} from "@/lib/dispatch";
 import { getClientIp } from "@/lib/ip-rules";
 
 // Les temps d'attente sont par nature vivants : la page est rendue à chaque
 // requête (le client prend ensuite le relais, à la cadence que la réponse
-// annonce — voir `lib/collection-cycle.ts`).
+// annonce — voir `lib/collection-cycle.ts` de l'API Dispatch).
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
@@ -64,10 +64,10 @@ export default async function ParkPage({
   const { parkIdentifier, locale } = await params;
   const tPark = await getTranslations({ locale, namespace: "parkPage" });
 
-  // Les données sont chargées ICI, côté serveur, en appelant directement la
-  // couche métier (pas de requête HTTP de l'app vers sa propre API). Le HTML
-  // servi contient donc les temps d'attente : c'est ce que voient les moteurs de
-  // recherche, et c'est affiché sans attendre un aller-retour réseau.
+  // Les données sont chargées ICI, côté serveur, auprès de l'API Dispatch (pas
+  // de requête de l'app vers sa propre route). Le HTML servi contient donc les
+  // temps d'attente : c'est ce que voient les moteurs de recherche, et c'est
+  // affiché sans attendre un aller-retour du navigateur.
   const [park, live] = await Promise.all([
     resolveParkForViewer(parkIdentifier),
     buildParkLiveDataForViewer(parkIdentifier),
@@ -116,7 +116,7 @@ export default async function ParkPage({
           homeLabel={tPark("backHome")}
         />
       )}
-      {/* `initialData` null = base injoignable : le client réessaie et affiche
+      {/* `initialData` null = API injoignable : le client réessaie et affiche
           son squelette, comme avant le passage en rendu serveur. */}
       <ParkPageClient
         parkIdentifier={parkIdentifier}

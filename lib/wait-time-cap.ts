@@ -17,7 +17,8 @@ import type { WaitRange } from "@/types/waitTime";
  *
  * ⚠️ **La règle est attachée au PROVIDER, pas à une liste de parcs.** C'est une
  * propriété du flux : tout parc servi par Mack en hérite, aujourd'hui comme
- * demain, sans qu'une liste soit à tenir à jour.
+ * demain, sans qu'une liste soit à tenir à jour. C'est l'API Dispatch qui
+ * l'applique et livre le plafond avec les données (`waitCap`).
  */
 export type WaitCap = {
   /** Valeur brute qui joue le rôle de sentinelle dans le flux. */
@@ -28,16 +29,6 @@ export type WaitCap = {
 
 /** Plafond du flux Mack : 91 signifie « 90 min ou plus ». */
 export const MACK_WAIT_CAP: WaitCap = { value: 91, display: 90 };
-
-const CAP_BY_PROVIDER: Record<string, WaitCap> = {
-  mack: MACK_WAIT_CAP,
-};
-
-/** Plafond d'un parc, d'après le provider qui l'alimente. */
-export function waitCapFor(provider: string | null | undefined): WaitCap | null {
-  if (!provider) return null;
-  return CAP_BY_PROVIDER[provider] ?? null;
-}
 
 /**
  * Une valeur est-elle la sentinelle de plafond ? `cap` absent (parc dont la

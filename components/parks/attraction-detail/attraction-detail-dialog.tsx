@@ -71,7 +71,7 @@ type AttractionDetailDialogProps = {
 // ⚠️ **Un parc peut ne publier AUCUN temps d'attente** (2026-10-09) : The Land
 // of Legends, les parcs Enchanted Parks, ne donnent que l'état de leurs
 // attractions. Ni graphique ni alerte, juste la ligne qui le dit — voir
-// `lib/timed-kinds.ts`, et pourquoi le verdict de l'historique n'y suffisait
+// `lib/timed-kinds.ts` de l'API Dispatch, et pourquoi le verdict de l'historique n'y suffisait
 // pas.
 export default function AttractionDetailDialog({
   target,

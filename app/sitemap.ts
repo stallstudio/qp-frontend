@@ -1,11 +1,11 @@
 import { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
-import { getPrisma } from "@/lib/prisma";
+import { getSitemapParks } from "@/lib/dispatch";
 import { getSiteUrl } from "@/lib/site-url";
 
 // La liste des parcs bouge quelques fois par mois, pas à chaque requête : sans
 // revalidation, CHAQUE appel régénérait ~1 400 entrées (14 locales × ~100 parcs)
-// et rejouait la requête SQL. On régénère au plus une fois par heure.
+// et rappelait l'API. On régénère au plus une fois par heure.
 //
 // Les liens profonds `/park/{parc}/ride/{slug}` n'y figurent VOLONTAIREMENT pas :
 // ils servent la page du parc, les déclarer reviendrait à soumettre des dizaines
@@ -58,21 +58,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return routes;
 }
 
-// Le sitemap est prérendu au build (cf. `revalidate`), or l'image est désormais
-// compilée par GitHub Actions, sans accès à la base : `getPrisma()` lève sur
-// DATABASE_URL absent. On sort alors les seules routes de locales, et la première
-// revalidation (au plus une heure) rétablit la liste complète des parcs.
+// Le sitemap est prérendu au build (cf. `revalidate`), or l'image est compilée
+// par GitHub Actions, sans accès à l'API Dispatch. On sort alors les seules
+// routes de locales, et la première revalidation (au plus une heure) rétablit
+// la liste complète des parcs. Même repli si l'API ne répond pas.
 async function fetchParks() {
   try {
-    return await getPrisma().park.findMany({
-      where: {
-        display: true,
-      },
-      select: {
-        identifier: true,
-        updatedAt: true,
-      },
-    });
+    return await getSitemapParks();
   } catch {
     return [];
   }

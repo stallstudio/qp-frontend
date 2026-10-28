@@ -1,7 +1,10 @@
 import { ImageResponse } from "next/og";
 import { getTranslations } from "next-intl/server";
-import { buildParkLiveData, getParkIdentity } from "@/lib/park-live-data";
-import { getRideIdentity } from "@/lib/ride-detail";
+import {
+  buildParkLiveData,
+  getParkIdentity,
+  getRideIdentity,
+} from "@/lib/dispatch";
 import { parseRideSlug } from "@/lib/slug";
 import type { WaitRange } from "@/types/waitTime";
 import { MACK_WAIT_CAP, formatWaitMinutes } from "@/lib/wait-time-cap";
@@ -51,7 +54,7 @@ export default async function Image({
 
     if (rideId !== null && park) {
       parkName = park.name;
-      const ride = await getRideIdentity(park.id, rideId);
+      const ride = await getRideIdentity(park.identifier, rideId);
       if (ride) {
         rideName = ride.name;
 
@@ -71,7 +74,7 @@ export default async function Image({
       }
     }
   } catch {
-    // Base injoignable : on dégrade vers la vignette « marque » plutôt que de
+    // API injoignable : on dégrade vers la vignette « marque » plutôt que de
     // faire échouer l'aperçu du lien.
   }
 

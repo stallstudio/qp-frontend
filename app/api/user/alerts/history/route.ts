@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireUserId } from "@/lib/auth-helpers";
 import { getUserPrisma } from "@/lib/user-prisma";
-import { getPrisma } from "@/lib/prisma";
+import { lookupParks } from "@/lib/dispatch";
 import { toAlertHistoryDTO } from "@/lib/user-account";
-import { poiKindResolver, queueLabelResolver } from "@/lib/queue-labels-db";
+import { poiKindResolver, queueLabelResolver } from "@/lib/alert-lookups";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,14 +28,8 @@ export async function GET() {
   });
 
   // L'historique ne stocke que l'identifiant du parc : on résout les noms
-  // affichables depuis la base principale (une requête pour tous les parcs cités).
-  const identifiers = [...new Set(rows.map((r) => r.parkIdentifier))];
-  const parks = identifiers.length
-    ? await getPrisma().park.findMany({
-        where: { identifier: { in: identifiers } },
-        select: { identifier: true, name: true },
-      })
-    : [];
+  // affichables auprès de l'API (un appel pour tous les parcs cités).
+  const parks = await lookupParks([...new Set(rows.map((r) => r.parkIdentifier))]);
   const parkNameByIdentifier = new Map(parks.map((p) => [p.identifier, p.name]));
   const [labelOf, kindOf] = await Promise.all([
     queueLabelResolver(rows),

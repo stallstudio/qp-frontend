@@ -7,19 +7,21 @@ d'attente.
 
 ## Architecture
 
-### Deux bases de données
+### Les comptes ici, les parcs chez Dispatch
 
-- **Base principale** (`DATABASE_URL`) — inchangée : parcs, attractions, temps
-  d'attente, historiques, calendriers… Lue via `@/lib/prisma` (`getPrisma()`).
-- **Base utilisateurs** (`USER_DATABASE_URL`) — nouvelle, isolée : comptes,
-  préférences, favoris, alertes, historique, abonnements push, sessions, auth.
-  Client Prisma dédié généré dans `lib/generated/user-client`, accédé via
-  `@/lib/user-prisma` (`getUserPrisma()`).
+- **Données des parcs** — parcs, attractions, temps d'attente, historiques,
+  calendriers… Servies par l'**API Dispatch** (`DISPATCH_API_URL`,
+  `DISPATCH_API_KEY`), via `@/lib/dispatch`. Queue Park n'a plus accès à leur
+  base.
+- **Base utilisateurs** (`USER_DATABASE_URL`) — la seule base de Queue Park :
+  comptes, préférences, favoris, alertes, historique, abonnements push,
+  sessions, auth. Client Prisma généré dans `lib/generated/user-client`, accédé
+  via `@/lib/user-prisma` (`getUserPrisma()`).
 
-Aucune clé étrangère entre les deux bases : favoris et alertes référencent les
-attractions **par identifiant** (`rideId`, `parkIdentifier`). Les alertes /
-l'historique stockent en plus un instantané du nom (affichage sans jointure
-inter-bases).
+Aucune clé étrangère vers les parcs : favoris et alertes référencent les
+attractions **par identifiant** (`rideId`, `parkIdentifier`), que l'API résout
+(`/v1/parks/lookup`, `/v1/pois/lookup`). Les alertes / l'historique stockent en
+plus un instantané du nom (affichage sans appel).
 
 Schéma : [`prisma/user/schema.prisma`](prisma/user/schema.prisma).
 
@@ -73,7 +75,7 @@ Le **moteur** qui vérifie les temps et déclenche les alertes est **branché**
 (voir la section « Alertes Web Push » d'`AI_CONTEXT.md`) :
 `GET /api/cron/alerts` (protégé par `ALERTS_CRON_SECRET`, appelé par une Dokploy
 Schedule) lit `alerts` `active=true` par `rideId`, compare au temps standby
-courant de la base principale, envoie un Web Push (VAPID) aux `push_subscriptions`
+courant que lui donne l'API (`/v1/queues/current`), envoie un Web Push (VAPID) aux `push_subscriptions`
 de l'utilisateur quand `waitTime ≤ threshold`, et écrit dans `alert_history`
 (anti-spam via `Alert.armed`, expiration quotidienne via `Alert.activeDate`).
 
@@ -81,7 +83,8 @@ de l'utilisateur quand `waitTime ≤ threshold`, et écrit dans `alert_history`
 
 1. **Dépendances** : `npm install` (ajoute `next-auth`, `@auth/prisma-adapter`,
    `resend`, `@react-email/components`, `web-push`).
-2. **Variables d'env** (voir `.env`) : `USER_DATABASE_URL`, `AUTH_SECRET`
+2. **Variables d'env** (voir `.env`) : `DISPATCH_API_URL`, `DISPATCH_API_KEY`,
+   `USER_DATABASE_URL`, `AUTH_SECRET`
    (`npx auth secret`), `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`, `RESEND_API_KEY`.
    **Alertes push** : `npm run vapid:generate` puis renseigner
    `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, et
@@ -101,5 +104,4 @@ de l'utilisateur quand `waitTime ≤ threshold`, et écrit dans `alert_history`
    `https://<domaine>/api/auth/callback/google`.
 7. **Resend** : domaine `updates.queue-park.com` vérifié (expéditeur `login@`).
 
-> **CI/Docker** : générer les DEUX clients avant `next build`
-> (`prisma generate` pour la base principale **et** `npm run user:generate`).
+> **CI/Docker** : générer le client avant `next build` (`npm run user:generate`).

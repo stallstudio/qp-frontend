@@ -7,7 +7,7 @@ import {
   isBlacklisted,
   isUserAgentBlacklisted,
 } from "./lib/ip-rules";
-import { logParkRequest } from "./lib/api-request-log";
+import { logParkRequest } from "./lib/dispatch";
 import { BLOCKED_MESSAGE } from "./lib/api-disclaimer";
 import { parseRideSlug } from "./lib/slug";
 
@@ -35,9 +35,9 @@ const PARK_PAGE = new RegExp(
  * contrôle et répondent un 403 en JSON.
  *
  * ⚠️ **Une erreur ne bloque personne.** Ce contrôle passe devant TOUTES les
- * pages, y compris celles qui ne lisent pas la base : une base injoignable ne
+ * pages, y compris celles qui ne lisent aucune donnée : une API injoignable ne
  * doit pas faire tomber le site entier pour un anti-abus. `lib/ip-rules` sert
- * déjà ses règles en cache quand la base ne répond plus (voir `refreshCache`).
+ * déjà ses règles en cache quand l'API ne répond plus (voir `refreshCache`).
  * Le `catch` ci-dessous ne sert qu'en dernier recours.
  */
 async function isBlocked(request: NextRequest): Promise<boolean> {
@@ -102,8 +102,8 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Node et non Edge : les règles sont lues par Prisma, avec le cache de
-  // `lib/ip-rules` que partagent les routes API.
+  // Node et non Edge : le cache des règles de `lib/ip-rules` vit dans le
+  // processus du serveur.
   runtime: "nodejs",
   matcher: [
     "/",

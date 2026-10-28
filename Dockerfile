@@ -30,9 +30,8 @@ ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
 # la vraie URL est injectée au runtime par Dokploy.
 ARG USER_DATABASE_URL="mysql://build:build@127.0.0.1:3306/build"
 ENV USER_DATABASE_URL=$USER_DATABASE_URL
-# Générer les DEUX clients Prisma : base principale (schéma par défaut) et base
-# utilisateurs (config dédiée). Le build échoue sinon (import du client user).
-RUN npx prisma generate
+# Générer le client Prisma de la base utilisateurs, la seule de Queue Park (les
+# parcs viennent de l'API Dispatch). Le build échoue sinon (import du client).
 RUN npm run user:generate
 RUN npm run build
 

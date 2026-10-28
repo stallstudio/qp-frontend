@@ -1,27 +1,23 @@
-import { getPrisma } from "@/lib/prisma";
 import { isCloudflareIp } from "@/lib/cloudflare-ips";
+import { getAccessRules as fetchAccessRules, type AccessRuleType } from "@/lib/dispatch";
 
-// Règles d'accès aux routes de données publiques, et aux pages par
-// `middleware.ts` (elles servent les mêmes données). DEUX familles, indépendantes
-// et cumulatives : par ADRESSE (`ip_rules`) et par USER AGENT
+// L'IP réelle du visiteur, et les règles d'accès que `middleware.ts` applique
+// aux PAGES (elles servent les mêmes données que l'API). DEUX familles,
+// indépendantes et cumulatives : par ADRESSE (`ip_rules`) et par USER AGENT
 // (`user_agent_rules`). Une requête est refusée si son IP est blacklistée OU si
 // son user agent l'est.
 //
-// ⚠️ Le fichier s'appelle encore `ip-rules` pour ne pas casser ses appelants,
-// mais il ne parle plus que d'IP : le blocage par user agent vit ici aussi,
-// parce qu'il partage le cache, le TTL et le garde-fou `UNKNOWN_IP`. Chercher
-// « blocage user agent » ailleurs ne donnerait rien.
-
-type IpRuleType = "whitelist" | "blacklist";
+// Les routes de données, elles, sont filtrées par l'API Dispatch, à qui Queue
+// Park transmet l'IP et le user agent du visiteur (`X-Viewer-*`).
 
 interface UserAgentRule {
   /** Fragment cherché dans le user agent, DÉJÀ en minuscules. */
   pattern: string;
-  type: IpRuleType;
+  type: AccessRuleType;
 }
 
 interface AccessRulesCache {
-  ips: Map<string, IpRuleType>;
+  ips: Map<string, AccessRuleType>;
   userAgents: UserAgentRule[];
   lastFetchedAt: number;
 }
@@ -112,60 +108,17 @@ const globalForAccessRules = globalThis as unknown as {
   accessRulesRefresh: Promise<AccessRulesCache> | undefined;
 };
 
-async function fetchAccessRules(): Promise<AccessRulesCache> {
-  const prisma = getPrisma();
-
-  // Les deux tables partent ENSEMBLE : elles ont le même TTL et sont lues sur
-  // le même chemin (chaque requête de parc). Enchaînées, la route paierait deux
-  // allers-retours au lieu d'un à chaque expiration du cache.
-  const [ipRules, uaRules] = await Promise.all([
-    prisma.ipRule.findMany({ select: { ipAddress: true, type: true } }),
-    // ⚠️ **Cette lecture-ci est TOLÉRANTE À L'ÉCHEC, l'autre non.** Elle porte
-    // sur une table arrivée après coup (`user_agent_rules`, migration du
-    // 2026-08-31) : un déploiement passé avant sa migration ferait rejeter le
-    // `Promise.all`, donc `isBlacklisted`, donc **toutes** les routes de parc —
-    // le site entier en 500 parce qu'un anti-abus n'a pas trouvé sa table. Le
-    // repli est de ne plus filtrer par user agent, jamais de tomber.
-    //
-    // Le `ipRule.findMany` juste au-dessus, lui, fait échouer la lecture
-    // entière : sa table est là depuis toujours, et son échec signale une base
-    // inaccessible. C'est `refreshCache` qui décide alors quoi servir.
-    prisma.userAgentRule
-      .findMany({ select: { pattern: true, type: true } })
-      .catch((error) => {
-        console.error("Failed to load user agent rules", error);
-        return [] as Array<{ pattern: string; type: IpRuleType }>;
-      }),
-  ]);
-
-  const ips = new Map<string, IpRuleType>();
-  for (const rule of ipRules) {
-    // ⚠️ **Une règle posée sur `"unknown"` est ignorée, et c'est délibéré.**
-    // Ce n'est pas l'adresse de quelqu'un mais le repli de TOUTES les requêtes
-    // dont le proxy n'a pas transmis l'IP : la blacklister bannirait ce trafic
-    // en bloc, la whitelister le sortirait en bloc du classement des parcs
-    // populaires. Or elle apparaît dans la page Requests de l'admin comme
-    // n'importe quelle autre ligne — souvent en tête, puisqu'elle agrège — donc
-    // rien n'empêche de la bloquer par mégarde. Le garde-fou est ici, au seul
-    // endroit que les trois fonctions traversent.
-    if (rule.ipAddress === UNKNOWN_IP) continue;
-    ips.set(rule.ipAddress, rule.type);
-  }
-
-  const userAgents: UserAgentRule[] = [];
-  for (const rule of uaRules) {
-    const pattern = rule.pattern.trim().toLowerCase();
-    // Même esprit que le garde-fou `UNKNOWN_IP` : un fragment vide est contenu
-    // dans TOUS les user agents et bannirait le site entier. L'API de l'admin
-    // le refuse déjà à l'écriture ; le filet est ici parce que c'est le seul
-    // point de passage, et qu'une ligne peut aussi être posée à la main en SQL.
-    if (!pattern) continue;
-    userAgents.push({ pattern, type: rule.type });
-  }
-
+/**
+ * Les règles telles que l'API les prépare : règle posée sur `"unknown"`
+ * écartée (ce n'est pas une adresse mais le repli de TOUTES les requêtes sans
+ * IP), fragments de user agent en minuscules, fragments vides écartés (ils
+ * banniraient le site entier).
+ */
+async function loadAccessRules(): Promise<AccessRulesCache> {
+  const rules = await fetchAccessRules();
   return {
-    ips,
-    userAgents,
+    ips: new Map(rules.ips.map((rule) => [rule.ipAddress, rule.type])),
+    userAgents: rules.userAgents,
     lastFetchedAt: Date.now(),
   };
 }
@@ -174,15 +127,15 @@ async function fetchAccessRules(): Promise<AccessRulesCache> {
  * Relit les règles, une seule lecture à la fois.
  *
  * ⚠️ **Un échec ne rejette pas : il garde les règles précédentes (ou aucune,
- * au démarrage) pendant un TTL.** Depuis que `middleware.ts` contrôle chaque
- * page, une lecture qui échoue sans rien mettre en cache serait relancée par
- * CHAQUE requête, et chacune attendrait le délai du pool Prisma. Mesuré le
- * 2026-10-27 sur une base figée : 10 s pour `/about`, une page qui ne lit
- * pourtant rien en base. On laisse passer une IP blacklistée pendant une
- * panne. C'est mieux que de faire attendre tout le monde.
+ * au démarrage) pendant un TTL.** `middleware.ts` contrôle chaque page : une
+ * lecture qui échoue sans rien mettre en cache serait relancée par CHAQUE
+ * requête, et chacune attendrait l'API. Mesuré le 2026-10-27 sur une base
+ * figée : 10 s pour `/about`, une page qui ne lit pourtant rien. On laisse
+ * passer une IP blacklistée pendant une panne. C'est mieux que de faire
+ * attendre tout le monde.
  */
 function refreshCache(): Promise<AccessRulesCache> {
-  globalForAccessRules.accessRulesRefresh ??= fetchAccessRules()
+  globalForAccessRules.accessRulesRefresh ??= loadAccessRules()
     .catch((error): AccessRulesCache => {
       console.error("Failed to load access rules", error);
       const previous = globalForAccessRules.accessRulesCache;
@@ -205,7 +158,7 @@ function refreshCache(): Promise<AccessRulesCache> {
 async function getAccessRules(): Promise<AccessRulesCache> {
   const cache = globalForAccessRules.accessRulesCache;
 
-  // Seul le tout premier appel attend la base. Une fois le cache expiré, on
+  // Seul le tout premier appel attend l'API. Une fois le cache expiré, on
   // sert encore les règles en cache et on les relit en arrière-plan : une
   // règle posée dans l'admin prend effet un TTL plus tard, comme avant, mais
   // aucune requête ne paie plus la lecture.
@@ -214,27 +167,9 @@ async function getAccessRules(): Promise<AccessRulesCache> {
   return cache;
 }
 
-export async function getIpRules(): Promise<Map<string, IpRuleType>> {
-  return (await getAccessRules()).ips;
-}
-
 export async function isBlacklisted(ip: string): Promise<boolean> {
-  const rules = await getIpRules();
-  return rules.get(ip) === "blacklist";
-}
-
-export async function isWhitelisted(ip: string): Promise<boolean> {
-  const rules = await getIpRules();
-  return rules.get(ip) === "whitelist";
-}
-
-export async function getWhitelistedIps(): Promise<string[]> {
-  const rules = await getIpRules();
-  const ips: string[] = [];
-  for (const [ip, type] of rules) {
-    if (type === "whitelist") ips.push(ip);
-  }
-  return ips;
+  const { ips } = await getAccessRules();
+  return ips.get(ip) === "blacklist";
 }
 
 /**
@@ -242,10 +177,9 @@ export async function getWhitelistedIps(): Promise<string[]> {
  *
  * ⚠️ **La whitelist n'entre PAS en jeu ici**, et ce n'est pas un oubli : une
  * règle `whitelist` ne veut pas dire « autorisé malgré tout », elle veut dire
- * « ne compte pas dans les statistiques » (cf. `getWhitelistedIps`, qui sort
- * ces requêtes du classement des parcs populaires). Lui faire lever un blocage
- * lui donnerait un second sens, invisible depuis l'admin où les deux boutons se
- * ressemblent.
+ * « ne compte pas dans les statistiques » (l'API en sort les requêtes du
+ * classement des parcs populaires). Lui faire lever un blocage lui donnerait un
+ * second sens, invisible depuis l'admin où les deux boutons se ressemblent.
  *
  * Comparaison par SOUS-CHAÎNE en minuscules : `EnergylandiaStatsBot` attrape
  * aussi bien la version 1.0 que la 1.1, là où une égalité sur la famille
@@ -265,15 +199,4 @@ export async function isUserAgentBlacklisted(
   return userAgents.some(
     (rule) => rule.type === "blacklist" && haystack.includes(rule.pattern),
   );
-}
-
-/**
- * Fragments de user agent whitelistés, pour les exclure des statistiques au
- * même titre que les IPs whitelistées.
- */
-export async function getWhitelistedUserAgentPatterns(): Promise<string[]> {
-  const { userAgents } = await getAccessRules();
-  return userAgents
-    .filter((rule) => rule.type === "whitelist")
-    .map((rule) => rule.pattern);
 }

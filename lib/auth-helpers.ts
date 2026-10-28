@@ -33,7 +33,7 @@ export async function requireUserId(): Promise<Guard> {
  * lecture de session (qui, en stratégie "database", est une requête SQL).
  *
  * ⚠️ À n'appeler QU'APRÈS avoir constaté qu'un parc est introuvable — voir
- * `resolveParkForViewer` (lib/park-live-data.ts). Le chemin nominal, y compris le
+ * `dispatchFetchForViewer` (lib/dispatch.ts). Le chemin nominal, y compris le
  * rafraîchissement de chaque visiteur, ne doit lire aucune session.
  */
 export const isAdminViewer = cache(async (): Promise<boolean> => {
