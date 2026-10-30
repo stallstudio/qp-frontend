@@ -202,6 +202,19 @@
     "retry": "Spróbuj ponownie",
     "backHome": "Powrót na stronę główną"
   },
+  "accessGate": {
+    "metaTitle": "Prace konserwacyjne",
+    "description": "Ups! W Queue Park trwają właśnie prace konserwacyjne. Wróć trochę później albo wpisz swój kod dostępu, jeśli go masz.",
+    "codeLabel": "Kod dostępu",
+    "inputLabel": "{length}-cyfrowy kod dostępu",
+    "checking": "Sprawdzanie…",
+    "open": "Witamy!",
+    "wrong": "To nie jest prawidłowy kod.",
+    "throttled": "Zbyt wiele prób. Spróbuj ponownie za kilka minut.",
+    "failed": "Nie udało się sprawdzić kodu. Spróbuj ponownie.",
+    "noCode": "Masz pytanie?",
+    "writeUs": "Napisz do nas na"
+  },
   "about": {
     "metaTitle": "O nas",
     "metaDescription": "Poznaj Queue Park: skąd pochodzą czasy oczekiwania, jak działają ulubione, prognozy czasu oczekiwania, pogoda i wszystkie funkcje.",

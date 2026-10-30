@@ -202,6 +202,19 @@
     "retry": "Prøv igen",
     "backHome": "Tilbage til forsiden"
   },
+  "accessGate": {
+    "metaTitle": "Vedligeholdelse",
+    "description": "Ups! Queue Park er under vedligeholdelse lige nu. Kom tilbage lidt senere, eller indtast din adgangskode, hvis du har en.",
+    "codeLabel": "Adgangskode",
+    "inputLabel": "{length}-cifret adgangskode",
+    "checking": "Kontrollerer…",
+    "open": "Velkommen!",
+    "wrong": "Det er ikke den rigtige kode.",
+    "throttled": "For mange forsøg. Prøv igen om et par minutter.",
+    "failed": "Vi kunne ikke kontrollere koden. Prøv igen.",
+    "noCode": "Har du et spørgsmål?",
+    "writeUs": "Skriv til os på"
+  },
   "about": {
     "metaTitle": "Om os",
     "metaDescription": "Oplev Queue Park: hvor ventetiderne kommer fra, hvordan favoritter fungerer, ventetidsprognoser, vejret og alle funktionerne.",

@@ -3,10 +3,11 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Check, Loader2, Lock } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import LanguageSwitcher from "@/components/ui/language-switcher";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { buttonVariants } from "@/components/ui/button";
+import { getStatusBadge } from "@/lib/badge";
 import { cn } from "@/lib/utils";
 
 type Phase = "typing" | "checking" | "rejected" | "open";
@@ -30,6 +31,7 @@ const OPEN_MS = 700;
 export default function AccessGate({ length }: { length: number }) {
   const t = useTranslations("accessGate");
   const tHome = useTranslations("home");
+  const tStatus = useTranslations("attractionStatus");
   const [code, setCode] = useState("");
   const [phase, setPhase] = useState<Phase>("typing");
   const [problem, setProblem] = useState<Problem | null>(null);
@@ -78,7 +80,7 @@ export default function AccessGate({ length }: { length: number }) {
       <div className="relative w-full motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-500">
         <div className="rounded-4xl border bg-card shadow-sm">
           {/* Face : la bannière de l'accueil, en réduction. */}
-          <div className="relative h-44 overflow-hidden rounded-t-[calc(2rem-1px)]">
+          <div className="relative h-48 overflow-hidden rounded-t-[calc(2rem-1px)]">
             <Image
               src="/default_cover.webp"
               alt=""
@@ -90,13 +92,15 @@ export default function AccessGate({ length }: { length: number }) {
             <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/45 to-black/20" />
             <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-black/20" />
 
-            {/* Même verre dépoli que la pastille « compte » de l'accueil. */}
-            <span className="absolute left-4 top-4 flex h-8 items-center gap-1.5 rounded-full bg-black/25 px-2.5 text-sm font-medium text-white shadow-sm backdrop-blur-sm">
-              <Lock className="size-4" />
-              {t("badge")}
-            </span>
-
+            {/* Le site s'annonce comme une attraction à l'arrêt : la vraie
+                pastille d'état « Maintenance » des listes, posée au-dessus du
+                nom comme celle d'un parc dans sa bannière. */}
             <div className="absolute inset-x-0 bottom-0 p-4">
+              <div className="mb-2 w-fit">
+                {getStatusBadge("maintenance", {
+                  maintenance: tStatus("maintenance"),
+                })}
+              </div>
               <h1 className="mb-1 text-3xl font-bold text-white">
                 {tHome("title")}
               </h1>
