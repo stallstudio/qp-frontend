@@ -202,6 +202,20 @@
     "retry": "Réessayer",
     "backHome": "Retour à l'accueil"
   },
+  "accessGate": {
+    "metaTitle": "Accès privé",
+    "badge": "Accès privé",
+    "description": "Queue Park est réservé pour le moment aux personnes qui ont reçu un code. Saisissez le vôtre pour entrer.",
+    "codeLabel": "Code d'accès",
+    "inputLabel": "Code d'accès à {length} chiffres",
+    "checking": "Vérification…",
+    "open": "Bienvenue !",
+    "wrong": "Ce n'est pas le bon code.",
+    "throttled": "Trop d'essais. Réessayez dans quelques minutes.",
+    "failed": "Impossible de vérifier le code. Réessayez.",
+    "noCode": "Pas encore de code ?",
+    "writeUs": "Écrivez-nous à"
+  },
   "about": {
     "metaTitle": "À propos",
     "metaDescription": "Découvrez Queue Park : d'où viennent les temps d'attente, comment fonctionnent les favoris, les prévisions d'affluence, la météo et toutes les fonctionnalités.",

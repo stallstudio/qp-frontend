@@ -1,5 +1,9 @@
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages, getTranslations } from "next-intl/server";
+import {
+  getMessages,
+  getTranslations,
+  setRequestLocale,
+} from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import type { Metadata } from "next";
@@ -14,8 +18,9 @@ import CookieConsent from "@/components/cookie-consent";
 import WhatsNewDialog from "@/components/whats-new/whats-new-dialog";
 import { whatsNewBanners } from "@/components/whats-new/banners";
 import { getSiteUrl } from "@/lib/site-url";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { COUNTRY_HEADERS, regionalDefaults } from "@/lib/regional-defaults";
+import { ACCESS_COOKIE, hasAccess } from "@/lib/access-gate";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -108,7 +113,17 @@ export default async function LocaleLayout({
     notFound();
   }
 
+  // ⚠️ La langue vient du SEGMENT, pas de l'en-tête que pose le middleware de
+  // next-intl : l'écran d'accès est servi par une réécriture qui ne le porte
+  // pas, et `getMessages()` retombait alors sur le français pour tout le monde.
+  setRequestLocale(locale);
+
   const messages = await getMessages();
+
+  // Derrière l'écran d'accès, rien ne doit s'y superposer : ni le bandeau
+  // cookies (aucune mesure d'audience ne tourne sur cet écran), ni l'annonce
+  // de version. Les deux reviennent dès le site ouvert.
+  const locked = !hasAccess((await cookies()).get(ACCESS_COOKIE)?.value);
 
   // ————— Défauts d'affichage, déduits de la REQUÊTE —————
   //
@@ -152,16 +167,21 @@ export default async function LocaleLayout({
                       les lignes des listes attractions et spectacles. */}
                   <NotificationsProvider>
                     {children}
-                    <CookieConsent />
-                    {/* Annonce de version : monté ICI et non sur l'accueil, car
-                        on arrive tout aussi bien sur la page d'un parc par un
-                        lien partagé. Le composant décide lui-même s'il a
-                        quelque chose à dire (version déjà vue, page exclue,
-                        bandeau cookies en attente). */}
-                    {/* Les deux photos des scènes sont signées ICI : le dialog
-                        est un composant client, et la clé de signature n'existe
-                        pas dans le navigateur (`components/whats-new/banners.ts`). */}
-                    <WhatsNewDialog banners={whatsNewBanners()} />
+                    {!locked && (
+                      <>
+                        <CookieConsent />
+                        {/* Annonce de version : monté ICI et non sur l'accueil,
+                            car on arrive tout aussi bien sur la page d'un parc
+                            par un lien partagé. Le composant décide lui-même
+                            s'il a quelque chose à dire (version déjà vue, page
+                            exclue, bandeau cookies en attente). */}
+                        {/* Les deux photos des scènes sont signées ICI : le
+                            dialog est un composant client, et la clé de
+                            signature n'existe pas dans le navigateur
+                            (`components/whats-new/banners.ts`). */}
+                        <WhatsNewDialog banners={whatsNewBanners()} />
+                      </>
+                    )}
                   </NotificationsProvider>
                 </FavoritesProvider>
               </AuthGateProvider>
