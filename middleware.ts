@@ -10,6 +10,7 @@ import {
 import { logParkRequest } from "./lib/dispatch";
 import { BLOCKED_MESSAGE } from "./lib/api-disclaimer";
 import { parseRideSlug } from "./lib/slug";
+import { ACCESS_COOKIE, hasAccess } from "./lib/access-gate";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -98,7 +99,32 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
-  return intlMiddleware(request);
+  const response = intlMiddleware(request);
+
+  // ————— Écran d'accès (`ACCESS_CODE`, voir `lib/access-gate.ts`) —————
+  //
+  // Sans le cookie, toute page est RÉÉCRITE vers l'écran : l'URL demandée reste
+  // dans la barre d'adresse, et le rechargement qui suit le bon code tombe
+  // directement sur elle.
+  //
+  // ⚠️ Après next-intl, et seulement s'il ne redirige pas : `/` ou une page
+  // sans préfixe de langue doivent d'abord recevoir le leur, sinon l'écran ne
+  // saurait pas dans quelle langue s'afficher. Le premier segment est alors
+  // forcément une langue connue.
+  //
+  // ⚠️ Le manifeste PWA passe : le layout de l'écran le déclare comme celui de
+  // toute page, et une réécriture servirait du HTML à sa place.
+  if (
+    !response.headers.has("location") &&
+    !pathname.endsWith("/manifest.webmanifest") &&
+    !hasAccess(request.cookies.get(ACCESS_COOKIE)?.value)
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${pathname.split("/")[1]}/access`;
+    return NextResponse.rewrite(url);
+  }
+
+  return response;
 }
 
 export const config = {
