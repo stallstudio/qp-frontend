@@ -19,9 +19,9 @@ const REJECT_MS = 500;
 const OPEN_MS = 700;
 
 /**
- * L'écran d'accès, dessiné comme un BILLET D'ENTRÉE : la face reprend la
- * bannière de l'accueil (même photo, mêmes dégradés, même titre ferré en bas à
- * gauche), une perforation la sépare du talon où l'on saisit le code.
+ * L'écran d'accès, dessiné comme un BILLET D'ENTRÉE : la face reprend la photo
+ * de la bannière de l'accueil, avec le nom et sa pastille d'état au centre ;
+ * une perforation la sépare du talon où l'on saisit le code.
  *
  * Une seule `<input>` transparente posée sur les cases : c'est elle qui reçoit
  * la frappe, le collage et le remplissage automatique (`one-time-code`) ; les
@@ -80,7 +80,7 @@ export default function AccessGate({ length }: { length: number }) {
       <div className="relative w-full motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-500">
         <div className="rounded-4xl border bg-card shadow-sm">
           {/* Face : la bannière de l'accueil, en réduction. */}
-          <div className="relative h-48 overflow-hidden rounded-t-[calc(2rem-1px)]">
+          <div className="relative h-44 overflow-hidden rounded-t-[calc(2rem-1px)]">
             <Image
               src="/default_cover.webp"
               alt=""
@@ -89,24 +89,22 @@ export default function AccessGate({ length }: { length: number }) {
               className="object-cover"
               priority
             />
-            <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/45 to-black/20" />
-            <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-black/20" />
+            {/* Voile uniforme, et non le dégradé gauche → droite de l'accueil :
+                celui-ci assombrit le côté où le titre est ferré, or ici il est
+                au centre. */}
+            <div className="absolute inset-0 bg-black/50" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/30 via-transparent to-black/20" />
 
             {/* Le site s'annonce comme une attraction à l'arrêt : la vraie
                 pastille d'état « Maintenance » des listes, posée au-dessus du
                 nom comme celle d'un parc dans sa bannière. */}
-            <div className="absolute inset-x-0 bottom-0 p-4">
-              <div className="mb-2 w-fit">
-                {getStatusBadge("maintenance", {
-                  maintenance: tStatus("maintenance"),
-                })}
-              </div>
-              <h1 className="mb-1 text-3xl font-bold text-white">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
+              {getStatusBadge("maintenance", {
+                maintenance: tStatus("maintenance"),
+              })}
+              <h1 className="text-3xl font-bold text-white">
                 {tHome("title")}
               </h1>
-              <p className="text-sm text-balance text-white/90">
-                {tHome("subtitle")}
-              </p>
             </div>
           </div>
 
