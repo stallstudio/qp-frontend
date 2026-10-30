@@ -202,6 +202,19 @@
     "retry": "Try again",
     "backHome": "Back home"
   },
+  "accessGate": {
+    "metaTitle": "Under maintenance",
+    "description": "Oops! Queue Park is under maintenance for now. Come back a little later, or enter your access code if you have one.",
+    "codeLabel": "Access code",
+    "inputLabel": "{length}-digit access code",
+    "checking": "Checking…",
+    "open": "Welcome!",
+    "wrong": "That's not the right code.",
+    "throttled": "Too many attempts. Try again in a few minutes.",
+    "failed": "We couldn't check the code. Try again.",
+    "noCode": "Got a question?",
+    "writeUs": "Write to us at"
+  },
   "about": {
     "metaTitle": "About",
     "metaDescription": "Discover Queue Park: where wait times come from, how favorites work, wait-time forecasts, weather and all the features.",

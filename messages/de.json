@@ -202,6 +202,19 @@
     "retry": "Erneut versuchen",
     "backHome": "Zurück zur Startseite"
   },
+  "accessGate": {
+    "metaTitle": "Wartungsarbeiten",
+    "description": "Hoppla! Queue Park wird gerade gewartet. Schau etwas später wieder vorbei oder gib deinen Zugangscode ein, falls du einen hast.",
+    "codeLabel": "Zugangscode",
+    "inputLabel": "{length}-stelliger Zugangscode",
+    "checking": "Wird geprüft…",
+    "open": "Willkommen!",
+    "wrong": "Das ist nicht der richtige Code.",
+    "throttled": "Zu viele Versuche. Versuche es in ein paar Minuten noch einmal.",
+    "failed": "Der Code konnte nicht geprüft werden. Versuche es noch einmal.",
+    "noCode": "Eine Frage?",
+    "writeUs": "Schreib uns an"
+  },
   "about": {
     "metaTitle": "Über uns",
     "metaDescription": "Entdecke Queue Park: woher die Wartezeiten kommen, wie Favoriten funktionieren, Wartezeit-Prognosen, Wetter und alle Funktionen.",

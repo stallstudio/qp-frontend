@@ -203,9 +203,8 @@
     "backHome": "Retour à l'accueil"
   },
   "accessGate": {
-    "metaTitle": "Accès privé",
-    "badge": "Accès privé",
-    "description": "Queue Park est réservé pour le moment aux personnes qui ont reçu un code. Saisissez le vôtre pour entrer.",
+    "metaTitle": "Maintenance en cours",
+    "description": "Oups ! Queue Park est en maintenance pour le moment. Revenez un peu plus tard, ou saisissez votre code d'accès si vous en avez un.",
     "codeLabel": "Code d'accès",
     "inputLabel": "Code d'accès à {length} chiffres",
     "checking": "Vérification…",
@@ -213,7 +212,7 @@
     "wrong": "Ce n'est pas le bon code.",
     "throttled": "Trop d'essais. Réessayez dans quelques minutes.",
     "failed": "Impossible de vérifier le code. Réessayez.",
-    "noCode": "Pas encore de code ?",
+    "noCode": "Une question ?",
     "writeUs": "Écrivez-nous à"
   },
   "about": {

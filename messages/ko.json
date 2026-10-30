@@ -202,6 +202,19 @@
     "retry": "다시 시도",
     "backHome": "홈으로 돌아가기"
   },
+  "accessGate": {
+    "metaTitle": "점검 중",
+    "description": "앗! Queue Park는 현재 점검 중입니다. 잠시 후 다시 방문해 주시거나, 접근 코드가 있다면 입력해 주세요.",
+    "codeLabel": "접근 코드",
+    "inputLabel": "{length}자리 접근 코드",
+    "checking": "확인 중…",
+    "open": "환영합니다!",
+    "wrong": "올바른 코드가 아닙니다.",
+    "throttled": "시도 횟수가 너무 많습니다. 몇 분 후 다시 시도해 주세요.",
+    "failed": "코드를 확인할 수 없습니다. 다시 시도해 주세요.",
+    "noCode": "궁금한 점이 있으신가요?",
+    "writeUs": "문의:"
+  },
   "about": {
     "metaTitle": "소개",
     "metaDescription": "Queue Park 소개: 대기 시간의 출처, 즐겨찾기 사용법, 대기 시간 예측, 날씨 등 모든 기능을 알아보세요.",

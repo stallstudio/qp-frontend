@@ -202,6 +202,19 @@
     "retry": "Thử lại",
     "backHome": "Về trang chủ"
   },
+  "accessGate": {
+    "metaTitle": "Đang bảo trì",
+    "description": "Ối! Queue Park hiện đang được bảo trì. Hãy quay lại sau một lát, hoặc nhập mã truy cập nếu bạn có.",
+    "codeLabel": "Mã truy cập",
+    "inputLabel": "Mã truy cập gồm {length} chữ số",
+    "checking": "Đang kiểm tra…",
+    "open": "Chào mừng bạn!",
+    "wrong": "Mã không đúng.",
+    "throttled": "Bạn đã thử quá nhiều lần. Hãy thử lại sau vài phút.",
+    "failed": "Chúng tôi không kiểm tra được mã. Hãy thử lại.",
+    "noCode": "Bạn có câu hỏi?",
+    "writeUs": "Hãy viết cho chúng tôi tại"
+  },
   "about": {
     "metaTitle": "Giới thiệu",
     "metaDescription": "Khám phá Queue Park: dữ liệu thời gian chờ đến từ đâu, cách hoạt động của mục yêu thích, dự báo thời gian chờ, thời tiết và toàn bộ tính năng.",

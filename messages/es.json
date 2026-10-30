@@ -202,6 +202,19 @@
     "retry": "Reintentar",
     "backHome": "Volver al inicio"
   },
+  "accessGate": {
+    "metaTitle": "En mantenimiento",
+    "description": "¡Ups! Queue Park está en mantenimiento por ahora. Vuelve un poco más tarde o introduce tu código de acceso si tienes uno.",
+    "codeLabel": "Código de acceso",
+    "inputLabel": "Código de acceso de {length} cifras",
+    "checking": "Comprobando…",
+    "open": "¡Te damos la bienvenida!",
+    "wrong": "Ese no es el código correcto.",
+    "throttled": "Demasiados intentos. Vuelve a intentarlo dentro de unos minutos.",
+    "failed": "No hemos podido comprobar el código. Inténtalo de nuevo.",
+    "noCode": "¿Alguna pregunta?",
+    "writeUs": "Escríbenos a"
+  },
   "about": {
     "metaTitle": "Acerca de",
     "metaDescription": "Descubre Queue Park: de dónde vienen los tiempos de espera, cómo funcionan los favoritos, las previsiones de espera, la meteorología y todas las funciones.",

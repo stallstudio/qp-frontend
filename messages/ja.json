@@ -202,6 +202,19 @@
     "retry": "再試行",
     "backHome": "ホームに戻る"
   },
+  "accessGate": {
+    "metaTitle": "メンテナンス中",
+    "description": "申し訳ありません！Queue Park は現在メンテナンス中です。しばらくしてから再度アクセスいただくか、アクセスコードをお持ちの方は入力してください。",
+    "codeLabel": "アクセスコード",
+    "inputLabel": "{length}桁のアクセスコード",
+    "checking": "確認中…",
+    "open": "ようこそ！",
+    "wrong": "コードが正しくありません。",
+    "throttled": "試行回数が多すぎます。数分後にもう一度お試しください。",
+    "failed": "コードを確認できませんでした。もう一度お試しください。",
+    "noCode": "ご不明な点がありましたら",
+    "writeUs": "こちらまでご連絡ください："
+  },
   "about": {
     "metaTitle": "Queue Park について",
     "metaDescription": "Queue Park のご紹介：待ち時間の取得元、お気に入りの仕組み、待ち時間予測、天気、そしてすべての機能について。",

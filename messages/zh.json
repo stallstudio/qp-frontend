@@ -202,6 +202,19 @@
     "retry": "重试",
     "backHome": "返回首页"
   },
+  "accessGate": {
+    "metaTitle": "维护中",
+    "description": "哎呀！Queue Park 正在维护中。请稍后再来；如果你有访问码，也可以直接输入。",
+    "codeLabel": "访问码",
+    "inputLabel": "{length} 位访问码",
+    "checking": "正在验证…",
+    "open": "欢迎！",
+    "wrong": "访问码不正确。",
+    "throttled": "尝试次数过多，请几分钟后再试。",
+    "failed": "无法验证访问码，请重试。",
+    "noCode": "有疑问？",
+    "writeUs": "请发邮件至"
+  },
   "about": {
     "metaTitle": "关于",
     "metaDescription": "了解 Queue Park：排队时间的来源、收藏功能、排队时间预测、天气以及全部功能。",

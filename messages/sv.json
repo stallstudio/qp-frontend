@@ -202,6 +202,19 @@
     "retry": "Försök igen",
     "backHome": "Tillbaka till startsidan"
   },
+  "accessGate": {
+    "metaTitle": "Underhåll pågår",
+    "description": "Hoppsan! Queue Park genomgår underhåll just nu. Kom tillbaka lite senare, eller ange din åtkomstkod om du har en.",
+    "codeLabel": "Åtkomstkod",
+    "inputLabel": "{length}-siffrig åtkomstkod",
+    "checking": "Kontrollerar…",
+    "open": "Välkommen!",
+    "wrong": "Det är inte rätt kod.",
+    "throttled": "För många försök. Försök igen om några minuter.",
+    "failed": "Vi kunde inte kontrollera koden. Försök igen.",
+    "noCode": "Har du en fråga?",
+    "writeUs": "Skriv till oss på"
+  },
   "about": {
     "metaTitle": "Om oss",
     "metaDescription": "Upptäck Queue Park: varifrån kötiderna kommer, hur favoriter fungerar, kötidsprognoser, väder och alla funktioner.",

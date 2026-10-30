@@ -202,6 +202,19 @@
     "retry": "Opnieuw proberen",
     "backHome": "Terug naar start"
   },
+  "accessGate": {
+    "metaTitle": "Onderhoud",
+    "description": "Oeps! Queue Park is momenteel in onderhoud. Kom later nog eens terug, of vul je toegangscode in als je er een hebt.",
+    "codeLabel": "Toegangscode",
+    "inputLabel": "Toegangscode van {length} cijfers",
+    "checking": "Controleren…",
+    "open": "Welkom!",
+    "wrong": "Dat is niet de juiste code.",
+    "throttled": "Te veel pogingen. Probeer het over een paar minuten opnieuw.",
+    "failed": "We konden de code niet controleren. Probeer het opnieuw.",
+    "noCode": "Een vraag?",
+    "writeUs": "Schrijf ons op"
+  },
   "about": {
     "metaTitle": "Over ons",
     "metaDescription": "Ontdek Queue Park: waar de wachttijden vandaan komen, hoe favorieten werken, wachttijdvoorspellingen, het weer en alle functies.",
