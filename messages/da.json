@@ -641,6 +641,7 @@
   "poiDetail": {
     "openFor": "Se detaljer om {poi}",
     "menuTitle": "Menukort",
+    "menusTitle": "Menukort",
     "menuAction": "Se menukortet",
     "orderAction": "Se menukortet og bestil"
   },

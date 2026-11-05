@@ -641,6 +641,7 @@
   "poiDetail": {
     "openFor": "Ver la ficha de {poi}",
     "menuTitle": "Carta",
+    "menusTitle": "Cartas",
     "menuAction": "Ver la carta",
     "orderAction": "Ver la carta y pedir"
   },

@@ -62,6 +62,7 @@ function poi(
     kind,
     zone,
     menu: null,
+    menus: null,
     fearLevel: null,
     price: null,
     ...extra,
@@ -162,6 +163,7 @@ function hoursOf(
     banner: null,
     zone,
     menu: null,
+    menus: null,
     fearLevel: null,
     price: null,
     slots: slots.map(([open, close]) => ({
