@@ -641,6 +641,7 @@
   "poiDetail": {
     "openFor": "Ver a ficha de {poi}",
     "menuTitle": "Ementa",
+    "menusTitle": "Ementas",
     "menuAction": "Ver a ementa",
     "orderAction": "Ver a ementa e pedir"
   },

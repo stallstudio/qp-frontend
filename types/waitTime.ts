@@ -14,6 +14,9 @@ export type TimeSlot = {
  */
 export type WaitRange = { min: number; max: number | null };
 
+/** Une carte d'un restaurant : URL absolue, et le titre de la source s'il en pose un. */
+export type PoiMenuLink = { url: string; label: string | null };
+
 export type QueueTime = {
   type: string;
   /**
@@ -96,6 +99,12 @@ export type WaitTime = {
    * déclarer l'hôte de chaque parc ; un PDF n'y a rien à faire.
    */
   menu: string | null;
+  /**
+   * Toutes les cartes, quand la source en publie PLUSIEURS — `null` sinon,
+   * c'est-à-dire presque partout, et toujours sur une attraction (même raison
+   * que `menu`). La première est `menu`. Voir `readPoiMenus`.
+   */
+  menus: PoiMenuLink[] | null;
   /**
    * Niveau de peur d'une maison hantée, de 1 à 5, et son prix d'accès en plus
    * de l'entrée — `null` quand la source n'en publie pas, c'est-à-dire presque

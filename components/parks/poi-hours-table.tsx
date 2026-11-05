@@ -100,6 +100,7 @@ export default function PoiHoursTable({
       kind: item.kind,
       zone: item.zone,
       menu: item.menu,
+      menus: item.menus,
       fearLevel: item.fearLevel,
       price: item.price,
     };

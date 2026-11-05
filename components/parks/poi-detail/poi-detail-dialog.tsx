@@ -225,7 +225,46 @@ export default function PoiDetailDialog({
                   au-dessus d'un bouton « Voir la carte » disait deux fois la
                   même chose. Même forme que la ligne d'alerte d'une
                   attraction. */}
-              {target.menu && (
+              {/* ⚠️ Plusieurs cartes (Tivoli Gardens : déjeuner, dîner,
+                  enfants…) : le même cadre, mais une PASTILLE par carte sous
+                  le titre, qui passent à la ligne. Cinq boutons pleine
+                  largeur doubleraient la hauteur du popup pour cinq liens.
+                  Le libellé est celui de la source, non traduit — la seule
+                  chose qui distingue deux cartes ; sans libellé, le nôtre.
+                  `menus[0]` EST `menu` : la liste remplace la ligne. */}
+              {target.menus ? (
+                <div className="flex items-start gap-3 rounded-2xl border bg-muted/40 px-3 py-2.5">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-restaurant/15 text-restaurant">
+                    <BookOpenText className="size-4" />
+                  </span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-2 pt-1.5">
+                    <span className="text-sm font-semibold">
+                      {t("menusTitle")}
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {target.menus.map((link) => {
+                        const LinkIcon = isOrderPage(link.url)
+                          ? Smartphone
+                          : ExternalLink;
+                        return (
+                          <a
+                            key={link.url}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex max-w-full items-center gap-1 rounded-full border bg-background px-2.5 py-1 text-xs font-medium transition-colors hover:bg-muted"
+                          >
+                            <span className="truncate">
+                              {link.label ?? t("menuTitle")}
+                            </span>
+                            <LinkIcon className="size-3 shrink-0 text-muted-foreground" />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : target.menu && (
                 // Nouvel onglet, et `noopener` comme tout lien sortant.
                 <a
                   href={target.menu}

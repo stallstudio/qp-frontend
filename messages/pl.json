@@ -641,6 +641,7 @@
   "poiDetail": {
     "openFor": "Zobacz szczegóły: {poi}",
     "menuTitle": "Menu",
+    "menusTitle": "Menu",
     "menuAction": "Zobacz menu",
     "orderAction": "Zobacz menu i zamów"
   },

@@ -641,6 +641,7 @@
   "poiDetail": {
     "openFor": "Details van {poi} bekijken",
     "menuTitle": "Menukaart",
+    "menusTitle": "Menukaarten",
     "menuAction": "Menukaart bekijken",
     "orderAction": "Menukaart bekijken en bestellen"
   },
