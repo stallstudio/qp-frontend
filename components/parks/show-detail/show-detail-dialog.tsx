@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DETAIL_DIALOG_CLASS } from "@/lib/detail-dialog";
 import type { ShowTime } from "@/types/show";
 import ImageSection from "@/components/parks/attraction-detail/image-section";
 import {
@@ -174,7 +175,7 @@ export default function ShowDetailDialog({
   return (
     <Dialog open={target !== null} onOpenChange={onOpenChange}>
       <DialogContent
-        className="flex max-h-[88dvh] flex-col gap-0 overflow-hidden rounded-4xl border-0 p-0 sm:max-w-md"
+        className={DETAIL_DIALOG_CLASS}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {target && (

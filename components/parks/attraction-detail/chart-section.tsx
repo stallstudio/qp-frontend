@@ -12,6 +12,14 @@ import { rangeLookup } from "@/lib/wait-range";
 import type { RideHistoryResponse } from "@/types/rideHistory";
 import type { WaitTimeStatus } from "@/types/waitTime";
 
+// Cadre de hauteur FIXE, commun à tous les états de la section (voir plus bas).
+// Mesuré au 2026-11-07, sur un iPhone en français : en-tête 43 px (la légende
+// passe sous le titre), conseil 59 px (deux lignes), note 33 px, trois écarts
+// de 8 px — 159 px autour de la courbe, qui garde donc 131 px avec un conseil
+// et 198 px sans. Dès `sm`, la légende tient à côté du titre et la note sur une
+// ligne : 157 px de courbe avec conseil, 224 px sans.
+const CHART_FRAME = "flex h-[290px] flex-col sm:h-[280px]";
+
 type ChartSectionProps = {
   // Historique + prévision, récupérés et rafraîchis par le popup parent (partagé
   // avec la section Alertes qui a besoin du statut d'indisponibilité).
@@ -98,11 +106,16 @@ export default function ChartSection({
   const t = useTranslations("attractionDetail");
   const { is12Hour } = useTimeFormat();
 
-  // Hauteur réservée (≈ graphique 180px + en-tête + note) : identique pour tous
-  // les états afin que la taille du popup ne « saute » pas.
+  // ⚠️ UNE hauteur pour tous les états (2026-11-07) : chargement, message,
+  // graphique avec ou sans conseil, note sur une ou deux lignes. Le popup ne
+  // change donc pas de taille quand l'historique arrive. Avant, l'attente
+  // réservait 196 px et le graphique en prenait 220 à 270 : le popup grandissait
+  // juste après l'ouverture, et sautait vers le haut tant qu'il était centré.
+  // C'est la courbe qui absorbe l'écart (`flex-1`) : plus haute sans conseil,
+  // plus basse avec, ou quand la légende passe sur deux lignes.
   if (loading && !data) {
     return (
-      <div className="flex h-[196px] sm:h-[226px] items-center justify-center">
+      <div className={`${CHART_FRAME} items-center justify-center`}>
         <Loader2 className="size-5 animate-spin text-muted-foreground" />
       </div>
     );
@@ -129,7 +142,7 @@ export default function ChartSection({
         ? t("chartUnavailable")
         : t("chartEmpty");
     return (
-      <div className="flex h-[196px] sm:h-[226px] items-center justify-center text-center text-sm text-muted-foreground">
+      <div className={`${CHART_FRAME} items-center justify-center text-center text-sm text-muted-foreground`}>
         {message}
       </div>
     );
@@ -143,7 +156,7 @@ export default function ChartSection({
     : null;
 
   return (
-    <div className="flex min-h-[196px] flex-col gap-2 sm:min-h-[226px] *:shrink-0">
+    <div className={`${CHART_FRAME} gap-2 *:shrink-0`}>
       {/* Le titre et la légende sur une ligne : la légende sous la courbe
           prenait une ligne de plus pour trois mots. */}
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
@@ -196,6 +209,7 @@ export default function ChartSection({
         trailLabel={t("chartForecastPast")}
         waitCap={data.meta.waitCap}
         valueRanges={data.meta.valueRanges}
+        className="h-auto min-h-24 shrink! flex-1 sm:h-auto"
         threshold={
           threshold != null
             ? {
