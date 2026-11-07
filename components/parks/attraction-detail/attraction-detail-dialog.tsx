@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DETAIL_DIALOG_CLASS } from "@/lib/detail-dialog";
 import type { WaitTime } from "@/types/waitTime";
 import { useRideHistory } from "@/hooks/useRideHistory";
 import { getPrimaryQueue } from "@/lib/poi-list";
@@ -176,7 +177,7 @@ export default function AttractionDetailDialog({
           quoi qu'il arrive au montage des sections asynchrones (alerte,
           graphique). */}
       <DialogContent
-        className="flex max-h-[88dvh] flex-col gap-0 overflow-hidden rounded-4xl border-0 p-0 sm:max-w-md"
+        className={DETAIL_DIALOG_CLASS}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {target && (

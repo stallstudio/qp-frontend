@@ -59,6 +59,12 @@ type WaitTimeChartProps = {
    */
   compact?: boolean;
   /**
+   * Classes du conteneur, en remplacement de la hauteur par défaut : le popup
+   * d'attraction donne au graphique la place qui reste dans un cadre de
+   * hauteur fixe (voir `ChartSection`).
+   */
+  className?: string;
+  /**
    * Seuil d'alerte à matérialiser (ligne horizontale verte) : celui qu'on règle
    * dans le popup, ou celui de l'alerte active. Hors de l'axe, il n'est pas
    * tracé — l'axe ne s'étire pas pour lui.
@@ -147,6 +153,7 @@ export default function WaitTimeChart({
   valueRanges,
   compact = false,
   threshold,
+  className,
 }: WaitTimeChartProps) {
   const { is12Hour } = useTimeFormat();
   const rangeOf = useMemo(() => rangeLookup(valueRanges), [valueRanges]);
@@ -642,7 +649,11 @@ export default function WaitTimeChart({
   return (
     <ChartContainer
       config={chartConfig}
-      className={cn("aspect-auto w-full", compact ? "h-[132px]" : "h-[150px] sm:h-[180px]")}
+      className={cn(
+        "aspect-auto w-full",
+        compact ? "h-[132px]" : "h-[150px] sm:h-[180px]",
+        className,
+      )}
     >
       {/* Marge droite = demi-libellé d'heure. La graduation de FERMETURE est
           posée pile sur le bord droit de la zone de tracé : sans cette marge,
