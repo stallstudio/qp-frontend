@@ -18,6 +18,11 @@ import type { WaitTimeStatus } from "@/types/waitTime";
 // de 8 px — 159 px autour de la courbe, qui garde donc 131 px avec un conseil
 // et 198 px sans. Dès `sm`, la légende tient à côté du titre et la note sur une
 // ligne : 157 px de courbe avec conseil, 224 px sans.
+//
+// ⚠️ La courbe ne grandit pas au-delà de 180 px (200 px dès `sm`) : sans
+// prévision, ni conseil ni note, elle prenait tout le cadre (≈ 250 px, relevé
+// le 2026-11-11 sur Mission Ferrari) et écrasait le popup. Le reste du cadre
+// reste vide, en bas, sous le dernier bloc : il se lit comme une marge.
 const CHART_FRAME = "flex h-[290px] flex-col sm:h-[280px]";
 
 type ChartSectionProps = {
@@ -209,7 +214,7 @@ export default function ChartSection({
         trailLabel={t("chartForecastPast")}
         waitCap={data.meta.waitCap}
         valueRanges={data.meta.valueRanges}
-        className="h-auto min-h-24 shrink! flex-1 sm:h-auto"
+        className="h-auto max-h-[180px] min-h-24 shrink! flex-1 sm:h-auto sm:max-h-[200px]"
         threshold={
           threshold != null
             ? {
