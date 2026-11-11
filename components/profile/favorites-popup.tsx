@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { AnimatePresence, motion } from "motion/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Loader2, Star } from "lucide-react";
 import {
   Dialog,
@@ -86,6 +86,8 @@ export default function FavoritesPopup({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("profile");
+  // Les noms des POI viennent traduits de l'API, dans la langue de la page.
+  const locale = useLocale();
   const { favorites: keys, toggle } = useFavorites(scope);
 
   // Noms résolus, quel que soit le namespace : un parc n'a pas de `parkName`.
@@ -106,9 +108,11 @@ export default function FavoritesPopup({
     let cancelled = false;
     setLoading(true);
     axios
-      .post<ResolvedFavorites>("/api/user/favorites/resolve", {
-        [scope]: list,
-      })
+      .post<ResolvedFavorites>(
+        "/api/user/favorites/resolve",
+        { [scope]: list },
+        { params: { locale } },
+      )
       .then(({ data }) => {
         if (cancelled) return;
         const resolved: { key: string; name: string; parkName?: string }[] =

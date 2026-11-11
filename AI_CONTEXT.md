@@ -117,6 +117,28 @@ types/               # api.ts, waitTime.ts, show.ts, openingHour.ts, park.ts, gr
 - Navigation localisée : importer `Link`, `useRouter`, `usePathname`,
   `redirect` depuis `@/i18n/routing` (pas `next/link`) pour préserver la locale.
 
+### Noms des POI dans la langue du visiteur (2026-11-11)
+
+Les noms des attractions, spectacles, restaurants… (et leur zone, leur salle)
+viennent **traduits de l'API Dispatch** quand l'API du PARC publie la langue de
+la page ; sinon dans la langue principale du parc. Queue Park ne traduit rien
+lui-même : il passe `?locale=` à chaque appel qui rend des noms —
+`buildParkLiveData*`, `resolveRideForViewer`, `getRideIdentity` (`lib/dispatch.ts`),
+le rafraîchissement client (`park-page-client.tsx` → `/api/park/{parc}`, qui
+relaie) et la popup des favoris (`/api/user/favorites/resolve`, qui relaie). Un
+nouvel appel qui affiche des noms de POI doit faire de même.
+
+⚠️ **`ShowTime.showName` est traduit : ce n'est plus une clé.** Favoris de
+spectacles (`{parc}:{nom}`) et rappels s'indexent sur `showKey` (le nom
+principal, stable), avec `showKeyAliases` pour retrouver un favori posé sous un
+nom d'une autre langue — voir `lib/show-keys.ts`. Les attractions et les autres
+POI ne sont pas concernés : leurs clés sont des `id`.
+
+Les instantanés de la base utilisateurs (`Alert.rideName`, `ShowReminder.showName`)
+gardent ce qu'on y a écrit : le nom affiché à la création pour une alerte, la
+clé (nom principal) pour un rappel — d'où un push de rappel dans la langue
+principale du parc.
+
 ## La table `pois` (migration du 2026-08-21)
 
 `rides` et `shows` ont fusionné en une seule table `pois`, discriminée par

@@ -33,7 +33,13 @@ export async function POST(request: NextRequest) {
   const { userId, response } = await requireUserId();
   if (!userId) return response || NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // `?locale=` relayé tel quel : les noms des POI dans la langue de la page.
+  const locale = request.nextUrl.searchParams.get("locale");
   return relay(
-    await dispatchFetch("/v1/favorites/resolve", { raw: await request.text() }),
+    await dispatchFetch(
+      "/v1/favorites/resolve" +
+        (locale ? `?locale=${encodeURIComponent(locale)}` : ""),
+      { raw: await request.text() },
+    ),
   );
 }

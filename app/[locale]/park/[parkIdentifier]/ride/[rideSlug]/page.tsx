@@ -50,8 +50,12 @@ type Resolved =
  * L'état `error` (API injoignable) est distingué de `not-found` : une panne
  * passagère ne doit pas répondre 404.
  */
-async function resolve(parkIdentifier: string, slug: string): Promise<Resolved> {
-  const resolved = await resolveRideForViewer(parkIdentifier, slug);
+async function resolve(
+  parkIdentifier: string,
+  slug: string,
+  locale: string,
+): Promise<Resolved> {
+  const resolved = await resolveRideForViewer(parkIdentifier, slug, locale);
   if (resolved === undefined) return { status: "error" };
   if (resolved === null) return { status: "not-found" };
   return { status: "ok", ...resolved };
@@ -63,7 +67,7 @@ export async function generateMetadata({
   const { parkIdentifier, rideSlug: slug, locale } = await params;
   const t = await getTranslations({ locale, namespace: "metadata" });
 
-  const resolved = await resolve(parkIdentifier, slug);
+  const resolved = await resolve(parkIdentifier, slug, locale);
   if (resolved.status !== "ok") return { title: t("title") };
 
   const { park, ride } = resolved;
@@ -103,8 +107,8 @@ export default async function RideDeepLinkPage({ params }: PageParams) {
   const tPark = await getTranslations({ locale, namespace: "parkPage" });
 
   const [resolved, live] = await Promise.all([
-    resolve(parkIdentifier, slug),
-    buildParkLiveDataForViewer(parkIdentifier),
+    resolve(parkIdentifier, slug, locale),
+    buildParkLiveDataForViewer(parkIdentifier, locale),
   ]);
 
   if (resolved.status === "not-found") notFound();

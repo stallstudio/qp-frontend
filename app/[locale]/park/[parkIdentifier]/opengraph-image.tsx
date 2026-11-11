@@ -42,7 +42,7 @@ export default async function Image({
     null;
 
   try {
-    const live = await buildParkLiveData(parkIdentifier);
+    const live = await buildParkLiveData(parkIdentifier, locale);
 
     if (live.status === "ok") {
       parkName = live.data.name;

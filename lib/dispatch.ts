@@ -116,6 +116,15 @@ async function dataOf<T>(response: Response): Promise<T> {
 
 const segment = encodeURIComponent;
 
+/**
+ * `?locale=…` : les noms des POI (attractions, spectacles, restaurants…), leur
+ * zone et leur salle dans la langue du visiteur, quand l'API du parc publie
+ * cette langue — sinon dans la langue principale du parc. C'est l'API Dispatch
+ * qui choisit (`lib/poi-translations.ts`) ; on ne fait que lui passer la langue.
+ */
+const localeQuery = (locale?: string) =>
+  locale ? `?locale=${segment(locale)}` : "";
+
 // ————————————————————————————— Pages —————————————————————————————
 
 /**
@@ -153,11 +162,14 @@ export const resolveParkForViewer = cache((identifier: string) =>
 /**
  * Le parc et l'attraction d'un lien profond, tels que les voit le visiteur.
  * `slug` est le segment d'URL (`123-space-mountain`, ou un ancien nom).
+ * `ride.name` est dans la langue `locale` quand le parc la publie.
  */
 export const resolveRideForViewer = cache(
-  (identifier: string, slug: string) =>
+  (identifier: string, slug: string, locale?: string) =>
     lookup<{ park: ParkIdentity; ride: RideIdentity }>(
-      dispatchFetchForViewer(`/v1/parks/${segment(identifier)}/rides/${segment(slug)}`),
+      dispatchFetchForViewer(
+        `/v1/parks/${segment(identifier)}/rides/${segment(slug)}${localeQuery(locale)}`,
+      ),
     ),
 );
 
@@ -166,9 +178,11 @@ export const resolveRideForViewer = cache(
  * partage).
  */
 export const getRideIdentity = cache(
-  async (identifier: string, rideId: number) => {
+  async (identifier: string, rideId: number, locale?: string) => {
     const resolved = await lookup<{ park: ParkIdentity; ride: RideIdentity }>(
-      dispatchFetch(`/v1/parks/${segment(identifier)}/rides/${rideId}`),
+      dispatchFetch(
+        `/v1/parks/${segment(identifier)}/rides/${rideId}${localeQuery(locale)}`,
+      ),
     );
     return resolved && resolved.ride;
   },
@@ -192,13 +206,20 @@ async function liveResult(response: Promise<Response>): Promise<ParkLiveResult> 
  * ⚠️ Sans `X-Viewer-Ip` : la blacklist des pages est déjà appliquée par
  * `middleware.ts`, et une vignette n'a pas de visiteur.
  */
-export const buildParkLiveData = cache((identifier: string) =>
-  liveResult(dispatchFetch(`/v1/parks/${segment(identifier)}/live`)),
+export const buildParkLiveData = cache((identifier: string, locale?: string) =>
+  liveResult(
+    dispatchFetch(`/v1/parks/${segment(identifier)}/live${localeQuery(locale)}`),
+  ),
 );
 
 /** Les données live d'un parc tel que le voit le visiteur (pages). */
-export const buildParkLiveDataForViewer = cache((identifier: string) =>
-  liveResult(dispatchFetchForViewer(`/v1/parks/${segment(identifier)}/live`)),
+export const buildParkLiveDataForViewer = cache(
+  (identifier: string, locale?: string) =>
+    liveResult(
+      dispatchFetchForViewer(
+        `/v1/parks/${segment(identifier)}/live${localeQuery(locale)}`,
+      ),
+    ),
 );
 
 /** Les parcs affichables, pour le sitemap. Lève si l'API ne répond pas. */

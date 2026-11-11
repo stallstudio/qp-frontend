@@ -70,7 +70,7 @@ export default async function ParkPage({
   // affiché sans attendre un aller-retour du navigateur.
   const [park, live] = await Promise.all([
     resolveParkForViewer(parkIdentifier),
-    buildParkLiveDataForViewer(parkIdentifier),
+    buildParkLiveDataForViewer(parkIdentifier, locale),
   ]);
 
   // Vrai 404 HTTP, au lieu d'un 200 puis d'une redirection côté client.

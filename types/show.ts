@@ -12,7 +12,25 @@ export interface ShowTime {
    * `lib/event-pois.ts` de l'API Dispatch).
    */
   poiId: number;
+  /**
+   * Le nom À AFFICHER, dans la langue de la page quand la source du parc la
+   * publie (l'API traduit sur `?locale=`).
+   *
+   * ⚠️ **Ce n'est pas une clé** : favoris et rappels passent par `showKey`
+   * (voir `lib/show-keys.ts`).
+   */
   showName: string;
+  /**
+   * Le nom PRINCIPAL du spectacle, le même dans toutes les langues : la clé
+   * des favoris (`{parc}:{showKey}`) et des rappels. Posé par l'API Dispatch
+   * sur toute réponse live depuis le 2026-11-11.
+   */
+  showKey?: string;
+  /**
+   * Les noms du spectacle dans les autres langues que publie sa source : un
+   * favori posé sous l'un d'eux se retrouve (voir `showFavKeys`).
+   */
+  showKeyAliases?: string[];
   duration: number;
   schedules: ShowSchedule[];
   /**

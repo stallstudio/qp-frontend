@@ -54,11 +54,11 @@ export default async function Image({
 
     if (rideId !== null && park) {
       parkName = park.name;
-      const ride = await getRideIdentity(park.identifier, rideId);
+      const ride = await getRideIdentity(park.identifier, rideId, locale);
       if (ride) {
         rideName = ride.name;
 
-        const live = await buildParkLiveData(parkIdentifier);
+        const live = await buildParkLiveData(parkIdentifier, locale);
         if (live.status === "ok") {
           const standby = live.data.waitTimes
             .find((wt) => wt.rideId === ride.id)

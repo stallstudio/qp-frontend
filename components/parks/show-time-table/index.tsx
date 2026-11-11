@@ -10,6 +10,7 @@ import {
 } from "@/components/providers/notifications-provider";
 import ShowDetailDialog from "@/components/parks/show-detail/show-detail-dialog";
 import type { ShowTime } from "@/types/show";
+import { showFavKeys, showKeyOf } from "@/lib/show-keys";
 
 import { ShowTimeTableProps } from "./types";
 import { compareShowSortKeys, showSortKey } from "./utils";
@@ -29,7 +30,10 @@ export default function ParkShowTimeTable({
   // isFavorite sert à épingler les favoris en tête ; le (dé)favori se fait
   // désormais depuis le popup, comme pour les attractions.
   const { isFavorite } = useFavorites("shows");
-  const favKey = (showName: string) => `${parkIdentifier}:${showName}`;
+  // ⚠️ Par la CLÉ du spectacle, pas par `showName`, qui est traduit : voir
+  // `lib/show-keys.ts`.
+  const isFavoriteShow = (show: ShowTime) =>
+    showFavKeys(parkIdentifier, show).some(isFavorite);
 
   // Spectacles avec un rappel programmé : une cloche les signale dans la liste.
   const { reminderShowKeys } = useNotifications();
@@ -59,7 +63,7 @@ export default function ParkShowTimeTable({
     const keyed = alphabetical.map((item, index) => ({
       ...item,
       index,
-      fav: isFavorite(favKey(item.show.showName)),
+      fav: isFavoriteShow(item.show),
       key: now === null ? null : showSortKey(item.show, timezone, now),
     }));
 
@@ -77,7 +81,7 @@ export default function ParkShowTimeTable({
       name: show.showName,
       favorite: fav,
       bellLabel: reminderShowKeys.has(
-        showReminderKey(parkIdentifier, show.showName),
+        showReminderKey(parkIdentifier, showKeyOf(show)),
       )
         ? tShowDetail("reminderScheduled")
         : undefined,
@@ -111,7 +115,7 @@ export default function ParkShowTimeTable({
           items={unscheduled.map((show) => ({
             id: show.poiId,
             name: show.showName,
-            favorite: isFavorite(favKey(show.showName)),
+            favorite: isFavoriteShow(show),
           }))}
           heading={rows.length > 0 ? tShowDetail("unscheduledTitle") : null}
           ariaLabel={(show) => tShowDetail("openFor", { show })}

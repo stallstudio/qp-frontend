@@ -7,7 +7,7 @@ import axios from "axios";
 import { useRouter } from "@/i18n/routing";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import MainCard from "@/components/parks/main-card";
 import { ParkLiveData } from "@/types/api";
 import ReportProblemDialog from "@/components/parks/report-problem-dialog";
@@ -37,6 +37,8 @@ export default function ParkPageClient({
   initialRideId?: number | null;
 }) {
   const t = useTranslations("errors");
+  // Les noms des POI viennent traduits de l'API, dans la langue de la page.
+  const locale = useLocale();
   const router = useRouter();
   const [parkData, setParkData] = useState<ParkLiveData | null>(initialData);
   const [loading, setLoading] = useState(initialData === null);
@@ -57,6 +59,7 @@ export default function ParkPageClient({
       try {
         const response = await axios.get<{ data: ParkLiveData }>(
           `/api/park/${parkIdentifier}`,
+          { params: { locale } },
         );
         setParkData(response.data.data);
         hasLoadedData.current = true;
@@ -82,7 +85,7 @@ export default function ParkPageClient({
         if (showLoading) setLoading(false);
       }
     },
-    [parkIdentifier, router, t],
+    [parkIdentifier, locale, router, t],
   );
 
   useEffect(() => {

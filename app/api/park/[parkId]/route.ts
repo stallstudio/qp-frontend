@@ -47,8 +47,11 @@ export async function GET(
     // masqué recevrait un 404 et le client renverrait à l'accueil (cf.
     // `fetchParkData` dans park-page-client) — la page s'ouvrirait pour se
     // refermer soixante secondes plus tard.
+    // `?locale=` relayé tel quel : les noms des POI dans la langue de la page.
+    const locale = new URL(request.url).searchParams.get("locale");
     const response = await dispatchFetchForViewer(
-      `/v1/parks/${encodeURIComponent(parkId)}/live`,
+      `/v1/parks/${encodeURIComponent(parkId)}/live` +
+        (locale ? `?locale=${encodeURIComponent(locale)}` : ""),
       { viewer: { ip: ipAddress, userAgent } },
     );
     log(response.status);

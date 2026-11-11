@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { DETAIL_DIALOG_CLASS } from "@/lib/detail-dialog";
 import type { ShowTime } from "@/types/show";
+import { useFavorites } from "@/hooks/useFavorites";
+import { showFavKey, showKeyOf } from "@/lib/show-keys";
 import ImageSection from "@/components/parks/attraction-detail/image-section";
 import {
   Stat,
@@ -163,6 +165,9 @@ export default function ShowDetailDialog({
   // CDA) : dans le bandeau s'ils y tiennent, dans le corps sinon. Une maison
   // de Bellewaerde, sans séance, n'a qu'eux pour bandeau.
   const facts = usePoiFacts(target?.fearLevel ?? null, target?.price ?? null);
+  // La clé de favori du spectacle — pas son nom affiché, traduit : voir
+  // `lib/show-keys.ts`.
+  const { isFavorite } = useFavorites("shows");
   const factsInStrip = factsFitInStrip(facts, cells.length);
   const strip =
     cells.length > 0 || factsInStrip ? (
@@ -193,7 +198,7 @@ export default function ShowDetailDialog({
               <ImageSection
                 title={target.showName}
                 favNamespace="shows"
-                favKey={`${parkIdentifier}:${target.showName}`}
+                favKey={showFavKey(parkIdentifier, target, isFavorite)}
                 // Le quartier du parc quand la source le publie ; à défaut la
                 // SALLE, qui répond à la même question d'un cran plus près
                 // (« Amfiteatr Colosseo ») ; rien du tout sinon. 109 des 134
@@ -210,7 +215,7 @@ export default function ShowDetailDialog({
             {/* Corps défilant : séances du jour + rappel. `key` : changer de
                 spectacle sans fermer le popup repart d'un rappel replié. */}
             <div
-              key={target.showName}
+              key={showKeyOf(target)}
               className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-5 scrollbar-hide *:shrink-0"
             >
               {/* Peur et prix d'une maison hantée, quand le bandeau est
@@ -223,7 +228,8 @@ export default function ShowDetailDialog({
                 <ShowSchedulePanel
                   parkIdentifier={parkIdentifier}
                   parkName={parkName}
-                  showName={target.showName}
+                  // La CLÉ des rappels, pas le nom affiché : voir `lib/show-keys.ts`.
+                  showName={showKeyOf(target)}
                   slots={slots}
                 />
               ) : (
